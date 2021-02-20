@@ -204,55 +204,55 @@ private:
 	bool alphaBlendActive(int index, const Attachments &attachments, bool fragmentContainsKill) const;
 	bool colorWriteActive(const Attachments &attachments) const;
 
-	const PipelineLayout *pipelineLayout;
-	const bool robustBufferAccess = true;
+	const PipelineLayout *pipelineLayout = nullptr;
+	const bool robustBufferAccess = false;
 	uint32_t dynamicStateFlags = 0;
-	VkPrimitiveTopology topology;
+	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
-	VkProvokingVertexModeEXT provokingVertexMode;
+	VkProvokingVertexModeEXT provokingVertexMode = VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
 
-	bool stencilEnable;
-	VkStencilOpState frontStencil;
-	VkStencilOpState backStencil;
-
-	// Pixel processor states
-	VkCullModeFlags cullMode;
-	VkFrontFace frontFace;
-	VkPolygonMode polygonMode;
-	VkLineRasterizationModeEXT lineRasterizationMode;
-
-	float constantDepthBias;
-	float slopeDepthBias;
-	float depthBiasClamp;
-	float minDepthBounds;
-	float maxDepthBounds;
-	bool depthRangeUnrestricted;
+	bool stencilEnable = false;
+	VkStencilOpState frontStencil = {};
+	VkStencilOpState backStencil = {};
 
 	// Pixel processor states
-	bool rasterizerDiscard;
-	bool depthBoundsTestEnable;
-	bool depthBufferEnable;
-	VkCompareOp depthCompareMode;
-	bool depthWriteEnable;
-	bool depthClampEnable;
-	bool depthClipEnable;
+	VkCullModeFlags cullMode = 0;
+	VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL;
+	VkLineRasterizationModeEXT lineRasterizationMode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
 
-	float lineWidth;
+	float constantDepthBias = 0.0f;
+	float slopeDepthBias = 0.0f;
+	float depthBiasClamp = 0.0f;
+	float minDepthBounds = 0.0f;
+	float maxDepthBounds = 0.0f;
+	bool depthRangeUnrestricted = false;
 
-	int colorWriteMask[sw::RENDERTARGETS];  // RGBA
-	unsigned int multiSampleMask;
-	int sampleCount;
-	bool alphaToCoverage;
+	// Pixel processor states
+	bool rasterizerDiscard = false;
+	bool depthBoundsTestEnable = false;
+	bool depthBufferEnable = false;
+	VkCompareOp depthCompareMode = VK_COMPARE_OP_NEVER;
+	bool depthWriteEnable = false;
+	bool depthClampEnable = false;
+	bool depthClipEnable = false;
+
+	float lineWidth = 0.0f;
+
+	int colorWriteMask[sw::RENDERTARGETS] = {};  // RGBA
+	unsigned int multiSampleMask = 0;
+	int sampleCount = 0;
+	bool alphaToCoverage = false;
 
 	bool sampleShadingEnable = false;
 	float minSampleShading = 0.0f;
 
 	bool primitiveRestartEnable = false;
-	VkRect2D scissor;
-	VkViewport viewport;
-	sw::float4 blendConstants;
+	VkRect2D scissor = {};
+	VkViewport viewport = {};
+	sw::float4 blendConstants = {};
 
-	BlendState blendState[sw::RENDERTARGETS];
+	BlendState blendState[sw::RENDERTARGETS] = {};
 };
 
 }  // namespace vk
