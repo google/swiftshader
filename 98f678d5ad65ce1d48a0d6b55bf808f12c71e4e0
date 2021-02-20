@@ -35,6 +35,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d9b2fcf_9981e85a",
+        "filename": "src/Reactor/Nucleus.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-20T03:49:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf24823b_648765ba",
+      "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d401e5d0_244f0da6",
@@ -58,6 +76,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a9acf5a6_9099587d",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1017,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-20T03:49:06Z",
+      "side": 1,
+      "message": "Thanks for catching that!",
+      "parentUuid": "d401e5d0_244f0da6",
+      "range": {
+        "startLine": 1017,
+        "startChar": 26,
+        "endLine": 1017,
+        "endChar": 65
+      },
+      "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0330a060_3b24aab5",
@@ -71,6 +113,24 @@
       "writtenOn": "2021-02-19T22:08:07Z",
       "side": 1,
       "message": "Cool!",
+      "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e6ba77d7_ec67dd5d",
+        "filename": "tests/ReactorUnitTests/ReactorUnitTests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-20T03:49:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0330a060_3b24aab5",
       "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
