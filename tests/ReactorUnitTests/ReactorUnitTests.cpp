@@ -467,7 +467,6 @@ TEST(ReactorUnitTests, PointerToPointer)
 	{
 		Int a = 444;
 		Int b = 555;
-		Int c = 666;
 
 		Pointer<Int> p = &a;
 		Pointer<Pointer<Int>> pp = &p;
