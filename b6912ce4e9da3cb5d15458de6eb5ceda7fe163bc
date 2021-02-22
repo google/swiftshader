@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4215bebc_2bca1a47",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-22T14:15:23Z",
+      "side": 1,
+      "message": "Huh, the key was stored wrong. samplerId and imageViewId were reversed.",
+      "range": {
+        "startLine": 44,
+        "startChar": 53,
+        "endLine": 44,
+        "endChar": 75
+      },
+      "revId": "b6912ce4e9da3cb5d15458de6eb5ceda7fe163bc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
