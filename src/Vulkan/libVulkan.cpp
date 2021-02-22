@@ -3234,7 +3234,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 			case VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID:
 			{
 				auto properties = reinterpret_cast<VkAndroidHardwareBufferUsageANDROID *>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(properties);
+				vk::Cast(physicalDevice)->getProperties(pImageFormatInfo, properties);
 				hasAHBUsage = true;
 			}
 			break;
