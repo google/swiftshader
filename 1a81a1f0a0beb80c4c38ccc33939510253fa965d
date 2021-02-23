@@ -16,6 +16,47 @@
       "message": "PTAL - just realized I was checking the usage flags for the two VK_IMAGE_CREATE_* instead of the create flags.",
       "revId": "1a81a1f0a0beb80c4c38ccc33939510253fa965d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cf213f95_88da3577",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-23T21:31:48Z",
+      "side": 1,
+      "message": "👍",
+      "parentUuid": "48a2f791_b94b8d0c",
+      "revId": "1a81a1f0a0beb80c4c38ccc33939510253fa965d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "269ecbae_d325ccd0",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 3188,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-23T21:31:48Z",
+      "side": 1,
+      "message": "nit: We could pass pImageFormatInfo itself here, instead of just two fields. I don\u0027t think there\u0027s anything the getProperties() function should not have access to.\n\nAnyway, we can still change that if more fields determine the ahb flags, so this is fine too.",
+      "range": {
+        "startLine": 3188,
+        "startChar": 44,
+        "endLine": 3188,
+        "endChar": 92
+      },
+      "revId": "1a81a1f0a0beb80c4c38ccc33939510253fa965d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
