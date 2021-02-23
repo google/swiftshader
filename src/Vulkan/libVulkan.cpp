@@ -320,7 +320,7 @@ static const ExtensionProperties instanceExtensionProperties[] = {
 	{ { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_SPEC_VERSION } },
 #endif
 #ifdef VK_USE_PLATFORM_XCB_KHR
-	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION } },
+	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION }, vk::XcbSurfaceKHR::hasLibXCB() },
 #endif
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 	{ { VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION }, static_cast<bool>(libX11) },
@@ -3656,6 +3656,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateXcbSurfaceKHR(VkInstance instance, const 
 {
 	TRACE("(VkInstance instance = %p, VkXcbSurfaceCreateInfoKHR* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkSurface* pSurface = %p)",
 	      instance, pCreateInfo, pAllocator, pSurface);
+
+	// VUID-VkXcbSurfaceCreateInfoKHR-connection-01310 : connection must point to a valid X11 xcb_connection_t
+	ASSERT(pCreateInfo->connection);
 
 	return vk::XcbSurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
 }

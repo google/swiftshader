@@ -109,6 +109,11 @@ VkExtent2D getWindowSize(xcb_connection_t *connection, xcb_window_t window)
 
 namespace vk {
 
+bool XcbSurfaceKHR::hasLibXCB()
+{
+	return libXcb;
+}
+
 XcbSurfaceKHR::XcbSurfaceKHR(const VkXcbSurfaceCreateInfoKHR *pCreateInfo, void *mem)
     : connection(pCreateInfo->connection)
     , window(pCreateInfo->window)

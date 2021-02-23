@@ -40,6 +40,8 @@ public:
 	virtual void detachImage(PresentImage *image) override;
 	VkResult present(PresentImage *image) override;
 
+	static bool hasLibXCB();
+
 private:
 	xcb_connection_t *connection;
 	xcb_window_t window;
