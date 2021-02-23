@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48a2f791_b94b8d0c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2021-02-23T20:40:30Z",
+      "side": 1,
+      "message": "PTAL - just realized I was checking the usage flags for the two VK_IMAGE_CREATE_* instead of the create flags.",
+      "revId": "1a81a1f0a0beb80c4c38ccc33939510253fa965d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
