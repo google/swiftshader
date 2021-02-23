@@ -261,7 +261,7 @@ void VulkanTester::initialize()
 	std::vector<const char *> extensionNames
 	{
 		VK_KHR_SURFACE_EXTENSION_NAME,
-#if defined(USE_HEADLESS_SURFACE)
+#if USE_HEADLESS_SURFACE
 		    VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME,
 #endif
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
