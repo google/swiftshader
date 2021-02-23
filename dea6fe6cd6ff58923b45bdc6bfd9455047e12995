@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b0b2b40_90072174",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-23T05:19:33Z",
+      "side": 1,
+      "message": "Thanks for taking care of this! Just a couple minor things:",
+      "revId": "dea6fe6cd6ff58923b45bdc6bfd9455047e12995",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "88a19893_0e2e6859",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 717,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-23T05:19:33Z",
+      "side": 1,
+      "message": "nit: Perhaps initialize it with the value from line 720, to make it extra clear that it is never 0?",
+      "range": {
+        "startLine": 717,
+        "startChar": 21,
+        "endLine": 717,
+        "endChar": 22
+      },
+      "revId": "dea6fe6cd6ff58923b45bdc6bfd9455047e12995",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d20392cc_ecb07b40",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 739,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-23T05:19:33Z",
+      "side": 1,
+      "message": "SwiftShader currently doesn\u0027t support this, so if an application did try to use this we would want to know about it.\n\nIdeally I think there should be an assert at the top of this function which checks that vkUsage contains only bits that are supported.",
+      "range": {
+        "startLine": 739,
+        "startChar": 14,
+        "endLine": 739,
+        "endChar": 43
+      },
+      "revId": "dea6fe6cd6ff58923b45bdc6bfd9455047e12995",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
