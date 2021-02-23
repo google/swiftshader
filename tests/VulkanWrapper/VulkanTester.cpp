@@ -168,10 +168,12 @@ std::vector<const char *> getDriverPaths()
 #		if defined(_WIN64)
 	return { "./build/Release_x64/vk_swiftshader.dll",
 		     "./build/Release/vk_swiftshader.dll",
+		     "./build/RelWithDebInfo/vk_swiftshader.dll",
 		     "./vk_swiftshader.dll" };
 #		else
 	return { "./build/Release_Win32/vk_swiftshader.dll",
 		     "./build/Release/vk_swiftshader.dll",
+		     "./build/RelWithDebInfo/vk_swiftshader.dll",
 		     "./vk_swiftshader.dll" };
 #		endif
 #	else

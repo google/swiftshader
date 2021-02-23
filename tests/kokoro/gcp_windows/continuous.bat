@@ -21,47 +21,46 @@ cmake --version
 cmake .. ^
     -G "%CMAKE_GENERATOR_TYPE%" ^
     -Thost=x64 ^
-    "-DCMAKE_BUILD_TYPE=%BUILD_TYPE%" ^
     "-DREACTOR_BACKEND=%REACTOR_BACKEND%" ^
     "-DSWIFTSHADER_LLVM_VERSION=%LLVM_VERSION%" ^
     "-DREACTOR_VERIFY_LLVM_IR=1" ^
     "-DLESS_DEBUG_INFO=%LESS_DEBUG_INFO%" || goto :error
 
-cmake --build . || goto :error
+cmake --build . --config %BUILD_TYPE%   || goto :error
 
 REM Run the unit tests. Some must be run from project root
 cd %SRC% || goto :error
 SET SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1
 
-build\Debug\ReactorUnitTests.exe || goto :error
-build\Debug\gles-unittests.exe || goto :error
-build\Debug\system-unittests.exe || goto :error
-build\Debug\vk-unittests.exe || goto :error
+build\%BUILD_TYPE%\ReactorUnitTests.exe || goto :error
+build\%BUILD_TYPE%\gles-unittests.exe || goto :error
+build\%BUILD_TYPE%\system-unittests.exe || goto :error
+build\%BUILD_TYPE%\vk-unittests.exe || goto :error
 
 REM Incrementally build and run rr::Print unit tests
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_ENABLE_PRINT=1" .. || goto :error
-cmake --build . --target ReactorUnitTests || goto :error
-Debug\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.Print* || goto :error
+cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
+%BUILD_TYPE%\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.Print* || goto :error
 cmake "-DREACTOR_ENABLE_PRINT=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_ASM_FILE and run unit test
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_EMIT_ASM_FILE=1" .. || goto :error
-cmake --build . --target ReactorUnitTests || goto :error
-Debug\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.EmitAsm || goto :error
+cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
+%BUILD_TYPE%\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.EmitAsm || goto :error
 cmake "-DREACTOR_EMIT_ASM_FILE=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_DEBUG_INFO to ensure it builds
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_EMIT_DEBUG_INFO=1" .. || goto :error
-cmake --build . --target ReactorUnitTests || goto :error
+cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
 cmake "-DREACTOR_EMIT_DEBUG_INFO=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_PRINT_LOCATION to ensure it builds
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_EMIT_PRINT_LOCATION=1" .. || goto :error
-cmake --build . --target ReactorUnitTests || goto :error
+cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
 cmake "-DREACTOR_EMIT_PRINT_LOCATION=0" .. || goto :error
 
 exit /b 0
