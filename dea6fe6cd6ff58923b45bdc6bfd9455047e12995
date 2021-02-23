@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "afd5afc5_d11ab332",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 717,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2021-02-23T20:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88a19893_0e2e6859",
+      "range": {
+        "startLine": 717,
+        "startChar": 21,
+        "endLine": 717,
+        "endChar": 22
+      },
+      "revId": "dea6fe6cd6ff58923b45bdc6bfd9455047e12995",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d20392cc_ecb07b40",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-02-23T05:19:33Z",
       "side": 1,
       "message": "SwiftShader currently doesn\u0027t support this, so if an application did try to use this we would want to know about it.\n\nIdeally I think there should be an assert at the top of this function which checks that vkUsage contains only bits that are supported.",
+      "range": {
+        "startLine": 739,
+        "startChar": 14,
+        "endLine": 739,
+        "endChar": 43
+      },
+      "revId": "dea6fe6cd6ff58923b45bdc6bfd9455047e12995",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd6a7934_22eb3892",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 739,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2021-02-23T20:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d20392cc_ecb07b40",
       "range": {
         "startLine": 739,
         "startChar": 14,
