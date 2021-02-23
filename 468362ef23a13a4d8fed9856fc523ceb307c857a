@@ -144,6 +144,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ec8445ec_1928b6ce",
+        "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-23T21:58:13Z",
+      "side": 1,
+      "message": "Oh wait, I did something that removed those comments, I\u0027ll add them back in.",
+      "parentUuid": "9b8e2a29_a56f474e",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 23
+      },
+      "revId": "468362ef23a13a4d8fed9856fc523ceb307c857a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "48e9cd9f_2a2c085d",
         "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
         "patchSetId": 6
