@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "16f3a6c8_ab4f39b3",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-23T18:38:11Z",
+      "side": 1,
+      "message": "Unsolicited review, but you could make \"supported\" default to \"true\" here, and remove the other constructor. I\u0027m not sure if that would fix GCC\u0027s initializer list error.",
+      "revId": "9230827dfa06cd3b32f1021a31d3dc4aa4285445",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
