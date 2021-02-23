@@ -323,7 +323,7 @@ static const ExtensionProperties instanceExtensionProperties[] = {
 	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION } },
 #endif
 #ifdef VK_USE_PLATFORM_XLIB_KHR
-	{ { VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION } },
+	{ { VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION }, static_cast<bool>(libX11) },
 #endif
 #ifdef VK_USE_PLATFORM_WAYLAND_KHR
 	{ { VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME, VK_KHR_WAYLAND_SURFACE_SPEC_VERSION } },
@@ -3674,6 +3674,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateXlibSurfaceKHR(VkInstance instance, const
 {
 	TRACE("(VkInstance instance = %p, VkXlibSurfaceCreateInfoKHR* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkSurface* pSurface = %p)",
 	      instance, pCreateInfo, pAllocator, pSurface);
+
+	// VUID-VkXlibSurfaceCreateInfoKHR-dpy-01313: dpy must point to a valid Xlib Display
+	ASSERT(pCreateInfo->dpy);
 
 	return vk::XlibSurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
 }
