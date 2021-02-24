@@ -16,6 +16,75 @@
       "message": "Great result! Those GLES failures are flakes and would go away after rebasing past https://swiftshader-review.googlesource.com/c/SwiftShader/+/52532",
       "revId": "c2f4aeef58f1753dbff2a725f80dcbd5608ccf13",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e1cd603_439ea1d2",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-24T15:28:50Z",
+      "side": 1,
+      "message": "übernit: I\u0027d probably flip the logic here `if(value \u003e shared-\u003ecounter)` and put the 6 lines below this if, into the if body.",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 29
+      },
+      "revId": "c2f4aeef58f1753dbff2a725f80dcbd5608ccf13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84b69b3a_e1215d82",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-24T15:28:50Z",
+      "side": 1,
+      "message": "nit: Locking another\u0027s mutex is a red flag, especially when there\u0027s another mutex locked. If another bit of code does the double lock in the reverse order, you can deadlock.\nMight be better to split this into two: addDependent() and addDependency()\n\n  void TimelineSemaphore::addDependent(TimelineSemaphore \u0026other, uint64_t waitValue)\n    {\n      marl::lock lock(shared-\u003emutex);\n      shared-\u003edeps.push_back(other.shared);\n    }\n    other.addDependency(shared-\u003eid, waitValue);\n  }\n\n  void TimelineSemaphore::addDependency(uint64_t id, uint64_t waitValue)\n    marl::lock lock(shared-\u003emutex);\n    shared-\u003ewaitMap[id] \u003d waitValue;\n  }\n\nNote that the mutexes are not locked at the same time.",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 36
+      },
+      "revId": "c2f4aeef58f1753dbff2a725f80dcbd5608ccf13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e3e979b_95600da5",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-24T15:28:50Z",
+      "side": 1,
+      "message": "I assume it would be Bad News™ if the waitMap already contained an entry for shared-\u003eid? Maybe add an assert? (As before - lookup once, insert using the iterator)",
+      "range": {
+        "startLine": 114,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 22
+      },
+      "revId": "c2f4aeef58f1753dbff2a725f80dcbd5608ccf13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
