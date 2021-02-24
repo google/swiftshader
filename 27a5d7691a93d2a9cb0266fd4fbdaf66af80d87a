@@ -22,6 +22,30 @@
       },
       "revId": "27a5d7691a93d2a9cb0266fd4fbdaf66af80d87a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2fd03b11_6f8311aa",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 936,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-24T15:10:26Z",
+      "side": 1,
+      "message": "No, it returns the correct number since extensionPropertiesCount is the number of supported extensions.",
+      "parentUuid": "329d31d6_6101ffb6",
+      "range": {
+        "startLine": 936,
+        "startChar": 19,
+        "endLine": 936,
+        "endChar": 25
+      },
+      "revId": "27a5d7691a93d2a9cb0266fd4fbdaf66af80d87a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
