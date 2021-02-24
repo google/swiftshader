@@ -22,6 +22,30 @@
       },
       "revId": "48e5decdb5d22d2fc777f6cf3473713117ad3736",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a40c38de_88e33184",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-24T16:38:42Z",
+      "side": 1,
+      "message": "Yes, it\u0027s related as CMake\u0027s Ninja seems to set different CXX flags related to exceptions. So my plan here was to allow us to enable/disable exceptions on an options variable so that I could force enable it in VulkanWrapper (and dependents). To make this work cleanly, I re-introduced SWIFTSHADER_COMPILE_OPTIONS in VulkanWrapper -- I had removed this in the past because of the exceptions disabling that was embedded in it.\n\nHaving said all that, I had already thought to split up the change into \"CMake: improve exception enable/disable\" and \"Kokoro: use Ninja for Windows builds\".\n\nAt this point, this change is not ready, though. Couple of things left:\n\n1. For some reason, even though I call the vcvar64.bat, CMake with Ninja generator isn\u0027t finding the compiler. This is weird, as this is how it\u0027s supposed to work.\n\n2. My changes to modify compile options to enable/disable exceptions works fine for Ninja, but looks like it introduced warnings in the MSBuild build about having both enable and disable flags in the command line. \n\nI\u0027m going to have to stop on this now.",
+      "parentUuid": "bf9ba3e8_10f78188",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 12
+      },
+      "revId": "48e5decdb5d22d2fc777f6cf3473713117ad3736",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
