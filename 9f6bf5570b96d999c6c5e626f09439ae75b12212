@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bcc7090b_d8b1b259",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-24T14:45:35Z",
+      "side": 1,
+      "message": "nit: Perhaps add \"(bool)\" here. That would make it much clearer that this is casting the object to become a Boolean value which determines whether or not the extension is enabled.\n\nIn other words, currently it\u0027s not clear what the purpose of \"libX11\" here is.\n\"(bool)libX11\" provides a strong enough hint?\n\nAlternatively adding /* enabled when the shared library is available */ would also work.",
+      "range": {
+        "startLine": 326,
+        "startChar": 72,
+        "endLine": 326,
+        "endChar": 73
+      },
+      "revId": "9f6bf5570b96d999c6c5e626f09439ae75b12212",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
