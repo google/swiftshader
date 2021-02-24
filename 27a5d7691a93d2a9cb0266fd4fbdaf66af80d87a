@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "329d31d6_6101ffb6",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 936,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-24T15:07:18Z",
+      "side": 1,
+      "message": "This should write how many were copied, but it looks like it might be fewer due to skipping disabled extensions?\n\nI suggest returning the actual number from the copy*() functions. You can also move the `toCopy` variable into them (and rename to something like maxCopyCount).",
+      "range": {
+        "startLine": 936,
+        "startChar": 19,
+        "endLine": 936,
+        "endChar": 25
+      },
+      "revId": "27a5d7691a93d2a9cb0266fd4fbdaf66af80d87a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
