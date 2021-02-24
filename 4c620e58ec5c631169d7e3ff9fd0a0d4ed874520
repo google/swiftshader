@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "929c1c5f_baca1a04",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-24T14:34:47Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "199ed332_5a88b4a8",
+      "range": {
+        "startLine": 11,
+        "startChar": 15,
+        "endLine": 11,
+        "endChar": 61
+      },
+      "revId": "4c620e58ec5c631169d7e3ff9fd0a0d4ed874520",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4f56329f_6d4eac78",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-02-24T02:34:09Z",
       "side": 1,
       "message": "This must not be silently ignored. See VUID-VkXlibSurfaceCreateInfoKHR-dpy-01313",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 17
+      },
+      "revId": "4c620e58ec5c631169d7e3ff9fd0a0d4ed874520",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd775f1d_cd0a4edc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-24T14:34:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f56329f_6d4eac78",
       "range": {
         "startLine": 12,
         "startChar": 0,
