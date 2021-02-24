@@ -3,6 +3,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4e892b24_9ac3fa4a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-24T14:46:50Z",
+      "side": 1,
+      "message": "Conditionally enable the Xlib WSI extension",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 24
+      },
+      "revId": "9f6bf5570b96d999c6c5e626f09439ae75b12212",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "bcc7090b_d8b1b259",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 4
