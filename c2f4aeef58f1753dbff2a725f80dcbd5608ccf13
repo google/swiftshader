@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "59b83a57_6e160533",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-24T15:09:00Z",
+      "side": 1,
+      "message": "Great result! Those GLES failures are flakes and would go away after rebasing past https://swiftshader-review.googlesource.com/c/SwiftShader/+/52532",
+      "revId": "c2f4aeef58f1753dbff2a725f80dcbd5608ccf13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
