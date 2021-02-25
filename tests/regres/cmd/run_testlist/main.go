@@ -53,16 +53,17 @@ func min(a, b int) int {
 }
 
 var (
-	deqpVkBinary  = flag.String("deqp-vk", "deqp-vk", "path to the deqp-vk binary")
-	testList      = flag.String("test-list", "vk-master-PASS.txt", "path to a test list file")
-	numThreads    = flag.Int("num-threads", min(runtime.NumCPU(), 100), "number of parallel test runner processes")
-	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
-	output        = flag.String("output", "results.json", "path to an output JSON results file")
-	filter        = flag.String("filter", "", "filter for test names. Start with a '/' to indicate regex")
-	limit         = flag.Int("limit", 0, "only run a maximum of this number of tests")
-	shuffle       = flag.Bool("shuffle", false, "shuffle tests")
-	noResults     = flag.Bool("no-results", false, "disable generation of results.json file")
-	genCoverage   = flag.Bool("coverage", false, "generate test coverage")
+	deqpVkBinary     = flag.String("deqp-vk", "deqp-vk", "path to the deqp-vk binary")
+	testList         = flag.String("test-list", "vk-master-PASS.txt", "path to a test list file")
+	numThreads       = flag.Int("num-threads", min(runtime.NumCPU(), 100), "number of parallel test runner processes")
+	maxProcMemory    = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
+	output           = flag.String("output", "results.json", "path to an output JSON results file")
+	filter           = flag.String("filter", "", "filter for test names. Start with a '/' to indicate regex")
+	limit            = flag.Int("limit", 0, "only run a maximum of this number of tests")
+	shuffle          = flag.Bool("shuffle", false, "shuffle tests")
+	noResults        = flag.Bool("no-results", false, "disable generation of results.json file")
+	genCoverage      = flag.Bool("coverage", false, "generate test coverage")
+	enableValidation = flag.Bool("validation", false, "run deqp-vk with Vulkan validation layers")
 )
 
 const testTimeout = time.Minute * 2
@@ -111,6 +112,7 @@ func run() error {
 		NumParallelTests: *numThreads,
 		TestLists:        testlist.Lists{group},
 		TestTimeout:      testTimeout,
+		ValidationLayer:  *enableValidation,
 	}
 
 	if *genCoverage {

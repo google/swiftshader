@@ -198,6 +198,8 @@ const (
 	CompatibilityWarning = Status("COMPATIBILITY_WARNING")
 	// QualityWarning is the status passing test with a warning.
 	QualityWarning = Status("QUALITY_WARNING")
+	// InternalError is the status of a test that failed on an API usage error.
+	InternalError = Status("INTERNAL_ERROR")
 )
 
 // Statuses is the full list of status types
@@ -214,12 +216,13 @@ var Statuses = []Status{
 	NotSupported,
 	CompatibilityWarning,
 	QualityWarning,
+	InternalError,
 }
 
 // Failing returns true if the task status requires fixing.
 func (s Status) Failing() bool {
 	switch s {
-	case Fail, Timeout, Crash, Unimplemented, Unreachable, Assert, Abort:
+	case Fail, Timeout, Crash, Unimplemented, Unreachable, Assert, Abort, InternalError:
 		return true
 	case Unsupported:
 		// This may seem surprising that this should be a failure, however these
