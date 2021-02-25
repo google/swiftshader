@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "661d6774_98f55c92",
+        "filename": "tests/regres/testlist/testlist.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-25T11:05:38Z",
+      "side": 1,
+      "message": "Shouldn\u0027t InternalError be added here?",
+      "range": {
+        "startLine": 225,
+        "startChar": 69,
+        "endLine": 225,
+        "endChar": 70
+      },
+      "revId": "26f02233c9e549cd79cfc1b982df40019dbcbb6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
