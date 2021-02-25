@@ -64,6 +64,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "40f145fe_d7fb9414",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-25T00:54:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84b69b3a_e1215d82",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 36
+      },
+      "revId": "c2f4aeef58f1753dbff2a725f80dcbd5608ccf13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e3e979b_95600da5",
@@ -77,6 +101,30 @@
       "writtenOn": "2021-02-24T15:28:50Z",
       "side": 1,
       "message": "I assume it would be Bad News™ if the waitMap already contained an entry for shared-\u003eid? Maybe add an assert? (As before - lookup once, insert using the iterator)",
+      "range": {
+        "startLine": 114,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 22
+      },
+      "revId": "c2f4aeef58f1753dbff2a725f80dcbd5608ccf13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d7c5d53_54c77bd7",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-25T00:54:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e3e979b_95600da5",
       "range": {
         "startLine": 114,
         "startChar": 1,
