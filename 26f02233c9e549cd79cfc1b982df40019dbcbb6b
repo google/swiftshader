@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a0462f89_697db3bd",
+        "filename": "tests/regres/deqp/deqp.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 7165
+      },
+      "writtenOn": "2021-02-25T11:21:24Z",
+      "side": 1,
+      "message": "I am not sure about using these environment variables to trigger validation layers. I don\u0027t think they _have_ to be set (certainly not LD_LIBRARY_PATH), and even if they _are_ set, I don\u0027t think it is guaranteed that the validation layers are present (you could just have other layers, like an api dump layer, AmberScoop layer, etc.). I recommend just adding a flag for enabling validation layers; the user must ensure they are available.",
+      "revId": "26f02233c9e549cd79cfc1b982df40019dbcbb6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "661d6774_98f55c92",
         "filename": "tests/regres/testlist/testlist.go",
         "patchSetId": 2
