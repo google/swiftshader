@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "bb9e12ac_d930c584",
         "filename": "src/Pipeline/PixelRoutine.cpp",
@@ -14,8 +15,25 @@
       "side": 1,
       "message": "Add TODO: even if !spirvShader-\u003egetModes().EarlyFragmentTests, determine whether we can promote late to early without anyone noticing.",
       "revId": "97ea2455d4ff9eb271e9e23d0e7bc23eb78b19df",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "476e0735_2f57c701",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-26T17:37:55Z",
+      "side": 1,
+      "message": "b/177915067",
+      "parentUuid": "bb9e12ac_d930c584",
+      "revId": "97ea2455d4ff9eb271e9e23d0e7bc23eb78b19df",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
