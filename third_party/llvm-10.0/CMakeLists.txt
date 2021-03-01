@@ -753,6 +753,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Scalar/LoopUnrollPass.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LoopUnswitch.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LoopVersioningLICM.cpp
+    ${LLVM_DIR}/lib/Transforms/Scalar/LowerAtomic.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LowerConstantIntrinsics.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LowerExpectIntrinsic.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LowerMatrixIntrinsics.cpp
