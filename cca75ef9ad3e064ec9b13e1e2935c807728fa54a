@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c3746a5_439aae0f",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0626478c_248f6cc3",
+      "range": {
+        "startLine": 316,
+        "startChar": 1,
+        "endLine": 316,
+        "endChar": 5
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9f57f14f_52e0784a",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-03-01T15:37:33Z",
       "side": 1,
       "message": "Aren\u0027t we expecting to see VK_SEMAPHORE_TYPE_BINARY here?",
+      "range": {
+        "startLine": 790,
+        "startChar": 3,
+        "endLine": 790,
+        "endChar": 10
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b290054f_98b4ae5a",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 790,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "I\u0027m a little confused by what you mean, the switch statement is for sType, it has nothing to do with the semaphore type.\n\nIn the VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO, if the semaphoreType is VK_SEMAPHORE_TYPE_BINARY, then we do nothing and default to what the rest of the function already did prior to my change.",
+      "parentUuid": "9f57f14f_52e0784a",
       "range": {
         "startLine": 790,
         "startChar": 3,
@@ -72,6 +120,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "d740bd9d_190d85af",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "There is no VK_STRUCTURE_TYPE_BINARY_SEMAPHORE_SUBMIT_INFO.",
+      "parentUuid": "9faa6f8b_40713925",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 11
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "a1f30eab_9c311dd2",
         "filename": "src/Vulkan/VkQueue.cpp",
         "patchSetId": 12
@@ -83,6 +155,30 @@
       "writtenOn": "2021-03-01T15:37:33Z",
       "side": 1,
       "message": "Is this guaranteed not to remain null?",
+      "range": {
+        "startLine": 201,
+        "startChar": 14,
+        "endLine": 201,
+        "endChar": 26
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a0f29639_2eb149c7",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "The spec states that:\n\n\u003e If any element of pWaitSemaphores or pSignalSemaphores was created with a VkSemaphoreType of VK_SEMAPHORE_TYPE_TIMELINE, then the pNext chain must include a VkTimelineSemaphoreSubmitInfo structure\n\nSo only user error can make this be null.",
+      "parentUuid": "a1f30eab_9c311dd2",
       "range": {
         "startLine": 201,
         "startChar": 14,
@@ -116,6 +212,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "177b7547_b1670b40",
+        "filename": "src/Vulkan/VkSemaphore.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "67367272_b77daf52",
+      "range": {
+        "startLine": 34,
+        "startChar": 6,
+        "endLine": 34,
+        "endChar": 21
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e6d40686_8c87dfcc",
@@ -129,6 +249,24 @@
       "writtenOn": "2021-03-01T15:37:33Z",
       "side": 1,
       "message": "nit: This could use a comment that it\u0027s a helper to parse VkSemaphoreCreateInfo",
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dd0d93ac_4fe1a632",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e6d40686_8c87dfcc",
       "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -156,6 +294,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "424f4e50_51352fc1",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "442ce043_c7135641",
+      "range": {
+        "startLine": 225,
+        "startChar": 4,
+        "endLine": 225,
+        "endChar": 71
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a80c1f38_0427a95a",
@@ -169,6 +331,30 @@
       "writtenOn": "2021-03-01T15:37:33Z",
       "side": 1,
       "message": "What happens if we accidentally use vk::Cast here?",
+      "range": {
+        "startLine": 1483,
+        "startChar": 12,
+        "endLine": 1483,
+        "endChar": 23
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13007b95_858e5336",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 1483,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-02T20:01:20Z",
+      "side": 1,
+      "message": "You\u0027d get a compilation error as vk::Cast returns a Semaphore type that does not have an exportFd function.",
+      "parentUuid": "a80c1f38_0427a95a",
       "range": {
         "startLine": 1483,
         "startChar": 12,
