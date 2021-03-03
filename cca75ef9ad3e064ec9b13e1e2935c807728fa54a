@@ -261,6 +261,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "49898667_a34674c0",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-03T20:08:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b779fdfe_e83ed9e8",
+      "range": {
+        "startLine": 201,
+        "startChar": 14,
+        "endLine": 201,
+        "endChar": 26
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "67367272_b77daf52",
