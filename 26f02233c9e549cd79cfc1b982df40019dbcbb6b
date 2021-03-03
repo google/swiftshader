@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ff18478_864dbd58",
+        "filename": "tests/regres/deqp/deqp.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 100826
+      },
+      "writtenOn": "2021-03-03T08:19:54Z",
+      "side": 1,
+      "message": "That\u0027s a good point. I\u0027ve updated the CL to use a flag instead.",
+      "parentUuid": "a0462f89_697db3bd",
+      "revId": "26f02233c9e549cd79cfc1b982df40019dbcbb6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "661d6774_98f55c92",
@@ -31,6 +49,30 @@
       "writtenOn": "2021-02-25T11:05:38Z",
       "side": 1,
       "message": "Shouldn\u0027t InternalError be added here?",
+      "range": {
+        "startLine": 225,
+        "startChar": 69,
+        "endLine": 225,
+        "endChar": 70
+      },
+      "revId": "26f02233c9e549cd79cfc1b982df40019dbcbb6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "54fc0d57_2d0d34a6",
+        "filename": "tests/regres/testlist/testlist.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 100826
+      },
+      "writtenOn": "2021-03-03T08:19:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "661d6774_98f55c92",
       "range": {
         "startLine": 225,
         "startChar": 69,
