@@ -16,6 +16,69 @@
       "message": "Excellent work!",
       "revId": "024b0951ad903ce0183e2c19909dc73e7c0a44d3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2a03043_613aa633",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 16
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-03-03T18:36:07Z",
+      "side": 1,
+      "message": "LGTM. A couple of nits you may want to address, or ignore.",
+      "revId": "024b0951ad903ce0183e2c19909dc73e7c0a44d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a84f315d_6d10acbb",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 16
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-03-03T18:36:07Z",
+      "side": 1,
+      "message": "nit: std::make_pair?",
+      "range": {
+        "startLine": 142,
+        "startChar": 24,
+        "endLine": 142,
+        "endChar": 48
+      },
+      "revId": "024b0951ad903ce0183e2c19909dc73e7c0a44d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e4686c29_789cf7cc",
+        "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
+        "patchSetId": 16
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-03-03T18:36:07Z",
+      "side": 1,
+      "message": "nit: you can remove this now.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 21
+      },
+      "revId": "024b0951ad903ce0183e2c19909dc73e7c0a44d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
