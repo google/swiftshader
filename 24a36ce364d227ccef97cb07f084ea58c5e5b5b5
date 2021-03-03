@@ -16,6 +16,24 @@
       "message": "Nit: Remove \"or without\"",
       "revId": "24a36ce364d227ccef97cb07f084ea58c5e5b5b5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ad708ae2_a518a00e",
+        "filename": "tests/regres/cmd/run_testlist/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 100826
+      },
+      "writtenOn": "2021-03-03T13:51:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0eea2cac_475cf45a",
+      "revId": "24a36ce364d227ccef97cb07f084ea58c5e5b5b5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
