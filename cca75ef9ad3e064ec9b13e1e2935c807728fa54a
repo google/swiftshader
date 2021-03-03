@@ -95,6 +95,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d5a0f64_90a17c68",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 790,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-03T18:33:09Z",
+      "side": 1,
+      "message": "My bad. Looks fine.",
+      "parentUuid": "b290054f_98b4ae5a",
+      "range": {
+        "startLine": 790,
+        "startChar": 3,
+        "endLine": 790,
+        "endChar": 10
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9faa6f8b_40713925",
@@ -142,6 +166,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5d98b84_91696daf",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-03T18:33:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d740bd9d_190d85af",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 11
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a1f30eab_9c311dd2",
@@ -179,6 +227,30 @@
       "side": 1,
       "message": "The spec states that:\n\n\u003e If any element of pWaitSemaphores or pSignalSemaphores was created with a VkSemaphoreType of VK_SEMAPHORE_TYPE_TIMELINE, then the pNext chain must include a VkTimelineSemaphoreSubmitInfo structure\n\nSo only user error can make this be null.",
       "parentUuid": "a1f30eab_9c311dd2",
+      "range": {
+        "startLine": 201,
+        "startChar": 14,
+        "endLine": 201,
+        "endChar": 26
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b779fdfe_e83ed9e8",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-03T18:33:09Z",
+      "side": 1,
+      "message": "Sounds good. An assert with that spec quote as a comment could help us avoid having to check who\u0027s fault it is when things crash here, especially since without context it looks like this could be a bug on our end.",
+      "parentUuid": "a0f29639_2eb149c7",
       "range": {
         "startLine": 201,
         "startChar": 14,
@@ -355,6 +427,30 @@
       "side": 1,
       "message": "You\u0027d get a compilation error as vk::Cast returns a Semaphore type that does not have an exportFd function.",
       "parentUuid": "a80c1f38_0427a95a",
+      "range": {
+        "startLine": 1483,
+        "startChar": 12,
+        "endLine": 1483,
+        "endChar": 23
+      },
+      "revId": "cca75ef9ad3e064ec9b13e1e2935c807728fa54a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd32d55a_7913e4c0",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 1483,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-03T18:33:09Z",
+      "side": 1,
+      "message": "Okay, that seems fine. There\u0027s no risk of accidentally casting to the wrong type.",
+      "parentUuid": "13007b95_858e5336",
       "range": {
         "startLine": 1483,
         "startChar": 12,
