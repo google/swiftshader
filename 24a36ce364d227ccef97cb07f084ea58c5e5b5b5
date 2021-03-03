@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0eea2cac_475cf45a",
+        "filename": "tests/regres/cmd/run_testlist/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 7165
+      },
+      "writtenOn": "2021-03-03T13:46:55Z",
+      "side": 1,
+      "message": "Nit: Remove \"or without\"",
+      "revId": "24a36ce364d227ccef97cb07f084ea58c5e5b5b5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
