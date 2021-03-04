@@ -215,3 +215,11 @@ dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.color.1d.etc2_r8g8b8a8
 dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.color.1d.etc2_r8g8b8a8_unorm_block.etc2_r8g8b8a8_unorm_block.optimal_general
 dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.color.1d.etc2_r8g8b8a8_unorm_block.etc2_r8g8b8a8_unorm_block.optimal_optimal
 dEQP-VK.graphicsfuzz.spv-stable-orbit-Os-access-chain-mutate-pointer
+dEQP-VK.pipeline.no_position.explicit_declarations.basic.multiview.v0
+dEQP-VK.pipeline.no_position.explicit_declarations.basic.multiview.v1
+dEQP-VK.pipeline.no_position.explicit_declarations.ssbo_writes.multiview.v0
+dEQP-VK.pipeline.no_position.explicit_declarations.ssbo_writes.multiview.v1
+dEQP-VK.pipeline.no_position.implicit_declarations.basic.multiview.v0
+dEQP-VK.pipeline.no_position.implicit_declarations.basic.multiview.v1
+dEQP-VK.pipeline.no_position.implicit_declarations.ssbo_writes.multiview.v0
+dEQP-VK.pipeline.no_position.implicit_declarations.ssbo_writes.multiview.v1

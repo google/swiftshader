@@ -21,8 +21,6 @@ dEQP-VK.memory.external_memory_host.bind_image_memory_and_render.with_non_zero_o
 dEQP-VK.memory.external_memory_host.bind_image_memory_and_render.with_zero_offset.r16g16b16a16_sfloat
 dEQP-VK.memory.external_memory_host.bind_image_memory_and_render.with_zero_offset.r32g32b32a32_sfloat
 dEQP-VK.memory.external_memory_host.bind_image_memory_and_render.with_zero_offset.r8g8b8a8_unorm
-dEQP-VK.spirv_assembly.instruction.compute.vector_shuffle.vector_shuffle
-dEQP-VK.spirv_assembly.instruction.spirv1p4.entrypoint.comp_workgroup_entry_point
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_nearest_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_nearest_linear_mipmap_linear_repeat
