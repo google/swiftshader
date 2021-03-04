@@ -16,6 +16,24 @@
       "message": "All the tryjobs appear to have passed, but it still indicates a failure. Yuly, have you seen this before?\n\nI\u0027m assuming it\u0027s a flake and I triggered the tryjobs to run again. Sean, if they pass, feel free to submit.",
       "revId": "534293eef7e2f842004a44038ef0873d0c0cb847",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d45e09b_ce687e9f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 17
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6650
+      },
+      "writtenOn": "2021-03-04T16:44:05Z",
+      "side": 1,
+      "message": "Doesn\u0027t look like it passed to me:\nhttps://ci.chromium.org/ui/p/chromium/builders/try/win-swangle-try-tot-swiftshader-x86/534/overview\nhttps://chromium-swarm.appspot.com/task?id\u003d5212e6ac545c1d10\n\nFrom this:\n[12350/12613] dEQP.GLE[W2021-03-03T14:09:18.754761-08:00 1196 0 cmd_stream.go:257] Interrupt signal received; killing the subprocess\nS31/functional_texture_multisample_negative_fbo_attach_different_sample_count_tex_rbo (0.3 ms)\n[12351/12613] dEQP.GLES31/functional_texture_specification_teximage3d_pbo_rgb9_e5_cube_array (3.1 ms)\n[12352/12613] dEQP.GLES31/functional_texture_specification_texstorage3d_format_depth32f[I2021-03-03T14:09:18.763062-08:00 1196 0 cmd_stream.go:292] rdb-stream: the test process terminated\n\nLooks like it was only able to run 12352 out of 12613 tests in 15 minutes and then was forcefully interrupted.\n\nThese tests usually take 10-13 minutes, so not finishing in 15 minutes is hopefully a flake.\nhttps://chromium-swarm.appspot.com/tasklist?c\u003dname\u0026c\u003dcreated_ts\u0026c\u003dpending_time\u0026c\u003dduration\u0026c\u003dbot\u0026c\u003dpool-tag\u0026c\u003dstate\u0026d\u003ddesc\u0026et\u003d1614875991064\u0026f\u003dgpu-tag%3Anone\u0026f\u003dos-tag%3AWindows-10\u0026f\u003dcpu-tag%3Ax86-64\u0026f\u003dpool-tag%3Achromium.tests.gpu\u0026f\u003dname-tag%3Aangle_deqp_gles31_tests\u0026k\u003dname-tag\u0026s\u003dcreated_ts\u0026st\u003d1614789591000\n\nThat being said, when I\u0027ve originally set up the bots all shards took less than 10 minutes. We\u0027ve probably added more GLES31 features lately, so looks like it\u0027s time to increase the sharding from 3 to 4. I\u0027ll take care of it.",
+      "parentUuid": "7d66e028_852a37bd",
+      "revId": "534293eef7e2f842004a44038ef0873d0c0cb847",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
