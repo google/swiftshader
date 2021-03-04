@@ -249,6 +249,7 @@ static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 	features->shaderInputAttachmentArrayDynamicIndexing = VK_FALSE;
 	features->shaderUniformTexelBufferArrayDynamicIndexing = VK_FALSE;
 	features->shaderStorageTexelBufferArrayDynamicIndexing = VK_FALSE;
+	features->shaderUniformBufferArrayNonUniformIndexing = VK_FALSE;
 	features->shaderSampledImageArrayNonUniformIndexing = VK_FALSE;
 	features->shaderStorageBufferArrayNonUniformIndexing = VK_FALSE;
 	features->shaderStorageImageArrayNonUniformIndexing = VK_FALSE;
@@ -260,7 +261,7 @@ static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 	features->descriptorBindingStorageImageUpdateAfterBind = VK_FALSE;
 	features->descriptorBindingStorageBufferUpdateAfterBind = VK_FALSE;
 	features->descriptorBindingUniformTexelBufferUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingStorageBufferUpdateAfterBind = VK_FALSE;
+	features->descriptorBindingStorageTexelBufferUpdateAfterBind = VK_FALSE;
 	features->descriptorBindingUpdateUnusedWhilePending = VK_FALSE;
 	features->descriptorBindingPartiallyBound = VK_FALSE;
 	features->descriptorBindingVariableDescriptorCount = VK_FALSE;
@@ -282,15 +283,35 @@ static void getPhysicalDeviceTimelineSemaphoreFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceShaderAtomicInt64Features(T *features)
+{
+	features->shaderBufferInt64Atomics = VK_FALSE;
+	features->shaderSharedInt64Atomics = VK_FALSE;
+}
+
+template<typename T>
+static void getPhysicalDeviceShaderFloat16Int8Features(T *features)
+{
+	features->shaderFloat16 = VK_FALSE;
+	features->shaderInt8 = VK_FALSE;
+}
+
+template<typename T>
+static void getPhysicalDeviceBufferDeviceAddressFeatures(T *features)
+{
+	features->bufferDeviceAddress = VK_FALSE;
+	features->bufferDeviceAddressCaptureReplay = VK_FALSE;
+	features->bufferDeviceAddressMultiDevice = VK_FALSE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_FALSE;
 	features->drawIndirectCount = VK_FALSE;
 	getPhysicalDevice8BitStorageFeaturesKHR(features);
-	features->shaderBufferInt64Atomics = VK_FALSE;
-	features->shaderSharedInt64Atomics = VK_FALSE;
-	features->shaderFloat16 = VK_FALSE;
-	features->shaderInt8 = VK_FALSE;
+	getPhysicalDeviceShaderAtomicInt64Features(features);
+	getPhysicalDeviceShaderFloat16Int8Features(features);
 	features->descriptorIndexing = VK_FALSE;
 	getPhysicalDeviceDescriptorIndexingFeatures(features);
 	features->samplerFilterMinmax = VK_FALSE;
@@ -301,9 +322,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(features);
 	getPhysicalDeviceHostQueryResetFeatures(features);
 	getPhysicalDeviceTimelineSemaphoreFeatures(features);
-	features->bufferDeviceAddress = VK_FALSE;
-	features->bufferDeviceAddressCaptureReplay = VK_FALSE;
-	features->bufferDeviceAddressMultiDevice = VK_FALSE;
+	getPhysicalDeviceBufferDeviceAddressFeatures(features);
 	getPhysicalDeviceVulkanMemoryModelFeatures(features);
 	features->shaderOutputViewportIndex = VK_FALSE;
 	features->shaderOutputLayer = VK_FALSE;
@@ -383,6 +402,18 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES:
 				getPhysicalDeviceTimelineSemaphoreFeatures(reinterpret_cast<VkPhysicalDeviceTimelineSemaphoreFeatures *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES:
+				getPhysicalDeviceShaderAtomicInt64Features(reinterpret_cast<VkPhysicalDeviceShaderAtomicInt64Features *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+				getPhysicalDeviceShaderFloat16Int8Features(reinterpret_cast<VkPhysicalDeviceShaderFloat16Int8Features *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES:
+				getPhysicalDeviceBufferDeviceAddressFeatures(reinterpret_cast<VkPhysicalDeviceBufferDeviceAddressFeatures *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES:
+				getPhysicalDeviceDescriptorIndexingFeatures(reinterpret_cast<VkPhysicalDeviceDescriptorIndexingFeatures *>(curExtension));
 				break;
 			default:
 				LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
