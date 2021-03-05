@@ -868,6 +868,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				(void)hostQueryResetFeatures->hostQueryReset;
 				break;
 			}
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES:
+			{
+				const auto *tsFeatures = reinterpret_cast<const VkPhysicalDeviceTimelineSemaphoreFeatures *>(extensionCreateInfo);
+
+				// VK_KHR_timeline_semaphores is always enabled
+				(void)tsFeatures->timelineSemaphore;
+				break;
+			}
 			default:
 				// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 				LOG_TRAP("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
