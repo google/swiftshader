@@ -319,6 +319,13 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreCounterValue),
 	MAKE_VULKAN_DEVICE_ENTRY(vkSignalSemaphore),
 	MAKE_VULKAN_DEVICE_ENTRY(vkWaitSemaphores),
+	// VK_KHR_buffer_device_address
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferDeviceAddress),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferOpaqueCaptureAddress),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceMemoryOpaqueCaptureAddress),
+	// VK_KHR_draw_indirect_count
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdDrawIndirectCount),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdDrawIndexedIndirectCount),
 };
 
 static const std::vector<std::pair<const char *, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers = {
@@ -388,6 +395,23 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreCounterValueKHR),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkSignalSemaphoreKHR),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkWaitSemaphoresKHR),
+	    } },
+	// VK_KHR_buffer_device_address
+	{
+	    VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+	    {
+
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferDeviceAddressKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferOpaqueCaptureAddressKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceMemoryOpaqueCaptureAddressKHR),
+	    } },
+	// VK_KHR_draw_indirect_count
+	{
+	    VK_KHR_DRAW_INDIRECT_COUNT_EXTENSION_NAME,
+	    {
+
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdDrawIndirectCountKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdDrawIndexedIndirectCountKHR),
 	    } },
 	// VK_EXT_line_rasterization
 	{
