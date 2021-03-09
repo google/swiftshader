@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9862206_c5b0af1d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-09T17:16:47Z",
+      "side": 1,
+      "message": "Sean, I\u0027m not seeing e.g. dEQP-VK.synchronization.signal_order.shared_binary_semaphore.write_blit_image_read_blit_image.image_128_r32_uint_opaque_fd which went from PASS to NOT_SUPPORTED at https://swiftshader-review.googlesource.com/c/SwiftShader/+/52148/18#message-445b12bd9983a8d24a607d7088af5227e57b84eb (testlists updated at https://swiftshader-review.googlesource.com/c/SwiftShader/+/53328), back in the PASS list.\n\nWas this not expected to be fixed by b/180025687 ? I\u0027ll check whether the dEQP revision I used actually still has that change or if it inadvertently got reverted by a bad merge...",
+      "revId": "59fdb25b26b7e535f3f44bd71dff9a2c3ee54380",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
