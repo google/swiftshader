@@ -148,8 +148,17 @@ VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 			}
 			break;
 #endif
+		// We support these extensions, but they don't affect the image format.
+		case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO:
+		case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR:
+		case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
+		case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO:
+			break;
+		case VK_STRUCTURE_TYPE_MAX_ENUM:
+			// dEQP tests that this value is ignored.
+			break;
 		default:
-			LOG_TRAP("pCreateInfo->pNext->sType = %s", vk::Stringify(nextInfo->sType).c_str());
+			UNSUPPORTED("pCreateInfo->pNext->sType = %s", vk::Stringify(nextInfo->sType).c_str());
 			break;
 		}
 

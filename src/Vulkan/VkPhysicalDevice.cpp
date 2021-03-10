@@ -432,9 +432,18 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
 			getPhysicalDevice4444FormatsFeaturesExt(reinterpret_cast<struct VkPhysicalDevice4444FormatsFeaturesEXT *>(curExtension));
+		// Unsupported extensions, but used by dEQP
+		// TODO(b/176893525): This may not be legal.
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT:
+		// TODO(b/202964266): Update Vulkan headers
+		case 1000280000:  // VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES_KHR
 			break;
 		default:
-			LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
+			UNSUPPORTED("curExtension->sType: %s", vk::Stringify(curExtension->sType).c_str());
 			break;
 		}
 		curExtension = reinterpret_cast<VkBaseOutStructure *>(curExtension->pNext);

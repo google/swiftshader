@@ -44,58 +44,6 @@
 
 namespace {
 
-bool IsUnderDebugger()
-{
-#if defined(PTRACE) && !defined(__APPLE__) && !defined(__MACH__)
-	static bool checked = false;
-	static bool res = false;
-
-	if(!checked)
-	{
-		// If a debugger is attached then we're already being ptraced and ptrace
-		// will return a non-zero value.
-		checked = true;
-		if(ptrace(PTRACE_TRACEME, 0, 1, 0) != 0)
-		{
-			res = true;
-		}
-		else
-		{
-			ptrace(PTRACE_DETACH, 0, 1, 0);
-		}
-	}
-
-	return res;
-#elif defined(_WIN32) || defined(_WIN64)
-	return IsDebuggerPresent() != 0;
-#elif defined(__APPLE__) || defined(__MACH__)
-	// Code comes from the Apple Technical Q&A QA1361
-
-	// Tell sysctl what info we're requestion. Specifically we're asking for
-	// info about this our PID.
-	int res = 0;
-	int request[4] = {
-		CTL_KERN,
-		KERN_PROC,
-		KERN_PROC_PID,
-		getpid()
-	};
-	struct kinfo_proc info;
-	size_t size = sizeof(info);
-
-	info.kp_proc.p_flag = 0;
-
-	// Get the info we're requesting, if sysctl fails then info.kp_proc.p_flag will remain 0.
-	res = sysctl(request, sizeof(request) / sizeof(*request), &info, &size, NULL, 0);
-	ASSERT_MSG(res == 0, "syscl returned %d", res);
-
-	// We're being debugged if the P_TRACED flag is set
-	return ((info.kp_proc.p_flag & P_TRACED) != 0);
-#else
-	return false;
-#endif
-}
-
 enum class Level
 {
 	Verbose,
@@ -212,31 +160,6 @@ void abort(const char *format, ...)
 	va_end(vararg);
 
 	::abort();
-}
-
-void log_trap(const char *format, ...)
-{
-	// If enabled, log_assert will log all messages, and otherwise ignore them
-	// unless a debugger is attached.
-	static std::atomic<bool> asserted = { false };
-	if(IsUnderDebugger() && !asserted.exchange(true) && static_cast<int>(Level::Debug) >= static_cast<int>(Level::SWIFTSHADER_LOGGING_LEVEL))
-	{
-		// If a developer wants to be aware of what's happening,
-		// then we abort after tracing and printing to stderr
-		va_list vararg;
-		va_start(vararg, format);
-		logv(Level::Fatal, format, vararg);
-		va_end(vararg);
-
-		::abort();
-	}
-	else if(!asserted)
-	{
-		va_list vararg;
-		va_start(vararg, format);
-		logv(Level::Verbose, format, vararg);
-		va_end(vararg);
-	}
 }
 
 }  // namespace sw

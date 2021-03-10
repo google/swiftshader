@@ -193,8 +193,8 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem)
 				}
 				break;
 			default:
-				LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
-				         i, vk::Stringify(extension->sType).c_str());
+				UNSUPPORTED("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
+				            i, vk::Stringify(extension->sType).c_str());
 				break;
 			}
 
@@ -259,8 +259,14 @@ void RenderPass::init(const T *pCreateInfo, void **mem)
 				}
 			}
 			break;
+		case VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO:
+			// VkRenderPassInputAttachmentAspectCreateInfo has already been handled in libvulkan.
+			break;
+		case VK_STRUCTURE_TYPE_MAX_ENUM:
+			// dEQP tests that this value is ignored.
+			break;
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+			UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 
@@ -404,8 +410,8 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo2KH
 				}
 				break;
 			default:
-				LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
-				         i, vk::Stringify(extension->sType).c_str());
+				UNSUPPORTED("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
+				            i, vk::Stringify(extension->sType).c_str());
 				break;
 			}
 

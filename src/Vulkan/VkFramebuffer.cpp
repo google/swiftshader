@@ -36,8 +36,11 @@ Framebuffer::Framebuffer(const VkFramebufferCreateInfo *pCreateInfo, void *mem)
 		case VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO:
 			attachmentsCreateInfo = reinterpret_cast<const VkFramebufferAttachmentsCreateInfo *>(curInfo);
 			break;
+		case VK_STRUCTURE_TYPE_MAX_ENUM:
+			// dEQP tests that this value is ignored.
+			break;
 		default:
-			LOG_TRAP("pFramebufferCreateInfo->pNext->sType = %s", vk::Stringify(curInfo->sType).c_str());
+			UNSUPPORTED("pFramebufferCreateInfo->pNext->sType = %s", vk::Stringify(curInfo->sType).c_str());
 			break;
 		}
 		curInfo = curInfo->pNext;
@@ -239,8 +242,11 @@ size_t Framebuffer::ComputeRequiredAllocationSize(const VkFramebufferCreateInfo 
 		case VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO:
 			attachmentsInfo = reinterpret_cast<const VkFramebufferAttachmentsCreateInfo *>(curInfo);
 			break;
+		case VK_STRUCTURE_TYPE_MAX_ENUM:
+			// dEQP tests that this value is ignored.
+			break;
 		default:
-			LOG_TRAP("pFramebufferCreateInfo->pNext->sType = %s", vk::Stringify(curInfo->sType).c_str());
+			UNSUPPORTED("pFramebufferCreateInfo->pNext->sType = %s", vk::Stringify(curInfo->sType).c_str());
 			break;
 		}
 

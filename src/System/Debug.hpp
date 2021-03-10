@@ -60,12 +60,6 @@ void log_trap(const char *format, ...) CHECK_PRINTF_ARGS;
 #	define TRACE(message, ...) sw::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #endif
 
-#if defined(SWIFTSHADER_DISABLE_TRACE) || defined(NDEBUG)
-#	define LOG_TRAP(message, ...) (void(0))
-#else
-#	define LOG_TRAP(message, ...) sw::log_trap("%s:%d %s LOG TRAP: " message "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#endif
-
 // A macro to print a warning message to the debugging log and stderr to denote
 // an issue that needs fixing.
 #define FIXME(message, ...) sw::warn("%s:%d FIXME: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
