@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b431cda8_18ea85e0",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-10T20:32:58Z",
+      "side": 0,
+      "message": "Crap, this has been there for months. I had even commented on it:\n\nhttps://swiftshader-review.googlesource.com/c/SwiftShader/+/48508/4..10/src/Vulkan/VkPhysicalDevice.cpp#b36\n\nbut I failed to verify it when it was marked as \"Done\".",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 6
+      },
+      "revId": "023914a27b634063766fee96f2e6763513f5b059",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

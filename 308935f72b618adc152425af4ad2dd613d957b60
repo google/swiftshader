@@ -16,6 +16,52 @@
       "message": "Nit: is this valid on systems that have clock frequencies other than 1GHz? Given that there\u0027s no portable way to measure a system\u0027s clock frequency, I think this is fine to leave as is, I\u0027m just curious.",
       "revId": "308935f72b618adc152425af4ad2dd613d957b60",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bc382020_10b125c5",
+        "filename": "src/Vulkan/VkPhysicalDevice.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-10T20:32:58Z",
+      "side": 1,
+      "message": "nit: should be private",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 74
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "533780dc_28feb9c3",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-10T20:32:58Z",
+      "side": 1,
+      "message": "Could you explain this change? It\u0027s probably necessary, just not sure why.",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 22
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
