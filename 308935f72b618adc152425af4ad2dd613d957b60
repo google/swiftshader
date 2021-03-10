@@ -152,6 +152,30 @@
       },
       "revId": "308935f72b618adc152425af4ad2dd613d957b60",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9500fd9d_8f06b2bf",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-10T22:26:10Z",
+      "side": 1,
+      "message": "finish() is the only thing that puts the query in the available state, so this was missing, and without it vkGetQueryPoolResults would wait indefinitely for the query to be finished.\n\nstart() was also missing. There\u0027s no vkCmdBeginQuery call for timestamp queries (which otherwise takes queries from the reset/unavailable state to active state) to indicate that it starts, there\u0027s just vkCmdWriteTimestamp.\n\nvkCmdResetQueryPool can take it back to the unavailable state so vkGetQueryPoolResults will wait again until the query executed on the device side, i.e. this code.\n\nDoes that answer your question?",
+      "parentUuid": "101a3ce3_6611cecd",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 22
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
