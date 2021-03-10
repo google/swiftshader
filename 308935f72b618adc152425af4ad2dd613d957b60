@@ -128,6 +128,30 @@
       },
       "revId": "308935f72b618adc152425af4ad2dd613d957b60",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "101a3ce3_6611cecd",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-10T21:58:05Z",
+      "side": 1,
+      "message": "Right, I see that, but there\u0027s more synchronization logic in there and I guess there\u0027s a possibility it could also be set to the finished state.",
+      "parentUuid": "f76e0784_80f17b9d",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 22
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
