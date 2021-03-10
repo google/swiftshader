@@ -20,10 +20,10 @@
 
 namespace vk {
 
-Query::Query()
+Query::Query(VkQueryType type)
     : finished(marl::Event::Mode::Manual)
     , state(UNAVAILABLE)
-    , type(INVALID_TYPE)
+    , type(type)
     , value(0)
 {}
 
@@ -32,20 +32,13 @@ void Query::reset()
 	finished.clear();
 	auto prevState = state.exchange(UNAVAILABLE);
 	ASSERT(prevState != ACTIVE);
-	type = INVALID_TYPE;
 	value = 0;
-}
-
-void Query::prepare(VkQueryType ty)
-{
-	auto prevState = state.exchange(ACTIVE);
-	ASSERT(prevState == UNAVAILABLE);
-	type = ty;
 }
 
 void Query::start()
 {
-	ASSERT(state == ACTIVE);
+	auto prevState = state.exchange(ACTIVE);
+	ASSERT(prevState != FINISHED);  // Must be reset first
 	wg.add();
 }
 
@@ -106,7 +99,7 @@ QueryPool::QueryPool(const VkQueryPoolCreateInfo *pCreateInfo, void *mem)
 	// Construct all queries
 	for(uint32_t i = 0; i < count; i++)
 	{
-		new(&pool[i]) Query();
+		new(&pool[i]) Query(type);
 	}
 }
 
@@ -138,11 +131,6 @@ VkResult QueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t 
 	uint8_t *data = static_cast<uint8_t *>(pData);
 	for(uint32_t i = firstQuery; i < (firstQuery + queryCount); i++, data += stride)
 	{
-		// If VK_QUERY_RESULT_WAIT_BIT and VK_QUERY_RESULT_PARTIAL_BIT are both not set
-		// then no result values are written to pData for queries that are in the
-		// unavailable state at the time of the call, and vkGetQueryPoolResults returns
-		// VK_NOT_READY. However, availability state is still written to pData for those
-		// queries if VK_QUERY_RESULT_WITH_AVAILABILITY_BIT is set.
 		auto &query = pool[i];
 
 		if(flags & VK_QUERY_RESULT_WAIT_BIT)  // Must wait for query to finish
@@ -152,6 +140,11 @@ VkResult QueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t 
 
 		const auto current = query.getData();
 
+		// "If VK_QUERY_RESULT_WAIT_BIT and VK_QUERY_RESULT_PARTIAL_BIT are both not set
+		//  then no result values are written to pData for queries that are in the
+		//  unavailable state at the time of the call, and vkGetQueryPoolResults returns
+		//  VK_NOT_READY. However, availability state is still written to pData for those
+		//  queries if VK_QUERY_RESULT_WITH_AVAILABILITY_BIT is set."
 		bool writeResult = true;
 		if(current.state == Query::ACTIVE || (current.state == Query::UNAVAILABLE && !(flags & VK_QUERY_RESULT_WAIT_BIT)))
 		{
@@ -198,7 +191,6 @@ void QueryPool::begin(uint32_t query, VkQueryControlFlags flags)
 		UNSUPPORTED("vkCmdBeginQuery::flags %d", int(flags));
 	}
 
-	pool[query].prepare(type);
 	pool[query].start();
 }
 
@@ -224,10 +216,12 @@ void QueryPool::writeTimestamp(uint32_t query)
 	ASSERT(query < count);
 	ASSERT(type == VK_QUERY_TYPE_TIMESTAMP);
 
+	pool[query].start();
 	pool[query].set(std::chrono::time_point_cast<std::chrono::nanoseconds>(
-	                    std::chrono::system_clock::now())
+	                    std::chrono::steady_clock::now())
 	                    .time_since_epoch()
 	                    .count());
+	pool[query].finish();
 }
 
 }  // namespace vk

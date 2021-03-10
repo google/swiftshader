@@ -29,9 +29,7 @@ namespace vk {
 class Query
 {
 public:
-	static auto constexpr INVALID_TYPE = VK_QUERY_TYPE_MAX_ENUM;
-
-	Query();
+	Query(VkQueryType type);
 
 	enum State
 	{
@@ -51,13 +49,9 @@ public:
 	// reset() must not be called while the query is in the ACTIVE state.
 	void reset();
 
-	// prepare() sets the Query type to ty, and sets the state to ACTIVE.
-	// prepare() must not be called when the query is already ACTIVE.
-	void prepare(VkQueryType ty);
-
 	// start() begins a query task which is closed with a call to finish().
 	// Query tasks can be nested.
-	// start() must only be called when in the ACTIVE state.
+	// start() sets the state to ACTIVE.
 	void start();
 
 	// finish() ends a query task begun with a call to start().

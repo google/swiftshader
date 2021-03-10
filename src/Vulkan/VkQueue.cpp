@@ -317,14 +317,16 @@ VkResult Queue::present(const VkPresentInfoKHR *presentInfo)
 
 	for(uint32_t i = 0; i < presentInfo->waitSemaphoreCount; i++)
 	{
-		vk::DynamicCast<BinarySemaphore>(presentInfo->pWaitSemaphores[i])->wait();
+		auto *semaphore = vk::DynamicCast<BinarySemaphore>(presentInfo->pWaitSemaphores[i]);
+		semaphore->wait();
 	}
 
 	VkResult commandResult = VK_SUCCESS;
 
 	for(uint32_t i = 0; i < presentInfo->swapchainCount; i++)
 	{
-		VkResult perSwapchainResult = vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
+		auto *swapchain = vk::Cast(presentInfo->pSwapchains[i]);
+		VkResult perSwapchainResult = swapchain->present(presentInfo->pImageIndices[i]);
 
 		if(presentInfo->pResults)
 		{

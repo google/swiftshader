@@ -28,16 +28,6 @@
 
 namespace vk {
 
-#if VK_USE_PLATFORM_FUCHSIA
-if(handleType == VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
-{
-	properties->compatibleHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
-	properties->exportFromImportedHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
-	properties->externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT | VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT;
-	return;
-}
-#endif
-
 PhysicalDevice::PhysicalDevice(const void *, void *mem)
 {
 }
@@ -524,8 +514,8 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits() const
 		sampleCounts,                                     // sampledImageStencilSampleCounts
 		sampleCounts,                                     // storageImageSampleCounts
 		1,                                                // maxSampleMaskWords
-		VK_FALSE,                                         // timestampComputeAndGraphics
-		60,                                               // timestampPeriod
+		VK_TRUE,                                          // timestampComputeAndGraphics
+		1,                                                // timestampPeriod
 		sw::MAX_CLIP_DISTANCES,                           // maxClipDistances
 		sw::MAX_CULL_DISTANCES,                           // maxCullDistances
 		sw::MAX_CLIP_DISTANCES + sw::MAX_CULL_DISTANCES,  // maxCombinedClipAndCullDistances
@@ -1523,17 +1513,25 @@ uint32_t PhysicalDevice::getQueueFamilyPropertyCount() const
 	return 1;
 }
 
+VkQueueFamilyProperties PhysicalDevice::getQueueFamilyProperties() const
+{
+	VkQueueFamilyProperties properties = {};
+	properties.minImageTransferGranularity.width = 1;
+	properties.minImageTransferGranularity.height = 1;
+	properties.minImageTransferGranularity.depth = 1;
+	properties.queueCount = 1;
+	properties.queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
+	properties.timestampValidBits = 64;
+
+	return properties;
+}
+
 void PhysicalDevice::getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
                                               VkQueueFamilyProperties *pQueueFamilyProperties) const
 {
 	for(uint32_t i = 0; i < pQueueFamilyPropertyCount; i++)
 	{
-		pQueueFamilyProperties[i].minImageTransferGranularity.width = 1;
-		pQueueFamilyProperties[i].minImageTransferGranularity.height = 1;
-		pQueueFamilyProperties[i].minImageTransferGranularity.depth = 1;
-		pQueueFamilyProperties[i].queueCount = 1;
-		pQueueFamilyProperties[i].queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
-		pQueueFamilyProperties[i].timestampValidBits = 0;  // No support for time stamps
+		pQueueFamilyProperties[i] = getQueueFamilyProperties();
 	}
 }
 
@@ -1542,12 +1540,7 @@ void PhysicalDevice::getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount
 {
 	for(uint32_t i = 0; i < pQueueFamilyPropertyCount; i++)
 	{
-		pQueueFamilyProperties[i].queueFamilyProperties.minImageTransferGranularity.width = 1;
-		pQueueFamilyProperties[i].queueFamilyProperties.minImageTransferGranularity.height = 1;
-		pQueueFamilyProperties[i].queueFamilyProperties.minImageTransferGranularity.depth = 1;
-		pQueueFamilyProperties[i].queueFamilyProperties.queueCount = 1;
-		pQueueFamilyProperties[i].queueFamilyProperties.queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
-		pQueueFamilyProperties[i].queueFamilyProperties.timestampValidBits = 0;  // No support for time stamps
+		pQueueFamilyProperties[i].queueFamilyProperties = getQueueFamilyProperties();
 	}
 }
 

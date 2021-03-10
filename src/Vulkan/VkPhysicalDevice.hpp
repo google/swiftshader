@@ -72,6 +72,7 @@ public:
 	                              VkImageUsageFlags usage, VkImageCreateFlags flags,
 	                              VkImageFormatProperties *pImageFormatProperties) const;
 	uint32_t getQueueFamilyPropertyCount() const;
+
 	void getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
 	                              VkQueueFamilyProperties *pQueueFamilyProperties) const;
 	void getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
@@ -81,6 +82,7 @@ public:
 private:
 	const VkPhysicalDeviceLimits &getLimits() const;
 	VkSampleCountFlags getSampleCounts() const;
+	VkQueueFamilyProperties getQueueFamilyProperties() const;
 };
 
 using DispatchablePhysicalDevice = DispatchableObject<PhysicalDevice, VkPhysicalDevice>;
