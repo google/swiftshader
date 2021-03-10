@@ -176,6 +176,30 @@
       },
       "revId": "308935f72b618adc152425af4ad2dd613d957b60",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6a0a7327_92e6f72c",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-10T22:51:11Z",
+      "side": 1,
+      "message": "The possible states are: Unavailable, Active or Finished\nSo by \"available\", you mean either Active or Finished, right?\nIn this case, I guess both start() and finish() can put the query in the available state.\n\nIs it expected of the user to have to call vkCmdResetQueryPool() before calling vkGetQueryPoolResults() after calling writeTimestamp() or is that not necessary?",
+      "parentUuid": "9500fd9d_8f06b2bf",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 22
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
