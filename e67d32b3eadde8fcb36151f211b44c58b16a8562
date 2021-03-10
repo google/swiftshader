@@ -91,6 +91,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "07d4177a_ed095b09",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 888,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-10T21:32:04Z",
+      "side": 1,
+      "message": "It\u0027s fine to not pass dEQP-VK.api.driver_properties.conformance_version. We\u0027re not passing the latest 1.1 test suite either, so it\u0027s \"good\" to have this regress to indicate that we\u0027re not conformant with the API version we\u0027re claiming to support (note the test can\u0027t in itself verify our conformance level, so it\u0027s not an accurate test either way).\n\nPlease revert this line. We\u0027ll bump up the conformance version once everything else passes.",
+      "parentUuid": "321ba4bf_d778cd05",
+      "range": {
+        "startLine": 888,
+        "startChar": 39,
+        "endLine": 888,
+        "endChar": 46
+      },
+      "revId": "e67d32b3eadde8fcb36151f211b44c58b16a8562",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "744b9073_b2b2f9a7",
         "filename": "tests/VulkanUnitTests/BasicTests.cpp",
         "patchSetId": 31
