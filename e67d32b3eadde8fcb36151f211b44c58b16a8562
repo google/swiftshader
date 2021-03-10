@@ -113,6 +113,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "adbfcc1f_c0d38624",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 888,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-10T21:53:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "07d4177a_ed095b09",
+      "range": {
+        "startLine": 888,
+        "startChar": 39,
+        "endLine": 888,
+        "endChar": 46
+      },
+      "revId": "e67d32b3eadde8fcb36151f211b44c58b16a8562",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "744b9073_b2b2f9a7",
