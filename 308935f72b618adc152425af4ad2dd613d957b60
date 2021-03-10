@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f61d1d67_4f69012f",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-10T21:11:42Z",
+      "side": 1,
+      "message": "The spec states that timestampPeriod is \"The number of nanoseconds it takes for a timestamp value to be incremented by 1\". So I don\u0027t think it needs to tick at 1 GHz. It\u0027s just the scale.\n\nFor what it\u0027s worth, 1 is the most common value according to https://vulkan.gpuinfo.org/displaydevicelimit.php?name\u003dtimestampPeriod, and dEQP just checks that it increases monotonically. std::chrono::system_clock is implementation-dependent, so we\u0027ll just have to see if this implementation works well in practice.",
+      "parentUuid": "53d9e97b_37eb4a7d",
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bc382020_10b125c5",
@@ -41,6 +59,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c15e42c_1cb7ff4a",
+        "filename": "src/Vulkan/VkPhysicalDevice.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-10T21:11:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc382020_10b125c5",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 74
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "533780dc_28feb9c3",
@@ -54,6 +96,30 @@
       "writtenOn": "2021-03-10T20:32:58Z",
       "side": 1,
       "message": "Could you explain this change? It\u0027s probably necessary, just not sure why.",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 22
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f76e0784_80f17b9d",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-10T21:11:42Z",
+      "side": 1,
+      "message": "See commit message: \"but it didn\u0027t put the query in\nthe \u0027available\u0027 state.\"",
+      "parentUuid": "533780dc_28feb9c3",
       "range": {
         "startLine": 219,
         "startChar": 0,
