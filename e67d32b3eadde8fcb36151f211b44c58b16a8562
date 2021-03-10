@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "bb914c25_786f4740",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 888,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-10T19:30:10Z",
+      "side": 1,
+      "message": "Yes, this is necessary to pass dEQP-VK.api.driver_properties.conformance_version",
+      "parentUuid": "c176991a_a6936cb7",
+      "range": {
+        "startLine": 888,
+        "startChar": 39,
+        "endLine": 888,
+        "endChar": 46
+      },
+      "revId": "e67d32b3eadde8fcb36151f211b44c58b16a8562",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "744b9073_b2b2f9a7",
         "filename": "tests/VulkanUnitTests/BasicTests.cpp",
         "patchSetId": 31
@@ -54,6 +78,30 @@
       "writtenOn": "2021-03-09T15:48:59Z",
       "side": 1,
       "message": "Let\u0027s just remove this. The version already gets checked by the Version test.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 53
+      },
+      "revId": "e67d32b3eadde8fcb36151f211b44c58b16a8562",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a115698d_36c89943",
+        "filename": "tests/VulkanUnitTests/BasicTests.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-10T19:30:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "744b9073_b2b2f9a7",
       "range": {
         "startLine": 118,
         "startChar": 0,
