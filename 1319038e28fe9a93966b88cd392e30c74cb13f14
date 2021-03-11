@@ -33,6 +33,24 @@
       "message": "TimerQueriesTest failing on SwANGLE",
       "revId": "1319038e28fe9a93966b88cd392e30c74cb13f14",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "16dc24bd_8919aedd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-11T20:14:55Z",
+      "side": 1,
+      "message": "Turns out system_clock wasn\u0027t accurate enough for passing ANGLE\u0027s tests, on Windows, but steady_clock does the trick.\n\nLike I told Sean, this is always going to be platform-specific (https://www.modernescpp.com/index.php/the-three-clocks), so we\u0027ll just have to rely on the tests and deal with issues if/when any are reported.\n\nPTAL",
+      "parentUuid": "655648f5_d4a526e6",
+      "revId": "1319038e28fe9a93966b88cd392e30c74cb13f14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
