@@ -16,6 +16,41 @@
       "message": "Looks good to me! Alexis, any final thoughts? While there\u0027s a non-zero risk of affecting SwANGLE enablement work, I think we\u0027ll be fine, and it\u0027s a trivial revert if anything doesn\u0027t go as planned.",
       "revId": "bd050d620a60c46fa3dc3b376ef9daa0471e7130",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab764440_19548150",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 37
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-11T16:08:52Z",
+      "side": 1,
+      "message": "Should be fine. Of course, the trybots should run before we land it, but otherwise, I don\u0027t know if ANGLE would change its behavior based on the version or if it just checks features, which this doesn\u0027t really affect.",
+      "parentUuid": "3d4c6c84_99aa948a",
+      "revId": "bd050d620a60c46fa3dc3b376ef9daa0471e7130",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "819e8e3c_902342c6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 37
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-11T16:08:52Z",
+      "side": 1,
+      "message": "Let\u0027s try it on the SwANGLE bots!",
+      "revId": "bd050d620a60c46fa3dc3b376ef9daa0471e7130",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
