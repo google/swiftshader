@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c7251ba_d421b1e3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-11T19:24:05Z",
+      "side": 1,
+      "message": "Preemptive +2 for when https://swiftshader-review.googlesource.com/c/SwiftShader/+/53548 has landed, assuming that makes this change pass tests.",
+      "revId": "d3001e93abf461310e7e6ba9976ae76c7173e25a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
