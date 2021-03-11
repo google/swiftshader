@@ -200,6 +200,30 @@
       },
       "revId": "308935f72b618adc152425af4ad2dd613d957b60",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "05680031_3289dbd5",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-11T15:46:43Z",
+      "side": 1,
+      "message": "\u003e So by \"available\", you mean either Active or Finished, right?\n\nNo, it means the query is done and the result is available.\n\n\u003e In this case, I guess both start() and finish() can put the query in the available state.\n\nStart means the query is collecting data. For example an occlusion query will count all the pixels that are visible, from the point where the query was started (vkCmdBeginQuery), and it stops counting when executing the vkCmdEndQuery command, after which the result is available to read back.\n\nTimestamp queries are different because they don\u0027t logically begin/end, they just take an instantaneous time value. However, they still have to transition from the unavailable (i.e. reset) state to the available state, during the vkCmdWriteTimestamp execution. This is accomplished with the start()/finish() pair.\n\nTechnically we could have a single method which takes us straight from unavailable to available, without going through the \u0027active\u0027 state which makes more sense for queries that have a begin and end. But then we have to be careful that it still achieves the correct synchronization behavior, and there\u0027s a risk of using it incorrectly for queries that do have a begin/end.\n\nAnyway, this is just v1 of much-requested feature. Note the biggest could come from avoiding synchronizing the rendering: https://cs.opensource.google/swiftshader/SwiftShader/+/master:src/Vulkan/VkCommandBuffer.cpp;drc\u003d35f077086ef34ae8d0cabfba346b602d08c49160;l\u003d1131\n\n\u003e Is it expected of the user to have to call vkCmdResetQueryPool() before calling vkGetQueryPoolResults() after calling writeTimestamp() or is that not necessary?\n\n\"VUID-vkCmdWriteTimestamp-queryPool-00828\nThe query identified by queryPool and query must be unavailable\"\n\nThe user has to call Reset before WriteTimestamp, and after GetQueryPoolResults if they intend to reuse the same query.",
+      "parentUuid": "6a0a7327_92e6f72c",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 22
+      },
+      "revId": "308935f72b618adc152425af4ad2dd613d957b60",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
