@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "88edcc27_c9e538b1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-03-11T18:54:57Z",
+      "side": 1,
+      "message": "Looks like this change was immediately useful. It discovered a couple of missing cases from vkCreateDevice for extensions we support.",
+      "revId": "2a2703f544c1296341a45a9bba9c5b7a484647c3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
