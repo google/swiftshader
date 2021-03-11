@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d4c6c84_99aa948a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 37
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-11T15:51:04Z",
+      "side": 1,
+      "message": "Looks good to me! Alexis, any final thoughts? While there\u0027s a non-zero risk of affecting SwANGLE enablement work, I think we\u0027ll be fine, and it\u0027s a trivial revert if anything doesn\u0027t go as planned.",
+      "revId": "bd050d620a60c46fa3dc3b376ef9daa0471e7130",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
