@@ -16,6 +16,24 @@
       "message": "You can land when ready",
       "revId": "80302771ac1ff06837ed0bcb6c85e537eddfcc40",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b012190_582509cb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-12T15:13:00Z",
+      "side": 1,
+      "message": "Thanks. Note I based this on top of the \u0027daily\u0027 update, which will need to land first: https://swiftshader-review.googlesource.com/c/SwiftShader/+/53448",
+      "parentUuid": "4cce059d_7359aab5",
+      "revId": "80302771ac1ff06837ed0bcb6c85e537eddfcc40",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
