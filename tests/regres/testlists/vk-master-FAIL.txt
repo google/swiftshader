@@ -1,3 +1,4 @@
+dEQP-VK.api.driver_properties.conformance_version
 dEQP-VK.glsl.builtin_var.fragdepth.line_list_d16_unorm_no_depth_clamp
 dEQP-VK.glsl.builtin_var.fragdepth.line_list_d32_sfloat_large_depth
 dEQP-VK.glsl.builtin_var.fragdepth.line_list_d32_sfloat_multisample_4
