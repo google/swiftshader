@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "62dd4efd_c01313ae",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4160,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-12T20:46:53Z",
+      "side": 1,
+      "message": "This would silently do nothing in Release builds, and return VK_SUCCESS. That could be a hard bug to track down if it\u0027s not straightforward to use a Debug build. I think we can just let this be a null pointer access if the cast fails.",
+      "range": {
+        "startLine": 4160,
+        "startChar": 3,
+        "endLine": 4160,
+        "endChar": 17
+      },
+      "revId": "7d0dee756e5e8b3385adb13fbc36ca7f030c740d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
