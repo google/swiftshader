@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae647f4f_91bd3764",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2021-03-12T21:58:58Z",
+      "side": 1,
+      "message": "LGTM, and I understand why this goes wrong *only* with ANGLE now. Platform side probably has some defensive work to do in future to make sure ANGLE \u0026 its instance of libvulkan can\u0027t get derailed by accidental symbol leakage.",
+      "revId": "20990b06f6123874bcbb455dafdcaf35b731a57b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
