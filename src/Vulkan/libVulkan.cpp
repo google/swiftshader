@@ -4151,7 +4151,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAcquireImageANDROID(VkDevice device, VkImage im
 
 	if(semaphore != VK_NULL_HANDLE)
 	{
-		vk::Cast(semaphore)->signal();
+		vk::DynamicCast<vk::BinarySemaphore>(semaphore)->signal();
 	}
 
 	return VK_SUCCESS;
