@@ -33,7 +33,7 @@
 #	include <unistd.h>
 #endif
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined(ANDROID_HOST_BUILD) && !defined(ANDROID_NDK_BUILD)
 #	include <sys/prctl.h>
 #endif
 
@@ -136,7 +136,7 @@ int permissionsToMmapProt(int permissions)
 #endif  // !defined(_WIN32) && !defined(__Fuchsia__)
 
 #if defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
-#	if !defined(__ANDROID__)
+#	if !defined(__ANDROID__) || defined(ANDROID_HOST_BUILD) || defined(ANDROID_NDK_BUILD)
 // Create a file descriptor for anonymous memory with the given
 // name. Returns -1 on failure.
 // TODO: remove once libc wrapper exists.
@@ -170,12 +170,12 @@ int anonymousFd()
 	static int fd = memfd_create(MACRO_STRINGIFY(REACTOR_ANONYMOUS_MMAP_NAME), 0);
 	return fd;
 }
-#	else   // defined(__ANDROID__)
+#	else   // __ANDROID__ && !ANDROID_HOST_BUILD && !ANDROID_NDK_BUILD
 int anonymousFd()
 {
 	return -1;
 }
-#	endif  // defined(__ANDROID__)
+#	endif  // __ANDROID__ && !ANDROID_HOST_BUILD && !ANDROID_NDK_BUILD
 
 // Ensure there is enough space in the "anonymous" fd for length.
 void ensureAnonFileSize(int anonFd, size_t length)
@@ -289,7 +289,7 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 	{
 		mapping = nullptr;
 	}
-#	if defined(__ANDROID__)
+#	if defined(__ANDROID__) && !defined(ANDROID_HOST_BUILD) && !defined(ANDROID_NDK_BUILD)
 	else
 	{
 		// On Android, prefer to use a non-standard prctl called
@@ -299,7 +299,7 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 		prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, mapping, length,
 		      MACRO_STRINGIFY(REACTOR_ANONYMOUS_MMAP_NAME));
 	}
-#	endif  // __ANDROID__
+#	endif  // __ANDROID__ && !ANDROID_HOST_BUILD && !ANDROID_NDK_BUILD
 #elif defined(__Fuchsia__)
 	zx_handle_t vmo;
 	if(zx_vmo_create(length, 0, &vmo) != ZX_OK)
