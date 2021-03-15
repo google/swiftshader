@@ -165,6 +165,8 @@ public:
 		uint32_t subpassIndex = 0;
 
 		void bindAttachments(Attachments *attachments);
+
+		uint32_t viewCount() const;
 	};
 
 	void submit(CommandBuffer::ExecutionState &executionState);
