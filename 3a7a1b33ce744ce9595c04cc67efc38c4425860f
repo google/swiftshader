@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "58a42722_3a469f17",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1796,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-16T17:27:12Z",
+      "side": 1,
+      "message": "No need to change anything, since it\u0027s probably a bit heavy, but I\u0027ll point out this whole thing can be a single line:\n\nreturn renderPass ? static_cast\u003cuint32_t\u003e(std::bitset\u003c32\u003e(renderPass-\u003egetViewMask(subpassIndex)).count()) : 1;",
+      "range": {
+        "startLine": 1789,
+        "startChar": 0,
+        "endLine": 1796,
+        "endChar": 65
+      },
+      "revId": "3a7a1b33ce744ce9595c04cc67efc38c4425860f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
