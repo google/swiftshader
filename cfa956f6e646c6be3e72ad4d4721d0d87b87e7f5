@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "eee16c88_15e6d759",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1094,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-16T14:00:37Z",
+      "side": 1,
+      "message": "Uber nit: the comment at line 1069 should also be added here",
+      "range": {
+        "startLine": 1094,
+        "startChar": 2,
+        "endLine": 1094,
+        "endChar": 67
+      },
+      "revId": "cfa956f6e646c6be3e72ad4d4721d0d87b87e7f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6a790b97_2845880d",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1804,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-16T14:00:37Z",
+      "side": 1,
+      "message": "Isn\u0027t there something like:\n\n#include \u003cbitset\u003e\n...\nreturn static_cast\u003cuint32_t\u003e(std::bitset\u003c32\u003e(viewMask).count());\n\n?",
+      "range": {
+        "startLine": 1794,
+        "startChar": 1,
+        "endLine": 1804,
+        "endChar": 2
+      },
+      "revId": "cfa956f6e646c6be3e72ad4d4721d0d87b87e7f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
