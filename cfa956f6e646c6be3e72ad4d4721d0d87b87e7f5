@@ -93,6 +93,30 @@
       },
       "revId": "cfa956f6e646c6be3e72ad4d4721d0d87b87e7f5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8377e45c_ee128b95",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1804,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-16T17:22:17Z",
+      "side": 1,
+      "message": "It might be faster, I don\u0027t know about the performance implications of creating a bitset from an integer.",
+      "parentUuid": "f1e3fb0d_4bad1ce3",
+      "range": {
+        "startLine": 1794,
+        "startChar": 1,
+        "endLine": 1804,
+        "endChar": 2
+      },
+      "revId": "cfa956f6e646c6be3e72ad4d4721d0d87b87e7f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
