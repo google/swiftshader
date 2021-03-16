@@ -22,6 +22,30 @@
       },
       "revId": "3a7a1b33ce744ce9595c04cc67efc38c4425860f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cf23ca93_e2a0d08f",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1796,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-16T18:12:02Z",
+      "side": 1,
+      "message": "Yeah, no, that makes it unreadable in my opinion.",
+      "parentUuid": "58a42722_3a469f17",
+      "range": {
+        "startLine": 1789,
+        "startChar": 0,
+        "endLine": 1796,
+        "endChar": 65
+      },
+      "revId": "3a7a1b33ce744ce9595c04cc67efc38c4425860f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
