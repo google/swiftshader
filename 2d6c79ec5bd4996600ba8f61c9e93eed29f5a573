@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff227f50_b7045972",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-16T20:40:17Z",
+      "side": 1,
+      "message": "Sean, this was the CL Nicolas had started regarding the compressed texture asserts.\nI think this isn\u0027t the right fix because:\n1) The check should only be done for Height, the check is probably correct as is for Width\n2) ONLY when the image is a 1D image (VK_IMAGE_TYPE_1D), THEN it is allowed to have a height of 1, instead of a multiple of the block size, so the assert should be adjusted accordingly.",
+      "revId": "2d6c79ec5bd4996600ba8f61c9e93eed29f5a573",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
