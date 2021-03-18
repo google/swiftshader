@@ -193,6 +193,12 @@ target_link_libraries(vk_swiftshader
 
 set_shared_library_export_map(vk_swiftshader ${CMAKE_CURRENT_SOURCE_DIR})
 
+# The name of the application-facing library. Usually this would be the Vulkan Loader,
+# which then loads the Installable Client Driver (ICD), see:
+# https://www.lunarg.com/tutorial-overview-of-vulkan-loader-layers/
+# But SwiftShader can also be loaded directlty by the application. This enables using
+# SwiftShader without requiring a Loader to be installed, and simplifies testing and
+# debugging. ${VULKAN_API_LIBRARY_NAME} is the name of this drop-in API library.
 if(WIN32)
     set(VULKAN_API_LIBRARY_NAME "vulkan-1.dll")
 elseif(LINUX)
@@ -216,6 +222,17 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> ${CMAKE_BINARY_DIR}/bin/${VULKAN_API_LIBRARY_NAME}
 )
+
+# The SWIFTSHADER_VULKAN_API_LIBRARY_INSTALL_PATH environment variable can be set to a path
+# where we'd like the drop-in API library to be installed. For example for testing with dEQP
+# this could be something like C:/src/deqp/build/external/vulkancts/modules/vulkan/Debug/
+if(DEFINED ENV{SWIFTSHADER_VULKAN_API_LIBRARY_INSTALL_PATH})
+    add_custom_command(
+        TARGET vk_swiftshader
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> $ENV{SWIFTSHADER_VULKAN_API_LIBRARY_INSTALL_PATH}${VULKAN_API_LIBRARY_NAME}
+    )
+endif()
 
 # The vk_swiftshader_icd.json manifest file will point to ICD_LIBRARY_PATH.
 # Set ICD_LIBRARY_PATH to be a relative path similar to "./libvk_swiftshader.so", so both files can be moved.
