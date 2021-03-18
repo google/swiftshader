@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "48813bb5_c42b844f",
+        "filename": "src/System/Debug.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-18T13:06:01Z",
+      "side": 1,
+      "message": "I\u0027m not sure this is the best way to deal with this. This file doesn\u0027t include Vulkan headers currently, and I think these macros should remain Vulkan agnostic. \n\nIt also hides some non-intuitive behavior in this macro, and the comment doesn\u0027t fully clarify why this particular enum value is singled out.\n\nI think for each of the switch statements where we encounter unexpected extension enums, we should explicitly list the cases and clarify where we encountered them and why we\u0027re ignoring them. This way there are no surprises and we know exactly what will happen with each enum value. Eventually when dEQP avoids using these invalid ones we can remove those cases.",
+      "range": {
+        "startLine": 150,
+        "startChar": 2,
+        "endLine": 150,
+        "endChar": 41
+      },
+      "revId": "fcbca66a07c7d5e980c59c88931a9d1404fcf3f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
