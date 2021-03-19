@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bbfe9937_9c177bb4",
+        "filename": "src/Vulkan/VkImage.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 714,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-19T18:42:45Z",
+      "side": 1,
+      "message": "Why does the offset affect the width comparison?",
+      "range": {
+        "startLine": 714,
+        "startChar": 85,
+        "endLine": 714,
+        "endChar": 96
+      },
+      "revId": "df2d428364cde0685eb63714045fdae26435dd67",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
