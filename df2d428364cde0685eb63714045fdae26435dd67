@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c7e6717_53e0a67d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-22T21:45:20Z",
+      "side": 1,
+      "message": "Alexis, does this look good to you?",
+      "revId": "df2d428364cde0685eb63714045fdae26435dd67",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bbfe9937_9c177bb4",
@@ -38,6 +55,30 @@
       "side": 1,
       "message": "As Alexis quoted from the spec: \nIf imageExtent.width is not a multiple of the compressed texel block width, then (imageExtent.width + imageOffset.x) must equal the image subresource width.",
       "parentUuid": "bbfe9937_9c177bb4",
+      "range": {
+        "startLine": 714,
+        "startChar": 85,
+        "endLine": 714,
+        "endChar": 96
+      },
+      "revId": "df2d428364cde0685eb63714045fdae26435dd67",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2d0d7cbc_61cf7413",
+        "filename": "src/Vulkan/VkImage.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 714,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-22T21:45:20Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "18157bc6_97952a9d",
       "range": {
         "startLine": 714,
         "startChar": 85,
