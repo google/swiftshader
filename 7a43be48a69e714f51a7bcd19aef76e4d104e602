@@ -22,6 +22,30 @@
       },
       "revId": "7a43be48a69e714f51a7bcd19aef76e4d104e602",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e931effe_e51a23ac",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-03-23T20:41:02Z",
+      "side": 1,
+      "message": "Very much yes! Good catch.",
+      "parentUuid": "4000b31f_9202aec0",
+      "range": {
+        "startLine": 474,
+        "startChar": 2,
+        "endLine": 474,
+        "endChar": 3
+      },
+      "revId": "7a43be48a69e714f51a7bcd19aef76e4d104e602",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
