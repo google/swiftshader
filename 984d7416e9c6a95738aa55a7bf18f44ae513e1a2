@@ -16,6 +16,24 @@
       "message": "Looks like there might be a single test failure with the framebuffer fetch input attachment limit increased from 4-\u003e8. We could either try to fix ANGLE to copy with a mismatched input attachment / draw buffers limit, or investigate this failure. Shabi FYI.",
       "revId": "984d7416e9c6a95738aa55a7bf18f44ae513e1a2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9aea43a_5d21e269",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 46365
+      },
+      "writtenOn": "2021-03-24T03:11:47Z",
+      "side": 1,
+      "message": "The test seems broken to be honest. It looks like it meant to check the colors against a uniform value (u_color), but that doesn\u0027t exist in the shader. The shader is instead sampling from a texture that\u0027s not bound. The expectation (that this test is failing) actually matches this (i.e. expects to read black from the unbound texture).\n\nThe failure here looks like the sampled value is not black, so it mismatches all color outputs in that test. I don\u0027t understand how this change could cause that though.\n\nAnyway, if you\u0027re up to it Jamie, fixing the test would involve changing the shader to actually use the `u_color` location it\u0027s trying to use, and ideally output to four different atomic counters so we can tell which attachment is failing. Or just skip it and ask Mohan to deal with it.",
+      "parentUuid": "764890e2_d1b88dc9",
+      "revId": "984d7416e9c6a95738aa55a7bf18f44ae513e1a2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
