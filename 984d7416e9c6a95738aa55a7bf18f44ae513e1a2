@@ -51,6 +51,24 @@
       "message": "Landing, upstream change to the test landed and rolled into Chrome. Nicolas or Alexis, I also upgraded the input attachment count to #RTs.",
       "revId": "984d7416e9c6a95738aa55a7bf18f44ae513e1a2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3b3d6edd_8ae01ac1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-03-25T21:58:57Z",
+      "side": 1,
+      "message": "Wait, I don\u0027t think the other constants have anything to do with render targets.\nAren\u0027t maxPerStageDescriptorInputAttachments, maxDescriptorSetInputAttachments (both related to the number of descriptor sets used) and maxColorAttachments (number of color attachments in a subpass) are independent from the number of render targets?",
+      "parentUuid": "114ba885_7872eee4",
+      "revId": "984d7416e9c6a95738aa55a7bf18f44ae513e1a2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
