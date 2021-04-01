@@ -49,7 +49,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_FALSE,  // depthClamp
 		VK_TRUE,   // depthBiasClamp
 		VK_TRUE,   // fillModeNonSolid
-		VK_FALSE,  // depthBounds
+		VK_TRUE,   // depthBounds
 		VK_FALSE,  // wideLines
 		VK_TRUE,   // largePoints
 		VK_FALSE,  // alphaToOne

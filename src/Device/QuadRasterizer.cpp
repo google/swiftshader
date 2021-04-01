@@ -83,7 +83,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 		}
 	}
 
-	if(state.depthTestActive)
+	if(state.depthTestActive || state.depthBoundsTestActive)
 	{
 		zBuffer = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, depthBuffer)) + yMin * *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
 	}
@@ -216,7 +216,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 			}
 		}
 
-		if(state.depthTestActive)
+		if(state.depthTestActive || state.depthBoundsTestActive)
 		{
 			zBuffer += *Pointer<Int>(data + OFFSET(DrawData, depthPitchB)) << (1 + clusterCountLog2);  // FIXME: Precompute
 		}

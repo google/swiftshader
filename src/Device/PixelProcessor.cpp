@@ -123,6 +123,10 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 		state.depthClamp = !state.depthFormat.isFloatFormat() || !pipelineState.hasDepthRangeUnrestricted();
 	}
 
+	state.depthBoundsTestActive = pipelineState.depthBoundsTestActive();
+	state.minDepthBounds = pipelineState.getMinDepthBounds();
+	state.maxDepthBounds = pipelineState.getMaxDepthBounds();
+
 	state.occlusionEnabled = occlusionEnabled;
 
 	bool fragmentContainsKill = (fragmentShader && fragmentShader->getModes().ContainsKill);

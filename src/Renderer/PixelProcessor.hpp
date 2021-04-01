@@ -62,6 +62,7 @@ namespace sw
 			bool stencilWriteMaskedCCW                : 1;
 
 			bool depthTestActive                      : 1;
+			bool depthBoundsTestActive                : 1;
 			bool fogActive                            : 1;
 			FogMode pixelFogMode                      : BITS(FOG_LAST);
 			bool specularAdd                          : 1;

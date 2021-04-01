@@ -457,12 +457,10 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 				UNSUPPORTED("pCreateInfo->pDepthStencilState->flags %d", int(pCreateInfo->pDepthStencilState->flags));
 			}
 
-			if(depthStencilState->depthBoundsTestEnable != VK_FALSE)
-			{
-				UNSUPPORTED("VkPhysicalDeviceFeatures::depthBounds");
-			}
-
 			depthBoundsTestEnable = (depthStencilState->depthBoundsTestEnable != VK_FALSE);
+			minDepthBounds = depthStencilState->minDepthBounds;
+			maxDepthBounds = depthStencilState->maxDepthBounds;
+
 			depthBufferEnable = (depthStencilState->depthTestEnable != VK_FALSE);
 			depthWriteEnable = (depthStencilState->depthWriteEnable != VK_FALSE);
 			depthCompareMode = depthStencilState->depthCompareOp;
@@ -593,6 +591,11 @@ bool GraphicsState::stencilActive(const Attachments &attachments) const
 	return attachments.stencilBuffer && stencilEnable;
 }
 
+bool GraphicsState::depthBoundsTestActive() const
+{
+	return depthBoundsTestEnable;
+}
+
 const GraphicsState GraphicsState::combineStates(const DynamicState &dynamicState) const
 {
 	GraphicsState combinedState = *this;
@@ -627,7 +630,8 @@ const GraphicsState GraphicsState::combineStates(const DynamicState &dynamicStat
 		ASSERT(dynamicState.minDepthBounds >= 0.0f && dynamicState.minDepthBounds <= 1.0f);
 		ASSERT(dynamicState.maxDepthBounds >= 0.0f && dynamicState.maxDepthBounds <= 1.0f);
 
-		UNSUPPORTED("VkPhysicalDeviceFeatures::depthBounds");
+		combinedState.minDepthBounds = dynamicState.minDepthBounds;
+		combinedState.maxDepthBounds = dynamicState.maxDepthBounds;
 	}
 
 	if(hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && stencilEnable)
