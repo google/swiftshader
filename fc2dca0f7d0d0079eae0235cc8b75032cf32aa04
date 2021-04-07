@@ -109,6 +109,30 @@
       },
       "revId": "fc2dca0f7d0d0079eae0235cc8b75032cf32aa04",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c8470e84_470c750c",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2165,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "FYI, Reactor has historically only had GT and EQ vector comparison intrinsics, because x86 only has those two. It helps to be conscious about the number of instructions required when implementing the other comparators out of these two, and reduces the work required by the JIT optimizer and assembler.\n\nThat said, AVX-512 introduces instructions which support all comparators (also signed and unsigned) and produce a bitmask. So we\u0027ll want to take advantage of that in due time and have corresponding intrinsics in Reactor.\n\nAnyway, as noted in my other comment, we may not need this at all just yet.",
+      "parentUuid": "2160627e_5486823b",
+      "range": {
+        "startLine": 2146,
+        "startChar": 0,
+        "endLine": 2165,
+        "endChar": 0
+      },
+      "revId": "fc2dca0f7d0d0079eae0235cc8b75032cf32aa04",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }

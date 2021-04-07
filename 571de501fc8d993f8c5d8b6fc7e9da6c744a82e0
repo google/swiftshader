@@ -3,6 +3,144 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f428dcd5_9f843faf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "We use \"expose\" when a feature\u0027s functionality is already supported but the extension string or feature bit is not yet enabled.\n\nThis change both implements the functionality and enables the feature bit (which seems fine to me since it doesn\u0027t require multiple changes to implement it while leaving its usage disabled), so I would just write \"Implement\" here.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 7
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef49b992_95573352",
+        "filename": "src/Device/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "uber-nit: I don\u0027t think this has to be done conditionally. This just copies two scalar float values. Doing the test and jump takes a couple of cycles, and longer if the branch is mispredicted. Note that the conditional below for copying the stencil state is a little more justified because this is 56 bytes.\n\nI know this micro-optimization makes no difference in practice, but having many cases like this, some in more frequently executed code, can make a measurable difference so it\u0027s good practice to put some thought into it while writing the code, before it becomes indistinguishable from other minor performance concerns. Granted, it\u0027s always a judgement call and the best practices tend to change over time...\n\nAnyway, it also improves readability to reduce this from six lines to two.",
+      "range": {
+        "startLine": 461,
+        "startChar": 3,
+        "endLine": 461,
+        "endChar": 28
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "35d92e31_68362c0b",
+        "filename": "src/Device/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 599,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "This checks both whether there\u0027s a depth buffer and the depth test is enabled, while the spec states that \"If the depth bounds test is disabled, or if there is no depth attachment, the coverage mask is unmodified by this operation.\" In other words, \"depth test\" and \"depth bounds test\" are independent as far as I can tell at a glance.\n\nSo I think that this method should just return \"attachments.depthBuffer \u0026\u0026 depthBoundsTestEnable\"?",
+      "range": {
+        "startLine": 599,
+        "startChar": 5,
+        "endLine": 599,
+        "endChar": 22
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c6d1e8d3_b5bde1b3",
+        "filename": "src/Device/PixelProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "Same as previously, the depth bounds test might still be active even if the depth test is not.",
+      "range": {
+        "startLine": 116,
+        "startChar": 8,
+        "endLine": 116,
+        "endChar": 30
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f87c5c9c_f800259b",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "note: There must be a way to avoid reading the depth buffer twice. Anyway, as discussed, let\u0027s leave optimizations for a future change. Please file a bug for the follow-up work.",
+      "range": {
+        "startLine": 143,
+        "startChar": 4,
+        "endLine": 144,
+        "endChar": 55
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "de698035_50595627",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "Could you verify in the spec whether the depth bounds test is affected by the \"early fragment test\" or not: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#shaders-fragment-earlytest ?",
+      "range": {
+        "startLine": 311,
+        "startChar": 6,
+        "endLine": 311,
+        "endChar": 21
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "48745a3f_2c49869e",
         "filename": "src/Pipeline/PixelRoutine.cpp",
         "patchSetId": 3
@@ -19,6 +157,29 @@
         "startChar": 66,
         "endLine": 619,
         "endChar": 73
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25cf286a_c6cad334",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-07T14:32:57Z",
+      "side": 1,
+      "message": "This seems like a bit of a detour. Instead of doing the comparison in Short4 format by first converting both the min and max bounds to it, we could convert the depth value to Float4 and do the compares in floating-point.\n\nAlso avoids the issue of not having native unsigned LE compare instructions in SSE2.",
+      "range": {
+        "startLine": 620,
+        "startChar": 1,
+        "endLine": 630,
+        "endChar": 80
       },
       "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
