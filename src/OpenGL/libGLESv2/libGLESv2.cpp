@@ -13,22 +13,22 @@
 // limitations under the License.
 // libGLESv2.cpp: Implements the exported OpenGL ES 2.0 functions.
 
-#include "main.h"
-#include "mathutil.h"
-#include "utilities.h"
 #include "Buffer.h"
+#include "Common/Version.h"
 #include "Context.h"
 #include "Fence.h"
 #include "Framebuffer.h"
 #include "Program.h"
+#include "Query.h"
 #include "Renderbuffer.h"
 #include "Shader.h"
 #include "Texture.h"
-#include "Query.h"
 #include "TransformFeedback.h"
 #include "VertexArray.h"
 #include "common/debug.h"
-#include "Common/Version.h"
+#include "main.h"
+#include "mathutil.h"
+#include "utilities.h"
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
@@ -6065,11 +6065,6 @@ void GL_APIENTRY FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenu
 
 void GL_APIENTRY EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 {
-	if(egl::getClientVersion() == 1)
-	{
-		return libGLES_CM->glEGLImageTargetTexture2DOES(target, image);
-	}
-
 	TRACE("(GLenum target = 0x%X, GLeglImageOES image = %p)", target, image);
 
 	switch(target)

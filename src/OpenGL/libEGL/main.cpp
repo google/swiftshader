@@ -16,15 +16,15 @@
 
 #include "main.h"
 
-#include "libEGL.hpp"
 #include "Context.hpp"
-#include "Surface.hpp"
 #include "Display.h"
+#include "Surface.hpp"
+#include "libEGL.hpp"
 
-#include "resource.h"
-#include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"
+#include "Common/Thread.hpp"
 #include "common/debug.h"
+#include "resource.h"
 
 #include <EGL/eglext.h>
 
@@ -720,5 +720,4 @@ extern "C" EGLAPI LibEGLexports *libEGL_swiftshader()
 	return &libEGL;
 }
 
-LibGLES_CM libGLES_CM;
 LibGLESv2 libGLESv2;

@@ -18,18 +18,18 @@
 
 #include "Display.h"
 
-#include "main.h"
-#include "libEGL/Surface.hpp"
-#include "libEGL/Context.hpp"
+#include "Common/RecursiveLock.hpp"
 #include "common/Image.hpp"
 #include "common/debug.h"
-#include "Common/RecursiveLock.hpp"
+#include "libEGL/Context.hpp"
+#include "libEGL/Surface.hpp"
+#include "main.h"
 
 #if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
-#include <vndk/window.h>
-#include <sys/ioctl.h>
-#include <linux/fb.h>
 #include <fcntl.h>
+#include <linux/fb.h>
+#include <sys/ioctl.h>
+#include <vndk/window.h>
 #elif defined(USE_X11)
 #include "Main/libX11.hpp"
 #elif defined(__APPLE__)
@@ -39,8 +39,8 @@
 #endif
 
 #include <algorithm>
-#include <vector>
 #include <map>
+#include <vector>
 
 namespace egl
 {
@@ -569,15 +569,8 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 	const egl::Config *config = mConfigSet.get(configHandle);
 	egl::Context *context = nullptr;
 
-	if(clientVersion == 1 && config->mRenderableType & EGL_OPENGL_ES_BIT)
-	{
-		if(libGLES_CM)
-		{
-			context = libGLES_CM->es1CreateContext(this, shareContext, config);
-		}
-	}
-	else if((clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT) ||
-	        (clientVersion == 3 && config->mRenderableType & EGL_OPENGL_ES3_BIT))
+	if((clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT) ||
+	   (clientVersion == 3 && config->mRenderableType & EGL_OPENGL_ES3_BIT))
 	{
 		if(libGLESv2)
 		{

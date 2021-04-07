@@ -15,16 +15,16 @@
 #ifndef libGLESv2_hpp
 #define libGLESv2_hpp
 
+#include <EGL/egl.h>
 #include <GLES/gl.h>
 #include <GLES/glext.h>
-#include <EGL/egl.h>
 
 #include "Common/SharedLibrary.hpp"
+#include "Renderer/Surface.hpp"
 
 namespace sw
 {
 class FrameBuffer;
-enum Format ENUM_UNDERLYING_TYPE_UNSIGNED_INT;
 }
 
 namespace egl

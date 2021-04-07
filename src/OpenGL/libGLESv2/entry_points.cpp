@@ -14,9 +14,9 @@
 
 // entry_points.cpp: GL entry points exports and definition
 
-#include "main.h"
 #include "entry_points.h"
 #include "libEGL/main.h"
+#include "main.h"
 
 extern "C"
 {
@@ -1752,4 +1752,3 @@ extern "C" GL_APICALL LibGLESv2exports *libGLESv2_swiftshader()
 }
 
 LibEGL libEGL;
-LibGLES_CM libGLES_CM;

@@ -14,14 +14,14 @@
 
 // libEGL.cpp: Implements the exported EGL functions.
 
-#include "main.h"
+#include "Common/Version.h"
+#include "Context.hpp"
 #include "Display.h"
 #include "Surface.hpp"
 #include "Texture.hpp"
-#include "Context.hpp"
 #include "common/Image.hpp"
 #include "common/debug.h"
-#include "Common/Version.h"
+#include "main.h"
 
 #if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 #include <vndk/window.h>
@@ -30,8 +30,8 @@
 #endif
 
 #include <algorithm>
-#include <vector>
 #include <string.h>
+#include <vector>
 
 namespace egl
 {
@@ -1612,12 +1612,6 @@ __eglMustCastToProperFunctionPointerType EGLAPIENTRY GetProcAddress(const char *
 	if(libGLESv2)
 	{
 		__eglMustCastToProperFunctionPointerType proc = libGLESv2->es2GetProcAddress(procname);
-		if(proc) return success(proc);
-	}
-
-	if(libGLES_CM)
-	{
-		__eglMustCastToProperFunctionPointerType proc =  libGLES_CM->es1GetProcAddress(procname);
 		if(proc) return success(proc);
 	}
 

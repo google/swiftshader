@@ -17,7 +17,6 @@
 #ifndef LIBEGL_MAIN_H_
 #define LIBEGL_MAIN_H_
 
-#include "libGLES_CM/libGLES_CM.hpp"
 #include "libGLESv2/libGLESv2.hpp"
 
 #include <EGL/egl.h>
@@ -76,7 +75,6 @@ namespace egl
 	}
 }
 
-extern LibGLES_CM libGLES_CM;
 extern LibGLESv2 libGLESv2;
 
 #endif  // LIBEGL_MAIN_H_
