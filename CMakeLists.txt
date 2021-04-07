@@ -142,7 +142,6 @@ endfunction()
 
 option_if_not_defined(SWIFTSHADER_BUILD_EGL "Build the EGL library" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_GLESv2 "Build the OpenGL ES 2 library" TRUE)
-option_if_not_defined(SWIFTSHADER_BUILD_GLES_CM "Build the OpenGL ES 1.1 library" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_VULKAN "Build the Vulkan library" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_WSI_WAYLAND "Build the Wayland WSI support" FALSE)
 option_if_not_defined(SWIFTSHADER_BUILD_WSI_DIRECTFB "Build the DirectFB WSI support" FALSE)
@@ -784,10 +783,6 @@ endif()
 if(SWIFTSHADER_BUILD_GLESv2)
     add_subdirectory(src/OpenGL/libGLESv2) # Add libGLESv2 target
 endif()
-
-if(SWIFTSHADER_BUILD_GLES_CM)
-    add_subdirectory(src/OpenGL/libGLES_CM) # Add libGLES_CM target
-endif(SWIFTSHADER_BUILD_GLES_CM)
 
 if(SWIFTSHADER_BUILD_VULKAN)
     if (NOT TARGET SPIRV-Tools)

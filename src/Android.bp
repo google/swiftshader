@@ -413,58 +413,6 @@ cc_library_shared {
     ],
 }
 
-// libGLESv1_CM libraries
-
-cc_defaults {
-    name: "libGLESv1_CM_swiftshader_defaults",
-
-    defaults: [ "libswiftshader" ],
-
-    cflags: [
-        "-DLOG_TAG=\"libGLES_CM_swiftshader\"",
-        "-DEGLAPI=",
-        "-DGL_API=",
-        "-DGL_APICALL=",
-        "-DGL_GLEXT_PROTOTYPES",
-        "-Wno-format",
-    ],
-
-    srcs: [
-        "OpenGL/libGLES_CM/Buffer.cpp",
-        "OpenGL/libGLES_CM/Context.cpp",
-        "OpenGL/libGLES_CM/Device.cpp",
-        "OpenGL/libGLES_CM/Framebuffer.cpp",
-        "OpenGL/libGLES_CM/IndexDataManager.cpp",
-        "OpenGL/libGLES_CM/libGLES_CM.cpp",
-        "OpenGL/libGLES_CM/main.cpp",
-        "OpenGL/libGLES_CM/Renderbuffer.cpp",
-        "OpenGL/libGLES_CM/ResourceManager.cpp",
-        "OpenGL/libGLES_CM/Texture.cpp",
-        "OpenGL/libGLES_CM/utilities.cpp",
-        "OpenGL/libGLES_CM/VertexDataManager.cpp",
-    ],
-
-    version_script: "OpenGL/libGLES_CM/libGLES_CM.lds",
-}
-
-cc_library_shared {
-    name: "libGLESv1_CM_swiftshader",
-
-    defaults: [
-        "libGLESv1_CM_swiftshader_defaults",
-        "swiftshader_client_libraries",
-    ],
-}
-
-cc_library_shared {
-    name: "libGLESv1_CM_swiftshader_debug",
-
-    defaults: [
-        "libGLESv1_CM_swiftshader_defaults",
-        "swiftshader_client_libraries_debug",
-    ],
-}
-
 // libGLESv2 libraries
 
 cc_defaults {
