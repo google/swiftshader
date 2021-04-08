@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d50a92be_d9b8cfa9",
+        "filename": "src/Device/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-08T13:21:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7da381e4_316969f2",
+      "range": {
+        "startLine": 461,
+        "startChar": 0,
+        "endLine": 462,
+        "endChar": 54
+      },
+      "revId": "fc2dca0f7d0d0079eae0235cc8b75032cf32aa04",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b5a66136_40ba59e7",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-04-06T16:22:30Z",
       "side": 1,
       "message": "I think this is incorrect. You probably want \"true\" to be an argument of convertFixed16, but it\u0027s an argument of Float4 right now. This is using the Float4(float x, float yzw) constructor, setting it to {x, 1, 1, 1}.",
+      "range": {
+        "startLine": 637,
+        "startChar": 66,
+        "endLine": 637,
+        "endChar": 72
+      },
+      "revId": "fc2dca0f7d0d0079eae0235cc8b75032cf32aa04",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "633eb828_2380c5ad",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 637,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-08T13:21:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5a66136_40ba59e7",
       "range": {
         "startLine": 637,
         "startChar": 66,
@@ -125,6 +173,30 @@
       "side": 1,
       "message": "FYI, Reactor has historically only had GT and EQ vector comparison intrinsics, because x86 only has those two. It helps to be conscious about the number of instructions required when implementing the other comparators out of these two, and reduces the work required by the JIT optimizer and assembler.\n\nThat said, AVX-512 introduces instructions which support all comparators (also signed and unsigned) and produce a bitmask. So we\u0027ll want to take advantage of that in due time and have corresponding intrinsics in Reactor.\n\nAnyway, as noted in my other comment, we may not need this at all just yet.",
       "parentUuid": "2160627e_5486823b",
+      "range": {
+        "startLine": 2146,
+        "startChar": 0,
+        "endLine": 2165,
+        "endChar": 0
+      },
+      "revId": "fc2dca0f7d0d0079eae0235cc8b75032cf32aa04",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "017147a6_1390a151",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2165,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-08T13:21:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8470e84_470c750c",
       "range": {
         "startLine": 2146,
         "startChar": 0,

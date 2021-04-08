@@ -70,6 +70,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5177d18_920b4b53",
+        "filename": "src/Device/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 599,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-08T13:21:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "35d92e31_68362c0b",
+      "range": {
+        "startLine": 599,
+        "startChar": 5,
+        "endLine": 599,
+        "endChar": 22
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c6d1e8d3_b5bde1b3",
@@ -83,6 +107,30 @@
       "writtenOn": "2021-04-07T14:32:57Z",
       "side": 1,
       "message": "Same as previously, the depth bounds test might still be active even if the depth test is not.",
+      "range": {
+        "startLine": 116,
+        "startChar": 8,
+        "endLine": 116,
+        "endChar": 30
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5bb422b1_bd2e2e15",
+        "filename": "src/Device/PixelProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-08T13:21:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c6d1e8d3_b5bde1b3",
       "range": {
         "startLine": 116,
         "startChar": 8,
@@ -162,6 +210,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d799ad02_1ba22402",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-08T13:21:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "48745a3f_2c49869e",
+      "range": {
+        "startLine": 619,
+        "startChar": 66,
+        "endLine": 619,
+        "endChar": 73
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "25cf286a_c6cad334",
@@ -175,6 +247,30 @@
       "writtenOn": "2021-04-07T14:32:57Z",
       "side": 1,
       "message": "This seems like a bit of a detour. Instead of doing the comparison in Short4 format by first converting both the min and max bounds to it, we could convert the depth value to Float4 and do the compares in floating-point.\n\nAlso avoids the issue of not having native unsigned LE compare instructions in SSE2.",
+      "range": {
+        "startLine": 620,
+        "startChar": 1,
+        "endLine": 630,
+        "endChar": 80
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "93fb02d2_3f015d76",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-08T13:21:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25cf286a_c6cad334",
       "range": {
         "startLine": 620,
         "startChar": 1,
