@@ -129,7 +129,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 				if(state.depthClamp)
 				{
-					z[q] = Min(Max(z[q], Float4(0.0f)), Float4(1.0f));
+					z[q] = Min(Max(z[q], Float4(state.minDepthClamp)), Float4(state.maxDepthClamp));
 				}
 			}
 		}
