@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "9ff64ef9_8de65a32",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-09T20:12:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f428dcd5_9f843faf",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 7
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "ef49b992_95573352",
         "filename": "src/Device/Context.cpp",
         "patchSetId": 3
@@ -177,6 +201,30 @@
       "writtenOn": "2021-04-07T14:32:57Z",
       "side": 1,
       "message": "Could you verify in the spec whether the depth bounds test is affected by the \"early fragment test\" or not: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#shaders-fragment-earlytest ?",
+      "range": {
+        "startLine": 311,
+        "startChar": 6,
+        "endLine": 311,
+        "endChar": 21
+      },
+      "revId": "571de501fc8d993f8c5d8b6fc7e9da6c744a82e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4ffed9a_725713ac",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-09T20:12:21Z",
+      "side": 1,
+      "message": "It is. \"If early per-fragment operations are enabled by the fragment shader, [Depth bounds test is] also performed\" per the spect.",
+      "parentUuid": "de698035_50595627",
       "range": {
         "startLine": 311,
         "startChar": 6,
