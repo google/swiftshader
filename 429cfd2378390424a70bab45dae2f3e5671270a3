@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d645ce3c_a57a79d6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-04-12T21:25:36Z",
+      "side": 1,
+      "message": "LGTM, letting Nicolas double check and give the final +2.",
+      "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
