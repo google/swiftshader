@@ -108,6 +108,30 @@
       },
       "revId": "ad43205d49f1cf1054dbbe71ff920ea9e052137c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fdf525a5_9cca44cd",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 2863,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-12T18:57:29Z",
+      "side": 1,
+      "message": "Note that in general the compiler will not replace divisions by constants with a multiplication by the reciprocal, because of rounding differences. In the case of a power-of-two value though, there\u0027s no loss of precision.\n\nHowever, I believe in this case 0xFFFF represents 1.0, so this should not use 65536? Also, 16-bit depth values are unsigned?",
+      "parentUuid": "d2a0429a_73bcd404",
+      "range": {
+        "startLine": 2863,
+        "startChar": 19,
+        "endLine": 2863,
+        "endChar": 38
+      },
+      "revId": "ad43205d49f1cf1054dbbe71ff920ea9e052137c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
