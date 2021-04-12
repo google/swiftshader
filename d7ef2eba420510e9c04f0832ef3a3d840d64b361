@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a56535f0_75628297",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 609,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-12T18:22:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f30fba4_de4079b8",
+      "range": {
+        "startLine": 609,
+        "startChar": 103,
+        "endLine": 609,
+        "endChar": 104
+      },
+      "revId": "d7ef2eba420510e9c04f0832ef3a3d840d64b361",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "292e837d_1ef6a903",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-04-09T21:50:38Z",
       "side": 1,
       "message": "Nit: could be renamed \u0027z\u0027 if you remove the unused argument",
+      "range": {
+        "startLine": 619,
+        "startChar": 8,
+        "endLine": 619,
+        "endChar": 13
+      },
+      "revId": "d7ef2eba420510e9c04f0832ef3a3d840d64b361",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c70ee160_42829854",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-12T18:22:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "292e837d_1ef6a903",
       "range": {
         "startLine": 619,
         "startChar": 8,
@@ -87,6 +135,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "44aba972_c51cd722",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 639,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-12T18:22:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9876ca81_a9a414a6",
+      "range": {
+        "startLine": 639,
+        "startChar": 104,
+        "endLine": 639,
+        "endChar": 105
+      },
+      "revId": "d7ef2eba420510e9c04f0832ef3a3d840d64b361",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6bcb12df_fce2d638",
@@ -100,6 +172,30 @@
       "writtenOn": "2021-04-09T21:50:38Z",
       "side": 1,
       "message": "Also unused, once the other arguments are removed",
+      "range": {
+        "startLine": 662,
+        "startChar": 101,
+        "endLine": 662,
+        "endChar": 102
+      },
+      "revId": "d7ef2eba420510e9c04f0832ef3a3d840d64b361",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "533816b2_640d1863",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 662,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-12T18:22:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bcb12df_fce2d638",
       "range": {
         "startLine": 662,
         "startChar": 101,
