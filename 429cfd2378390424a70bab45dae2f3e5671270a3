@@ -111,6 +111,30 @@
       },
       "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "88caea6f_056f85cc",
+        "filename": "src/Device/QuadRasterizer.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-04-13T14:44:23Z",
+      "side": 1,
+      "message": "If not, let\u0027s fix it here, otherwise untangle as part of b/185227903",
+      "parentUuid": "cf2a7cdd_d985d57e",
+      "range": {
+        "startLine": 253,
+        "startChar": 32,
+        "endLine": 253,
+        "endChar": 64
+      },
+      "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
