@@ -39,6 +39,30 @@
       },
       "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "218af544_508c6fc0",
+        "filename": "src/Device/QuadRasterizer.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-13T14:27:34Z",
+      "side": 1,
+      "message": "Yes, zBuffer is initialized based on this.",
+      "parentUuid": "184205a0_cc9b2da6",
+      "range": {
+        "startLine": 253,
+        "startChar": 32,
+        "endLine": 253,
+        "endChar": 64
+      },
+      "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
