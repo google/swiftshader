@@ -16,6 +16,29 @@
       "message": "LGTM, letting Nicolas double check and give the final +2.",
       "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "184205a0_cc9b2da6",
+        "filename": "src/Device/QuadRasterizer.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-04-13T13:50:23Z",
+      "side": 1,
+      "message": "Is this still required since you no longer use z?",
+      "range": {
+        "startLine": 253,
+        "startChar": 32,
+        "endLine": 253,
+        "endChar": 64
+      },
+      "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
