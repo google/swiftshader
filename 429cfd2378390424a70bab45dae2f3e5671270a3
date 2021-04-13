@@ -135,6 +135,30 @@
       },
       "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e57a255e_15204b8a",
+        "filename": "src/Device/QuadRasterizer.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-13T17:18:33Z",
+      "side": 1,
+      "message": "Ah, for some reason I thought zBuffer was controlled by interpolateZ() as well.",
+      "parentUuid": "88caea6f_056f85cc",
+      "range": {
+        "startLine": 253,
+        "startChar": 32,
+        "endLine": 253,
+        "endChar": 64
+      },
+      "revId": "429cfd2378390424a70bab45dae2f3e5671270a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
