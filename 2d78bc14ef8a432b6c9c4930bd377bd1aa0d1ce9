@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c776803a_4a11d630",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-19T20:04:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50501bb2_f4b976ed",
+      "range": {
+        "startLine": 7,
+        "startChar": 10,
+        "endLine": 7,
+        "endChar": 28
+      },
+      "revId": "2d78bc14ef8a432b6c9c4930bd377bd1aa0d1ce9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f32fe63d_f19cfd78",
@@ -47,6 +71,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cb19e04b_4e1f9137",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-19T20:04:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f32fe63d_f19cfd78",
+      "range": {
+        "startLine": 10,
+        "startChar": 30,
+        "endLine": 11,
+        "endChar": 16
+      },
+      "revId": "2d78bc14ef8a432b6c9c4930bd377bd1aa0d1ce9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b1072860_87c002f5",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-04-19T19:38:18Z",
       "side": 1,
       "message": "Can you open a new bug and make the depthClamp one depend on it?",
+      "range": {
+        "startLine": 14,
+        "startChar": 7,
+        "endLine": 14,
+        "endChar": 16
+      },
+      "revId": "2d78bc14ef8a432b6c9c4930bd377bd1aa0d1ce9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c69d367b_0581137e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-04-19T20:04:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b1072860_87c002f5",
       "range": {
         "startLine": 14,
         "startChar": 7,
