@@ -93,6 +93,7 @@ struct DrawData
 	float constantDepthBias;
 	float slopeDepthBias;
 	float depthBiasClamp;
+	bool depthClipEnable;
 
 	unsigned int *colorBuffer[RENDERTARGETS];
 	int colorPitchB[RENDERTARGETS];
@@ -157,6 +158,8 @@ struct DrawCall
 	VkProvokingVertexModeEXT provokingVertexMode;
 	VkIndexType indexType;
 	VkLineRasterizationModeEXT lineRasterizationMode;
+
+	bool depthClipEnable;
 
 	VertexProcessor::RoutineType vertexRoutine;
 	SetupProcessor::RoutineType setupRoutine;

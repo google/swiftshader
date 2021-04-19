@@ -81,6 +81,7 @@ public:
 		Input input[MAX_INTERFACE_COMPONENTS / 4];
 		bool robustBufferAccess : 1;
 		bool isPoint : 1;
+		bool depthClipEnable : 1;
 	};
 
 	struct State : States

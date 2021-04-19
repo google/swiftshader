@@ -125,17 +125,20 @@ void VertexRoutine::computeClipFlags()
 
 		Int4 maxX = CmpLT(posW, posX);
 		Int4 maxY = CmpLT(posW, posY);
-		Int4 maxZ = CmpLT(posW, posZ);
 		Int4 minX = CmpNLE(-posW, posX);
 		Int4 minY = CmpNLE(-posW, posY);
-		Int4 minZ = CmpNLE(Float4(0.0f), posZ);
 
 		clipFlags = Pointer<Int>(constants + OFFSET(Constants, maxX))[SignMask(maxX)];
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxY))[SignMask(maxY)];
-		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxZ))[SignMask(maxZ)];
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minX))[SignMask(minX)];
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minY))[SignMask(minY)];
-		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
+		if(state.depthClipEnable)
+		{
+			Int4 maxZ = CmpLT(posW, posZ);
+			Int4 minZ = CmpNLE(Float4(0.0f), posZ);
+			clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxZ))[SignMask(maxZ)];
+			clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
+		}
 
 		Float4 maxPos = As<Float4>(Int4(0x7F7FFFFF));
 		Int4 finiteX = CmpLE(Abs(posX), maxPos);
