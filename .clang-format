@@ -71,6 +71,7 @@ IncludeCategories:
   - Regex:           '.*'
     Priority:        5
 IncludeIsMainRegex: '([-_](test|unittest))?$'
+IndentCaseBlocks: false
 IndentCaseLabels: true
 IndentPPDirectives: AfterHash
 IndentWidth:     4
