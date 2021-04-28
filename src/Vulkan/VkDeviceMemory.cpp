@@ -231,6 +231,10 @@ struct OpaqueFdAllocateInfo
 				// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
 				//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
 				break;
+			case VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT:
+				// This will be handled at a later point within vk::findTraits() by
+				// ExternalMemoryHost::AllocateInfo()
+				break;
 			default:
 				WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(createInfo->sType).c_str());
 			}
