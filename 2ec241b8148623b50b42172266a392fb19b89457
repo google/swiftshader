@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b71a999_578ffe73",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-03T19:23:08Z",
+      "side": 1,
+      "message": "Looks mostly okay to me. The dEQP failures are clearly a bug on their end, which will be addressed by https://gerrit.khronos.org/c/vk-gl-cts/+/7357, so it seems fine to me temporarily fail these tests.",
+      "revId": "2ec241b8148623b50b42172266a392fb19b89457",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "11c606fe_d5c05016",
+        "filename": "src/Device/Clipper.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-03T19:23:08Z",
+      "side": 1,
+      "message": "This would be easier to understand when written as \"depthClipEnable ? (...) : 0\", thus eliminating the \u0026 0xFFFFFFFF.\n\nIt might also help readability to put the (...) part in a depthClipFlags variable.",
+      "range": {
+        "startLine": 270,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 46
+      },
+      "revId": "2ec241b8148623b50b42172266a392fb19b89457",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "741e4ec4_e55e0aff",
+        "filename": "src/Device/Context.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-03T19:23:08Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 161,
+        "startChar": 1,
+        "endLine": 161,
+        "endChar": 79
+      },
+      "revId": "2ec241b8148623b50b42172266a392fb19b89457",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8101c2ef_d8a00222",
+        "filename": "src/Device/Renderer.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 905,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-03T19:23:08Z",
+      "side": 1,
+      "message": "There\u0027s a subtle issue here. depthClipEnable is a Boolean pipeline \u0027state\u0027 flag, which in the vertex processing stage we use to affect the code that gets generated (i.e. the state gets \u0027baked\u0027 into the routine). Here it\u0027s being passed into a C++ function as part of a \u0027data\u0027 structure, to affect the code that gets executed. Currently this works fine, but if we replaced this C++ function with a specialized Reactor routine we wouldn\u0027t take this parameter into account.\n\nTo avoid potential future bugs I suggest removing depthClipEnable from DrawData. Instead it can be added to DrawCall, similar to lineRasterizationMode as used at line 880 above.",
+      "range": {
+        "startLine": 905,
+        "startChar": 41,
+        "endLine": 905,
+        "endChar": 61
+      },
+      "revId": "2ec241b8148623b50b42172266a392fb19b89457",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0fb4fe58_d2871572",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-03T19:23:08Z",
+      "side": 1,
+      "message": "Looks like this is still using the old clang-format.",
+      "range": {
+        "startLine": 393,
+        "startChar": 2,
+        "endLine": 393,
+        "endChar": 3
+      },
+      "revId": "2ec241b8148623b50b42172266a392fb19b89457",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
