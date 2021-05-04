@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "7f2b25dc_7d243f9b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-04T20:20:58Z",
+      "side": 1,
+      "message": "I put patch on top of this and was still failing the fragDepth tests. I didn\u0027t look into all the failing tests however.",
+      "parentUuid": "a4f59788_746e6c15",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 5
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c83d2a1c_09f36ca7",
         "filename": "src/Device/PixelProcessor.cpp",
         "patchSetId": 11
@@ -37,6 +61,30 @@
       "writtenOn": "2021-05-04T02:03:23Z",
       "side": 1,
       "message": "Is this required by the spec?",
+      "range": {
+        "startLine": 132,
+        "startChar": 3,
+        "endLine": 135,
+        "endChar": 4
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2695b296_1f661eeb",
+        "filename": "src/Device/PixelProcessor.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-04T20:20:58Z",
+      "side": 1,
+      "message": "Yes, the spec states:\n\n\u003e zf is clamped to [min(n,f),max(n,f)], where n and f are the minDepth and maxDepth depth range values of the viewport used by this fragment, respectively.\n\nAnd dEQP does test for this behavior.",
+      "parentUuid": "c83d2a1c_09f36ca7",
       "range": {
         "startLine": 132,
         "startChar": 3,
@@ -70,6 +118,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3b8a43d1_5b93ff06",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-04T20:20:58Z",
+      "side": 1,
+      "message": "No, there are no cases like that.",
+      "parentUuid": "54bf359e_35d334b6",
+      "range": {
+        "startLine": 285,
+        "startChar": 3,
+        "endLine": 291,
+        "endChar": 4
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a016069d_b2328304",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-05-04T02:03:23Z",
       "side": 1,
       "message": "This seems unnecessary since clamping already took place at line 285?",
+      "range": {
+        "startLine": 328,
+        "startChar": 7,
+        "endLine": 334,
+        "endChar": 8
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b6773fd_845ab83d",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-04T20:20:58Z",
+      "side": 1,
+      "message": "Right, this and the one on 285 are leftovers from earlier iterations that I didn\u0027t realize I had left in.",
+      "parentUuid": "a016069d_b2328304",
       "range": {
         "startLine": 328,
         "startChar": 7,
