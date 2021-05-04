@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a4f59788_746e6c15",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-04T02:03:23Z",
+      "side": 1,
+      "message": "Would be nice to know how this change fares with https://gerrit.khronos.org/c/vk-gl-cts/+/7148\n\nNote we have a prior bug (b/1840634720) for passing unclamped depth to FragCoord.z. WIP patch breaks stuff and I haven\u0027t looked into why yet: https://swiftshader-review.googlesource.com/c/SwiftShader/+/53868",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 5
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c83d2a1c_09f36ca7",
+        "filename": "src/Device/PixelProcessor.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-04T02:03:23Z",
+      "side": 1,
+      "message": "Is this required by the spec?",
+      "range": {
+        "startLine": 132,
+        "startChar": 3,
+        "endLine": 135,
+        "endChar": 4
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "54bf359e_35d334b6",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-04T02:03:23Z",
+      "side": 1,
+      "message": "Are there any cases where interpolateZ() at line 112 would evaluate to false but we still get a valid z[] here that needs clamping?",
+      "range": {
+        "startLine": 285,
+        "startChar": 3,
+        "endLine": 291,
+        "endChar": 4
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a016069d_b2328304",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-04T02:03:23Z",
+      "side": 1,
+      "message": "This seems unnecessary since clamping already took place at line 285?",
+      "range": {
+        "startLine": 328,
+        "startChar": 7,
+        "endLine": 334,
+        "endChar": 8
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
