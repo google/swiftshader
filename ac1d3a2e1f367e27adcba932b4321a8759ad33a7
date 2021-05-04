@@ -48,6 +48,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cd4ba1c2_85ba9e70",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-04T20:35:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7f2b25dc_7d243f9b",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 5
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c83d2a1c_09f36ca7",
@@ -85,6 +109,30 @@
       "side": 1,
       "message": "Yes, the spec states:\n\n\u003e zf is clamped to [min(n,f),max(n,f)], where n and f are the minDepth and maxDepth depth range values of the viewport used by this fragment, respectively.\n\nAnd dEQP does test for this behavior.",
       "parentUuid": "c83d2a1c_09f36ca7",
+      "range": {
+        "startLine": 132,
+        "startChar": 3,
+        "endLine": 135,
+        "endChar": 4
+      },
+      "revId": "ac1d3a2e1f367e27adcba932b4321a8759ad33a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ed96ffd7_9d286a9a",
+        "filename": "src/Device/PixelProcessor.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-04T20:35:58Z",
+      "side": 1,
+      "message": "Ah, excellent. Just a nit, but maybe lines 129-130 can be rewritten to use min() and max() instead? I know that\u0027s exactly the same thing as swapping when not in order, but it would match closely with how it\u0027s written in the spec, to avoid any and all confusion.\n\nAlso note that while these members are currently only used for clamping the interpolated z range, if we ever need the original viewport minDepth/maxDepth, they can unexpectedly be swapped. Also note we already have minDepthBounds and maxDepthBounds state members. For these reasons I suggest renaming these new members to minDepthClamp/maxDepthClamp, if that makes sense.",
+      "parentUuid": "2695b296_1f661eeb",
       "range": {
         "startLine": 132,
         "startChar": 3,
