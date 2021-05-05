@@ -134,6 +134,30 @@
       },
       "revId": "aa622d98e726e8f2fe172bebb264c7b5ac00d4ab",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c3e20de9_e984e918",
+        "filename": "src/Device/Context.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-05T18:06:15Z",
+      "side": 1,
+      "message": "If depth clip is enabled then z is already within [0, 1] in homogeneous clip space, which becomes [minDepth, maxDepth] after viewport transform, and thus depth clamp has no effect.\n\nThere could be edge cases though (no pun intended), so I think we can treat this as a follow-up optimization. Sean, can you file a bug?",
+      "parentUuid": "0787ab1b_d2e3d0f2",
+      "range": {
+        "startLine": 375,
+        "startChar": 4,
+        "endLine": 375,
+        "endChar": 65
+      },
+      "revId": "aa622d98e726e8f2fe172bebb264c7b5ac00d4ab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
