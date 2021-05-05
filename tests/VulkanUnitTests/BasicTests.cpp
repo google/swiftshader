@@ -115,70 +115,70 @@ TEST_F(BasicTest, Version)
 /*
 TEST_F(BasicTest, UnsupportedDeviceExtension_DISABLED)
 {
-	uint32_t apiVersion = 0;
-	VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
+    uint32_t apiVersion = 0;
+    VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
 
-	const VkInstanceCreateInfo createInfo = {
-		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
-		nullptr,                                 // pNext
-		0,                                       // flags
-		nullptr,                                 // pApplicationInfo
-		0,                                       // enabledLayerCount
-		nullptr,                                 // ppEnabledLayerNames
-		0,                                       // enabledExtensionCount
-		nullptr,                                 // ppEnabledExtensionNames
-	};
-	VkInstance instance = VK_NULL_HANDLE;
-	result = driver.vkCreateInstance(&createInfo, nullptr, &instance);
-	EXPECT_EQ(result, VK_SUCCESS);
+    const VkInstanceCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
+        nullptr,                                 // pNext
+        0,                                       // flags
+        nullptr,                                 // pApplicationInfo
+        0,                                       // enabledLayerCount
+        nullptr,                                 // ppEnabledLayerNames
+        0,                                       // enabledExtensionCount
+        nullptr,                                 // ppEnabledExtensionNames
+    };
+    VkInstance instance = VK_NULL_HANDLE;
+    result = driver.vkCreateInstance(&createInfo, nullptr, &instance);
+    EXPECT_EQ(result, VK_SUCCESS);
 
-	ASSERT_TRUE(driver.resolve(instance));
+    ASSERT_TRUE(driver.resolve(instance));
 
-	VkBaseInStructure unsupportedExt = { VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT, nullptr };
+    VkBaseInStructure unsupportedExt = { VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT, nullptr };
 
-	// Gather all physical devices
-	std::vector<VkPhysicalDevice> physicalDevices;
-	result = Device::GetPhysicalDevices(&driver, instance, physicalDevices);
-	EXPECT_EQ(result, VK_SUCCESS);
+    // Gather all physical devices
+    std::vector<VkPhysicalDevice> physicalDevices;
+    result = Device::GetPhysicalDevices(&driver, instance, physicalDevices);
+    EXPECT_EQ(result, VK_SUCCESS);
 
-	// Inspect each physical device's queue families for compute support.
-	for(auto physicalDevice : physicalDevices)
-	{
-		int queueFamilyIndex = Device::GetComputeQueueFamilyIndex(&driver, physicalDevice);
-		if(queueFamilyIndex < 0)
-		{
-			continue;
-		}
+    // Inspect each physical device's queue families for compute support.
+    for(auto physicalDevice : physicalDevices)
+    {
+        int queueFamilyIndex = Device::GetComputeQueueFamilyIndex(&driver, physicalDevice);
+        if(queueFamilyIndex < 0)
+        {
+            continue;
+        }
 
-		const float queuePrioritory = 1.0f;
-		const VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
-			VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,  // sType
-			nullptr,                                     // pNext
-			0,                                           // flags
-			(uint32_t)queueFamilyIndex,                  // queueFamilyIndex
-			1,                                           // queueCount
-			&queuePrioritory,                            // pQueuePriorities
-		};
+        const float queuePrioritory = 1.0f;
+        const VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
+            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,  // sType
+            nullptr,                                     // pNext
+            0,                                           // flags
+            (uint32_t)queueFamilyIndex,                  // queueFamilyIndex
+            1,                                           // queueCount
+            &queuePrioritory,                            // pQueuePriorities
+        };
 
-		const VkDeviceCreateInfo deviceCreateInfo = {
-			VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // sType
-			&unsupportedExt,                       // pNext
-			0,                                     // flags
-			1,                                     // queueCreateInfoCount
-			&deviceQueueCreateInfo,                // pQueueCreateInfos
-			0,                                     // enabledLayerCount
-			nullptr,                               // ppEnabledLayerNames
-			0,                                     // enabledExtensionCount
-			nullptr,                               // ppEnabledExtensionNames
-			nullptr,                               // pEnabledFeatures
-		};
+        const VkDeviceCreateInfo deviceCreateInfo = {
+            VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // sType
+            &unsupportedExt,                       // pNext
+            0,                                     // flags
+            1,                                     // queueCreateInfoCount
+            &deviceQueueCreateInfo,                // pQueueCreateInfos
+            0,                                     // enabledLayerCount
+            nullptr,                               // ppEnabledLayerNames
+            0,                                     // enabledExtensionCount
+            nullptr,                               // ppEnabledExtensionNames
+            nullptr,                               // pEnabledFeatures
+        };
 
-		VkDevice device;
-		result = driver.vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
-		EXPECT_EQ(result, VK_SUCCESS);
-		driver.vkDestroyDevice(device, nullptr);
-	}
+        VkDevice device;
+        result = driver.vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
+        EXPECT_EQ(result, VK_SUCCESS);
+        driver.vkDestroyDevice(device, nullptr);
+    }
 
-	driver.vkDestroyInstance(instance, nullptr);
+    driver.vkDestroyInstance(instance, nullptr);
 }
 */

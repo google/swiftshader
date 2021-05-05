@@ -264,7 +264,7 @@ namespace sw {
 unsigned int Clipper::ComputeClipFlags(const float4 &v, bool depthClipEnable)
 {
 	int depthClipFlags = ((v.z > v.w) ? CLIP_FAR : 0) |
-					     ((v.z < 0) ? CLIP_NEAR : 0);
+	                     ((v.z < 0) ? CLIP_NEAR : 0);
 	return ((v.x > v.w) ? CLIP_RIGHT : 0) |
 	       ((v.y > v.w) ? CLIP_TOP : 0) |
 	       ((v.x < -v.w) ? CLIP_LEFT : 0) |

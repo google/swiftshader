@@ -109,4 +109,4 @@ static inline SurfaceKHR *Cast(VkSurfaceKHR object)
 
 }  // namespace vk
 
-#endif  //SWIFTSHADER_VKSURFACEKHR_HPP_
+#endif  // SWIFTSHADER_VKSURFACEKHR_HPP_

@@ -637,7 +637,7 @@ TEST(ReactorUnitTests, StoreBeforeIndirectStore)
 {
 	FunctionT<int(int)> function;
 	{
-		//Int b = function.Arg<0>();
+		// Int b = function.Arg<0>();
 
 		Int b;
 		Pointer<Int> p = &b;

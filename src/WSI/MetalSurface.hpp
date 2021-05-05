@@ -65,4 +65,4 @@ public:
 #endif
 
 }  // namespace vk
-#endif  //SWIFTSHADER_METALSURFACE_HPP
+#endif  // SWIFTSHADER_METALSURFACE_HPP

@@ -54,4 +54,4 @@ private:
 };
 
 }  // namespace vk
-#endif  //SWIFTSHADER_WAYLANDSURFACEKHR_HPP
+#endif  // SWIFTSHADER_WAYLANDSURFACEKHR_HPP

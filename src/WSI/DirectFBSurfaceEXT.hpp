@@ -47,4 +47,4 @@ private:
 };
 
 }  // namespace vk
-#endif  //SWIFTSHADER_DIRECTFBSURFACEEXT_HPP
+#endif  // SWIFTSHADER_DIRECTFBSURFACEEXT_HPP

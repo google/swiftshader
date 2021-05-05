@@ -50,7 +50,7 @@ public:
 	}
 
 	VkSemaphoreType getSemaphoreType() const;
-	//static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo);
+	// static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo);
 
 protected:
 	VkSemaphoreType type;

@@ -60,4 +60,4 @@ private:
 };
 
 }  // namespace vk
-#endif  //SWIFTSHADER_DISPLAYSURFACEKHR_HPP
+#endif  // SWIFTSHADER_DISPLAYSURFACEKHR_HPP

@@ -717,7 +717,7 @@ void SpirvShader::Fence(spv::MemorySemanticsMask semantics) const
 {
 	if(semantics == spv::MemorySemanticsMaskNone)
 	{
-		return;  //no-op
+		return;  // no-op
 	}
 	rr::Fence(MemoryOrder(semantics));
 }

@@ -34,4 +34,4 @@ public:
 };
 
 }  // namespace vk
-#endif  //SWIFTSHADER_HEADLESSSURFACEKHR_HPP
+#endif  // SWIFTSHADER_HEADLESSSURFACEKHR_HPP

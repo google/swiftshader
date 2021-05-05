@@ -282,7 +282,7 @@ void VulkanTester::initialize()
 			   return strcmp(layer, lp.layerName) == 0;
 		   }) != layerProperties.end())
 		{
-			//std::cout << "Enabled layer: " << layer << std::endl;
+			// std::cout << "Enabled layer: " << layer << std::endl;
 			layers.push_back(layer);
 		}
 	};
@@ -318,7 +318,7 @@ void VulkanTester::initialize()
 		        VkDebugUtilsMessageTypeFlagsEXT messageTypes,
 		        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
 		        void *pUserData) -> VkBool32 {
-			//assert(false);
+			// assert(false);
 			std::cerr << "[DebugInfoCallback] " << pCallbackData->pMessage << std::endl;
 			return VK_FALSE;
 		};

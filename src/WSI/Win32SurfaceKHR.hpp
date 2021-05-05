@@ -60,4 +60,4 @@ private:
 };
 
 }  // namespace vk
-#endif  //SWIFTSHADER_WIN32SURFACEKHR_HPP
+#endif  // SWIFTSHADER_WIN32SURFACEKHR_HPP

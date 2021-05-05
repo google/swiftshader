@@ -63,4 +63,4 @@ static inline SwapchainKHR *Cast(VkSwapchainKHR object)
 
 }  // namespace vk
 
-#endif  //SWIFTSHADER_VKSWAPCHAINKHR_HPP
+#endif  // SWIFTSHADER_VKSWAPCHAINKHR_HPP

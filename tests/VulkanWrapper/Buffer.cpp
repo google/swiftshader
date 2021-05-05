@@ -29,7 +29,7 @@ Buffer::Buffer(vk::Device device, vk::DeviceSize size, vk::BufferUsageFlags usag
 
 	vk::MemoryAllocateInfo allocInfo{};
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = 0;  //TODO: getMemoryTypeIndex(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	allocInfo.memoryTypeIndex = 0;  // TODO: getMemoryTypeIndex(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
 	bufferMemory = device.allocateMemory(allocInfo);
 	device.bindBufferMemory(buffer, bufferMemory, 0);
