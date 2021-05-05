@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2f9be5d_dbb4f806",
+        "filename": "src/Device/Context.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-05T16:56:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2a8b4108_56ee2868",
+      "range": {
+        "startLine": 328,
+        "startChar": 1,
+        "endLine": 332,
+        "endChar": 2
+      },
+      "revId": "aa622d98e726e8f2fe172bebb264c7b5ac00d4ab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "41f5a6d4_d7f7bb87",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-05-04T20:34:23Z",
       "side": 1,
       "message": "If depthClipEnable is set to true, does that mean depthClampEnable should be set to false?",
+      "range": {
+        "startLine": 375,
+        "startChar": 4,
+        "endLine": 375,
+        "endChar": 65
+      },
+      "revId": "aa622d98e726e8f2fe172bebb264c7b5ac00d4ab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1ba154ef_90fd3571",
+        "filename": "src/Device/Context.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-05T16:56:52Z",
+      "side": 1,
+      "message": "No, this extension allows depthClamp and depthClip to be enabled together.\n\nHere\u0027s the rational for this from the spec:\n\n\u003e This is useful for translating DX content which assumes depth clamping is always enabled, but depth clip can be controlled by the DepthClipEnable rasterization state (D3D12_RASTERIZER_DESC).",
+      "parentUuid": "41f5a6d4_d7f7bb87",
       "range": {
         "startLine": 375,
         "startChar": 4,
