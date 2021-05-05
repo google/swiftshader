@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "35311dad_1ab2a13b",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-05T15:35:11Z",
+      "side": 1,
+      "message": "Let\u0027s call this State.\n\nThis is more than a nit, because it\u0027s important that we discern between which parts of the descriptor is used as specialization state for generating code, and what get passed *to* that code as data (namely, SampledImageDescriptor::texture and the other remaining members).",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 12
+      },
+      "revId": "43460744d2c814c87daeb15bc2df503dc63727c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
