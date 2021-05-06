@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e27acea_09df851f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-06T15:35:58Z",
+      "side": 1,
+      "message": "Reverted due to MSan failure: https://chromium-review.googlesource.com/c/chromium/src/+/2875412",
+      "revId": "f6afa76378ad96e7af1733bdd40fd1339395b5c1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
