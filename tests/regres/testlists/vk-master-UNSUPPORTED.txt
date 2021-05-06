@@ -1,3 +1,7 @@
+dEQP-VK.clipping.clip_volume.depth_clip.line_list_with_adjacency
+dEQP-VK.clipping.clip_volume.depth_clip.line_strip_with_adjacency
+dEQP-VK.clipping.clip_volume.depth_clip.triangle_list_with_adjacency
+dEQP-VK.clipping.clip_volume.depth_clip.triangle_strip_with_adjacency
 dEQP-VK.dynamic_state.compute_transfer.single.compute.line_stipple_ext.after
 dEQP-VK.dynamic_state.compute_transfer.single.compute.line_stipple_ext.before
 dEQP-VK.dynamic_state.compute_transfer.single.transfer.line_stipple_ext.after
