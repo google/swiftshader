@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0734f097_f0cc0bf3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 100946
+      },
+      "writtenOn": "2021-05-06T22:16:31Z",
+      "side": 1,
+      "message": "I manually updated the default submodule for everything to head, lemme know if we only want to apply this change for ANGLE",
+      "revId": "7dda3d3310813c8a20144a8d42d1ee2e13417b4a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
