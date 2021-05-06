@@ -157,15 +157,15 @@ void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, ImageIns
 
 	auto coordinate = Operand(this, state, coordinateId);
 
-	rr::Int samplerId = *Pointer<rr::Int>(samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler) + OFFSET(vk::Sampler, id));  // vk::Sampler::id
-	Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);                                             // sw::Texture*
+	Pointer<Byte> sampler = samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler);  // vk::Sampler*
+	Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);    // sw::Texture*
 
 	// Above we assumed that if the SampledImage operand is not the result of an OpSampledImage,
 	// it must be a combined image sampler loaded straight from the descriptor set. For OpImageFetch
 	// it's just an Image operand, so there's no sampler descriptor data.
 	if(getType(sampledImage).opcode() != spv::OpTypeSampledImage)
 	{
-		samplerId = Int(0);
+		sampler = Pointer<Byte>(nullptr);
 	}
 
 	uint32_t imageOperands = spv::ImageOperandsMaskNone;
@@ -325,15 +325,13 @@ void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, ImageIns
 	auto cacheIt = state->routine->samplerCache.find(insn.resultId());
 	ASSERT(cacheIt != state->routine->samplerCache.end());
 	auto &cache = cacheIt->second;
-	auto cacheHit = cache.imageDescriptor == imageDescriptor && cache.samplerId == samplerId;
+	auto cacheHit = cache.imageDescriptor == imageDescriptor && cache.sampler == sampler;
 
 	If(!cacheHit)
 	{
-		rr::Int imageViewId = *Pointer<rr::Int>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, imageViewId));
-		Pointer<Byte> device = *Pointer<Pointer<Byte>>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, device));
-		cache.function = Call(getImageSampler, instruction.parameters, imageViewId, samplerId, device);
+		cache.function = Call(getImageSampler, instruction.parameters, imageDescriptor, sampler);
 		cache.imageDescriptor = imageDescriptor;
-		cache.samplerId = samplerId;
+		cache.sampler = sampler;
 	}
 
 	Call<ImageSampler>(cache.function, texture, &in[0], &out[0], state->routine->constants);
