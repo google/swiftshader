@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c6d06705_75323f19",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-07T19:54:17Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 36,
+        "endChar": 60
+      },
+      "revId": "fea25df4cd612600b4b085d1aa5aff4a920cd978",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dde0e313_d4bf39c8",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-07T19:54:17Z",
+      "side": 1,
+      "message": "nit: Let\u0027s put this one together with memoryOwner below as a kind of metadata member which isn\u0027t really a key part of the descriptor but which we still need access to.",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 20
+      },
+      "revId": "fea25df4cd612600b4b085d1aa5aff4a920cd978",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02b19ff2_8150a050",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-07T19:54:17Z",
+      "side": 1,
+      "message": "nit: Let\u0027s add a blank line after this to separate the identifiers, which are used to fetch state used for generating the routine, from the members below which are data consumed by the routines.",
+      "revId": "fea25df4cd612600b4b085d1aa5aff4a920cd978",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
