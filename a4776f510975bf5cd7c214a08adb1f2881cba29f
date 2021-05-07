@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2291f87f_cd7d1afb",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-07T18:01:19Z",
+      "side": 1,
+      "message": "Please mention that compared to https://swiftshader-review.googlesource.com/c/SwiftShader/+/53068 this reorders the arguments to getImageSampler()",
+      "revId": "a4776f510975bf5cd7c214a08adb1f2881cba29f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ff350692_7e76eab9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-07T18:01:19Z",
+      "side": 1,
+      "message": "Let\u0027s also reference b/187467599",
+      "revId": "a4776f510975bf5cd7c214a08adb1f2881cba29f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
