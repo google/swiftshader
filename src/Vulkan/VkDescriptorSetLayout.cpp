@@ -175,7 +175,7 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 			{
 				SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(mem);
-				imageSamplerDescriptor->updateSampler(bindings[i].immutableSamplers[j]);
+				imageSamplerDescriptor->samplerId = bindings[i].immutableSamplers[j]->id;
 				mem += descriptorSize;
 			}
 		}
@@ -245,11 +245,6 @@ uint8_t *DescriptorSetLayout::getDescriptorPointer(DescriptorSet *descriptorSet,
 	return &descriptorSet->data[byteOffset];
 }
 
-void SampledImageDescriptor::updateSampler(const vk::Sampler *newSampler)
-{
-	memcpy(reinterpret_cast<void *>(&sampler), newSampler, sizeof(sampler));
-}
-
 void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)
 {
 	DescriptorSetLayout *dstLayout = dstSet->header.layout;
@@ -273,7 +268,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
 			if(!binding.immutableSamplers)
 			{
-				sampledImage[i].updateSampler(vk::Cast(update->sampler));
+				sampledImage[i].samplerId = vk::Cast(update->sampler)->id;
 			}
 			sampledImage[i].device = device;
 		}
@@ -332,7 +327,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 				//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
 				if(!binding.immutableSamplers)
 				{
-					sampledImage[i].updateSampler(vk::Cast(update->sampler));
+					sampledImage[i].samplerId = vk::Cast(update->sampler)->id;
 				}
 			}
 

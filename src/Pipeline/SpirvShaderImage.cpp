@@ -157,8 +157,8 @@ void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, ImageIns
 
 	auto coordinate = Operand(this, state, coordinateId);
 
-	rr::Int samplerId = *Pointer<rr::Int>(samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler) + OFFSET(vk::Sampler, id));  // vk::Sampler::id
-	Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);                                             // sw::Texture*
+	rr::Int samplerId = *Pointer<rr::Int>(samplerDescriptor + OFFSET(vk::SampledImageDescriptor, samplerId));  // vk::Sampler::id
+	Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);                     // sw::Texture*
 
 	// Above we assumed that if the SampledImage operand is not the result of an OpSampledImage,
 	// it must be a combined image sampler loaded straight from the descriptor set. For OpImageFetch

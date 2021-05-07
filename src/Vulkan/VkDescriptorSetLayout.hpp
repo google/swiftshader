@@ -33,13 +33,9 @@ struct alignas(16) SampledImageDescriptor
 {
 	~SampledImageDescriptor() = delete;
 
-	void updateSampler(const vk::Sampler *sampler);
-
-	// TODO(b/129523279): Minimize to the data actually needed.
-	vk::Sampler sampler;
-	vk::Device *device;
-
+	uint32_t samplerId;
 	uint32_t imageViewId;
+
 	alignas(16) sw::Texture texture;
 	int width;  // Of base mip-level.
 	int height;
@@ -47,6 +43,7 @@ struct alignas(16) SampledImageDescriptor
 	int mipLevels;
 	int sampleCount;
 
+	Device *device;
 	ImageView *memoryOwner;  // Pointer to the view which owns the memory used by the descriptor set
 };
 
