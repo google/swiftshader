@@ -630,11 +630,6 @@ const GraphicsState GraphicsState::combineStates(const DynamicState &dynamicStat
 
 	if(hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && depthBoundsTestEnable)
 	{
-		// Unless the VK_EXT_depth_range_unrestricted extension is enabled,
-		// minDepthBounds and maxDepthBounds must be between 0.0 and 1.0, inclusive
-		ASSERT(dynamicState.minDepthBounds >= 0.0f && dynamicState.minDepthBounds <= 1.0f);
-		ASSERT(dynamicState.maxDepthBounds >= 0.0f && dynamicState.maxDepthBounds <= 1.0f);
-
 		combinedState.minDepthBounds = dynamicState.minDepthBounds;
 		combinedState.maxDepthBounds = dynamicState.maxDepthBounds;
 	}
