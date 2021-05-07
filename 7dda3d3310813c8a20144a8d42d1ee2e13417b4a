@@ -33,6 +33,23 @@
       "message": "Seeing errors like in presubmit\n\nT:\\src\\git\\SwiftShader\\third_party\\glslang\\SPIRV\\SpvTools.cpp(157): error C3861: \u0027spvValidatorOptionsSetWorkgroupScalarBlockLayout\u0027: identifier not found [T:\\src\\git\\SwiftShader\\build\\third_party\\glslang\\SPIRV\\SPIRV.vcxproj]\n\n\nT:\\src\\git\\SwiftShader\\third_party\\glslang\\SPIRV\\SpvTools.cpp(210): error C2039: \u0027CreateInterpolateFixupPass\u0027: is not a member of \u0027spvtools\u0027 [T:\\src\\git\\SwiftShader\\build\\third_party\\glslang\\SPIRV\\SPIRV.vcxproj]\n\n\n  T:\\src\\git\\SwiftShader\\third_party\\SPIRV-Tools\\include\\spirv-tools/optimizer.hpp(26): note: see declaration of \u0027spvtools\u0027\n\n\nT:\\src\\git\\SwiftShader\\third_party\\glslang\\SPIRV\\SpvTools.cpp(210): error C3861: \u0027CreateInterpolateFixupPass\u0027: identifier not found [T:\\src\\git\\SwiftShader\\build\\third_party\\glslang\\SPIRV\\SPIRV.vcxproj]\n",
       "revId": "7dda3d3310813c8a20144a8d42d1ee2e13417b4a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b32bcd37_bee23ba6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-07T13:41:52Z",
+      "side": 1,
+      "message": "As discussed by e-mail, I think we should first attempt to address the root cause which is that Chromium checks out ANGLE into SwiftShader unnecessarily.\n\nUpdating the submodule revisions could be done as a workaround, which I think should be limited to just the ANGLE submodule.",
+      "revId": "7dda3d3310813c8a20144a8d42d1ee2e13417b4a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
