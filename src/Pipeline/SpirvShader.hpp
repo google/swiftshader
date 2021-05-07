@@ -46,11 +46,13 @@
 
 namespace vk {
 
+class Device;
 class PipelineLayout;
 class ImageView;
 class Sampler;
 class RenderPass;
 struct SampledImageDescriptor;
+struct SamplerState;
 
 namespace dbg {
 class Context;
@@ -1291,13 +1293,13 @@ private:
 	// Returns the pair <significand, exponent>
 	std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
 
-	static ImageSampler *getImageSampler(uint32_t instruction, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler);
+	static ImageSampler *getImageSampler(const vk::Device *device, uint32_t instruction, uint32_t samplerId, uint32_t imageViewId);
 	static std::shared_ptr<rr::Routine> emitSamplerRoutine(ImageInstruction instruction, const Sampler &samplerState);
 
 	// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.
-	static sw::FilterType convertFilterMode(const vk::Sampler *sampler, VkImageViewType imageViewType, SamplerMethod samplerMethod);
-	static sw::MipmapType convertMipmapMode(const vk::Sampler *sampler);
-	static sw::AddressingMode convertAddressingMode(int coordinateIndex, const vk::Sampler *sampler, VkImageViewType imageViewType);
+	static sw::FilterType convertFilterMode(const vk::SamplerState *samplerState, VkImageViewType imageViewType, SamplerMethod samplerMethod);
+	static sw::MipmapType convertMipmapMode(const vk::SamplerState *samplerState);
+	static sw::AddressingMode convertAddressingMode(int coordinateIndex, const vk::SamplerState *samplerState, VkImageViewType imageViewType);
 
 	// Returns 0 when invalid.
 	static VkShaderStageFlagBits executionModelToStage(spv::ExecutionModel model);
@@ -1366,7 +1368,7 @@ public:
 	struct SamplerCache
 	{
 		Pointer<Byte> imageDescriptor = nullptr;
-		Pointer<Byte> sampler;
+		Int samplerId;
 		Pointer<Byte> function;
 	};
 
