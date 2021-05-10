@@ -16,6 +16,24 @@
       "message": "The formatting failures are for files that aren\u0027t modified in this CL (src/Device/Clipper.cpp and src/Vulkan/libVulkan.cpp).",
       "revId": "3fecf067fb979be58a3331287b7b15b85b38abbc",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "379a2e60_994958de",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-10T13:38:30Z",
+      "side": 1,
+      "message": "Thanks for pointing that out. Would be nice to have that fixed as part of https://swiftshader-review.googlesource.com/c/SwiftShader/+/54048",
+      "parentUuid": "b8531219_f7c79116",
+      "revId": "3fecf067fb979be58a3331287b7b15b85b38abbc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
