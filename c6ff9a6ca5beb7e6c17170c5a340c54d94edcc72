@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fbc61021_2ef1196f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-10T15:27:09Z",
+      "side": 1,
+      "message": "Verified to fix b/187467599 without swapping the parameter order.",
+      "revId": "c6ff9a6ca5beb7e6c17170c5a340c54d94edcc72",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
