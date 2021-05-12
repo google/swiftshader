@@ -3960,12 +3960,32 @@ RValue<Int4> pmaddwd(RValue<Short8> x, RValue<Short8> y)
 
 RValue<Int> movmskps(RValue<Float4> x)
 {
-	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse_movmsk_ps, x.value()));
+	Value *v = x.value();
+
+	// TODO(b/172238865): MemorySanitizer does not support movmsk instructions,
+	// which makes it look at the entire 128-bit input for undefined bits. Mask off
+	// just the sign bits to avoid false positives.
+	if(__has_feature(memory_sanitizer))
+	{
+		v = As<Float4>(As<Int4>(v) & Int4(0x80000000u)).value();
+	}
+
+	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse_movmsk_ps, v));
 }
 
 RValue<Int> pmovmskb(RValue<Byte8> x)
 {
-	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse2_pmovmskb_128, x.value())) & 0xFF;
+	Value *v = x.value();
+
+	// TODO(b/172238865): MemorySanitizer does not support movmsk instructions,
+	// which makes it look at the entire 128-bit input for undefined bits. Mask off
+	// just the sign bits in the lower 64-bit vector to avoid false positives.
+	if(__has_feature(memory_sanitizer))
+	{
+		v = As<Byte16>(As<Int4>(v) & Int4(0x80808080u, 0x80808080u, 0, 0)).value();
+	}
+
+	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse2_pmovmskb_128, v)) & 0xFF;
 }
 
 RValue<Int4> pmovzxbd(RValue<Byte16> x)
