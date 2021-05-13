@@ -49,7 +49,6 @@ public:
 	typedef VkNonDispatchableHandle<object##Ptr> object; \
 	template class VkNonDispatchableHandle<object##Ptr>;
 
-#include <vulkan/vk_ext_provoking_vertex.h>
 #include <vulkan/vk_google_filtering_precision.h>
 #include <vulkan/vulkan_core.h>
 
@@ -59,7 +58,7 @@ namespace vk {
 
 // When updating the Vulkan Headers we use, go through each constant below and make sure they are valid.
 // Once that's done, update SwiftShaderVulkanHeaderVersion.
-constexpr int SwiftShaderVulkanHeaderVersion = 160;
+constexpr int SwiftShaderVulkanHeaderVersion = 178;
 static_assert(SwiftShaderVulkanHeaderVersion == VK_HEADER_VERSION, "Please validate/update constants below upon upgrading Vulkan headers");
 
 constexpr auto VK_PIPELINE_BIND_POINT_RANGE_SIZE = (VK_PIPELINE_BIND_POINT_COMPUTE - VK_PIPELINE_BIND_POINT_GRAPHICS + 1);

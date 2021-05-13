@@ -16,7 +16,6 @@
 
 #include "System/Debug.hpp"
 
-#include <vulkan/vk_ext_provoking_vertex.h>
 #include <vulkan/vk_google_filtering_precision.h>
 #define VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_NAMESPACE vkhpp

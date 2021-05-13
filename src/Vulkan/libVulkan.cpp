@@ -4080,7 +4080,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupPresentCapabilitiesKHR(VkDevice d
 	TRACE("(VkDevice device = %p, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities = %p)",
 	      device, pDeviceGroupPresentCapabilities);
 
-	for(int i = 0; i < VK_MAX_DEVICE_GROUP_SIZE; i++)
+	for(unsigned int i = 0; i < VK_MAX_DEVICE_GROUP_SIZE; i++)
 	{
 		// The only real physical device in the presentation group is device 0,
 		// and it can present to itself.
