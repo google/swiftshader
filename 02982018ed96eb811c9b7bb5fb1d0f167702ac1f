@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5aca0d93_33e0b505",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-13T13:47:11Z",
+      "side": 1,
+      "message": "David or Yiwei can you check if this works for Fuchsia? Is there any tracker bug for upstreaming the remainder of vulkan_fuchsia_extras.h into vulkan_fuchsia.h?",
+      "revId": "02982018ed96eb811c9b7bb5fb1d0f167702ac1f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
