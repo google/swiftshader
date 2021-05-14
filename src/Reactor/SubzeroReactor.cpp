@@ -929,7 +929,7 @@ Nucleus::Nucleus()
 #if !__has_feature(memory_sanitizer)
 	// thread_local variables in shared libraries are initialized at load-time,
 	// but this is not observed by MemorySanitizer if the loader itself was not
-	// instrumented, leading to false-positive unitialized variable errors.
+	// instrumented, leading to false-positive uninitialized variable errors.
 	ASSERT(Variable::unmaterializedVariables == nullptr);
 #endif
 	Variable::unmaterializedVariables = new Variable::UnmaterializedVariables{};

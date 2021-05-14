@@ -548,6 +548,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 // TODO(b/155148722): Remove when we no longer unpoison all writes.
 #	if !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION
 			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));
+			functions.try_emplace("msan_unpoison_param", reinterpret_cast<void *>(__msan_unpoison_param));
 #	endif
 
 			functions.try_emplace("emutls_get_address", reinterpret_cast<void *>(rr::getTLSAddress));

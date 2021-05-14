@@ -516,13 +516,13 @@ Nucleus::Nucleus()
 #if !__has_feature(memory_sanitizer)
 	// thread_local variables in shared libraries are initialized at load-time,
 	// but this is not observed by MemorySanitizer if the loader itself was not
-	// instrumented, leading to false-positive unitialized variable errors.
+	// instrumented, leading to false-positive uninitialized variable errors.
 	ASSERT(jit == nullptr);
 	ASSERT(Variable::unmaterializedVariables == nullptr);
 #endif
 
 	jit = new JITBuilder(Nucleus::getDefaultConfig());
-	Variable::unmaterializedVariables = new Variable::UnmaterializedVariables{};
+	Variable::unmaterializedVariables = new Variable::UnmaterializedVariables();
 }
 
 Nucleus::~Nucleus()
@@ -3595,6 +3595,19 @@ RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
 
 Value *Call(RValue<Pointer<Byte>> fptr, Type *retTy, std::initializer_list<Value *> args, std::initializer_list<Type *> argTys)
 {
+	// If this is a MemorySanitizer build, but Reactor routine instrumentation is not enabled,
+	// mark all call arguments as initialized by calling __msan_unpoison_param().
+	if(__has_feature(memory_sanitizer) && !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION)
+	{
+		// void __msan_unpoison_param(size_t n)
+		auto voidTy = llvm::Type::getVoidTy(*jit->context);
+		auto sizetTy = llvm::IntegerType::get(*jit->context, sizeof(size_t) * 8);
+		auto funcTy = llvm::FunctionType::get(voidTy, { sizetTy }, false);
+		auto func = jit->module->getOrInsertFunction("__msan_unpoison_param", funcTy);
+
+		jit->builder->CreateCall(func, { llvm::ConstantInt::get(sizetTy, args.size()) });
+	}
+
 	RR_DEBUG_INFO_UPDATE_LOC();
 	llvm::SmallVector<llvm::Type *, 8> paramTys;
 	for(auto ty : argTys) { paramTys.push_back(T(ty)); }
