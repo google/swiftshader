@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "19ce0703_5ae67bcd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-18T19:22:12Z",
+      "side": 1,
+      "message": "Ah, I see what happened. Those failures were due to the asserts on min and max depth bounds. I forgot I included that in the original change.",
+      "parentUuid": "5635fb3e_45b1ef7a",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 25
+      },
+      "revId": "eabc81bc4d9b45cdbd020c7b5d01d90c3048c6cb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "c53d9ae4_4f2eb8a2",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
