@@ -16,6 +16,24 @@
       "message": "Thanks John! I\u0027m not sure if we still have any presubmit tests exercising this legacy code, but feel free to manually set Verified+1 and Commit-Queue+2.",
       "revId": "2f9707fa57fa63feec8f472c944d62c769c9f536",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "46b75a32_a2dac009",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 100966
+      },
+      "writtenOn": "2021-05-19T19:12:17Z",
+      "side": 1,
+      "message": "SGTM, done!",
+      "parentUuid": "4e5aaced_be0636a9",
+      "revId": "2f9707fa57fa63feec8f472c944d62c769c9f536",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
