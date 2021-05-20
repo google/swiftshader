@@ -26,7 +26,8 @@ namespace vk {
 
 struct SamplerState : sw::Memset<SamplerState>
 {
-	SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion, VkSamplerFilteringPrecisionModeGOOGLE filteringPrecision);
+	SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion,
+	             VkSamplerFilteringPrecisionModeGOOGLE filteringPrecision, const VkClearColorValue &customBorderColor);
 
 	// Prevents accessing mipmap levels out of range.
 	static float ClampLod(float lod)
@@ -48,6 +49,7 @@ struct SamplerState : sw::Memset<SamplerState>
 	const float minLod = 0.0f;
 	const float maxLod = 0.0f;
 	const VkBorderColor borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+	const VkClearColorValue customBorderColor = {};
 	const VkBool32 unnormalizedCoordinates = VK_FALSE;
 
 	VkSamplerYcbcrModelConversion ycbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;

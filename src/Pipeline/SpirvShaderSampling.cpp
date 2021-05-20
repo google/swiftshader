@@ -62,6 +62,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 		{
 			samplerState.textureFilter = convertFilterMode(vkSamplerState, type, samplerMethod);
 			samplerState.border = vkSamplerState->borderColor;
+			samplerState.customBorder = vkSamplerState->customBorderColor;
 
 			samplerState.mipmapFilter = convertMipmapMode(vkSamplerState);
 			samplerState.highPrecisionFiltering = (vkSamplerState->filteringPrecision == VK_SAMPLER_FILTERING_PRECISION_MODE_HIGH_GOOGLE);

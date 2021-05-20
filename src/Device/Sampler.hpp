@@ -103,6 +103,7 @@ struct Sampler
 	bool compareEnable;
 	VkCompareOp compareOp;
 	VkBorderColor border;
+	VkClearColorValue customBorder;
 	bool unnormalizedCoordinates;
 
 	VkSamplerYcbcrModelConversion ycbcrModel;

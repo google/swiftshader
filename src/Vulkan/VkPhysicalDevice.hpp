@@ -65,6 +65,7 @@ public:
 	void getProperties(VkPhysicalDeviceVulkan12Properties *properties) const;
 	void getProperties(VkPhysicalDeviceDescriptorIndexingProperties *properties) const;
 	void getProperties(VkPhysicalDeviceDepthStencilResolveProperties *properties) const;
+	void getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceVulkan11Properties *properties) const;
 
 	static void GetFormatProperties(Format format, VkFormatProperties *pFormatProperties);

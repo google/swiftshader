@@ -325,6 +325,12 @@ static void getPhysicalDeviceDepthClipEnableFeaturesExt(T *features)
 	features->depthClipEnable = VK_TRUE;
 }
 
+static void getPhysicalDevicCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomBorderColorFeaturesEXT *features)
+{
+	features->customBorderColors = VK_TRUE;
+	features->customBorderColorWithoutFormat = VK_TRUE;
+}
+
 void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 {
 	features->features = getFeatures();
@@ -414,6 +420,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT:
 			getPhysicalDeviceDepthClipEnableFeaturesExt(reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT *>(curExtension));
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT:
+			getPhysicalDevicCustomBorderColorFeaturesExt(reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT *>(curExtension));
+			break;
 		default:
 			LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
 			break;
@@ -442,7 +451,7 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits()
 		(1ul << 27),                                      // maxStorageBufferRange
 		vk::MAX_PUSH_CONSTANT_SIZE,                       // maxPushConstantsSize
 		4096,                                             // maxMemoryAllocationCount
-		4000,                                             // maxSamplerAllocationCount
+		vk::MAX_SAMPLER_ALLOCATION_COUNT,                 // maxSamplerAllocationCount
 		131072,                                           // bufferImageGranularity
 		0,                                                // sparseAddressSpaceSize (unsupported)
 		MAX_BOUND_DESCRIPTOR_SETS,                        // maxBoundDescriptorSets
@@ -991,6 +1000,11 @@ static void getDepthStencilResolveProperties(T *properties)
 void PhysicalDevice::getProperties(VkPhysicalDeviceDepthStencilResolveProperties *properties) const
 {
 	getDepthStencilResolveProperties(properties);
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEXT *properties) const
+{
+	properties->maxCustomBorderColorSamplers = MAX_SAMPLER_ALLOCATION_COUNT;
 }
 
 template<typename T>
