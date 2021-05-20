@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0cf0c43b_fd3e2981",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-05-20T20:19:48Z",
+      "side": 1,
+      "message": "Code change LGTM, if the bots are happy.",
+      "revId": "b1839fa7094b1b637b5335a2d25836f6a039d57a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
