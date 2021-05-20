@@ -1,0 +1,2 @@
+dEQP-GLES2.functional.shaders.constant_expressions.operators.math_mat_fragment
+dEQP-GLES2.functional.shaders.constant_expressions.operators.math_mat_vertex
