@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d63a8525_195c2b76",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-20T19:45:02Z",
+      "side": 1,
+      "message": "Could you check the other code paths where we should be performing this clamp (specifically, when the shader does not write to fragDepth), and also make sure we don\u0027t have cases where we clamp twice? It\u0027s okay to clean up duplication in a follow-up patch.",
+      "range": {
+        "startLine": 12,
+        "startChar": 53,
+        "endLine": 12,
+        "endChar": 66
+      },
+      "revId": "f836851d6be13fc299a254b1ef85c6dc3062aeef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3dba03e2_500a22c6",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-20T19:45:02Z",
+      "side": 1,
+      "message": "Lets first assign the value to oDepth, then clamp it if necessary, to avoid the duplication in this else path.",
+      "range": {
+        "startLine": 242,
+        "startChar": 2,
+        "endLine": 242,
+        "endChar": 6
+      },
+      "revId": "f836851d6be13fc299a254b1ef85c6dc3062aeef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
