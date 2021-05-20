@@ -22,6 +22,30 @@
       },
       "revId": "b38dd1a26293fd5cf1ee09720a59c7753176b4a7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b6d559ed_16e11ccd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-20T14:46:16Z",
+      "side": 1,
+      "message": "All the fragdepth tests enable VK_EXT_depth_range_unrestricted.\n\nAnd yeah, I\u0027ve been looking through the spec trying to find text that supports this expected behavior. Alexis pointed to the primitive depth clipping test that says it removes primitives with Zc values outside the range [0, Wc]. But primitive clipping seems unrelated to fragment shader behavior.",
+      "parentUuid": "67ced4bc_553dd24d",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 59
+      },
+      "revId": "b38dd1a26293fd5cf1ee09720a59c7753176b4a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
