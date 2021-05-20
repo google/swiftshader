@@ -48,6 +48,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab4d3c65_951ed448",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-20T20:23:57Z",
+      "side": 1,
+      "message": "Ah, I see, thanks for checking there\u0027s no effective double clamping. But I do see us doing the clamp in two separate places; one for when zf originates from interpolation, and one when it\u0027s written by the shader. The former is the part of b/184063472 that is incorrect. But we still should be clamping the interpolated z, after the unclamped value has been passed into the shader as FragCoord.z.\n\nSo the clamp should happen right before depth test, in one location in the code. Anyway, let\u0027s figure out exactly what that looks like in a future patch.",
+      "parentUuid": "9620d8fd_c7dc7bc4",
+      "range": {
+        "startLine": 12,
+        "startChar": 53,
+        "endLine": 12,
+        "endChar": 66
+      },
+      "revId": "f836851d6be13fc299a254b1ef85c6dc3062aeef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3dba03e2_500a22c6",
