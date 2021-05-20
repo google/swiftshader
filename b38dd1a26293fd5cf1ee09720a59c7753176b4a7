@@ -70,6 +70,30 @@
       },
       "revId": "b38dd1a26293fd5cf1ee09720a59c7753176b4a7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "79ff31ce_089c8783",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-20T18:41:14Z",
+      "side": 1,
+      "message": "Ok, yeah, it being contingent on depthClampEnable explains it. Thanks for finding that bit of the spec!",
+      "parentUuid": "c34160a1_92185960",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 59
+      },
+      "revId": "b38dd1a26293fd5cf1ee09720a59c7753176b4a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
