@@ -199,26 +199,19 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
 			}
 		} else {  // for matrix constructors
 			int count = 0;
-			if (node->getType().getObjectSize() == 1) {
-				// Synthesize a diagonal matrix from the provided scalar.
-				int matrixCols = node->getType().getNominalSize();
-				for (int c = 0; c < matrixCols; ++c) {
-					for (int r = 0; r < matrixRows; ++r) {
-						if (r == c)
-							leftUnionArray[index].cast(basicType, rightUnionArray[0]);
-						else
-							leftUnionArray[index].setFConst(0.0);
-						(index)++;
-					}
-				}
-			} else {
-				// Construct a matrix from the provided components.
-				for (size_t i = index; i < totalSize; i++) {
-					if (i >= instanceSize)
-						return;
-					leftUnionArray[i].cast(basicType, rightUnionArray[count]);
+			int element = index;
+			for(size_t i = index; i < totalSize; i++) {
+				if (i >= instanceSize)
+					return;
+				if (element - i == 0 || (i - element) % (matrixRows + 1) == 0 )
+					leftUnionArray[i].cast(basicType, rightUnionArray[0]);
+				else
+					leftUnionArray[i].setFConst(0.0f);
+
+				(index)++;
+
+				if (node->getType().getObjectSize() > 1)
 					count++;
-				}
 			}
 		}
 	}
