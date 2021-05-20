@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9620d8fd_c7dc7bc4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-20T20:13:25Z",
+      "side": 1,
+      "message": "oDepth gets its value from spv::BuiltInFragDepth and is read during the depthTest when the SPIR-V shader enables DepthReplacing. In that case, oDepth replaces the z value passed to depthTest, but oDepth does not replace the z value outside of the depthTest. DepthTest takes place after depth clamping (even when earlyDepthTest is enabled). There is nowhere else that BuiltInFragDepth is used. So this is the only place that clamps the shader\u0027s fragDepth and there is no double clamping.",
+      "parentUuid": "d63a8525_195c2b76",
+      "range": {
+        "startLine": 12,
+        "startChar": 53,
+        "endLine": 12,
+        "endChar": 66
+      },
+      "revId": "f836851d6be13fc299a254b1ef85c6dc3062aeef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3dba03e2_500a22c6",
         "filename": "src/Pipeline/PixelProgram.cpp",
         "patchSetId": 5
@@ -37,6 +61,30 @@
       "writtenOn": "2021-05-20T19:45:02Z",
       "side": 1,
       "message": "Lets first assign the value to oDepth, then clamp it if necessary, to avoid the duplication in this else path.",
+      "range": {
+        "startLine": 242,
+        "startChar": 2,
+        "endLine": 242,
+        "endChar": 6
+      },
+      "revId": "f836851d6be13fc299a254b1ef85c6dc3062aeef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "261fc4af_ba43a44b",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-05-20T20:13:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3dba03e2_500a22c6",
       "range": {
         "startLine": 242,
         "startChar": 2,
