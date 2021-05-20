@@ -21,12 +21,15 @@ SpecializationInfo::SpecializationInfo(const VkSpecializationInfo *specializatio
 {
 	if(specializationInfo)
 	{
-		auto ptr = reinterpret_cast<VkSpecializationInfo *>(
+		auto *ptr = reinterpret_cast<VkSpecializationInfo *>(
 		    allocate(sizeof(VkSpecializationInfo), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
-
 		info = std::shared_ptr<VkSpecializationInfo>(ptr, Deleter());
 
 		info->mapEntryCount = specializationInfo->mapEntryCount;
+		info->pMapEntries = nullptr;
+		info->dataSize = specializationInfo->dataSize;
+		info->pData = nullptr;
+
 		if(specializationInfo->mapEntryCount > 0)
 		{
 			size_t entriesSize = specializationInfo->mapEntryCount * sizeof(VkSpecializationMapEntry);
@@ -36,16 +39,11 @@ SpecializationInfo::SpecializationInfo(const VkSpecializationInfo *specializatio
 			info->pMapEntries = mapEntries;
 		}
 
-		info->dataSize = specializationInfo->dataSize;
 		if(specializationInfo->dataSize > 0)
 		{
 			void *data = allocate(specializationInfo->dataSize, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY);
 			memcpy(data, specializationInfo->pData, specializationInfo->dataSize);
 			info->pData = data;
-		}
-		else
-		{
-			info->pData = nullptr;
 		}
 	}
 }
