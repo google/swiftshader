@@ -46,6 +46,30 @@
       },
       "revId": "b38dd1a26293fd5cf1ee09720a59c7753176b4a7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c34160a1_92185960",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-20T16:56:38Z",
+      "side": 1,
+      "message": "The line of code that was changes, performs clamping of a depth value (over)written by the shader. So yes it should be unrelated to primitive clipping (unless it eliminated the fragment, or the fragDepth value that was written depends on fragCoord.z).\n\nI found this piece of spec text that could be relevant:\n\n\"If VkPipelineRasterizationStateCreateInfo::depthClampEnable is enabled, before the sample’s zf is compared to za, zf is clamped to [min(n,f),max(n,f)], where n and f are the minDepth and maxDepth depth range values of the viewport used by this fragment, respectively.\"\n\nIt definitely looks like we shouldn\u0027t unconditionally clamp to [0, 1].",
+      "parentUuid": "b6d559ed_16e11ccd",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 59
+      },
+      "revId": "b38dd1a26293fd5cf1ee09720a59c7753176b4a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
