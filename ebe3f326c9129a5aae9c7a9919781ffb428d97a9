@@ -290,6 +290,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "83c63ebd_edf12c78",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-21T14:37:12Z",
+      "side": 1,
+      "message": "Fair enough, but I wonder if we could move more of the \u0027decision logic\u0027 out of SamplerCore.cpp. Where possible we should determine the effective state in SpirvShaderSampling.cpp, so SamplerCore.cpp just carries out the desired computation and doesn\u0027t have to do a lot of logic on the state variables to know what\u0027s actually required to be done.\n\nNote `Base` is currently unused, so unless we do the clean split between decision logic and computation which will likely give it purpose again, it should be removed. We can do that as a follow-up if it\u0027s too big of a refactor.",
+      "parentUuid": "62712d23_8603ec8f",
+      "range": {
+        "startLine": 105,
+        "startChar": 21,
+        "endLine": 105,
+        "endChar": 25
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "01092458_54fc6274",
