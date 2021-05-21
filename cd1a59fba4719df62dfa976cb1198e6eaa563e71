@@ -68,6 +68,29 @@
       },
       "revId": "cd1a59fba4719df62dfa976cb1198e6eaa563e71",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f7b96129_bc7a9436",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 20
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-21T14:44:51Z",
+      "side": 1,
+      "message": "nit: Consider inverting this logic. First unconditionally assign vkSamplerState-\u003eminLod|maxLod to samplerState.minLod|maxLod, then have a condition where we optimize this by assigning minLod to maxLod.\n\nCurrently the false case implicitly leaves minLod \u003d maxLod \u003d 0. I think that\u0027s technically correct, but is a bit harder to reason about (both as being correct and as what we want when the single mip level optimization applies.\n\nNote inverting `multipleMipLevels` to `singleMipLevel` may also help with readability of the logic for the optimization.",
+      "range": {
+        "startLine": 85,
+        "startChar": 3,
+        "endLine": 85,
+        "endChar": 5
+      },
+      "revId": "cd1a59fba4719df62dfa976cb1198e6eaa563e71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
