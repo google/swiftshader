@@ -11527,6 +11527,8 @@ dEQP-GLES3.functional.shaders.constant_expressions.operators.math_int_fragment
 dEQP-GLES3.functional.shaders.constant_expressions.operators.math_int_vertex
 dEQP-GLES3.functional.shaders.constant_expressions.operators.math_ivec_fragment
 dEQP-GLES3.functional.shaders.constant_expressions.operators.math_ivec_vertex
+dEQP-GLES3.functional.shaders.constant_expressions.operators.math_mat_fragment
+dEQP-GLES3.functional.shaders.constant_expressions.operators.math_mat_vertex
 dEQP-GLES3.functional.shaders.constant_expressions.operators.math_vec_fragment
 dEQP-GLES3.functional.shaders.constant_expressions.operators.math_vec_vertex
 dEQP-GLES3.functional.shaders.constant_expressions.operators.selection_fragment

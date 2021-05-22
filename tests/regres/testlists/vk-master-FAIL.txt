@@ -1,7 +1,4 @@
 dEQP-VK.api.driver_properties.conformance_version
-dEQP-VK.glsl.builtin_var.fragdepth.line_list_d32_sfloat_large_depth
-dEQP-VK.glsl.builtin_var.fragdepth.point_list_d32_sfloat_large_depth
-dEQP-VK.glsl.builtin_var.fragdepth.triangle_list_d32_sfloat_large_depth
 dEQP-VK.graphicsfuzz.stable-rects-vec4-clamp-conditional-min-mix
 dEQP-VK.memory.external_memory_host.bind_image_memory_and_render.with_non_zero_offset.r16g16b16a16_sfloat
 dEQP-VK.memory.external_memory_host.bind_image_memory_and_render.with_non_zero_offset.r32g32b32a32_sfloat
