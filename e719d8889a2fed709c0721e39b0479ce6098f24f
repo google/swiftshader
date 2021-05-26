@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5013f1f9_eb50f698",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-26T14:04:45Z",
+      "side": 1,
+      "message": "Thanks! Feel free to set Verfied+1 and submit it to the CQ.",
+      "revId": "e719d8889a2fed709c0721e39b0479ce6098f24f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
