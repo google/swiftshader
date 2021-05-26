@@ -516,13 +516,15 @@ func (r *regres) getOrBuildDEQP(test *test) (deqpBuild, error) {
 		}
 
 		if err := shell.Shell(buildTimeout, r.cmake, buildDir,
-			"-DDEQP_TARGET=x11_egl",
+			"-DDEQP_TARGET=default",
 			"-DCMAKE_BUILD_TYPE=Release",
 			".."); err != nil {
 			return deqpBuild{}, cause.Wrap(err, "Couldn't generate build rules for deqp %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
-		if err := shell.Shell(buildTimeout, r.make, buildDir, fmt.Sprintf("-j%d", runtime.NumCPU())); err != nil {
+		if err := shell.Shell(buildTimeout, r.make, buildDir,
+			fmt.Sprintf("-j%d", runtime.NumCPU()),
+			"deqp-vk"); err != nil {
 			return deqpBuild{}, cause.Wrap(err, "Couldn't build deqp %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
@@ -616,6 +618,9 @@ func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqp
 // information will be generated for the run, and commiteed to the
 // coverageBranch.
 func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend, genCov bool) error {
+	// TODO(b/152192800): Generating coverage data is currently broken.
+	genCov = false
+
 	log.Printf("Updating test lists (Backend: %v)\n", reactorBackend)
 
 	if genCov {
