@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "19c80945_80d3f1c0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-27T04:16:25Z",
+      "side": 1,
+      "message": "Causes GLES tests to crash: https://swiftshader-review.googlesource.com/c/SwiftShader/+/54489",
+      "revId": "3f7c5e12cfa568c0486a114df2ec41d446692037",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
