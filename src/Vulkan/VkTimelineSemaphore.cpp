@@ -74,7 +74,7 @@ void TimelineSemaphore::wait(uint64_t value)
 void TimelineSemaphore::Shared::wait(uint64_t value)
 {
 	marl::lock lock(mutex);
-	cv.wait(lock, [&]() { return counter == value; });
+	cv.wait(lock, [&]() { return counter >= value; });
 }
 
 uint64_t TimelineSemaphore::getCounterValue()
