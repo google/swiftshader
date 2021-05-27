@@ -16,6 +16,23 @@
       "message": "I\u0027ll upstream this to Marl\u0027s GitHub repo once it\u0027s been proven to fix the Chromium MSAN bots.",
       "revId": "f55673628fe6b09cc866f649129d9161e432cd5b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b580eeee_fa86df1f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-05-27T18:18:01Z",
+      "side": 1,
+      "message": "I wasn\u0027t using a macro in ANGLE, I think I\u0027ll copy yours, it\u0027s probably more elegant this way",
+      "revId": "f55673628fe6b09cc866f649129d9161e432cd5b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
