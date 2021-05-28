@@ -46,6 +46,30 @@
       },
       "revId": "c09e3d9ff6015349d86b954541a86a2584953f43",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "94fdbc4c_07260767",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-28T21:07:07Z",
+      "side": 1,
+      "message": "https://issuetracker.google.com/189588731",
+      "parentUuid": "0d803442_1edb11b0",
+      "range": {
+        "startLine": 11,
+        "startChar": 21,
+        "endLine": 12,
+        "endChar": 53
+      },
+      "revId": "c09e3d9ff6015349d86b954541a86a2584953f43",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
