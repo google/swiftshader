@@ -1,7 +1,3 @@
-dEQP-VK.clipping.clip_volume.depth_clip.line_list_with_adjacency
-dEQP-VK.clipping.clip_volume.depth_clip.line_strip_with_adjacency
-dEQP-VK.clipping.clip_volume.depth_clip.triangle_list_with_adjacency
-dEQP-VK.clipping.clip_volume.depth_clip.triangle_strip_with_adjacency
 dEQP-VK.dynamic_state.compute_transfer.single.compute.line_stipple_ext.after
 dEQP-VK.dynamic_state.compute_transfer.single.compute.line_stipple_ext.before
 dEQP-VK.dynamic_state.compute_transfer.single.transfer.line_stipple_ext.after
@@ -10,3 +6,4 @@ dEQP-VK.spirv_assembly.instruction.compute.function_control.const_dont_inline
 dEQP-VK.spirv_assembly.instruction.compute.function_control.dont_inline
 dEQP-VK.spirv_assembly.instruction.compute.function_control.inline_dont_inline
 dEQP-VK.spirv_assembly.instruction.compute.function_control.pure_inline_dont_inline
+dEQP-VK.ycbcr.plane_view.image_view.g8_b8r8_2plane_420_unorm_plane_1_compatible_format_r16_unorm
