@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0cd707b8_9676928f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-29T01:00:45Z",
+      "side": 1,
+      "message": "Successfully does CI test runs. Full \u0027daily\u0027 test runs fail because it uses the full-tests.json of the current remote HEAD, not the local one, and it doesn\u0027t find the deqp-gles* executables. So this change will have to land before those succeed.",
+      "revId": "12a873710088b629a170c9626dfdb8260b60422b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
