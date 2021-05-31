@@ -49,6 +49,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8724326f_12163540",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 20
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-05-31T15:07:48Z",
+      "side": 1,
+      "message": "I don\u0027t think so, when function is Fetch or Lod, `lod` is computed differently and never clamped and when function is Base or Gather, `lod` is explicitly set to 0. None of these are ever clamped or use minLod/maxLod, which would be the case here. It didn\u0027t seem ok to start using values which weren\u0027t part of the `lod` computation before this change.\n\nShould Base and Gather be set to minLod rather than 0?",
+      "parentUuid": "a5082a1c_c95b8f70",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 35
+      },
+      "revId": "cd1a59fba4719df62dfa976cb1198e6eaa563e71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "adfe93e7_b30e4294",
         "filename": "src/Pipeline/SamplerCore.cpp",
         "patchSetId": 20
@@ -60,6 +84,30 @@
       "writtenOn": "2021-05-21T14:37:12Z",
       "side": 1,
       "message": "Can be skipped if lod is already minLod.",
+      "range": {
+        "startLine": 119,
+        "startChar": 2,
+        "endLine": 120,
+        "endChar": 31
+      },
+      "revId": "cd1a59fba4719df62dfa976cb1198e6eaa563e71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "736904a4_9a116d29",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 20
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-05-31T15:07:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "adfe93e7_b30e4294",
       "range": {
         "startLine": 119,
         "startChar": 2,
@@ -83,6 +131,30 @@
       "writtenOn": "2021-05-21T14:44:51Z",
       "side": 1,
       "message": "nit: Consider inverting this logic. First unconditionally assign vkSamplerState-\u003eminLod|maxLod to samplerState.minLod|maxLod, then have a condition where we optimize this by assigning minLod to maxLod.\n\nCurrently the false case implicitly leaves minLod \u003d maxLod \u003d 0. I think that\u0027s technically correct, but is a bit harder to reason about (both as being correct and as what we want when the single mip level optimization applies.\n\nNote inverting `multipleMipLevels` to `singleMipLevel` may also help with readability of the logic for the optimization.",
+      "range": {
+        "startLine": 85,
+        "startChar": 3,
+        "endLine": 85,
+        "endChar": 5
+      },
+      "revId": "cd1a59fba4719df62dfa976cb1198e6eaa563e71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "62783226_fa91ff98",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 20
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-05-31T15:07:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f7b96129_bc7a9436",
       "range": {
         "startLine": 85,
         "startChar": 3,
