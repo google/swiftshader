@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dcb3892c_fc093231",
+        "filename": "tests/regres/testlists/vk-master-FAIL.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-31T00:25:15Z",
+      "side": 1,
+      "message": "https://gerrit.khronos.org/c/vk-gl-cts/+/7157 \nhttps://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2733\nb/189588731",
+      "range": {
+        "startLine": 8,
+        "startChar": 17,
+        "endLine": 8,
+        "endChar": 77
+      },
+      "revId": "92d200cccad8c03c2f3e26dd9f2ec364b532042d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bce62be1_66f2c816",
+        "filename": "tests/regres/testlists/vk-master-FAIL.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-31T00:25:15Z",
+      "side": 1,
+      "message": "https://gerrit.khronos.org/c/vk-gl-cts/+/7181\nhttps://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2738\nb/140302392\n\nNote we do pass the depth_equal, depth_greater_or_equal, and depth_less_or_equal variants: https://swiftshader-review.googlesource.com/c/SwiftShader/+/54568/9/tests/regres/testlists/vk-master-PASS.txt#171001",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 74
+      },
+      "revId": "92d200cccad8c03c2f3e26dd9f2ec364b532042d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1264711b_b2e508cc",
+        "filename": "tests/regres/testlists/vk-master-FAIL.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-31T00:25:15Z",
+      "side": 1,
+      "message": "https://gerrit.khronos.org/c/vk-gl-cts/+/6468\nhttps://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2618\nb/167582422\n\nNote we do pass the 8-bit per component tests: https://swiftshader-review.googlesource.com/c/SwiftShader/+/54568/9/tests/regres/testlists/vk-master-PASS.txt#186787",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 64
+      },
+      "revId": "92d200cccad8c03c2f3e26dd9f2ec364b532042d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

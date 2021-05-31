@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9bee389_d4b75521",
+        "filename": "tests/regres/testlists/vk-master-FAIL.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-31T00:25:15Z",
+      "side": 0,
+      "message": "Probably https://gerrit.khronos.org/c/vk-gl-cts/+/7021",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 96
+      },
+      "revId": "f504d9ef5615cad38cb983b02b5dda6f9b3b613b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0de00323_3378dd86",
+        "filename": "tests/regres/testlists/vk-master-UNSUPPORTED.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-05-31T00:25:15Z",
+      "side": 0,
+      "message": "https://gerrit.khronos.org/c/vk-gl-cts/+/7357\nhttps://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2906\nb/185814882",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 69
+      },
+      "revId": "f504d9ef5615cad38cb983b02b5dda6f9b3b613b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
