@@ -73,6 +73,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b07251bf_ab3a63d5",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 20
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-01T20:19:24Z",
+      "side": 1,
+      "message": "Looks like setting `lod` to minLod breaks, at least, texelfetch",
+      "parentUuid": "8724326f_12163540",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 35
+      },
+      "revId": "cd1a59fba4719df62dfa976cb1198e6eaa563e71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "adfe93e7_b30e4294",
         "filename": "src/Pipeline/SamplerCore.cpp",
         "patchSetId": 20
