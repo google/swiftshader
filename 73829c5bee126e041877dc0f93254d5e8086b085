@@ -16,6 +16,24 @@
       "message": "I\u0027m fine with the change, but still no new tests?",
       "revId": "73829c5bee126e041877dc0f93254d5e8086b085",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1792f891_2cdf684f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-02T14:40:02Z",
+      "side": 1,
+      "message": "No, not yet. https://gitlab.khronos.org/vulkan/vulkan/-/issues/2445 discusses vaguely worded parts of the spec, and they want to know whether all implementations can pass https://gerrit.khronos.org/c/vk-gl-cts/+/7148, which clarifies the expected behavior.",
+      "parentUuid": "92a1fa41_b12c70c4",
+      "revId": "73829c5bee126e041877dc0f93254d5e8086b085",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
