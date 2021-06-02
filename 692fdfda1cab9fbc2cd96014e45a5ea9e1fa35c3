@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "88fa2048_eaa38a00",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1115,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-02T20:54:57Z",
+      "side": 1,
+      "message": "I\u0027m curious how we previously were hitting ASSERT(n \u003c wordCount()) when the original for loop on the left already avoided any i \u003c numIndexes?\n\nSeparately, to catch indexless access chains in Debug builds while still handling them correctly in Release builds, I would leave for loops like this in place and just add an ASSERT(numIndexes \u003e\u003d 1); at the top of the function.",
+      "range": {
+        "startLine": 1114,
+        "startChar": 1,
+        "endLine": 1115,
+        "endChar": 3
+      },
+      "revId": "692fdfda1cab9fbc2cd96014e45a5ea9e1fa35c3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
