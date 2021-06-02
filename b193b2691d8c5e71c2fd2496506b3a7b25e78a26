@@ -22,6 +22,30 @@
       },
       "revId": "b193b2691d8c5e71c2fd2496506b3a7b25e78a26",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "159f6834_9f1b064f",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-02T20:30:15Z",
+      "side": 1,
+      "message": "Hmm, I forgot that git config hooks is still in dogfood, so it\u0027s probably not available on all platforms.",
+      "parentUuid": "8e889706_a1eb5a17",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 191
+      },
+      "revId": "b193b2691d8c5e71c2fd2496506b3a7b25e78a26",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
