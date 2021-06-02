@@ -196,7 +196,6 @@ public:
 
 		uint32_t const *wordPointer(uint32_t n) const
 		{
-			ASSERT(n < wordCount());
 			return &iter[n];
 		}
 
