@@ -46,6 +46,30 @@
       },
       "revId": "692fdfda1cab9fbc2cd96014e45a5ea9e1fa35c3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39346ef7_289c7329",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1115,
+      "author": {
+        "id": 96881
+      },
+      "writtenOn": "2021-06-03T10:26:02Z",
+      "side": 1,
+      "message": "To clarify: we hit the assert right before calling the function I modified. That assert still triggers in debug builds, but gets compiled out in release.",
+      "parentUuid": "068f0cfa_2b7cfa21",
+      "range": {
+        "startLine": 1114,
+        "startChar": 1,
+        "endLine": 1115,
+        "endChar": 3
+      },
+      "revId": "692fdfda1cab9fbc2cd96014e45a5ea9e1fa35c3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
