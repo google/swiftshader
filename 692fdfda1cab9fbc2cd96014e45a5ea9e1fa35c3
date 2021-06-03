@@ -22,6 +22,30 @@
       },
       "revId": "692fdfda1cab9fbc2cd96014e45a5ea9e1fa35c3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "068f0cfa_2b7cfa21",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1115,
+      "author": {
+        "id": 96881
+      },
+      "writtenOn": "2021-06-03T07:46:27Z",
+      "side": 1,
+      "message": "If nothing needs to be done to handle the case (which is entirely possible; I\u0027m not 100% sure what this code does), then this change can simply be abandoned and it will work in release and assert in debug.\n\nI did try fixing the assert that triggers from (a \u003c b) to (a \u003c\u003d b), which passes the test (as in, does not assert anymore), but I\u0027m not sure if it will then do the right thing.",
+      "parentUuid": "88fa2048_eaa38a00",
+      "range": {
+        "startLine": 1114,
+        "startChar": 1,
+        "endLine": 1115,
+        "endChar": 3
+      },
+      "revId": "692fdfda1cab9fbc2cd96014e45a5ea9e1fa35c3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
