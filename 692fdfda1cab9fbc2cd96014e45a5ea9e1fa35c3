@@ -70,6 +70,30 @@
       },
       "revId": "692fdfda1cab9fbc2cd96014e45a5ea9e1fa35c3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "da23ddb4_9f0d079c",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1115,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-04T15:50:27Z",
+      "side": 1,
+      "message": "Oh, thanks for pointing that out. I now see where and why the assert happens. We call insn.wordPointer(4) and pass that into this function. It asserts that the word at index 4 is within the instruction length, but we don\u0027t actually dereference it at any time. Also note that the pointer that was obtained *could* be dereferenced at any index, so it\u0027s pointless that we assert that the first element of the array is valid.\n\nIt looks like we always handled indexless access chains correctly, and should just remove https://cs.opensource.google/swiftshader/SwiftShader/+/master:src/Pipeline/SpirvShader.hpp;drc\u003de260190edbd2984a045ac5990b3d31429d45d27f;l\u003d199",
+      "parentUuid": "39346ef7_289c7329",
+      "range": {
+        "startLine": 1114,
+        "startChar": 1,
+        "endLine": 1115,
+        "endChar": 3
+      },
+      "revId": "692fdfda1cab9fbc2cd96014e45a5ea9e1fa35c3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
