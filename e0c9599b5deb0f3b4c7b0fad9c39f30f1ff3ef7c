@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "28a43fa0_4e3f456b",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 751,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-08T17:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a25862b_a7b5d5c4",
+      "range": {
+        "startLine": 749,
+        "startChar": 0,
+        "endLine": 751,
+        "endChar": 33
+      },
+      "revId": "e0c9599b5deb0f3b4c7b0fad9c39f30f1ff3ef7c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1c8c0d21_fe376704",
@@ -47,6 +71,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "18ea2204_4681323a",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 945,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-08T17:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c8c0d21_fe376704",
+      "range": {
+        "startLine": 945,
+        "startChar": 2,
+        "endLine": 945,
+        "endChar": 17
+      },
+      "revId": "e0c9599b5deb0f3b4c7b0fad9c39f30f1ff3ef7c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ae6af02e_7dcf5e77",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-06-08T12:39:07Z",
       "side": 1,
       "message": "unused. Please remove",
+      "range": {
+        "startLine": 979,
+        "startChar": 2,
+        "endLine": 979,
+        "endChar": 17
+      },
+      "revId": "e0c9599b5deb0f3b4c7b0fad9c39f30f1ff3ef7c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a46246c_26441c98",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 979,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-08T17:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae6af02e_7dcf5e77",
       "range": {
         "startLine": 979,
         "startChar": 2,
