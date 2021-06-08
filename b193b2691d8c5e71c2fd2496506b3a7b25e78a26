@@ -70,6 +70,30 @@
       },
       "revId": "b193b2691d8c5e71c2fd2496506b3a7b25e78a26",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bfcc093d_1cec5d41",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-08T19:30:49Z",
+      "side": 1,
+      "message": "I think we should rely on using git-hooks as the source for all hooks, since we know we\u0027ll need to use it for the pre-commit hook anyways.",
+      "parentUuid": "dc9cd4c1_001806c1",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 191
+      },
+      "revId": "b193b2691d8c5e71c2fd2496506b3a7b25e78a26",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
