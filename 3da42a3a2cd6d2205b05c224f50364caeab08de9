@@ -22,6 +22,30 @@
       },
       "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e1939df8_158a6bae",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-08T19:51:12Z",
+      "side": 0,
+      "message": "The check is no longer necessary since the BlockDesc array no longer includes illegal or invalid modes.",
+      "parentUuid": "1f650ae9_edca6d61",
+      "range": {
+        "startLine": 985,
+        "startChar": 2,
+        "endLine": 985,
+        "endChar": 70
+      },
+      "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
