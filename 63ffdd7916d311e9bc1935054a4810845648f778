@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c9e41cee_16371759",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-08T13:14:26Z",
+      "side": 1,
+      "message": "I think this line needs to be removed altogether. The `n` parameter just provides the index at which we want to obtain the pointer to the instruction words. It doesn\u0027t say anything about at which indices it will be dereferenced.\n\nThis change prevents the assert for indexless access chains, but doesn\u0027t prevent future mistakes and would be confusing if we hit it again (more so than the original code).",
+      "range": {
+        "startLine": 199,
+        "startChar": 3,
+        "endLine": 199,
+        "endChar": 28
+      },
+      "revId": "63ffdd7916d311e9bc1935054a4810845648f778",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
