@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8664e7dd_ab6dfd46",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-08T19:09:17Z",
+      "side": 1,
+      "message": "LGTM modulo nits, Nicolas should have a look.",
+      "revId": "5e39629e19dc0b54d0b420dea6465ef275bffb5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c36f792f_8eb5b85f",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 726,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-08T19:09:17Z",
+      "side": 1,
+      "message": "Nit: uint8_t ?",
+      "range": {
+        "startLine": 726,
+        "startChar": 13,
+        "endLine": 726,
+        "endChar": 17
+      },
+      "revId": "5e39629e19dc0b54d0b420dea6465ef275bffb5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dab6a114_b3afaf99",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 741,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-08T19:09:17Z",
+      "side": 1,
+      "message": "Not one of the options? The if statement only contains 22, 26 and 30, so this comment should probably mention \"26\" instead of \"24\".",
+      "range": {
+        "startLine": 741,
+        "startChar": 24,
+        "endLine": 741,
+        "endChar": 26
+      },
+      "revId": "5e39629e19dc0b54d0b420dea6465ef275bffb5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

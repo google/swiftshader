@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1f650ae9_edca6d61",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-08T19:09:17Z",
+      "side": 0,
+      "message": "Why was this removed? Shouldn\u0027t this check still work?",
+      "range": {
+        "startLine": 985,
+        "startChar": 2,
+        "endLine": 985,
+        "endChar": 70
+      },
+      "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
