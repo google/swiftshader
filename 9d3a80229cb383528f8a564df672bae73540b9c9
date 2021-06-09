@@ -22,6 +22,30 @@
       },
       "revId": "9d3a80229cb383528f8a564df672bae73540b9c9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b21b782e_86fa0b0f",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-09T20:16:32Z",
+      "side": 1,
+      "message": "Hmm, yeah. I could run `git hook list pre-commit` in a subshell and check its exit code.",
+      "parentUuid": "c80256a0_2763beea",
+      "range": {
+        "startLine": 61,
+        "startChar": 21,
+        "endLine": 61,
+        "endChar": 54
+      },
+      "revId": "9d3a80229cb383528f8a564df672bae73540b9c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
