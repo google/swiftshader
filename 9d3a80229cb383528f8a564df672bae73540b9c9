@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c80256a0_2763beea",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-09T14:06:22Z",
+      "side": 1,
+      "message": "Would it be feasible for install_hooks.sh to detect if config hooks is supported? If it is, print an informative message that checks will be run at pre-submit, and if not, print a warning.",
+      "range": {
+        "startLine": 61,
+        "startChar": 21,
+        "endLine": 61,
+        "endChar": 54
+      },
+      "revId": "9d3a80229cb383528f8a564df672bae73540b9c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
