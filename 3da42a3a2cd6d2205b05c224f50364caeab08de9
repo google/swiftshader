@@ -46,6 +46,30 @@
       },
       "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f5f4d413_8e5dee1a",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-09T20:02:24Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "e1939df8_158a6bae",
+      "range": {
+        "startLine": 985,
+        "startChar": 2,
+        "endLine": 985,
+        "endChar": 70
+      },
+      "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
