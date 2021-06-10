@@ -118,6 +118,8 @@ public:
 #ifdef ENABLE_RR_DEBUG_INFO
 	std::unique_ptr<rr::DebugInfo> debugInfo;
 #endif
+
+	bool msanInstrumentation = false;
 };
 
 inline std::memory_order atomicOrdering(llvm::AtomicOrdering memoryOrder)

@@ -136,6 +136,7 @@ TEST(ReactorUnitTests, Trampoline)
 	EXPECT_EQ(result, 80);
 }
 
+#if REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION
 TEST(ReactorUnitTests, Uninitialized)
 {
 	FunctionT<int()> function;
@@ -159,7 +160,7 @@ TEST(ReactorUnitTests, Uninitialized)
 
 	auto routine = function(testName().c_str());
 
-	if(!__has_feature(memory_sanitizer) || !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION)
+	if(!__has_feature(memory_sanitizer))
 	{
 		int result = routine();
 		EXPECT_EQ(result, result);  // Anything is fine, just don't crash
@@ -178,6 +179,7 @@ TEST(ReactorUnitTests, Uninitialized)
 		    "MemorySanitizer: use-of-uninitialized-value");
 	}
 }
+#endif
 
 TEST(ReactorUnitTests, Unreachable)
 {
