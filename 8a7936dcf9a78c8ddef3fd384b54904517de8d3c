@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0e7ff47a_8651dfbc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-10T21:40:16Z",
+      "side": 1,
+      "message": "FYI, test results for the official dEQP 1.2.6.2 release.",
+      "revId": "8a7936dcf9a78c8ddef3fd384b54904517de8d3c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
