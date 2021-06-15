@@ -16,6 +16,46 @@
       "message": "I\u0027m not at all certain that \"\u003d default\" is correct for Reference (in Reactor.hpp).",
       "revId": "a465abab5a289d43d24ad0c2d3453853b412670b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b76b27ac_b67354f9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-15T18:07:41Z",
+      "side": 1,
+      "message": "Thanks Peter for taking care of this! One comment below:",
+      "revId": "a465abab5a289d43d24ad0c2d3453853b412670b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4f35202a_3638725a",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-15T18:07:41Z",
+      "side": 1,
+      "message": "`Reference` represents a C++-like reference variable, so it shouldn\u0027t be copyable.\n\n\"Reference(const Reference\u003cT\u003e \u0026) \u003d delete;\" might do the trick.",
+      "range": {
+        "startLine": 216,
+        "startChar": 1,
+        "endLine": 216,
+        "endChar": 36
+      },
+      "revId": "a465abab5a289d43d24ad0c2d3453853b412670b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
