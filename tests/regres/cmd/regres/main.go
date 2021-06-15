@@ -962,7 +962,7 @@ func queryChanges(client *gerrit.Client, changes map[string]*changeInfo) error {
 // update queries gerrit for information about the given change.
 func (c *changeInfo) update(client *gerrit.Client) error {
 	change, _, err := client.Changes.GetChange(c.id, &gerrit.ChangeOptions{
-		AdditionalFields: []string{"CURRENT_REVISION", "CURRENT_COMMIT", "MESSAGES", "LABELS"},
+		AdditionalFields: []string{"CURRENT_REVISION", "CURRENT_COMMIT", "MESSAGES", "LABELS", "DETAILED_ACCOUNTS"},
 	})
 	if err != nil {
 		return cause.Wrap(err, "Getting info for change '%s'", c.id)
