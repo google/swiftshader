@@ -21,11 +21,12 @@ namespace sw
 	{
 	public:
 		half() = default;
+		half(const half& h) = default;
 		explicit half(float f);
 
 		operator float() const;
 
-		half &operator=(half h);
+		half &operator=(const half& h) = default;
 		half &operator=(float f);
 
 	private:

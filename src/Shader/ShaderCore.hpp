@@ -100,6 +100,8 @@ namespace sw
 		{
 		}
 
+		Register(const Register &rhs) = default;
+
 		Reference<Float4> &operator[](int i)
 		{
 			switch(i)
@@ -112,15 +114,7 @@ namespace sw
 			}
 		}
 
-		Register &operator=(const Register &rhs)
-		{
-			x = rhs.x;
-			y = rhs.y;
-			z = rhs.z;
-			w = rhs.w;
-
-			return *this;
-		}
+		Register &operator=(const Register &rhs) = default;
 
 		Register &operator=(const Vector4f &rhs)
 		{
