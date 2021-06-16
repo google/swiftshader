@@ -22,6 +22,30 @@
       },
       "revId": "3b1783eb88645937a53f6d3a6e69069e1709706f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e3811d31_58b2e683",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-16T02:21:40Z",
+      "side": 1,
+      "message": "They\u0027re only added when building with MSan; see line 544. However, these two are for when we do the unpoisoning to avoid false positives when the real MSan instrumentation pass is not enabled for Reactor routines, while the ones above are use by the instrumentation pass. So in theory we only need one set or the other.\n\nThat said, this class is used as a singleton so we only construct this lookup map once. And since this changes makes the choice between the two MSan options at run-time, we need both sets of symbols.",
+      "parentUuid": "f9797aeb_92fe3a27",
+      "range": {
+        "startLine": 551,
+        "startChar": 0,
+        "endLine": 553,
+        "endChar": 97
+      },
+      "revId": "3b1783eb88645937a53f6d3a6e69069e1709706f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
