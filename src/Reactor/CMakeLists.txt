@@ -27,6 +27,9 @@ set(REACTOR_SRC_FILES
     Nucleus.hpp
     OptimalIntrinsics.cpp
     OptimalIntrinsics.hpp
+    Pragma.cpp
+    Pragma.hpp
+    PragmaInternals.hpp
     Print.hpp
     Reactor.cpp
     Reactor.hpp

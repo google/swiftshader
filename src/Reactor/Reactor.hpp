@@ -16,6 +16,7 @@
 #define rr_Reactor_hpp
 
 #include "Nucleus.hpp"
+#include "Pragma.hpp"
 #include "Routine.hpp"
 #include "Traits.hpp"
 

@@ -206,6 +206,7 @@ cc_defaults {
         "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/OptimalIntrinsics.cpp",
+        "Reactor/Pragma.cpp",
         "Reactor/Reactor.cpp",
     ],
 

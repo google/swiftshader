@@ -17,6 +17,7 @@
 #include "Debug.hpp"
 #include "ExecutableMemory.hpp"
 #include "LLVMAsm.hpp"
+#include "PragmaInternals.hpp"
 #include "Routine.hpp"
 
 // TODO(b/143539525): Eliminate when warning has been fixed.
@@ -823,7 +824,8 @@ JITBuilder::JITBuilder(const rr::Config &config)
 	module->setTargetTriple(LLVM_DEFAULT_TARGET_TRIPLE);
 	module->setDataLayout(JITGlobals::get()->getDataLayout());
 
-	if(REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION)
+	if(REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION ||
+	   getPragmaState(MemorySanitizerInstrumentation))
 	{
 		msanInstrumentation = true;
 	}
