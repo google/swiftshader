@@ -16,6 +16,23 @@
       "message": "Thanks Mikko for fixing this!\n\nSean, since you recently worked on timeline semaphores, could you help review this and verify there are no caveats?",
       "revId": "ab2a61df0cf93c588788c2c8d7350c172732652c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f61ec3ad_d95cb69c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-06-16T15:08:17Z",
+      "side": 1,
+      "message": "LGTM. Relevant piece of the spec:\n\n\u003e In case of semaphores created with a VkSemaphoreType of VK_SEMAPHORE_TYPE_TIMELINE a prior semaphore signal operation defines a memory dependency with a semaphore wait operation if the value the semaphore is signaled with is *greater than or equal* to the value the semaphore is waited with, thus the semaphore will continue to be considered signaled with respect to the counter value waited on as specified in VkTimelineSemaphoreSubmitInfo.\n\nEmphasis mine.",
+      "revId": "ab2a61df0cf93c588788c2c8d7350c172732652c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
