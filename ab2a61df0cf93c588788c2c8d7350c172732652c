@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac8becf7_d0b4b144",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-16T01:48:26Z",
+      "side": 1,
+      "message": "Thanks Mikko for fixing this!\n\nSean, since you recently worked on timeline semaphores, could you help review this and verify there are no caveats?",
+      "revId": "ab2a61df0cf93c588788c2c8d7350c172732652c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
