@@ -31,6 +31,8 @@ enum
 	MAX_TEXTURE_LOD = MIPMAP_LEVELS - 2,  // Trilinear accesses lod+1
 	RENDERTARGETS = 8,
 	MAX_INTERFACE_COMPONENTS = 32 * 4,  // Must be multiple of 4 for 16-byte alignment.
+	MAX_FRAMEBUFFER_DIM = OUTLINE_RESOLUTION,
+	MAX_VIEWPORT_DIM = MAX_FRAMEBUFFER_DIM,
 };
 
 }  // namespace sw

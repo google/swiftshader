@@ -495,8 +495,10 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits() const
 		vk::MAX_SAMPLER_LOD_BIAS,                         // maxSamplerLodBias
 		16,                                               // maxSamplerAnisotropy
 		16,                                               // maxViewports
-		{ 4096, 4096 },                                   // maxViewportDimensions[2]
-		{ -8192, 8191 },                                  // viewportBoundsRange[2]
+		{ sw::MAX_VIEWPORT_DIM,
+		  sw::MAX_VIEWPORT_DIM },                         // maxViewportDimensions[2]
+		{ -2 * sw::MAX_VIEWPORT_DIM,
+		   2 * sw::MAX_VIEWPORT_DIM - 1 },                // viewportBoundsRange[2]
 		0,                                                // viewportSubPixelBits
 		64,                                               // minMemoryMapAlignment
 		vk::MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT,            // minTexelBufferOffsetAlignment
@@ -509,8 +511,8 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits() const
 		-0.5,                                             // minInterpolationOffset
 		0.5,                                              // maxInterpolationOffset
 		4,                                                // subPixelInterpolationOffsetBits
-		4096,                                             // maxFramebufferWidth
-		4096,                                             // maxFramebufferHeight
+		sw::MAX_FRAMEBUFFER_DIM,                          // maxFramebufferWidth
+		sw::MAX_FRAMEBUFFER_DIM,                          // maxFramebufferHeight
 		256,                                              // maxFramebufferLayers
 		sampleCounts,                                     // framebufferColorSampleCounts
 		sampleCounts,                                     // framebufferDepthSampleCounts
