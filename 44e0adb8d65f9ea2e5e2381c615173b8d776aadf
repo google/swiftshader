@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e27fb760_2f48916f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-17T19:14:33Z",
+      "side": 1,
+      "message": "OUTLINE_RESOLUTION was already set to 8192:\nhttps://source.chromium.org/chromium/chromium/src/+/main:third_party/swiftshader/src/Device/Config.hpp;l\u003d22",
+      "revId": "44e0adb8d65f9ea2e5e2381c615173b8d776aadf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
