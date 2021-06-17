@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "90c0156f_4c85f7ef",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-17T21:04:49Z",
+      "side": 1,
+      "message": "nit: Add spec quote about why viewportBoundsRange is also affected by this change:\n\n\"viewportBoundsRange[2] is the [minimum, maximum] range that the corners of a viewport must be contained in. This range must be at least [-2 × size, 2 × size - 1], where size \u003d max(maxViewportDimensions[0], maxViewportDimensions[1]).\"",
+      "revId": "9f70252f5030ebd409466bbf537f0c2bd61476e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
