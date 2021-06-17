@@ -56,6 +56,30 @@
       },
       "revId": "a465abab5a289d43d24ad0c2d3453853b412670b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2cfc4e0a_4f20c1c1",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 100991
+      },
+      "writtenOn": "2021-06-17T17:18:48Z",
+      "side": 1,
+      "message": "Unfortunately it needs to be copyable for swiftshader to compile.  Here\u0027s the original message that prompted this fix, which shows why:\n\n../../third_party/swiftshader/src/Reactor/Reactor.hpp:218:12: error: definition of implicit copy constructor for \u0027Reference\u003crr::Float4\u003e\u0027 is deprecated because it has a user-provided copy assignment operator [-Werror,-Wdeprecated-copy-with-user-provided-copy]\n../../third_party/swiftshader/src/Shader/ShaderCore.hpp:99:126: note: in implicit copy constructor for \u0027rr::Reference\u003crr::Float4\u003e\u0027 first required here\n\nI\u0027m not sure if that ShaderCore.hpp code is invalid, but if not, then I think (??) something like the \u003ddefault I did is what it actually wants.",
+      "parentUuid": "4f35202a_3638725a",
+      "range": {
+        "startLine": 216,
+        "startChar": 1,
+        "endLine": 216,
+        "endChar": 36
+      },
+      "revId": "a465abab5a289d43d24ad0c2d3453853b412670b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
