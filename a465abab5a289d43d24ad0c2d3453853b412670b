@@ -80,6 +80,30 @@
       },
       "revId": "a465abab5a289d43d24ad0c2d3453853b412670b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a38de0f_3a7be9ea",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-17T18:33:39Z",
+      "side": 1,
+      "message": "Ah, yes, there are some (benign) issues there that currently ask for the copy constructor to exist.\n\nIndeed the \u003d default should address the -Wdeprecated-copy warning just fine. I\u0027ll look into fixing the underlying issues after.\n\nI\u0027m thankful this new compiler warning discovered these issues!",
+      "parentUuid": "2cfc4e0a_4f20c1c1",
+      "range": {
+        "startLine": 216,
+        "startChar": 1,
+        "endLine": 216,
+        "endChar": 36
+      },
+      "revId": "a465abab5a289d43d24ad0c2d3453853b412670b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
