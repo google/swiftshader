@@ -213,7 +213,7 @@ public:
 	using reference_underlying_type = T;
 
 	explicit Reference(Value *pointer, int alignment = 1);
-	Reference(const Reference<T> &ref);
+	Reference(const Reference<T> &ref) = default;
 
 	RValue<T> operator=(RValue<T> rhs) const;
 	RValue<T> operator=(const Reference<T> &ref) const;
@@ -227,7 +227,7 @@ public:
 	int getAlignment() const;
 
 private:
-	Value *address;
+	Value *const address;
 
 	const int alignment;
 };
@@ -2697,13 +2697,10 @@ RValue<Pointer<T>> LValue<T>::operator&()
 
 template<class T>
 Reference<T>::Reference(Value *pointer, int alignment)
-    : alignment(alignment)
+    : address(pointer)
+    , alignment(alignment)
 {
-	address = pointer;
 }
-
-template<class T>
-Reference<T>::Reference(const Reference<T> &ref) = default;
 
 template<class T>
 RValue<T> Reference<T>::operator=(RValue<T> rhs) const
