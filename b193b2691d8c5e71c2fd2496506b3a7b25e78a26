@@ -94,6 +94,30 @@
       },
       "revId": "b193b2691d8c5e71c2fd2496506b3a7b25e78a26",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "946370d3_51deff1e",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-18T02:46:24Z",
+      "side": 1,
+      "message": "There\u0027s no longer an explanation what this command line actually does. I suggest adding \"To clone the repository and install the commit hook in one go:\" back.",
+      "parentUuid": "bfcc093d_1cec5d41",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 191
+      },
+      "revId": "b193b2691d8c5e71c2fd2496506b3a7b25e78a26",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
