@@ -424,6 +424,7 @@ else()
         "-Wreorder"
         "-Wsign-compare"
         "-Wmissing-braces"
+        "-Wdeprecated-copy"  # implicit copy constructor for 'X' is deprecated because of user-declared copy assignment operator.
     )
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -449,7 +450,7 @@ else()
         endif()
     endif()
 
-    # Disable pedanitc warnings
+    # Disable pedantic warnings
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
             "-Wno-ignored-attributes"   # ignoring attributes on template argument 'X'
@@ -470,7 +471,6 @@ else()
             "-Wno-undefined-var-template"         # instantiation of variable 'X' required here, but no definition is available
             "-Wno-extra-semi"                     # extra ';' after member function definition
             "-Wno-unused-parameter"               # unused parameter 'X'
-            "-Wno-deprecated-copy"                # implicit copy constructor for 'X' is deprecated because of user-declared copy assignment operator.
 
             # Silence errors caused by unknown warnings when building with older
             # versions of Clang. This demands checking that warnings added above

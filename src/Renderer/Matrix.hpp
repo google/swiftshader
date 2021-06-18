@@ -36,7 +36,7 @@ namespace sw
 		       float m41, float m42, float m43, float m44);
 		Matrix(const Vector &v1, const Vector &v2, const Vector &v3);   // Column vectors
 
-		Matrix &operator=(const Matrix &N);
+		Matrix &operator=(const Matrix &N) = default;
 
 		// Row major order
 		float m[4][4];
@@ -179,18 +179,6 @@ namespace sw
 		M(2, 1) = v1.y; M(2, 2) = v2.y; M(2, 3) = v3.y; M(2, 4) = 0;
 		M(3, 1) = v1.z; M(3, 2) = v2.z; M(3, 3) = v3.z; M(3, 4) = 0;
 		M(4, 1) = 0;    M(4, 2) = 0;    M(4, 3) = 0;    M(4, 4) = 1;
-	}
-
-	inline Matrix &Matrix::operator=(const Matrix &N)
-	{
-		Matrix &M = *this;
-
-		M(1, 1) = N(1, 1); M(1, 2) = N(1, 2); M(1, 3) = N(1, 3); M(1, 4) = N(1, 4);
-		M(2, 1) = N(2, 1); M(2, 2) = N(2, 2); M(2, 3) = N(2, 3); M(2, 4) = N(2, 4);
-		M(3, 1) = N(3, 1); M(3, 2) = N(3, 2); M(3, 3) = N(3, 3); M(3, 4) = N(3, 4);
-		M(4, 1) = N(4, 1); M(4, 2) = N(4, 2); M(4, 3) = N(4, 3); M(4, 4) = N(4, 4);
-
-		return M;
 	}
 
 	inline float *Matrix::operator[](int i)

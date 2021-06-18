@@ -30,7 +30,6 @@ public:
 
 	operator float() const;
 
-	half &operator=(half h);
 	half &operator=(float f);
 
 private:

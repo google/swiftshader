@@ -325,12 +325,9 @@ union Color
 
 		RGBA &operator=(const RGBA &other)
 		{
-			if(this != &other)
-			{
-				this->r = other.r;
-				this->g = other.g;
-				this->b = other.b;
-			}
+			this->r = other.r;
+			this->g = other.g;
+			this->b = other.b;
 
 			return *this;
 		}
@@ -350,12 +347,15 @@ union Color
 	{
 	}
 
+	Color(const Color &other)
+	{
+		this->rgba = other.rgba;
+	}
+
 	Color &operator=(const Color &other)
 	{
-		if(this != &other)
-		{
-			this->rgba = other.rgba;
-		}
+		this->rgba = other.rgba;
+
 		return *this;
 	}
 
