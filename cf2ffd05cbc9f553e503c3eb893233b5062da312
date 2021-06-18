@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ee9285d2_ea483ee9",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-18T17:26:29Z",
+      "side": 0,
+      "message": "The values that get written are always new.",
+      "range": {
+        "startLine": 328,
+        "startChar": 3,
+        "endLine": 328,
+        "endChar": 21
+      },
+      "revId": "cf2ffd05cbc9f553e503c3eb893233b5062da312",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
