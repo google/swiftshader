@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b10b57e1_ba5da079",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 101006
+      },
+      "writtenOn": "2021-06-20T16:44:47Z",
+      "side": 1,
+      "message": "Tested with Chromium build and I see no new warnings with GCC, except lots of clang specific ones (maybe something for other CL).\nI probably have no access to CQ.",
+      "revId": "af6f2f8dccf234eaff73844b27e0560796141391",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
