@@ -57,7 +57,7 @@ config("swiftshader_libGLESv2_private_config") {
     } else if (is_clang) {
       defines += [ "GL_APICALL=__attribute__((visibility(\"protected\"))) __attribute__((no_sanitize(\"function\")))" ]
     } else {
-      defines += [ "GL_APICALL= " ]
+      defines += [ "GL_APICALL=__attribute__((visibility(\"protected\")))" ]
     }
   }
 }

@@ -42,7 +42,7 @@ config("swiftshader_libEGL_private_config") {
     } else if (is_clang) {
       defines += [ "EGLAPI=__attribute__((visibility(\"protected\"))) __attribute__((no_sanitize(\"function\")))" ]
     } else {
-      defines += [ "EGLAPI= " ]
+      defines += [ "EGLAPI=__attribute__((visibility(\"protected\")))" ]
     }
   }
 }
