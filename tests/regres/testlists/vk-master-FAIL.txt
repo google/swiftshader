@@ -14,7 +14,9 @@ dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pu
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_1.128_128_1.samples_4
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_1.137_191_1.samples_4
 dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_greater
+dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_greater_or_equal
 dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_less
+dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_less_or_equal
 dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_not_equal
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16_snorm

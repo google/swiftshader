@@ -1,4 +1,3 @@
-dEQP-VK.graphicsfuzz.spv-stable-orbit-Os-access-chain-mutate-pointer
 dEQP-VK.pipeline.no_position.explicit_declarations.basic.multiview.v0
 dEQP-VK.pipeline.no_position.explicit_declarations.basic.multiview.v1
 dEQP-VK.pipeline.no_position.explicit_declarations.ssbo_writes.multiview.v0
