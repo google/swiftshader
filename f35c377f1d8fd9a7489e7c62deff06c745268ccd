@@ -36,6 +36,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9eb13c8_b3aa8f53",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-23T20:40:51Z",
+      "side": 1,
+      "message": "@Alexis https://gerrit.khronos.org/c/vk-gl-cts/+/7354 hasn\u0027t landed yet so it\u0027s not being tested by Regres. Hopefully one day we can test dEQP changes prior to submission.",
+      "parentUuid": "56305f84_ac9019bd",
+      "revId": "f35c377f1d8fd9a7489e7c62deff06c745268ccd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fd8c5ac5_45a962c2",
