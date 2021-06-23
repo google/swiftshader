@@ -46,6 +46,30 @@
       },
       "revId": "edc54767a3ebbaac40029d7858e72071adbe188d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6add541a_04f8b891",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-23T18:47:58Z",
+      "side": 1,
+      "message": "Hmm, my Visual Studio Code IDE is configured to run clang-format 11.1.0 on my Linux system, while Kokoro uses 11.0.1. I didn\u0027t expect any differences between these point releases. I\u0027ll look into it if it becomes more of a problem...",
+      "parentUuid": "1395ab62_00fd5dc3",
+      "range": {
+        "startLine": 497,
+        "startChar": 0,
+        "endLine": 502,
+        "endChar": 0
+      },
+      "revId": "edc54767a3ebbaac40029d7858e72071adbe188d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
