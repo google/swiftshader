@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "56305f84_ac9019bd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-23T18:31:10Z",
+      "side": 1,
+      "message": "@Alexis note we now have the ability to get the Regres service to test changes by external contributors, if a Googler adds a positive Presubmit-Ready or Code-Review vote.",
+      "parentUuid": "e79f4ef1_74e15582",
+      "revId": "f35c377f1d8fd9a7489e7c62deff06c745268ccd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fd8c5ac5_45a962c2",

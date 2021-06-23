@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6ede4efa_e4efb078",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-23T18:31:10Z",
+      "side": 1,
+      "message": "Do you have any Vulkan spec reference or quote that supports this? Why would unsigned formats require clamping, but masking is fine for signed formats?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 37
+      },
+      "revId": "f80a906f17da69ad31bcc393c2909111de91f8ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4e714e89_8115f82f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-23T18:31:10Z",
+      "side": 1,
+      "message": "uber-nit: Git messages wrap at 72 characters, so you may want to add hard breaks to make things line up nicely.",
+      "range": {
+        "startLine": 9,
+        "startChar": 70,
+        "endLine": 9,
+        "endChar": 82
+      },
+      "revId": "f80a906f17da69ad31bcc393c2909111de91f8ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
