@@ -422,12 +422,12 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 	}
 }
 
-VkSampleCountFlags PhysicalDevice::getSampleCounts() const
+VkSampleCountFlags PhysicalDevice::getSampleCounts()
 {
 	return VK_SAMPLE_COUNT_1_BIT | VK_SAMPLE_COUNT_4_BIT;
 }
 
-const VkPhysicalDeviceLimits &PhysicalDevice::getLimits() const
+const VkPhysicalDeviceLimits &PhysicalDevice::getLimits()
 {
 	VkSampleCountFlags sampleCounts = getSampleCounts();
 
@@ -945,6 +945,10 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceFloatControlsProperties *prop
 template<typename T>
 static void getDescriptorIndexingProperties(T *properties)
 {
+	// "The UpdateAfterBind descriptor limits must each be greater than or equal to
+	//  the corresponding non-UpdateAfterBind limit."
+	const VkPhysicalDeviceLimits &limits = PhysicalDevice::getLimits();
+
 	properties->maxUpdateAfterBindDescriptorsInAllPools = 0;
 	properties->shaderUniformBufferArrayNonUniformIndexingNative = VK_FALSE;
 	properties->shaderSampledImageArrayNonUniformIndexingNative = VK_FALSE;
@@ -953,21 +957,21 @@ static void getDescriptorIndexingProperties(T *properties)
 	properties->shaderInputAttachmentArrayNonUniformIndexingNative = VK_FALSE;
 	properties->robustBufferAccessUpdateAfterBind = VK_FALSE;
 	properties->quadDivergentImplicitLod = VK_FALSE;
-	properties->maxPerStageDescriptorUpdateAfterBindSamplers = 0;
-	properties->maxPerStageDescriptorUpdateAfterBindUniformBuffers = 0;
-	properties->maxPerStageDescriptorUpdateAfterBindStorageBuffers = 0;
-	properties->maxPerStageDescriptorUpdateAfterBindSampledImages = 0;
-	properties->maxPerStageDescriptorUpdateAfterBindStorageImages = 0;
-	properties->maxPerStageDescriptorUpdateAfterBindInputAttachments = 0;
-	properties->maxPerStageUpdateAfterBindResources = 0;
-	properties->maxDescriptorSetUpdateAfterBindSamplers = 0;
-	properties->maxDescriptorSetUpdateAfterBindUniformBuffers = 0;
-	properties->maxDescriptorSetUpdateAfterBindUniformBuffersDynamic = 0;
-	properties->maxDescriptorSetUpdateAfterBindStorageBuffers = 0;
-	properties->maxDescriptorSetUpdateAfterBindStorageBuffersDynamic = 0;
-	properties->maxDescriptorSetUpdateAfterBindSampledImages = 0;
-	properties->maxDescriptorSetUpdateAfterBindStorageImages = 0;
-	properties->maxDescriptorSetUpdateAfterBindInputAttachments = 0;
+	properties->maxPerStageDescriptorUpdateAfterBindSamplers = limits.maxPerStageDescriptorSamplers;
+	properties->maxPerStageDescriptorUpdateAfterBindUniformBuffers = limits.maxPerStageDescriptorUniformBuffers;
+	properties->maxPerStageDescriptorUpdateAfterBindStorageBuffers = limits.maxPerStageDescriptorStorageBuffers;
+	properties->maxPerStageDescriptorUpdateAfterBindSampledImages = limits.maxPerStageDescriptorSampledImages;
+	properties->maxPerStageDescriptorUpdateAfterBindStorageImages = limits.maxPerStageDescriptorStorageImages;
+	properties->maxPerStageDescriptorUpdateAfterBindInputAttachments = limits.maxPerStageDescriptorInputAttachments;
+	properties->maxPerStageUpdateAfterBindResources = limits.maxPerStageResources;
+	properties->maxDescriptorSetUpdateAfterBindSamplers = limits.maxDescriptorSetSamplers;
+	properties->maxDescriptorSetUpdateAfterBindUniformBuffers = limits.maxDescriptorSetUniformBuffers;
+	properties->maxDescriptorSetUpdateAfterBindUniformBuffersDynamic = limits.maxDescriptorSetUniformBuffersDynamic;
+	properties->maxDescriptorSetUpdateAfterBindStorageBuffers = limits.maxDescriptorSetStorageBuffers;
+	properties->maxDescriptorSetUpdateAfterBindStorageBuffersDynamic = limits.maxDescriptorSetStorageBuffersDynamic;
+	properties->maxDescriptorSetUpdateAfterBindSampledImages = limits.maxDescriptorSetSampledImages;
+	properties->maxDescriptorSetUpdateAfterBindStorageImages = limits.maxDescriptorSetStorageImages;
+	properties->maxDescriptorSetUpdateAfterBindInputAttachments = limits.maxDescriptorSetInputAttachments;
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceDescriptorIndexingProperties *properties) const

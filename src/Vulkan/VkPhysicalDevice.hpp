@@ -79,9 +79,10 @@ public:
 	                              VkQueueFamilyProperties2 *pQueueFamilyProperties) const;
 	static const VkPhysicalDeviceMemoryProperties &GetMemoryProperties();
 
+	static const VkPhysicalDeviceLimits &getLimits();
+
 private:
-	const VkPhysicalDeviceLimits &getLimits() const;
-	VkSampleCountFlags getSampleCounts() const;
+	static VkSampleCountFlags getSampleCounts();
 	VkQueueFamilyProperties getQueueFamilyProperties() const;
 };
 
