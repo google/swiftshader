@@ -45,6 +45,29 @@
       },
       "revId": "f80a906f17da69ad31bcc393c2909111de91f8ff",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b753ff46_d09213f4",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1340,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-23T20:48:04Z",
+      "side": 1,
+      "message": "Nit: extra new line added",
+      "range": {
+        "startLine": 1340,
+        "startChar": 0,
+        "endLine": 1340,
+        "endChar": 18
+      },
+      "revId": "f80a906f17da69ad31bcc393c2909111de91f8ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
