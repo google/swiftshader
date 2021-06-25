@@ -61,8 +61,8 @@ SpirvShader::SpirvShader(
 		}
 	}
 
-	// Simplifying assumptions (to be satisfied by earlier transformations)
-	// - The only input/output OpVariables present are those used by the entrypoint
+	// The identifiers of all OpVariables that define the entry point's IO variables.
+	std::unordered_set<Object::ID> interfaceIds;
 
 	Function::ID currentFunction;
 	Block::ID currentBlock;
@@ -84,6 +84,12 @@ SpirvShader::SpirvShader(
 				{
 					ASSERT_MSG(entryPoint == 0, "Duplicate entry point with name '%s' and stage %d", name, int(stage));
 					entryPoint = id;
+
+					auto interfaceIdsOffset = 3 + insn.stringSizeInWords(3);
+					for(uint32_t i = interfaceIdsOffset; i < insn.wordCount(); i++)
+					{
+						interfaceIds.emplace(insn.word(i));
+					}
 				}
 			}
 			break;
@@ -271,7 +277,10 @@ SpirvShader::SpirvShader(
 				{
 				case spv::StorageClassInput:
 				case spv::StorageClassOutput:
-					ProcessInterfaceVariable(object);
+					if(interfaceIds.count(resultId))
+					{
+						ProcessInterfaceVariable(object);
+					}
 					break;
 
 				case spv::StorageClassUniform:

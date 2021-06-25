@@ -204,6 +204,35 @@ public:
 			return reinterpret_cast<const char *>(wordPointer(n));
 		}
 
+		// Returns the number of whole-words that a string literal starting at
+		// word n consumes. If the end of the intruction is reached before the
+		// null-terminator is found, then the function DABORT()s and 0 is
+		// returned.
+		uint32_t stringSizeInWords(uint32_t n) const
+		{
+			uint32_t c = wordCount();
+			for(uint32_t i = n; n < c; i++)
+			{
+				auto *u32 = wordPointer(i);
+				auto *u8 = reinterpret_cast<const uint8_t *>(u32);
+				// SPIR-V spec 2.2.1. Instructions:
+				// A string is interpreted as a nul-terminated stream of
+				// characters. The character set is Unicode in the UTF-8
+				// encoding scheme. The UTF-8 octets (8-bit bytes) are packed
+				// four per word, following the little-endian convention (i.e.,
+				// the first octet is in the lowest-order 8 bits of the word).
+				// The final word contains the string’s nul-termination
+				// character (0), and all contents past the end of the string in
+				// the final word are padded with 0.
+				if(u8[3] == 0)
+				{
+					return 1 + i - n;
+				}
+			}
+			DABORT("SPIR-V string literal was not null-terminated");
+			return 0;
+		}
+
 		bool hasResultAndType() const
 		{
 			bool hasResult = false, hasResultType = false;
