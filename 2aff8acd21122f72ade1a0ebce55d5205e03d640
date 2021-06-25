@@ -16,6 +16,23 @@
       "message": "Fixed Query and Fetch modes:\n- Query needed the clamp after the LOD value is stored\n- Fetch needed to get its own specific input LOD value",
       "revId": "2aff8acd21122f72ade1a0ebce55d5205e03d640",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c79b6fed_d06d98b6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 24
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-25T20:02:30Z",
+      "side": 1,
+      "message": "Thanks!",
+      "revId": "2aff8acd21122f72ade1a0ebce55d5205e03d640",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
