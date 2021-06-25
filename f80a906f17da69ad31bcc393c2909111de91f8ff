@@ -73,6 +73,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "0c6f2deb_d5d69021",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-25T13:38:07Z",
+      "side": 1,
+      "message": "\"The converted value of any integer that cannot be represented in the target format is undefined\"\n\nIf the result of out of bound values is undefined, why would tests expect a certain specific value?",
+      "parentUuid": "15cc5f34_6ca0dc43",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 37
+      },
+      "revId": "f80a906f17da69ad31bcc393c2909111de91f8ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b753ff46_d09213f4",
         "filename": "src/Pipeline/SpirvShaderImage.cpp",
         "patchSetId": 3
