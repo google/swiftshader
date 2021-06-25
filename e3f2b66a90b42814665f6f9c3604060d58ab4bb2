@@ -16,6 +16,23 @@
       "message": "Yup. Flaky test.",
       "revId": "e3f2b66a90b42814665f6f9c3604060d58ab4bb2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cbf3184d_d290c683",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2021-06-25T10:31:44Z",
+      "side": 1,
+      "message": "Tested locally, this works if the new code is move inside the if just above:\n\n  if(stage \u003d\u003d pipelineStage \u0026\u0026 strcmp(name, entryPointName) \u003d\u003d 0)\n  \nOtherwise we\u0027ll also add interface variables for the other entrypoints to the map.",
+      "revId": "e3f2b66a90b42814665f6f9c3604060d58ab4bb2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
