@@ -151,10 +151,14 @@ JITGlobals *JITGlobals::get()
 #if defined(__i386__) || defined(__x86_64__)
 			"-x86-asm-syntax=intel",  // Use Intel syntax rather than the default AT&T
 #endif
+#if LLVM_VERSION_MAJOR <= 12
+			"-warn-stack-size=524288"  // Warn when a function uses more than 512 KiB of stack memory
+#else
 		// TODO(b/191193823): TODO(ndesaulniers): Update this after
 		// go/compilers/fc018ebb608ee0c1239b405460e49f1835ab6175
-#if LLVM_VERSION_MAJOR <= 11
-			"-warn-stack-size=524288"  // Warn when a function uses more than 512 KiB of stack memory
+#	if LLVM_VERSION_MAJOR < 9999
+#		error Implement stack size checks using the "warn-stack-size" function attribute.
+#	endif
 #endif
 		};
 
