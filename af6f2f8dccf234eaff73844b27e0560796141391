@@ -16,6 +16,23 @@
       "message": "Tested with Chromium build and I see no new warnings with GCC, except lots of clang specific ones (maybe something for other CL).\nI probably have no access to CQ.",
       "revId": "af6f2f8dccf234eaff73844b27e0560796141391",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e5a0b8f6_84d2524b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-25T20:33:58Z",
+      "side": 1,
+      "message": "Thank Stephan! Looks good to me. It seems that https://swiftshader-review.googlesource.com/c/SwiftShader/+/48148 removed not just the Clang-specific attribute but also the visibility one, which GCC does support.\n\nAlexis can you you do approval review?",
+      "revId": "af6f2f8dccf234eaff73844b27e0560796141391",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
