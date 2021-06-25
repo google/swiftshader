@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6a51d74d_7c838243",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-06-25T10:11:23Z",
+      "side": 1,
+      "message": "Yup. Flaky test.",
+      "revId": "e3f2b66a90b42814665f6f9c3604060d58ab4bb2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
