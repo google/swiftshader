@@ -97,6 +97,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ecede199_b2af1387",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-25T14:02:19Z",
+      "side": 1,
+      "message": "Thanks Mikko for the clarification! As we\u0027re aiming for SwiftShader to be a \"reference\" implementation of Vulkan, we want to be careful only to implement the behavior that is required by the specification. Otherwise we run the risk that people test their applications with SwiftShader and detect no issues, release it to end users, and it will run well on some hardware but not on others, despite the latter also being spec compliant.\n\nThe good news is that this test is still work-in-progress, so I\u0027ll raise the issue that it is relying un undefined behavior.",
+      "parentUuid": "0c6f2deb_d5d69021",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 37
+      },
+      "revId": "f80a906f17da69ad31bcc393c2909111de91f8ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b753ff46_d09213f4",
         "filename": "src/Pipeline/SpirvShaderImage.cpp",
         "patchSetId": 3
