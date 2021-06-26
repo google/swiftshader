@@ -16,6 +16,29 @@
       "message": "Thanks Ben for taking care of this!",
       "revId": "ccd5ab253f1ce68e75774c8e02fd1a4aa0f30a07",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b331603_1f2b2e84",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-06-26T09:55:07Z",
+      "side": 1,
+      "message": "I realized that this was not considering the null-terminating byte.\nIf strlen(name) were a multiple of 4, the next word would be 0x00000000, and 0 would end up in interfaceIds. As 0 is not a valid ID, and we only check the map against valid IDs, this had no side-effects - however it was incorrect all the same.",
+      "range": {
+        "startLine": 88,
+        "startChar": 31,
+        "endLine": 88,
+        "endChar": 57
+      },
+      "revId": "ccd5ab253f1ce68e75774c8e02fd1a4aa0f30a07",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
