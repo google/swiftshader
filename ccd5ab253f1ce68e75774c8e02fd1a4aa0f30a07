@@ -39,6 +39,30 @@
       },
       "revId": "ccd5ab253f1ce68e75774c8e02fd1a4aa0f30a07",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "68700821_e812c9fe",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-27T06:23:46Z",
+      "side": 1,
+      "message": "Good catch! Perhaps this could be written as 3 + StringSizeInWords(name) to be more self-explanatory here, and the helper function can have a comment about taking the terminating zero and word padding into account.\n\nLGTM either way.",
+      "parentUuid": "2b331603_1f2b2e84",
+      "range": {
+        "startLine": 88,
+        "startChar": 31,
+        "endLine": 88,
+        "endChar": 57
+      },
+      "revId": "ccd5ab253f1ce68e75774c8e02fd1a4aa0f30a07",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
