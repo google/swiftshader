@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "67075ce6_055f5287",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-27T18:25:48Z",
+      "side": 1,
+      "message": "Thanks! LGTM when the tryjob failure is addressed.\n\nFYI there was a previous attempt at fixing this: https://swiftshader-review.googlesource.com/c/SwiftShader/+/23388. No need to make any changes to our other build files at this point, we can do that later if its helpful.",
+      "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
