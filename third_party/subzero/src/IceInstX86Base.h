@@ -3323,722 +3323,824 @@ template <typename TraitsType> struct Insts {
 };
 
 /// X86 Instructions have static data (particularly, opcodes and instruction
-/// emitters). Each X86 target needs to define all of these, so this macro is
-/// provided so that, if something changes, then all X86 targets will be updated
-/// automatically.
+/// emitters). Each X86 target needs to declare and define all of these, so the
+/// macros below are provided so that, if something changes, all X86
+/// targets will be updated automatically.
+#define ICE_INIT(...) = {__VA_ARGS__}
+#define ICE_NO_INIT(...)
+
 #define X86INSTS_DEFINE_STATIC_DATA(X86NAMESPACE, TraitsType)                  \
+  X86INSTS_STATIC_DATA(X86NAMESPACE, TraitsType, ICE_INIT)
+
+// The -Wundefined-var-template warning requires to forward-declare static
+// members of template class specializations. Note that "An explicit
+// specialization of a static data member of a template is a definition if the
+// declaration includes an initializer; otherwise, it is a declaration."
+#if defined(__clang__)
+#define X86INSTS_DECLARE_STATIC_DATA(X86NAMESPACE, TraitsType)                 \
+  X86INSTS_STATIC_DATA(X86NAMESPACE, TraitsType, ICE_NO_INIT)
+#else
+// Visual Studio has a bug which treats these declarations as definitions,
+// leading to multiple definition errors. Since we only enable
+// -Wundefined-var-template for Clang, omit these declarations on other
+// compilers.
+#define X86INSTS_DECLARE_STATIC_DATA(X86NAMESPACE, TraitsType)
+#endif
+
+#define X86INSTS_STATIC_DATA(X86NAMESPACE, TraitsType, INIT_OR_NOT)            \
   namespace Ice {                                                              \
   namespace X86NAMESPACE {                                                     \
   /* In-place ops */                                                           \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Bswap::Base::Opcode = "bswap";      \
+  const char *InstImpl<TraitsType>::InstX86Bswap::Base::Opcode                 \
+      INIT_OR_NOT("bswap");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Neg::Base::Opcode = "neg";          \
+  const char *InstImpl<TraitsType>::InstX86Neg::Base::Opcode                   \
+      INIT_OR_NOT("neg");                                                      \
   /* Unary ops */                                                              \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Bsf::Base::Opcode = "bsf";          \
+  const char *InstImpl<TraitsType>::InstX86Bsf::Base::Opcode                   \
+      INIT_OR_NOT("bsf");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Bsr::Base::Opcode = "bsr";          \
+  const char *InstImpl<TraitsType>::InstX86Bsr::Base::Opcode                   \
+      INIT_OR_NOT("bsr");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Lea::Base::Opcode = "lea";          \
+  const char *InstImpl<TraitsType>::InstX86Lea::Base::Opcode                   \
+      INIT_OR_NOT("lea");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Movd::Base::Opcode = "movd";        \
+  const char *InstImpl<TraitsType>::InstX86Movd::Base::Opcode                  \
+      INIT_OR_NOT("movd");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Movsx::Base::Opcode = "movs";       \
+  const char *InstImpl<TraitsType>::InstX86Movsx::Base::Opcode                 \
+      INIT_OR_NOT("movs");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Movzx::Base::Opcode = "movz";       \
+  const char *InstImpl<TraitsType>::InstX86Movzx::Base::Opcode                 \
+      INIT_OR_NOT("movz");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Sqrt::Base::Opcode = "sqrt";        \
+  const char *InstImpl<TraitsType>::InstX86Sqrt::Base::Opcode                  \
+      INIT_OR_NOT("sqrt");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Cbwdq::Base::Opcode =               \
-      "cbw/cwd/cdq";                                                           \
+  const char *InstImpl<TraitsType>::InstX86Cbwdq::Base::Opcode                 \
+      INIT_OR_NOT("cbw/cwd/cdq");                                              \
   /* Mov-like ops */                                                           \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Mov::Base::Opcode = "mov";          \
+  const char *InstImpl<TraitsType>::InstX86Mov::Base::Opcode                   \
+      INIT_OR_NOT("mov");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Movp::Base::Opcode = "movups";      \
+  const char *InstImpl<TraitsType>::InstX86Movp::Base::Opcode                  \
+      INIT_OR_NOT("movups");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Movq::Base::Opcode = "movq";        \
+  const char *InstImpl<TraitsType>::InstX86Movq::Base::Opcode                  \
+      INIT_OR_NOT("movq");                                                     \
   /* Binary ops */                                                             \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Add::Base::Opcode = "add";          \
+  const char *InstImpl<TraitsType>::InstX86Add::Base::Opcode                   \
+      INIT_OR_NOT("add");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86AddRMW::Base::Opcode = "add";       \
+  const char *InstImpl<TraitsType>::InstX86AddRMW::Base::Opcode                \
+      INIT_OR_NOT("add");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Addps::Base::Opcode = "add";        \
+  const char *InstImpl<TraitsType>::InstX86Addps::Base::Opcode                 \
+      INIT_OR_NOT("add");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Adc::Base::Opcode = "adc";          \
+  const char *InstImpl<TraitsType>::InstX86Adc::Base::Opcode                   \
+      INIT_OR_NOT("adc");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86AdcRMW::Base::Opcode = "adc";       \
+  const char *InstImpl<TraitsType>::InstX86AdcRMW::Base::Opcode                \
+      INIT_OR_NOT("adc");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Addss::Base::Opcode = "add";        \
+  const char *InstImpl<TraitsType>::InstX86Addss::Base::Opcode                 \
+      INIT_OR_NOT("add");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Andnps::Base::Opcode = "andn";      \
+  const char *InstImpl<TraitsType>::InstX86Andnps::Base::Opcode                \
+      INIT_OR_NOT("andn");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Andps::Base::Opcode = "and";        \
+  const char *InstImpl<TraitsType>::InstX86Andps::Base::Opcode                 \
+      INIT_OR_NOT("and");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Maxss::Base::Opcode = "max";        \
+  const char *InstImpl<TraitsType>::InstX86Maxss::Base::Opcode                 \
+      INIT_OR_NOT("max");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Minss::Base::Opcode = "min";        \
+  const char *InstImpl<TraitsType>::InstX86Minss::Base::Opcode                 \
+      INIT_OR_NOT("min");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Maxps::Base::Opcode = "max";        \
+  const char *InstImpl<TraitsType>::InstX86Maxps::Base::Opcode                 \
+      INIT_OR_NOT("max");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Minps::Base::Opcode = "min";        \
+  const char *InstImpl<TraitsType>::InstX86Minps::Base::Opcode                 \
+      INIT_OR_NOT("min");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Padd::Base::Opcode = "padd";        \
+  const char *InstImpl<TraitsType>::InstX86Padd::Base::Opcode                  \
+      INIT_OR_NOT("padd");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Padds::Base::Opcode = "padds";      \
+  const char *InstImpl<TraitsType>::InstX86Padds::Base::Opcode                 \
+      INIT_OR_NOT("padds");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Paddus::Base::Opcode = "paddus";    \
+  const char *InstImpl<TraitsType>::InstX86Paddus::Base::Opcode                \
+      INIT_OR_NOT("paddus");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Sub::Base::Opcode = "sub";          \
+  const char *InstImpl<TraitsType>::InstX86Sub::Base::Opcode                   \
+      INIT_OR_NOT("sub");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86SubRMW::Base::Opcode = "sub";       \
+  const char *InstImpl<TraitsType>::InstX86SubRMW::Base::Opcode                \
+      INIT_OR_NOT("sub");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Subps::Base::Opcode = "sub";        \
+  const char *InstImpl<TraitsType>::InstX86Subps::Base::Opcode                 \
+      INIT_OR_NOT("sub");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Subss::Base::Opcode = "sub";        \
+  const char *InstImpl<TraitsType>::InstX86Subss::Base::Opcode                 \
+      INIT_OR_NOT("sub");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Sbb::Base::Opcode = "sbb";          \
+  const char *InstImpl<TraitsType>::InstX86Sbb::Base::Opcode                   \
+      INIT_OR_NOT("sbb");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86SbbRMW::Base::Opcode = "sbb";       \
+  const char *InstImpl<TraitsType>::InstX86SbbRMW::Base::Opcode                \
+      INIT_OR_NOT("sbb");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Psub::Base::Opcode = "psub";        \
+  const char *InstImpl<TraitsType>::InstX86Psub::Base::Opcode                  \
+      INIT_OR_NOT("psub");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Psubs::Base::Opcode = "psubs";      \
+  const char *InstImpl<TraitsType>::InstX86Psubs::Base::Opcode                 \
+      INIT_OR_NOT("psubs");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Psubus::Base::Opcode = "psubus";    \
+  const char *InstImpl<TraitsType>::InstX86Psubus::Base::Opcode                \
+      INIT_OR_NOT("psubus");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86And::Base::Opcode = "and";          \
+  const char *InstImpl<TraitsType>::InstX86And::Base::Opcode                   \
+      INIT_OR_NOT("and");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86AndRMW::Base::Opcode = "and";       \
+  const char *InstImpl<TraitsType>::InstX86AndRMW::Base::Opcode                \
+      INIT_OR_NOT("and");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pand::Base::Opcode = "pand";        \
+  const char *InstImpl<TraitsType>::InstX86Pand::Base::Opcode                  \
+      INIT_OR_NOT("pand");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pandn::Base::Opcode = "pandn";      \
+  const char *InstImpl<TraitsType>::InstX86Pandn::Base::Opcode                 \
+      INIT_OR_NOT("pandn");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Or::Base::Opcode = "or";            \
+  const char *InstImpl<TraitsType>::InstX86Or::Base::Opcode INIT_OR_NOT("or"); \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Orps::Base::Opcode = "or";          \
+  const char *InstImpl<TraitsType>::InstX86Orps::Base::Opcode                  \
+      INIT_OR_NOT("or");                                                       \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86OrRMW::Base::Opcode = "or";         \
+  const char *InstImpl<TraitsType>::InstX86OrRMW::Base::Opcode                 \
+      INIT_OR_NOT("or");                                                       \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Por::Base::Opcode = "por";          \
+  const char *InstImpl<TraitsType>::InstX86Por::Base::Opcode                   \
+      INIT_OR_NOT("por");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Xor::Base::Opcode = "xor";          \
+  const char *InstImpl<TraitsType>::InstX86Xor::Base::Opcode                   \
+      INIT_OR_NOT("xor");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Xorps::Base::Opcode = "xor";        \
+  const char *InstImpl<TraitsType>::InstX86Xorps::Base::Opcode                 \
+      INIT_OR_NOT("xor");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86XorRMW::Base::Opcode = "xor";       \
+  const char *InstImpl<TraitsType>::InstX86XorRMW::Base::Opcode                \
+      INIT_OR_NOT("xor");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pxor::Base::Opcode = "pxor";        \
+  const char *InstImpl<TraitsType>::InstX86Pxor::Base::Opcode                  \
+      INIT_OR_NOT("pxor");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Imul::Base::Opcode = "imul";        \
+  const char *InstImpl<TraitsType>::InstX86Imul::Base::Opcode                  \
+      INIT_OR_NOT("imul");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86ImulImm::Base::Opcode = "imul";     \
+  const char *InstImpl<TraitsType>::InstX86ImulImm::Base::Opcode               \
+      INIT_OR_NOT("imul");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Mulps::Base::Opcode = "mul";        \
+  const char *InstImpl<TraitsType>::InstX86Mulps::Base::Opcode                 \
+      INIT_OR_NOT("mul");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Mulss::Base::Opcode = "mul";        \
+  const char *InstImpl<TraitsType>::InstX86Mulss::Base::Opcode                 \
+      INIT_OR_NOT("mul");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pmull::Base::Opcode = "pmull";      \
+  const char *InstImpl<TraitsType>::InstX86Pmull::Base::Opcode                 \
+      INIT_OR_NOT("pmull");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pmulhw::Base::Opcode = "pmulhw";    \
+  const char *InstImpl<TraitsType>::InstX86Pmulhw::Base::Opcode                \
+      INIT_OR_NOT("pmulhw");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pmulhuw::Base::Opcode = "pmulhuw";  \
+  const char *InstImpl<TraitsType>::InstX86Pmulhuw::Base::Opcode               \
+      INIT_OR_NOT("pmulhuw");                                                  \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pmaddwd::Base::Opcode = "pmaddwd";  \
+  const char *InstImpl<TraitsType>::InstX86Pmaddwd::Base::Opcode               \
+      INIT_OR_NOT("pmaddwd");                                                  \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pmuludq::Base::Opcode = "pmuludq";  \
+  const char *InstImpl<TraitsType>::InstX86Pmuludq::Base::Opcode               \
+      INIT_OR_NOT("pmuludq");                                                  \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Div::Base::Opcode = "div";          \
+  const char *InstImpl<TraitsType>::InstX86Div::Base::Opcode                   \
+      INIT_OR_NOT("div");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Divps::Base::Opcode = "div";        \
+  const char *InstImpl<TraitsType>::InstX86Divps::Base::Opcode                 \
+      INIT_OR_NOT("div");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Divss::Base::Opcode = "div";        \
+  const char *InstImpl<TraitsType>::InstX86Divss::Base::Opcode                 \
+      INIT_OR_NOT("div");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Idiv::Base::Opcode = "idiv";        \
+  const char *InstImpl<TraitsType>::InstX86Idiv::Base::Opcode                  \
+      INIT_OR_NOT("idiv");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Rol::Base::Opcode = "rol";          \
+  const char *InstImpl<TraitsType>::InstX86Rol::Base::Opcode                   \
+      INIT_OR_NOT("rol");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Shl::Base::Opcode = "shl";          \
+  const char *InstImpl<TraitsType>::InstX86Shl::Base::Opcode                   \
+      INIT_OR_NOT("shl");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Psll::Base::Opcode = "psll";        \
+  const char *InstImpl<TraitsType>::InstX86Psll::Base::Opcode                  \
+      INIT_OR_NOT("psll");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Shr::Base::Opcode = "shr";          \
+  const char *InstImpl<TraitsType>::InstX86Shr::Base::Opcode                   \
+      INIT_OR_NOT("shr");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Sar::Base::Opcode = "sar";          \
+  const char *InstImpl<TraitsType>::InstX86Sar::Base::Opcode                   \
+      INIT_OR_NOT("sar");                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Psra::Base::Opcode = "psra";        \
+  const char *InstImpl<TraitsType>::InstX86Psra::Base::Opcode                  \
+      INIT_OR_NOT("psra");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Psrl::Base::Opcode = "psrl";        \
+  const char *InstImpl<TraitsType>::InstX86Psrl::Base::Opcode                  \
+      INIT_OR_NOT("psrl");                                                     \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pcmpeq::Base::Opcode = "pcmpeq";    \
+  const char *InstImpl<TraitsType>::InstX86Pcmpeq::Base::Opcode                \
+      INIT_OR_NOT("pcmpeq");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pcmpgt::Base::Opcode = "pcmpgt";    \
+  const char *InstImpl<TraitsType>::InstX86Pcmpgt::Base::Opcode                \
+      INIT_OR_NOT("pcmpgt");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86MovssRegs::Base::Opcode = "movss";  \
+  const char *InstImpl<TraitsType>::InstX86MovssRegs::Base::Opcode             \
+      INIT_OR_NOT("movss");                                                    \
   /* Ternary ops */                                                            \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Insertps::Base::Opcode =            \
-      "insertps";                                                              \
+  const char *InstImpl<TraitsType>::InstX86Insertps::Base::Opcode              \
+      INIT_OR_NOT("insertps");                                                 \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Round::Base::Opcode = "round";      \
+  const char *InstImpl<TraitsType>::InstX86Round::Base::Opcode                 \
+      INIT_OR_NOT("round");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Shufps::Base::Opcode = "shufps";    \
+  const char *InstImpl<TraitsType>::InstX86Shufps::Base::Opcode                \
+      INIT_OR_NOT("shufps");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pinsr::Base::Opcode = "pinsr";      \
+  const char *InstImpl<TraitsType>::InstX86Pinsr::Base::Opcode                 \
+      INIT_OR_NOT("pinsr");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Blendvps::Base::Opcode =            \
-      "blendvps";                                                              \
+  const char *InstImpl<TraitsType>::InstX86Blendvps::Base::Opcode              \
+      INIT_OR_NOT("blendvps");                                                 \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pblendvb::Base::Opcode =            \
-      "pblendvb";                                                              \
+  const char *InstImpl<TraitsType>::InstX86Pblendvb::Base::Opcode              \
+      INIT_OR_NOT("pblendvb");                                                 \
   /* Three address ops */                                                      \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pextr::Base::Opcode = "pextr";      \
+  const char *InstImpl<TraitsType>::InstX86Pextr::Base::Opcode                 \
+      INIT_OR_NOT("pextr");                                                    \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pshufd::Base::Opcode = "pshufd";    \
+  const char *InstImpl<TraitsType>::InstX86Pshufd::Base::Opcode                \
+      INIT_OR_NOT("pshufd");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Pshufb::Base::Opcode = "pshufb";    \
+  const char *InstImpl<TraitsType>::InstX86Pshufb::Base::Opcode                \
+      INIT_OR_NOT("pshufb");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Punpckl::Base::Opcode = "punpckl";  \
+  const char *InstImpl<TraitsType>::InstX86Punpckl::Base::Opcode               \
+      INIT_OR_NOT("punpckl");                                                  \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Punpckh::Base::Opcode = "punpckh";  \
+  const char *InstImpl<TraitsType>::InstX86Punpckh::Base::Opcode               \
+      INIT_OR_NOT("punpckh");                                                  \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Packss::Base::Opcode = "packss";    \
+  const char *InstImpl<TraitsType>::InstX86Packss::Base::Opcode                \
+      INIT_OR_NOT("packss");                                                   \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Packus::Base::Opcode = "packus";    \
+  const char *InstImpl<TraitsType>::InstX86Packus::Base::Opcode                \
+      INIT_OR_NOT("packus");                                                   \
   /* Inplace GPR ops */                                                        \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterOneOp                       \
-      InstImpl<TraitsType>::InstX86Bswap::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::bswap,                             \
-          nullptr /* only a reg form exists */                                 \
-  };                                                                           \
+      InstImpl<TraitsType>::InstX86Bswap::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::bswap,                 \
+                      nullptr /* only a reg form exists */                     \
+          );                                                                   \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterOneOp                       \
-      InstImpl<TraitsType>::InstX86Neg::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::neg,                               \
-          &InstImpl<TraitsType>::Assembler::neg};                              \
+      InstImpl<TraitsType>::InstX86Neg::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::neg,                   \
+                      &InstImpl<TraitsType>::Assembler::neg);                  \
                                                                                \
   /* Unary GPR ops */                                                          \
   template <>                                                                  \
   template <> /* uses specialized emitter. */                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Cbwdq::Base::Emitter = {nullptr, nullptr,   \
-                                                           nullptr};           \
+      InstImpl<TraitsType>::InstX86Cbwdq::Base::Emitter                        \
+          INIT_OR_NOT(nullptr, nullptr, nullptr);                              \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Bsf::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::bsf,                               \
-          &InstImpl<TraitsType>::Assembler::bsf, nullptr};                     \
+      InstImpl<TraitsType>::InstX86Bsf::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::bsf,                   \
+                      &InstImpl<TraitsType>::Assembler::bsf, nullptr);         \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Bsr::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::bsr,                               \
-          &InstImpl<TraitsType>::Assembler::bsr, nullptr};                     \
+      InstImpl<TraitsType>::InstX86Bsr::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::bsr,                   \
+                      &InstImpl<TraitsType>::Assembler::bsr, nullptr);         \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Lea::Base::Emitter = {                      \
-          /* reg/reg and reg/imm are illegal */ nullptr,                       \
-          &InstImpl<TraitsType>::Assembler::lea, nullptr};                     \
+      InstImpl<TraitsType>::InstX86Lea::Base::Emitter                          \
+          INIT_OR_NOT(/* reg/reg and reg/imm are illegal */ nullptr,           \
+                      &InstImpl<TraitsType>::Assembler::lea, nullptr);         \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Movsx::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::movsx,                             \
-          &InstImpl<TraitsType>::Assembler::movsx, nullptr};                   \
+      InstImpl<TraitsType>::InstX86Movsx::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::movsx,                 \
+                      &InstImpl<TraitsType>::Assembler::movsx, nullptr);       \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Movzx::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::movzx,                             \
-          &InstImpl<TraitsType>::Assembler::movzx, nullptr};                   \
+      InstImpl<TraitsType>::InstX86Movzx::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::movzx,                 \
+                      &InstImpl<TraitsType>::Assembler::movzx, nullptr);       \
                                                                                \
   /* Unary XMM ops */                                                          \
   template <>                                                                  \
   template <> /* uses specialized emitter. */                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Movd::Base::Emitter = {nullptr, nullptr};   \
+      InstImpl<TraitsType>::InstX86Movd::Base::Emitter INIT_OR_NOT(nullptr,    \
+                                                                   nullptr);   \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Sqrt::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::sqrt,                              \
-          &InstImpl<TraitsType>::Assembler::sqrt};                             \
+      InstImpl<TraitsType>::InstX86Sqrt::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::sqrt,                  \
+                      &InstImpl<TraitsType>::Assembler::sqrt);                 \
                                                                                \
   /* Binary GPR ops */                                                         \
   template <>                                                                  \
   template <> /* uses specialized emitter. */                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Imul::Base::Emitter = {nullptr, nullptr,    \
-                                                          nullptr};            \
+      InstImpl<TraitsType>::InstX86Imul::Base::Emitter                         \
+          INIT_OR_NOT(nullptr, nullptr, nullptr);                              \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Add::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::add,                               \
-          &InstImpl<TraitsType>::Assembler::add,                               \
-          &InstImpl<TraitsType>::Assembler::add};                              \
+      InstImpl<TraitsType>::InstX86Add::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::add,                   \
+                      &InstImpl<TraitsType>::Assembler::add,                   \
+                      &InstImpl<TraitsType>::Assembler::add);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterAddrOp                      \
-      InstImpl<TraitsType>::InstX86AddRMW::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::add,                               \
-          &InstImpl<TraitsType>::Assembler::add};                              \
+      InstImpl<TraitsType>::InstX86AddRMW::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::add,                   \
+                      &InstImpl<TraitsType>::Assembler::add);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Adc::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::adc,                               \
-          &InstImpl<TraitsType>::Assembler::adc,                               \
-          &InstImpl<TraitsType>::Assembler::adc};                              \
+      InstImpl<TraitsType>::InstX86Adc::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::adc,                   \
+                      &InstImpl<TraitsType>::Assembler::adc,                   \
+                      &InstImpl<TraitsType>::Assembler::adc);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterAddrOp                      \
-      InstImpl<TraitsType>::InstX86AdcRMW::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::adc,                               \
-          &InstImpl<TraitsType>::Assembler::adc};                              \
+      InstImpl<TraitsType>::InstX86AdcRMW::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::adc,                   \
+                      &InstImpl<TraitsType>::Assembler::adc);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86And::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::And,                               \
-          &InstImpl<TraitsType>::Assembler::And,                               \
-          &InstImpl<TraitsType>::Assembler::And};                              \
+      InstImpl<TraitsType>::InstX86And::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::And,                   \
+                      &InstImpl<TraitsType>::Assembler::And,                   \
+                      &InstImpl<TraitsType>::Assembler::And);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterAddrOp                      \
-      InstImpl<TraitsType>::InstX86AndRMW::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::And,                               \
-          &InstImpl<TraitsType>::Assembler::And};                              \
+      InstImpl<TraitsType>::InstX86AndRMW::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::And,                   \
+                      &InstImpl<TraitsType>::Assembler::And);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Or::Base::Emitter = {                       \
-          &InstImpl<TraitsType>::Assembler::Or,                                \
-          &InstImpl<TraitsType>::Assembler::Or,                                \
-          &InstImpl<TraitsType>::Assembler::Or};                               \
+      InstImpl<TraitsType>::InstX86Or::Base::Emitter                           \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::Or,                    \
+                      &InstImpl<TraitsType>::Assembler::Or,                    \
+                      &InstImpl<TraitsType>::Assembler::Or);                   \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterAddrOp                      \
-      InstImpl<TraitsType>::InstX86OrRMW::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::Or,                                \
-          &InstImpl<TraitsType>::Assembler::Or};                               \
+      InstImpl<TraitsType>::InstX86OrRMW::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::Or,                    \
+                      &InstImpl<TraitsType>::Assembler::Or);                   \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Sbb::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::sbb,                               \
-          &InstImpl<TraitsType>::Assembler::sbb,                               \
-          &InstImpl<TraitsType>::Assembler::sbb};                              \
+      InstImpl<TraitsType>::InstX86Sbb::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::sbb,                   \
+                      &InstImpl<TraitsType>::Assembler::sbb,                   \
+                      &InstImpl<TraitsType>::Assembler::sbb);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterAddrOp                      \
-      InstImpl<TraitsType>::InstX86SbbRMW::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::sbb,                               \
-          &InstImpl<TraitsType>::Assembler::sbb};                              \
+      InstImpl<TraitsType>::InstX86SbbRMW::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::sbb,                   \
+                      &InstImpl<TraitsType>::Assembler::sbb);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Sub::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::sub,                               \
-          &InstImpl<TraitsType>::Assembler::sub,                               \
-          &InstImpl<TraitsType>::Assembler::sub};                              \
+      InstImpl<TraitsType>::InstX86Sub::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::sub,                   \
+                      &InstImpl<TraitsType>::Assembler::sub,                   \
+                      &InstImpl<TraitsType>::Assembler::sub);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterAddrOp                      \
-      InstImpl<TraitsType>::InstX86SubRMW::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::sub,                               \
-          &InstImpl<TraitsType>::Assembler::sub};                              \
+      InstImpl<TraitsType>::InstX86SubRMW::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::sub,                   \
+                      &InstImpl<TraitsType>::Assembler::sub);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Xor::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::Xor,                               \
-          &InstImpl<TraitsType>::Assembler::Xor,                               \
-          &InstImpl<TraitsType>::Assembler::Xor};                              \
+      InstImpl<TraitsType>::InstX86Xor::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::Xor,                   \
+                      &InstImpl<TraitsType>::Assembler::Xor,                   \
+                      &InstImpl<TraitsType>::Assembler::Xor);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterAddrOp                      \
-      InstImpl<TraitsType>::InstX86XorRMW::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::Xor,                               \
-          &InstImpl<TraitsType>::Assembler::Xor};                              \
+      InstImpl<TraitsType>::InstX86XorRMW::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::Xor,                   \
+                      &InstImpl<TraitsType>::Assembler::Xor);                  \
                                                                                \
   /* Binary Shift GPR ops */                                                   \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterShiftOp                     \
-      InstImpl<TraitsType>::InstX86Rol::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::rol,                               \
-          &InstImpl<TraitsType>::Assembler::rol};                              \
+      InstImpl<TraitsType>::InstX86Rol::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::rol,                   \
+                      &InstImpl<TraitsType>::Assembler::rol);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterShiftOp                     \
-      InstImpl<TraitsType>::InstX86Sar::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::sar,                               \
-          &InstImpl<TraitsType>::Assembler::sar};                              \
+      InstImpl<TraitsType>::InstX86Sar::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::sar,                   \
+                      &InstImpl<TraitsType>::Assembler::sar);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterShiftOp                     \
-      InstImpl<TraitsType>::InstX86Shl::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::shl,                               \
-          &InstImpl<TraitsType>::Assembler::shl};                              \
+      InstImpl<TraitsType>::InstX86Shl::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::shl,                   \
+                      &InstImpl<TraitsType>::Assembler::shl);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::GPREmitterShiftOp                     \
-      InstImpl<TraitsType>::InstX86Shr::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::shr,                               \
-          &InstImpl<TraitsType>::Assembler::shr};                              \
+      InstImpl<TraitsType>::InstX86Shr::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::shr,                   \
+                      &InstImpl<TraitsType>::Assembler::shr);                  \
                                                                                \
   /* Binary XMM ops */                                                         \
   template <>                                                                  \
   template <> /* uses specialized emitter. */                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86MovssRegs::Base::Emitter = {nullptr,        \
-                                                               nullptr};       \
+      InstImpl<TraitsType>::InstX86MovssRegs::Base::Emitter                    \
+          INIT_OR_NOT(nullptr, nullptr);                                       \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Addss::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::addss,                             \
-          &InstImpl<TraitsType>::Assembler::addss};                            \
+      InstImpl<TraitsType>::InstX86Addss::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::addss,                 \
+                      &InstImpl<TraitsType>::Assembler::addss);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Addps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::addps,                             \
-          &InstImpl<TraitsType>::Assembler::addps};                            \
+      InstImpl<TraitsType>::InstX86Addps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::addps,                 \
+                      &InstImpl<TraitsType>::Assembler::addps);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Divss::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::divss,                             \
-          &InstImpl<TraitsType>::Assembler::divss};                            \
+      InstImpl<TraitsType>::InstX86Divss::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::divss,                 \
+                      &InstImpl<TraitsType>::Assembler::divss);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Divps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::divps,                             \
-          &InstImpl<TraitsType>::Assembler::divps};                            \
+      InstImpl<TraitsType>::InstX86Divps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::divps,                 \
+                      &InstImpl<TraitsType>::Assembler::divps);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Mulss::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::mulss,                             \
-          &InstImpl<TraitsType>::Assembler::mulss};                            \
+      InstImpl<TraitsType>::InstX86Mulss::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::mulss,                 \
+                      &InstImpl<TraitsType>::Assembler::mulss);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Mulps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::mulps,                             \
-          &InstImpl<TraitsType>::Assembler::mulps};                            \
+      InstImpl<TraitsType>::InstX86Mulps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::mulps,                 \
+                      &InstImpl<TraitsType>::Assembler::mulps);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Padd::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::padd,                              \
-          &InstImpl<TraitsType>::Assembler::padd};                             \
+      InstImpl<TraitsType>::InstX86Padd::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::padd,                  \
+                      &InstImpl<TraitsType>::Assembler::padd);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Padds::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::padds,                             \
-          &InstImpl<TraitsType>::Assembler::padds};                            \
+      InstImpl<TraitsType>::InstX86Padds::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::padds,                 \
+                      &InstImpl<TraitsType>::Assembler::padds);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Paddus::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::paddus,                            \
-          &InstImpl<TraitsType>::Assembler::paddus};                           \
+      InstImpl<TraitsType>::InstX86Paddus::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::paddus,                \
+                      &InstImpl<TraitsType>::Assembler::paddus);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pand::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::pand,                              \
-          &InstImpl<TraitsType>::Assembler::pand};                             \
+      InstImpl<TraitsType>::InstX86Pand::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pand,                  \
+                      &InstImpl<TraitsType>::Assembler::pand);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pandn::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::pandn,                             \
-          &InstImpl<TraitsType>::Assembler::pandn};                            \
+      InstImpl<TraitsType>::InstX86Pandn::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pandn,                 \
+                      &InstImpl<TraitsType>::Assembler::pandn);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pcmpeq::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::pcmpeq,                            \
-          &InstImpl<TraitsType>::Assembler::pcmpeq};                           \
+      InstImpl<TraitsType>::InstX86Pcmpeq::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pcmpeq,                \
+                      &InstImpl<TraitsType>::Assembler::pcmpeq);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pcmpgt::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::pcmpgt,                            \
-          &InstImpl<TraitsType>::Assembler::pcmpgt};                           \
+      InstImpl<TraitsType>::InstX86Pcmpgt::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pcmpgt,                \
+                      &InstImpl<TraitsType>::Assembler::pcmpgt);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pmull::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::pmull,                             \
-          &InstImpl<TraitsType>::Assembler::pmull};                            \
+      InstImpl<TraitsType>::InstX86Pmull::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pmull,                 \
+                      &InstImpl<TraitsType>::Assembler::pmull);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pmulhw::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::pmulhw,                            \
-          &InstImpl<TraitsType>::Assembler::pmulhw};                           \
+      InstImpl<TraitsType>::InstX86Pmulhw::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pmulhw,                \
+                      &InstImpl<TraitsType>::Assembler::pmulhw);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pmulhuw::Base::Emitter = {                  \
-          &InstImpl<TraitsType>::Assembler::pmulhuw,                           \
-          &InstImpl<TraitsType>::Assembler::pmulhuw};                          \
+      InstImpl<TraitsType>::InstX86Pmulhuw::Base::Emitter                      \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pmulhuw,               \
+                      &InstImpl<TraitsType>::Assembler::pmulhuw);              \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pmaddwd::Base::Emitter = {                  \
-          &InstImpl<TraitsType>::Assembler::pmaddwd,                           \
-          &InstImpl<TraitsType>::Assembler::pmaddwd};                          \
+      InstImpl<TraitsType>::InstX86Pmaddwd::Base::Emitter                      \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pmaddwd,               \
+                      &InstImpl<TraitsType>::Assembler::pmaddwd);              \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pmuludq::Base::Emitter = {                  \
-          &InstImpl<TraitsType>::Assembler::pmuludq,                           \
-          &InstImpl<TraitsType>::Assembler::pmuludq};                          \
+      InstImpl<TraitsType>::InstX86Pmuludq::Base::Emitter                      \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pmuludq,               \
+                      &InstImpl<TraitsType>::Assembler::pmuludq);              \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Por::Base::Emitter = {                      \
-          &InstImpl<TraitsType>::Assembler::por,                               \
-          &InstImpl<TraitsType>::Assembler::por};                              \
+      InstImpl<TraitsType>::InstX86Por::Base::Emitter                          \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::por,                   \
+                      &InstImpl<TraitsType>::Assembler::por);                  \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Psub::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::psub,                              \
-          &InstImpl<TraitsType>::Assembler::psub};                             \
+      InstImpl<TraitsType>::InstX86Psub::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::psub,                  \
+                      &InstImpl<TraitsType>::Assembler::psub);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Psubs::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::psubs,                             \
-          &InstImpl<TraitsType>::Assembler::psubs};                            \
+      InstImpl<TraitsType>::InstX86Psubs::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::psubs,                 \
+                      &InstImpl<TraitsType>::Assembler::psubs);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Psubus::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::psubus,                            \
-          &InstImpl<TraitsType>::Assembler::psubus};                           \
+      InstImpl<TraitsType>::InstX86Psubus::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::psubus,                \
+                      &InstImpl<TraitsType>::Assembler::psubus);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pxor::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::pxor,                              \
-          &InstImpl<TraitsType>::Assembler::pxor};                             \
+      InstImpl<TraitsType>::InstX86Pxor::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pxor,                  \
+                      &InstImpl<TraitsType>::Assembler::pxor);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Subss::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::subss,                             \
-          &InstImpl<TraitsType>::Assembler::subss};                            \
+      InstImpl<TraitsType>::InstX86Subss::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::subss,                 \
+                      &InstImpl<TraitsType>::Assembler::subss);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Subps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::subps,                             \
-          &InstImpl<TraitsType>::Assembler::subps};                            \
+      InstImpl<TraitsType>::InstX86Subps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::subps,                 \
+                      &InstImpl<TraitsType>::Assembler::subps);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Andnps::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::andnps,                            \
-          &InstImpl<TraitsType>::Assembler::andnps};                           \
+      InstImpl<TraitsType>::InstX86Andnps::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::andnps,                \
+                      &InstImpl<TraitsType>::Assembler::andnps);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Andps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::andps,                             \
-          &InstImpl<TraitsType>::Assembler::andps};                            \
+      InstImpl<TraitsType>::InstX86Andps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::andps,                 \
+                      &InstImpl<TraitsType>::Assembler::andps);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Maxss::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::maxss,                             \
-          &InstImpl<TraitsType>::Assembler::maxss};                            \
+      InstImpl<TraitsType>::InstX86Maxss::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::maxss,                 \
+                      &InstImpl<TraitsType>::Assembler::maxss);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Minss::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::minss,                             \
-          &InstImpl<TraitsType>::Assembler::minss};                            \
+      InstImpl<TraitsType>::InstX86Minss::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::minss,                 \
+                      &InstImpl<TraitsType>::Assembler::minss);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Maxps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::maxps,                             \
-          &InstImpl<TraitsType>::Assembler::maxps};                            \
+      InstImpl<TraitsType>::InstX86Maxps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::maxps,                 \
+                      &InstImpl<TraitsType>::Assembler::maxps);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Minps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::minps,                             \
-          &InstImpl<TraitsType>::Assembler::minps};                            \
+      InstImpl<TraitsType>::InstX86Minps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::minps,                 \
+                      &InstImpl<TraitsType>::Assembler::minps);                \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Orps::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::orps,                              \
-          &InstImpl<TraitsType>::Assembler::orps};                             \
+      InstImpl<TraitsType>::InstX86Orps::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::orps,                  \
+                      &InstImpl<TraitsType>::Assembler::orps);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Xorps::Base::Emitter = {                    \
-          &InstImpl<TraitsType>::Assembler::xorps,                             \
-          &InstImpl<TraitsType>::Assembler::xorps};                            \
+      InstImpl<TraitsType>::InstX86Xorps::Base::Emitter                        \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::xorps,                 \
+                      &InstImpl<TraitsType>::Assembler::xorps);                \
                                                                                \
   /* Binary XMM Shift ops */                                                   \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterShiftOp                     \
-      InstImpl<TraitsType>::InstX86Psll::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::psll,                              \
-          &InstImpl<TraitsType>::Assembler::psll,                              \
-          &InstImpl<TraitsType>::Assembler::psll};                             \
+      InstImpl<TraitsType>::InstX86Psll::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::psll,                  \
+                      &InstImpl<TraitsType>::Assembler::psll,                  \
+                      &InstImpl<TraitsType>::Assembler::psll);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterShiftOp                     \
-      InstImpl<TraitsType>::InstX86Psra::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::psra,                              \
-          &InstImpl<TraitsType>::Assembler::psra,                              \
-          &InstImpl<TraitsType>::Assembler::psra};                             \
+      InstImpl<TraitsType>::InstX86Psra::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::psra,                  \
+                      &InstImpl<TraitsType>::Assembler::psra,                  \
+                      &InstImpl<TraitsType>::Assembler::psra);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterShiftOp                     \
-      InstImpl<TraitsType>::InstX86Psrl::Base::Emitter = {                     \
-          &InstImpl<TraitsType>::Assembler::psrl,                              \
-          &InstImpl<TraitsType>::Assembler::psrl,                              \
-          &InstImpl<TraitsType>::Assembler::psrl};                             \
+      InstImpl<TraitsType>::InstX86Psrl::Base::Emitter                         \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::psrl,                  \
+                      &InstImpl<TraitsType>::Assembler::psrl,                  \
+                      &InstImpl<TraitsType>::Assembler::psrl);                 \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Pshufb::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::pshufb,                            \
-          &InstImpl<TraitsType>::Assembler::pshufb};                           \
+      InstImpl<TraitsType>::InstX86Pshufb::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::pshufb,                \
+                      &InstImpl<TraitsType>::Assembler::pshufb);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Punpckl::Base::Emitter = {                  \
-          &InstImpl<TraitsType>::Assembler::punpckl,                           \
-          &InstImpl<TraitsType>::Assembler::punpckl};                          \
+      InstImpl<TraitsType>::InstX86Punpckl::Base::Emitter                      \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::punpckl,               \
+                      &InstImpl<TraitsType>::Assembler::punpckl);              \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Punpckh::Base::Emitter = {                  \
-          &InstImpl<TraitsType>::Assembler::punpckh,                           \
-          &InstImpl<TraitsType>::Assembler::punpckh};                          \
+      InstImpl<TraitsType>::InstX86Punpckh::Base::Emitter                      \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::punpckh,               \
+                      &InstImpl<TraitsType>::Assembler::punpckh);              \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Packss::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::packss,                            \
-          &InstImpl<TraitsType>::Assembler::packss};                           \
+      InstImpl<TraitsType>::InstX86Packss::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::packss,                \
+                      &InstImpl<TraitsType>::Assembler::packss);               \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Packus::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::packus,                            \
-          &InstImpl<TraitsType>::Assembler::packus};                           \
+      InstImpl<TraitsType>::InstX86Packus::Base::Emitter                       \
+          INIT_OR_NOT(&InstImpl<TraitsType>::Assembler::packus,                \
+                      &InstImpl<TraitsType>::Assembler::packus);               \
   }                                                                            \
   }
 
