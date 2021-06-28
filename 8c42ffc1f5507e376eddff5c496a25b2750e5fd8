@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "567b1941_7a72c13f",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-06-28T15:23:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0df4c03_268e4e70",
+      "range": {
+        "startLine": 210,
+        "startChar": 17,
+        "endLine": 210,
+        "endChar": 23
+      },
+      "revId": "8c42ffc1f5507e376eddff5c496a25b2750e5fd8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f298351b_b4997946",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-06-28T14:54:02Z",
       "side": 1,
       "message": "Even if the string is 0-length, it consumes 1 word, and that should be reflected in the wordCount() result, so I think there should be an assert here.",
+      "range": {
+        "startLine": 231,
+        "startChar": 3,
+        "endLine": 231,
+        "endChar": 12
+      },
+      "revId": "8c42ffc1f5507e376eddff5c496a25b2750e5fd8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bb14a9c2_0302f551",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-06-28T15:23:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f298351b_b4997946",
       "range": {
         "startLine": 231,
         "startChar": 3,
