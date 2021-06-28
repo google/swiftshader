@@ -34,6 +34,24 @@
       "parentUuid": "67075ce6_055f5287",
       "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "265f7d6e_4cf1fbd5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-28T16:00:56Z",
+      "side": 1,
+      "message": "\u003e Is this toolchain an old version of LLVM?\n\nThe tryjobs all use Chromium\u0027s recent version of Clang, as far as I\u0027m aware.\n\n\u003e \"wrap the whole templated class definition in the header inside an anonymous namespace so each instantiation is different to avoid ODR\".  That makes me cringe in horror, since it sounds like a recipe for unforeseen consequences, but I could try it...\n\nI\u0027ve always considered the use of templates for specializing Subzero\u0027s backends for x86-32 and x86-64 overkill. We only build the one corresponding to the target architecture anyway. That probably helps avoid unforeseen consequences when putting it in an anonymous namespace. Either way this code gets exercised a lot by our tests, so it\u0027s not that risky to give it a try.",
+      "parentUuid": "dbb4f9ca_8bbfc51d",
+      "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
