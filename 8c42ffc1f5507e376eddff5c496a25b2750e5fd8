@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c0df4c03_268e4e70",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-28T14:54:02Z",
+      "side": 1,
+      "message": "nit: I would use the word Size here to clarify that it\u0027s the amount of memory consumed, not the length of the string (cf. sizeof() vs. strlen() behavior).",
+      "range": {
+        "startLine": 210,
+        "startChar": 17,
+        "endLine": 210,
+        "endChar": 23
+      },
+      "revId": "8c42ffc1f5507e376eddff5c496a25b2750e5fd8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f298351b_b4997946",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-28T14:54:02Z",
+      "side": 1,
+      "message": "Even if the string is 0-length, it consumes 1 word, and that should be reflected in the wordCount() result, so I think there should be an assert here.",
+      "range": {
+        "startLine": 231,
+        "startChar": 3,
+        "endLine": 231,
+        "endChar": 12
+      },
+      "revId": "8c42ffc1f5507e376eddff5c496a25b2750e5fd8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
