@@ -16,6 +16,24 @@
       "message": "Thanks! LGTM when the tryjob failure is addressed.\n\nFYI there was a previous attempt at fixing this: https://swiftshader-review.googlesource.com/c/SwiftShader/+/23388. No need to make any changes to our other build files at this point, we can do that later if its helpful.",
       "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dbb4f9ca_8bbfc51d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 100991
+      },
+      "writtenOn": "2021-06-28T10:55:01Z",
+      "side": 1,
+      "message": "Hmm.  Is this toolchain an old version of LLVM?  Things work fine for me when building Chrome, but apparently some toolchains give multiple definition errors.\n\nPerhaps the LLVM devs\u0027 advice to put this in the header was faulty and this is \"UB, no diagnostic required\"?  https://stackoverflow.com/questions/47972746/avoiding-duplicate-symbol-due-to-initialization-of-specialization-in-header suggests that and offers \"wrap the whole templated class definition in the header inside an anonymous namespace so each instantiation is different to avoid ODR\".  That makes me cringe in horror, since it sounds like a recipe for unforeseen consequences, but I could try it...",
+      "parentUuid": "67075ce6_055f5287",
+      "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
