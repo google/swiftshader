@@ -33,6 +33,24 @@
       "message": "I\u0027ve locally increased the limit to 6 GiB, so let\u0027s see what happens...",
       "revId": "b4bdc086193821b9d2dde0813b21fdf94584af88",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3b2b5297_82c17b67",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2021-06-29T20:53:56Z",
+      "side": 1,
+      "message": "Thank you for looking into it. I meant to do it today on my workstation but didn\u0027t get time. Yeah it\u0027s a bit surprising that tests would be using so much memory.",
+      "parentUuid": "2ca06081_59151c0e",
+      "revId": "b4bdc086193821b9d2dde0813b21fdf94584af88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
