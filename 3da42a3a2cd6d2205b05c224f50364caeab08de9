@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "525a415b_aae34572",
+        "filename": "tests/regres/testlists/vk-master-UNIMPLEMENTED.txt",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-29T04:21:12Z",
+      "side": 1,
+      "message": "@sugoi when you spot an unknown regression, please file a bug so we know at around what time it got introduced: b/192310780",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 60
+      },
+      "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
