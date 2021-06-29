@@ -22,6 +22,30 @@
       },
       "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4cb96b05_114a0c2d",
+        "filename": "tests/regres/testlists/vk-master-UNIMPLEMENTED.txt",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-06-29T13:00:04Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "525a415b_aae34572",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 60
+      },
+      "revId": "3da42a3a2cd6d2205b05c224f50364caeab08de9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
