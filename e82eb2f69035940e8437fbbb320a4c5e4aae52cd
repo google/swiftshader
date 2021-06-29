@@ -16,6 +16,23 @@
       "message": "The Regres failure is a known flake.",
       "revId": "e82eb2f69035940e8437fbbb320a4c5e4aae52cd",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "329f2c2c_ac225fd0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2021-06-29T06:54:18Z",
+      "side": 1,
+      "message": "Thank you!",
+      "revId": "e82eb2f69035940e8437fbbb320a4c5e4aae52cd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
