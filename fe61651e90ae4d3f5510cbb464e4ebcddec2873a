@@ -52,6 +52,24 @@
       "parentUuid": "dbb4f9ca_8bbfc51d",
       "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "af70d524_0a0d6bff",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 100991
+      },
+      "writtenOn": "2021-06-29T15:27:14Z",
+      "side": 1,
+      "message": "After some poking, I don\u0027t see a way to make the anon namespace trick work -- other places need to forward-declare these template classes.  So I\u0027m stumped.  You imply the templates here could go away entirely, but that\u0027s a larger task than I\u0027m prepared to undertake as a third-party contributor with no actual understanding of what I\u0027m touching :).  Beyond that, I\u0027m not sure of a way forward.  WDYT?\n\nStill not sure why I got these ODR violations here but not locally...",
+      "parentUuid": "265f7d6e_4cf1fbd5",
+      "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
