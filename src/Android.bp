@@ -407,7 +407,7 @@ cc_defaults {
 }
 
 cc_library_shared {
-    name: "libEGL_swiftshader",
+    name: "DISABLED_libEGL_swiftshader",
 
     defaults: [
         "libEGL_swiftshader_defaults",
@@ -416,7 +416,7 @@ cc_library_shared {
 }
 
 cc_library_shared {
-    name: "libEGL_swiftshader_debug",
+    name: "DISABLED_libEGL_swiftshader_debug",
 
     defaults: [
         "libEGL_swiftshader_defaults",
@@ -467,7 +467,7 @@ cc_defaults {
 }
 
 cc_library_shared {
-    name: "libGLESv2_swiftshader",
+    name: "DISABLED_libGLESv2_swiftshader",
 
     defaults: [
         "libGLESv2_swiftshader_defaults",
@@ -478,7 +478,7 @@ cc_library_shared {
 }
 
 cc_library_shared {
-    name: "libGLESv2_swiftshader_debug",
+    name: "DISABLED_libGLESv2_swiftshader_debug",
 
     defaults: [
         "libGLESv2_swiftshader_defaults",
