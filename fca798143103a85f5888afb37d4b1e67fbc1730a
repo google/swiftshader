@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d8b4c780_9151bb41",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-30T17:23:09Z",
+      "side": 1,
+      "message": "Since the issue goes away by increasing the memory allowance in Regres, this looks fine to me for enabling Dawn. I\u0027ll continue looking into why we\u0027re consuming so much memory...\n\nJust one other comment:",
+      "revId": "fca798143103a85f5888afb37d4b1e67fbc1730a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ede79cc7_bcb8c22c",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-06-30T17:23:09Z",
+      "side": 1,
+      "message": "I noticed at https://vulkan.gpuinfo.org/ that most implementations don\u0027t exceed 64 for this third component.\n\nSo I assume Dawn doesn\u0027t strictly need this to be 256? Could we do 256x256x64? I\u0027d like to stay on the conservative side to avoid the creation of apps that run on SwiftShader but not common hardware.",
+      "range": {
+        "startLine": 489,
+        "startChar": 14,
+        "endLine": 489,
+        "endChar": 17
+      },
+      "revId": "fca798143103a85f5888afb37d4b1e67fbc1730a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
