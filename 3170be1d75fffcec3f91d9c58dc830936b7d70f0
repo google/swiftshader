@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5b5dcc4a_2dfa0bb8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-01T05:41:13Z",
+      "side": 1,
+      "message": "@sugoi this should address the issue that caused https://chromium-review.googlesource.com/c/chromium/src/+/2994838, and allow us to start the autoroll into Chromium again.",
+      "revId": "3170be1d75fffcec3f91d9c58dc830936b7d70f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
