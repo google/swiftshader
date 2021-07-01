@@ -16,6 +16,23 @@
       "message": "Thanks! I\u0027m following up on the memory consumption issue in https://issuetracker.google.com/192475710",
       "revId": "87aaefb58c655ec2c473ffb0671dd55629d96d4f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9aacbd81_25971ab1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2021-07-01T15:10:07Z",
+      "side": 1,
+      "message": "Thanks!",
+      "revId": "87aaefb58c655ec2c473ffb0671dd55629d96d4f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
