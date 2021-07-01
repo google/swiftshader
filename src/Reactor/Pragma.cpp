@@ -17,16 +17,56 @@
 
 #include "Debug.hpp"
 
-namespace rr {
+// The CLANG_NO_SANITIZE_MEMORY macro suppresses MemorySanitizer checks for
+// use-of-uninitialized-data. It is used to decorate functions with known
+// false positives.
+#ifdef __clang__
+#	define CLANG_NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
+#else
+#	define CLANG_NO_SANITIZE_MEMORY
+#endif
 
-static thread_local bool memorySanitizerInstrumentation = false;
+namespace {
+
+struct PragmaState
+{
+	bool memorySanitizerInstrumentation;
+};
+
+// The initialization of static thread-local data is not observed by MemorySanitizer
+// when inside a shared library, leading to false-positive use-of-uninitialized-data
+// errors: https://github.com/google/sanitizers/issues/1409
+// We work around this by assigning an initial value to it ourselves on first use.
+// Note that since the flag to check whether this initialization has already been
+// done is itself a static thread-local, we must suppress the MemorySanitizer check
+// with a function attribute.
+CLANG_NO_SANITIZE_MEMORY PragmaState &getPragmaState()
+{
+	static thread_local bool initialized = false;
+	static thread_local PragmaState state;
+
+	if(!initialized)
+	{
+		state = {};
+
+		initialized = true;
+	}
+
+	return state;
+}
+
+}  // namespace
+
+namespace rr {
 
 void Pragma(PragmaBooleanOption option, bool enable)
 {
+	PragmaState &state = ::getPragmaState();
+
 	switch(option)
 	{
 	case MemorySanitizerInstrumentation:
-		memorySanitizerInstrumentation = enable;
+		state.memorySanitizerInstrumentation = enable;
 		break;
 	default:
 		UNSUPPORTED("Unknown pragma %d", int(option));
@@ -35,10 +75,12 @@ void Pragma(PragmaBooleanOption option, bool enable)
 
 bool getPragmaState(PragmaBooleanOption option)
 {
+	PragmaState &state = ::getPragmaState();
+
 	switch(option)
 	{
 	case MemorySanitizerInstrumentation:
-		return memorySanitizerInstrumentation;
+		return state.memorySanitizerInstrumentation;
 	default:
 		UNSUPPORTED("Unknown pragma %d", int(option));
 		return false;
