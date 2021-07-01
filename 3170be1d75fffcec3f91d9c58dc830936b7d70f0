@@ -16,6 +16,23 @@
       "message": "@sugoi this should address the issue that caused https://chromium-review.googlesource.com/c/chromium/src/+/2994838, and allow us to start the autoroll into Chromium again.",
       "revId": "3170be1d75fffcec3f91d9c58dc830936b7d70f0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c9afa19c_a96ae0aa",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-01T15:17:19Z",
+      "side": 1,
+      "message": "The linux_chromium_msan_rel_ng tryjob failed because this patch doesn\u0027t apply due to the revert on the Chromium side. Anyway, everything looks good on this side. I\u0027ve reproduced the issue locally, and this patch fixes it. So I think we should land it and restart the autoroll.",
+      "revId": "3170be1d75fffcec3f91d9c58dc830936b7d70f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
