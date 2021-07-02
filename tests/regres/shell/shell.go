@@ -25,7 +25,7 @@ import (
 // MaxProcMemory is the maximum virtual memory per child process.
 // Note: This is not used on Windows, as there is no sensible way to limit
 // process memory.
-var MaxProcMemory uint64 = 4 * 1024 * 1024 * 1024 // 4GB
+var MaxProcMemory uint64 = 6 * 1024 * 1024 * 1024 // 6 GiB
 
 // Shell runs the executable exe with the given arguments, in the working
 // directory wd.
