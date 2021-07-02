@@ -16,6 +16,23 @@
       "message": "Thanks for the contribution, James! I\u0027ve added \"Bug: b/192284721\" to the commit message to fix the Kokoro failure.\n\n@sugoi can you do 2nd Googler review?",
       "revId": "804e46cd0d47870eb7f4e5c755744ed7cb193412",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd97a397_1374cd9a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-07-02T19:13:39Z",
+      "side": 1,
+      "message": "I\u0027m fine with the change if the bots are happy",
+      "revId": "804e46cd0d47870eb7f4e5c755744ed7cb193412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
