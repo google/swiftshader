@@ -7,7 +7,7 @@ Introduction
 
 SwiftShader is a high-performance CPU-based implementation of the Vulkan graphics API<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
 
-> NOTE: SwiftShader's OpenGL ES frontend is no longer supported, and will eventually be removed. Read more about our recommendation to use [ANGLE on top of SwiftShader Vulkan here](ANGLE.md).
+> NOTE: SwiftShader's OpenGL ES frontend is no longer supported, and will eventually be removed. Read more about our recommendation to use [ANGLE on top of SwiftShader Vulkan here](ANGLE.md) (aka. "SwANGLE").
 
 Building
 --------
@@ -48,18 +48,20 @@ Contributing
 See [CONTRIBUTING.txt](CONTRIBUTING.txt) for important contributing requirements.
 
 The canonical repository for SwiftShader is hosted at:
-https://swiftshader.googlesource.com/SwiftShader
+https://swiftshader.googlesource.com/SwiftShader.
 
 All changes must be reviewed and approved in the [Gerrit](https://www.gerritcodereview.com/) review tool at:
-https://swiftshader-review.googlesource.com
+https://swiftshader-review.googlesource.com.
 
 Authenticate your account here:
-https://swiftshader-review.googlesource.com/new-password
+https://swiftshader-review.googlesource.com/new-password (use the same e-mail address as the one configured as the [Git commit author](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup#_your_identity)).
 
-All changes require a [Change-ID](https://gerrit-review.googlesource.com/Documentation/user-changeid.html) tag in the commit message. A commit hook may be used to add this tag automatically, and can be found at:
-https://gerrit-review.googlesource.com/tools/hooks/commit-msg. To clone the repository and install the commit hook in one go:
+All changes require a [Change-ID](https://gerrit-review.googlesource.com/Documentation/user-changeid.html) tag in the commit message. A [commit hook](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) may be used to add this tag automatically, and can be found at:
+https://gerrit-review.googlesource.com/tools/hooks/commit-msg. You can execute `git clone https://swiftshader.googlesource.com/SwiftShader` and manually place the commit hook in `SwiftShader/.git/hooks/`, or to clone the repository and install the commit hook in one go:
 
     git clone https://swiftshader.googlesource.com/SwiftShader && (cd SwiftShader && curl -Lo `git rev-parse --git-dir`/hooks/commit-msg https://gerrit-review.googlesource.com/tools/hooks/commit-msg ; chmod +x `git rev-parse --git-dir`/hooks/commit-msg)
+
+On Windows, this command line requires using the [Git Bash Shell](https://www.atlassian.com/git/tutorials/git-bash).
 
 Changes are uploaded to Gerrit by executing:
 
