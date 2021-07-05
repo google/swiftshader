@@ -70,6 +70,24 @@
       "parentUuid": "265f7d6e_4cf1fbd5",
       "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "91348cdb_82420ead",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-05T17:54:18Z",
+      "side": 1,
+      "message": "I started to do the de-templatizing work (https://swiftshader-review.googlesource.com/c/SwiftShader/+/55408), but ironically I still hit the exact same issue, because it\u0027s caused by the instruction class using the instruction type as a template parameter too, not just the bitness of the x86 target.\n\nI addressed it in that change by making the static members constexpr. Since they are implicitly inline variables, this doesn\u0027t cause ODR violations.\n\nI then realized that would also work for this more minimal change which doesn\u0027t de-templatize anything. But then I took a deeper look at the origins of this undefined-var-template warning and understood how to fix it without making things constexpr. See the new commit message for details.",
+      "parentUuid": "af70d524_0a0d6bff",
+      "revId": "fe61651e90ae4d3f5510cbb464e4ebcddec2873a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
