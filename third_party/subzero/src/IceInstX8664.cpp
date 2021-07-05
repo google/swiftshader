@@ -355,5 +355,3 @@ void TargetX8664Traits::VariableSplit::dump(const Cfg *Func,
 
 } // namespace X8664
 } // end of namespace Ice
-
-X86INSTS_DEFINE_STATIC_DATA(X8664, X8664::Traits)

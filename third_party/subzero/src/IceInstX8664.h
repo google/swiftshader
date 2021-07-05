@@ -32,6 +32,6 @@
 #include "IceOperand.h"
 #include "IceTargetLoweringX8664Traits.h"
 
-X86INSTS_DECLARE_STATIC_DATA(X8664, X8664::Traits)
+X86INSTS_DEFINE_STATIC_DATA(X8664, X8664::Traits)
 
 #endif // SUBZERO_SRC_ICEINSTX8664_H
