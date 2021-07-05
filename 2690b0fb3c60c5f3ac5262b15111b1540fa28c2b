@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb69e48f_9b462035",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-05T15:50:04Z",
+      "side": 1,
+      "message": "If we\u0027re passing the latest version of https://gerrit.khronos.org/c/vk-gl-cts/+/7354 as-is, please abandon this change. Otherwise please inform Ricardo about the failure.",
+      "revId": "2690b0fb3c60c5f3ac5262b15111b1540fa28c2b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
