@@ -16,6 +16,41 @@
       "message": "Does this work for C++14?  Chromium doesn\u0027t have C++17 yet :(",
       "revId": "a85335645a5d78424e84a5fe2db4f830f257a3f2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7d4d2a1_b54edde2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-05T20:27:34Z",
+      "side": 1,
+      "message": "GCC doesn\u0027t like this:\n\nerror: duplicate initialization of ‘InstImpl\u003c[...]::Bswap\u003e::Opcode\n\nAt first I thought it was because we\u0027re not explicitly enabling C++17 in our CMake build, but setting it doesn\u0027t make a difference...",
+      "revId": "a85335645a5d78424e84a5fe2db4f830f257a3f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e45041eb_e0e83549",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-05T20:27:34Z",
+      "side": 1,
+      "message": "Indeed this isn\u0027t valid for C++14, but SwiftShader enables C++17. We\u0027re aware Chromium builds with C++14, but since SwiftShader is an independent shared library we\u0027re able to use C++17. Chromium is eager to upgrade to C++17, but has a few blockers, which SwiftShader isn\u0027t affected by.",
+      "parentUuid": "d2e42dbc_f08c3532",
+      "revId": "a85335645a5d78424e84a5fe2db4f830f257a3f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
