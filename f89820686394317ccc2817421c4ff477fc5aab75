@@ -22,6 +22,30 @@
       },
       "revId": "f89820686394317ccc2817421c4ff477fc5aab75",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f460a7d8_b71e23f2",
+        "filename": "third_party/subzero/src/IceTargetLoweringX86BaseImpl.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-06T22:01:30Z",
+      "side": 1,
+      "message": "Only x64 has a shadow store, and this correctly returns 0 otherwise.\n\nThat said, the conditional logic on line 98 is redundant in this case, so I\u0027ll simplify this...",
+      "parentUuid": "02810836_62ad806e",
+      "range": {
+        "startLine": 96,
+        "startChar": 16,
+        "endLine": 96,
+        "endChar": 18
+      },
+      "revId": "f89820686394317ccc2817421c4ff477fc5aab75",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
