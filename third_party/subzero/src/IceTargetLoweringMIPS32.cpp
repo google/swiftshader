@@ -223,7 +223,6 @@ uint32_t TargetMIPS32::getStackAlignment() const {
 
 uint32_t TargetMIPS32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
   TargetMIPS32::CallingConv CC;
-  RegNumT DummyReg;
   size_t OutArgsSizeBytes = 0;
   Variable *Dest = Call->getDest();
   bool PartialOnStack = false;

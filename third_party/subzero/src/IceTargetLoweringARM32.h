@@ -103,7 +103,7 @@ public:
     default:
       assert(RC < RC_Target);
       return TypeToRegisterSet[RC];
-    case RegARM32::RCARM32_QtoS:
+    case (RegClass)RegARM32::RCARM32_QtoS:
       return TypeToRegisterSet[RC];
     }
   }
