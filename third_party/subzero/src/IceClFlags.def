@@ -226,15 +226,7 @@ struct dev_list_flag {};
         clEnumValN(Ice::FT_Elf, "obj", "Native ELF object ('.o') file"),       \
         clEnumValN(Ice::FT_Asm, "asm", "Assembly ('.s') file"),                \
         clEnumValN(Ice::FT_Iasm, "iasm",                                       \
-                   "Low-level integrated assembly ('.s') file")                \
-        CLENUMVALEND))                                                         \
-                                                                               \
-  X(ApplicationBinaryInterface, Ice::ABI, dev_opt_flag, "abi",                 \
-    cl::desc("ABI type"), cl::init(Ice::ABI_PNaCl),                            \
-    cl::values(                                                                \
-        clEnumValN(Ice::ABI_PNaCl, "pnacl", "x32 for unsandboxed 64-bit x86"), \
-        clEnumValN(Ice::ABI_Platform, "platform", "Native executable ABI")     \
-        CLENUMVALEND))                                                         \
+                   "Low-level integrated assembly ('.s') file") CLENUMVALEND)) \
                                                                                \
   X(ParseParallel, bool, dev_opt_flag, "parse-parallel",                       \
     cl::desc("Parse function blocks in parallel"), cl::init(true))             \

@@ -44,12 +44,7 @@ class AssemblerX86Base : public ::Ice::Assembler {
   AssemblerX86Base &operator=(const AssemblerX86Base &) = delete;
 
 protected:
-  explicit AssemblerX86Base(
-      bool EmitAddrSizeOverridePrefix = TraitsType::Is64Bit)
-      : Assembler(Traits::AsmKind),
-        EmitAddrSizeOverridePrefix(EmitAddrSizeOverridePrefix) {
-    assert(Traits::Is64Bit || !EmitAddrSizeOverridePrefix);
-  }
+  explicit AssemblerX86Base() : Assembler(Traits::AsmKind) {}
 
 public:
   using Traits = TraitsType;
@@ -741,11 +736,6 @@ protected:
 private:
   ENABLE_MAKE_UNIQUE;
 
-  // EmidAddrSizeOverridePrefix directs the emission of the 0x67 prefix to
-  // force 32-bit registers when accessing memory. This is only used in native
-  // 64-bit.
-  const bool EmitAddrSizeOverridePrefix;
-
   static constexpr Type RexTypeIrrelevant = IceType_i32;
   static constexpr Type RexTypeForceRexW = IceType_i64;
   static constexpr GPRRegister RexRegIrrelevant =
@@ -779,14 +769,6 @@ private:
   LabelVector LocalLabels;
 
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
-
-  void emitAddrSizeOverridePrefix() {
-    if (!Traits::Is64Bit || !EmitAddrSizeOverridePrefix) {
-      return;
-    }
-    static constexpr uint8_t AddrSizeOverridePrefix = 0x67;
-    emitUint8(AddrSizeOverridePrefix);
-  }
 
   // The arith_int() methods factor out the commonality between the encodings
   // of add(), Or(), adc(), sbb(), And(), sub(), Xor(), and cmp(). The Tag
@@ -858,10 +840,10 @@ private:
     const uint8_t X = (Addr != nullptr)
                           ? (typename T::Operand::RexBits)Addr->rexX()
                           : T::Operand::RexNone;
-    const uint8_t B =
-        (Addr != nullptr)
-            ? (typename T::Operand::RexBits)Addr->rexB()
-            : (Rm & 0x08) ? T::Operand::RexB : T::Operand::RexNone;
+    const uint8_t B = (Addr != nullptr)
+                          ? (typename T::Operand::RexBits)Addr->rexB()
+                      : (Rm & 0x08) ? T::Operand::RexB
+                                    : T::Operand::RexNone;
     const uint8_t Prefix = W | R | X | B;
     if (Prefix != T::Operand::RexNone) {
       emitUint8(Prefix);

@@ -5296,8 +5296,6 @@ void TargetARM32::lowerIntrinsic(const InstIntrinsic *Instr) {
     llvm::report_fatal_error("setjmp should have been prelowered.");
   }
   case Intrinsics::Sqrt: {
-    assert(isScalarFloatingType(Dest->getType()) ||
-           getFlags().getApplicationBinaryInterface() != ::Ice::ABI_PNaCl);
     Variable *Src = legalizeToReg(Instr->getArg(0));
     Variable *T = makeReg(DestTy);
     _vsqrt(T, Src);

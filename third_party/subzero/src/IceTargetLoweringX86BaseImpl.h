@@ -444,11 +444,7 @@ bool TargetX86Base<TraitsType>::shouldBePooled(const Constant *C) {
 
 template <typename TraitsType>
 ::Ice::Type TargetX86Base<TraitsType>::getPointerType() {
-  if (!Traits::Is64Bit ||
-      ::Ice::getFlags().getApplicationBinaryInterface() == ::Ice::ABI_PNaCl) {
-    return ::Ice::IceType_i32;
-  }
-  return ::Ice::IceType_i64;
+  return Traits::Is64Bit ? IceType_i64 : IceType_i32;
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
@@ -3297,8 +3293,6 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
         // Bitcast requires equal type sizes, which isn't strictly the case
         // between scalars and vectors, but to emulate v4i8 vectors one has to
         // use v16i8 vectors.
-        assert(getFlags().getApplicationBinaryInterface() != ABI_PNaCl &&
-               "PNaCl only supports real 128-bit vectors");
         Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
         Variable *T = makeReg(DestTy);
         _movd(T, Src0RM);
@@ -4442,8 +4436,6 @@ void TargetX86Base<TraitsType>::lowerIntrinsic(const InstIntrinsic *Instr) {
     return;
   }
   case Intrinsics::Sqrt: {
-    assert(isScalarFloatingType(Instr->getDest()->getType()) ||
-           getFlags().getApplicationBinaryInterface() != ::Ice::ABI_PNaCl);
     Operand *Src = legalize(Instr->getArg(0));
     Variable *Dest = Instr->getDest();
     Variable *T = makeReg(Dest->getType());
@@ -8256,9 +8248,8 @@ void TargetX86Base<TraitsType>::emitJumpTable(
       << typeWidthInBytes(getPointerType()) << "\n"
       << JumpTable->getName() << ":";
 
-  // On X86 ILP32 pointers are 32-bit hence the use of .long
   for (SizeT I = 0; I < JumpTable->getNumTargets(); ++I)
-    Str << "\n\t.long\t" << JumpTable->getTarget(I)->getAsmName();
+    Str << "\n\t.val\t" << JumpTable->getTarget(I)->getAsmName();
   Str << "\n";
 }
 
@@ -8353,9 +8344,8 @@ void TargetDataX86<TraitsType>::lowerJumpTables() {
           << typeWidthInBytes(getPointerType()) << "\n"
           << JT.getName().toString() << ":";
 
-      // On X8664 ILP32 pointers are 32-bit hence the use of .long
       for (intptr_t TargetOffset : JT.getTargetOffsets())
-        Str << "\n\t.long\t" << JT.getFunctionName() << "+" << TargetOffset;
+        Str << "\n\t.val\t" << JT.getFunctionName() << "+" << TargetOffset;
       Str << "\n";
     }
   } break;

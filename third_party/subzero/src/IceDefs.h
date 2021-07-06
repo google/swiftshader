@@ -302,7 +302,6 @@ enum { MaxCacheLineSize = 64 };
   __attribute__((aligned(MaxCacheLineSize + 0))) int : 0
 #endif // !defined(_MSC_VER)
 
-/// PNaCl is ILP32, so theoretically we should only need 32-bit offsets.
 using RelocOffsetT = int32_t;
 enum { RelocAddrSize = 4 };
 
@@ -369,11 +368,6 @@ enum FileType {
   FT_Elf, /// ELF .o file
   FT_Asm, /// Assembly .s file
   FT_Iasm /// "Integrated assembler" .byte-style .s file
-};
-
-enum ABI {
-  ABI_PNaCl,   /// x32 for unsandboxed 64-bit x86
-  ABI_Platform /// Native executable ABI
 };
 
 using Ostream = llvm::raw_ostream;

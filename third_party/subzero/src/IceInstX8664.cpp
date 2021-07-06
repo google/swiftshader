@@ -150,25 +150,7 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
 
   Str << "(";
   if (Base != nullptr) {
-    const Variable *B = Base;
-    if (!NeedSandboxing) {
-      // TODO(jpp): stop abusing the operand's type to identify LEAs.
-      const Type MemType = getType();
-      if (Base->getType() != IceType_i32 && MemType != IceType_void &&
-          !isVectorType(MemType)) {
-        // X86-64 is ILP32, but %rsp and %rbp are accessed as 64-bit registers.
-        // For filetype=asm, they need to be emitted as their 32-bit siblings.
-        assert(Base->getType() == IceType_i64);
-        assert(getEncodedGPR(Base->getRegNum()) == RegX8664::Encoded_Reg_rsp ||
-               getEncodedGPR(Base->getRegNum()) == RegX8664::Encoded_Reg_rbp ||
-               getType() == IceType_void);
-        B = B->asType(
-            Func, IceType_i32,
-            X8664::Traits::getGprForType(IceType_i32, Base->getRegNum()));
-      }
-    }
-
-    B->emit(Func);
+    Base->emit(Func);
   }
 
   if (Index != nullptr) {

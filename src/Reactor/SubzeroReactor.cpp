@@ -896,7 +896,6 @@ Nucleus::Nucleus()
 #endif
 	Flags.setOutFileType(Ice::FT_Elf);
 	Flags.setOptLevel(toIce(getDefaultConfig().getOptimization().getLevel()));
-	Flags.setApplicationBinaryInterface(Ice::ABI_Platform);
 	Flags.setVerbose(subzeroDumpEnabled ? Ice::IceV_Most : Ice::IceV_None);
 	Flags.setDisableHybridAssembly(true);
 

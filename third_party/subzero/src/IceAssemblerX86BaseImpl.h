@@ -116,7 +116,6 @@ void AssemblerX86Base<TraitsType>::call(GPRRegister reg) {
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::call(const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0xFF);
   emitOperand(2, address);
@@ -186,7 +185,6 @@ void AssemblerX86Base<TraitsType>::popl(GPRRegister reg) {
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::popl(const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0x8F);
   emitOperand(0, address);
@@ -219,7 +217,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::setcc(BrCond condition,
                                          const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0x0F);
   emitUint8(0x90 + condition);
@@ -266,7 +263,6 @@ void AssemblerX86Base<TraitsType>::mov(Type Ty, GPRRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, src, dst);
   if (isByteSizedType(Ty)) {
     emitUint8(0x8A);
@@ -282,7 +278,6 @@ void AssemblerX86Base<TraitsType>::mov(Type Ty, const Address &dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, dst, src);
   if (isByteSizedType(Ty)) {
     emitUint8(0x88);
@@ -298,7 +293,6 @@ void AssemblerX86Base<TraitsType>::mov(Type Ty, const Address &dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, dst, RexRegIrrelevant);
   if (isByteSizedType(Ty)) {
     emitUint8(0xC6);
@@ -362,7 +356,6 @@ void AssemblerX86Base<TraitsType>::movzx(Type SrcTy, GPRRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
   assert(ByteSized || SrcTy == IceType_i16);
-  emitAddrSizeOverridePrefix();
   emitRex(SrcTy, src, RexTypeIrrelevant, dst);
   emitUint8(0x0F);
   emitUint8(ByteSized ? 0xB6 : 0xB7);
@@ -390,7 +383,6 @@ void AssemblerX86Base<TraitsType>::movsx(Type SrcTy, GPRRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
-  emitAddrSizeOverridePrefix();
   emitRex(SrcTy, src, RexTypeForceRexW, dst);
   if (ByteSized || SrcTy == IceType_i16) {
     emitUint8(0x0F);
@@ -410,7 +402,6 @@ void AssemblerX86Base<TraitsType>::lea(Type Ty, GPRRegister dst,
          (Traits::Is64Bit && Ty == IceType_i64));
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, src, dst);
   emitUint8(0x8D);
   emitOperand(gprEncoding(dst), src);
@@ -438,7 +429,6 @@ void AssemblerX86Base<TraitsType>::cmov(Type Ty, BrCond cond, GPRRegister dst,
     emitOperandSizeOverride();
   else
     assert(Ty == IceType_i32 || (Traits::Is64Bit && Ty == IceType_i64));
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0x40 + cond);
@@ -456,7 +446,6 @@ void AssemblerX86Base<TraitsType>::movss(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x10);
@@ -468,7 +457,6 @@ void AssemblerX86Base<TraitsType>::movss(Type Ty, const Address &dst,
                                          XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x11);
@@ -502,7 +490,6 @@ void AssemblerX86Base<TraitsType>::movd(Type SrcTy, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(SrcTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x6E);
@@ -525,7 +512,6 @@ void AssemblerX86Base<TraitsType>::movd(Type DestTy, const Address &dst,
                                         XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(DestTy, dst, src);
   emitUint8(0x0F);
   emitUint8(0x7E);
@@ -546,7 +532,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::movq(const Address &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xD6);
@@ -557,7 +542,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::movq(XmmRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x7E);
@@ -580,7 +564,6 @@ void AssemblerX86Base<TraitsType>::addss(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x58);
@@ -603,7 +586,6 @@ void AssemblerX86Base<TraitsType>::subss(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5C);
@@ -626,7 +608,6 @@ void AssemblerX86Base<TraitsType>::mulss(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x59);
@@ -649,7 +630,6 @@ void AssemblerX86Base<TraitsType>::divss(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5E);
@@ -661,7 +641,6 @@ template <typename T, typename>
 void AssemblerX86Base<TraitsType>::fld(Type Ty,
                                        const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xD9 : 0xDD);
   emitOperand(0, src);
 }
@@ -671,7 +650,6 @@ template <typename T, typename>
 void AssemblerX86Base<TraitsType>::fstp(Type Ty,
                                         const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xD9 : 0xDD);
   emitOperand(3, dst);
 }
@@ -705,7 +683,6 @@ void AssemblerX86Base<TraitsType>::movups(XmmRegister dst, XmmRegister src) {
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::movups(XmmRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x10);
@@ -715,7 +692,6 @@ void AssemblerX86Base<TraitsType>::movups(XmmRegister dst, const Address &src) {
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::movups(const Address &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x11);
@@ -744,7 +720,6 @@ void AssemblerX86Base<TraitsType>::padd(Type Ty, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -779,7 +754,6 @@ void AssemblerX86Base<TraitsType>::padds(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -814,7 +788,6 @@ void AssemblerX86Base<TraitsType>::paddus(Type Ty, XmmRegister dst,
                                           const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -843,7 +816,6 @@ void AssemblerX86Base<TraitsType>::pand(Type /* Ty */, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xDB);
@@ -866,7 +838,6 @@ void AssemblerX86Base<TraitsType>::pandn(Type /* Ty */, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xDF);
@@ -895,7 +866,6 @@ void AssemblerX86Base<TraitsType>::pmull(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
@@ -926,7 +896,6 @@ void AssemblerX86Base<TraitsType>::pmulhw(Type Ty, XmmRegister dst,
                                           const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   assert(Ty == IceType_v8i16);
@@ -953,7 +922,6 @@ void AssemblerX86Base<TraitsType>::pmulhuw(Type Ty, XmmRegister dst,
                                            const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   assert(Ty == IceType_v8i16);
@@ -980,7 +948,6 @@ void AssemblerX86Base<TraitsType>::pmaddwd(Type Ty, XmmRegister dst,
                                            const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   assert(Ty == IceType_v8i16);
@@ -1005,7 +972,6 @@ void AssemblerX86Base<TraitsType>::pmuludq(Type /* Ty */, XmmRegister dst,
                                            const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xF4);
@@ -1028,7 +994,6 @@ void AssemblerX86Base<TraitsType>::por(Type /* Ty */, XmmRegister dst,
                                        const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xEB);
@@ -1057,7 +1022,6 @@ void AssemblerX86Base<TraitsType>::psub(Type Ty, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -1092,7 +1056,6 @@ void AssemblerX86Base<TraitsType>::psubs(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -1126,7 +1089,6 @@ void AssemblerX86Base<TraitsType>::psubus(Type Ty, XmmRegister dst,
                                           const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -1155,7 +1117,6 @@ void AssemblerX86Base<TraitsType>::pxor(Type /* Ty */, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xEF);
@@ -1183,7 +1144,6 @@ void AssemblerX86Base<TraitsType>::psll(Type Ty, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
@@ -1234,7 +1194,6 @@ void AssemblerX86Base<TraitsType>::psra(Type Ty, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
@@ -1287,7 +1246,6 @@ void AssemblerX86Base<TraitsType>::psrl(Type Ty, XmmRegister dst,
                                         const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
@@ -1338,7 +1296,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::addps(Type /* Ty */, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x58);
@@ -1359,7 +1316,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::subps(Type /* Ty */, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5C);
@@ -1380,7 +1336,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::divps(Type /* Ty */, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5E);
@@ -1401,7 +1356,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::mulps(Type /* Ty */, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x59);
@@ -1426,7 +1380,6 @@ void AssemblerX86Base<TraitsType>::minps(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5D);
@@ -1449,7 +1402,6 @@ void AssemblerX86Base<TraitsType>::minss(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5D);
@@ -1474,7 +1426,6 @@ void AssemblerX86Base<TraitsType>::maxps(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5F);
@@ -1497,7 +1448,6 @@ void AssemblerX86Base<TraitsType>::maxss(Type Ty, XmmRegister dst,
                                          const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5F);
@@ -1522,7 +1472,6 @@ void AssemblerX86Base<TraitsType>::andnps(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x55);
@@ -1547,7 +1496,6 @@ void AssemblerX86Base<TraitsType>::andps(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x54);
@@ -1572,7 +1520,6 @@ void AssemblerX86Base<TraitsType>::orps(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x56);
@@ -1596,7 +1543,6 @@ void AssemblerX86Base<TraitsType>::blendvps(Type /* Ty */, XmmRegister dst,
                                             const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x38);
@@ -1621,7 +1567,6 @@ void AssemblerX86Base<TraitsType>::pblendvb(Type /* Ty */, XmmRegister dst,
                                             const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x38);
@@ -1650,7 +1595,6 @@ void AssemblerX86Base<TraitsType>::cmpps(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_f64)
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xC2);
@@ -1770,7 +1714,6 @@ void AssemblerX86Base<TraitsType>::pshufb(Type /* Ty */, XmmRegister dst,
                                           const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x38);
@@ -1798,7 +1741,6 @@ void AssemblerX86Base<TraitsType>::pshufd(Type /* Ty */, XmmRegister dst,
                                           const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x70);
@@ -1832,7 +1774,6 @@ void AssemblerX86Base<TraitsType>::punpckl(Type Ty, XmmRegister Dst,
                                            const Address &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, Src, Dst);
   emitUint8(0x0F);
   if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
@@ -1871,7 +1812,6 @@ void AssemblerX86Base<TraitsType>::punpckh(Type Ty, XmmRegister Dst,
                                            const Address &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, Src, Dst);
   emitUint8(0x0F);
   if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
@@ -1908,7 +1848,6 @@ void AssemblerX86Base<TraitsType>::packss(Type Ty, XmmRegister Dst,
                                           const Address &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, Src, Dst);
   emitUint8(0x0F);
   if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
@@ -1944,7 +1883,6 @@ void AssemblerX86Base<TraitsType>::packus(Type Ty, XmmRegister Dst,
                                           const Address &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, Src, Dst);
   emitUint8(0x0F);
   if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
@@ -1976,7 +1914,6 @@ void AssemblerX86Base<TraitsType>::shufps(Type /* Ty */, XmmRegister dst,
                                           const Address &src,
                                           const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xC6);
@@ -2010,7 +1947,6 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::cvtdq2ps(Type /* Ignore */, XmmRegister dst,
                                             const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5B);
@@ -2033,7 +1969,6 @@ void AssemblerX86Base<TraitsType>::cvttps2dq(Type /* Ignore */, XmmRegister dst,
                                              const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5B);
@@ -2056,7 +1991,6 @@ void AssemblerX86Base<TraitsType>::cvtps2dq(Type /* Ignore */, XmmRegister dst,
                                             const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5B);
@@ -2079,7 +2013,6 @@ void AssemblerX86Base<TraitsType>::cvtsi2ss(Type DestTy, XmmRegister dst,
                                             Type SrcTy, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(SrcTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2A);
@@ -2103,7 +2036,6 @@ void AssemblerX86Base<TraitsType>::cvtfloat2float(Type SrcTy, XmmRegister dst,
                                                   const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5A);
@@ -2126,7 +2058,6 @@ void AssemblerX86Base<TraitsType>::cvttss2si(Type DestTy, GPRRegister dst,
                                              Type SrcTy, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(DestTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2C);
@@ -2149,7 +2080,6 @@ void AssemblerX86Base<TraitsType>::cvtss2si(Type DestTy, GPRRegister dst,
                                             Type SrcTy, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(DestTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2D);
@@ -2174,7 +2104,6 @@ void AssemblerX86Base<TraitsType>::ucomiss(Type Ty, XmmRegister a,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_f64)
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, b, a);
   emitUint8(0x0F);
   emitUint8(0x2E);
@@ -2210,7 +2139,6 @@ void AssemblerX86Base<TraitsType>::sqrt(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (isScalarFloatingType(Ty))
     emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x51);
@@ -2235,7 +2163,6 @@ void AssemblerX86Base<TraitsType>::xorps(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x57);
@@ -2280,7 +2207,6 @@ void AssemblerX86Base<TraitsType>::insertps(Type Ty, XmmRegister dst,
   assert(isVectorFloatingType(Ty));
   (void)Ty;
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x3A);
@@ -2316,7 +2242,6 @@ void AssemblerX86Base<TraitsType>::pinsr(Type Ty, XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_uint8());
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
@@ -2389,7 +2314,6 @@ void AssemblerX86Base<TraitsType>::pcmpeq(Type Ty, XmmRegister dst,
                                           const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -2424,7 +2348,6 @@ void AssemblerX86Base<TraitsType>::pcmpgt(Type Ty, XmmRegister dst,
                                           const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
@@ -2470,7 +2393,6 @@ void AssemblerX86Base<TraitsType>::round(Type Ty, XmmRegister dst,
                                          const Immediate &mode) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x3A);
@@ -2496,7 +2418,6 @@ template <typename TraitsType>
 template <typename T, typename>
 void AssemblerX86Base<TraitsType>::fnstcw(const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(0xD9);
   emitOperand(7, dst);
 }
@@ -2505,7 +2426,6 @@ template <typename TraitsType>
 template <typename T, typename>
 void AssemblerX86Base<TraitsType>::fldcw(const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(0xD9);
   emitOperand(5, src);
 }
@@ -2514,7 +2434,6 @@ template <typename TraitsType>
 template <typename T, typename>
 void AssemblerX86Base<TraitsType>::fistpl(const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(0xDF);
   emitOperand(7, dst);
 }
@@ -2523,7 +2442,6 @@ template <typename TraitsType>
 template <typename T, typename>
 void AssemblerX86Base<TraitsType>::fistps(const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(0xDB);
   emitOperand(3, dst);
 }
@@ -2532,7 +2450,6 @@ template <typename TraitsType>
 template <typename T, typename>
 void AssemblerX86Base<TraitsType>::fildl(const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(0xDF);
   emitOperand(5, src);
 }
@@ -2541,7 +2458,6 @@ template <typename TraitsType>
 template <typename T, typename>
 void AssemblerX86Base<TraitsType>::filds(const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitUint8(0xDB);
   emitOperand(0, src);
 }
@@ -2594,7 +2510,6 @@ void AssemblerX86Base<TraitsType>::arith_int(Type Ty, GPRRegister reg,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, reg);
   if (isByteSizedType(Ty))
     emitUint8(Tag * 8 + 2);
@@ -2611,7 +2526,6 @@ void AssemblerX86Base<TraitsType>::arith_int(Type Ty, const Address &address,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, reg);
   if (isByteSizedType(Ty))
     emitUint8(Tag * 8 + 0);
@@ -2628,7 +2542,6 @@ void AssemblerX86Base<TraitsType>::arith_int(Type Ty, const Address &address,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, RexRegIrrelevant);
   if (isByteSizedType(Ty)) {
     emitComplexI8(Tag, address, imm);
@@ -2687,7 +2600,6 @@ void AssemblerX86Base<TraitsType>::test(Type Ty, const Address &addr,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, addr, reg);
   if (isByteSizedType(Ty))
     emitUint8(0x84);
@@ -2739,7 +2651,6 @@ void AssemblerX86Base<TraitsType>::test(Type Ty, const Address &addr,
   // short.
   if (immediate.is_uint8()) {
     // Use zero-extended 8-bit immediate.
-    emitAddrSizeOverridePrefix();
     emitRex(Ty, addr, RexRegIrrelevant);
     emitUint8(0xF6);
     static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
@@ -2748,7 +2659,6 @@ void AssemblerX86Base<TraitsType>::test(Type Ty, const Address &addr,
   } else {
     if (Ty == IceType_i16)
       emitOperandSizeOverride();
-    emitAddrSizeOverridePrefix();
     emitRex(Ty, addr, RexRegIrrelevant);
     emitUint8(0xF7);
     const uint8_t OffsetFromNextInstruction = Ty == IceType_i16 ? 2 : 4;
@@ -3011,7 +2921,6 @@ void AssemblerX86Base<TraitsType>::div(Type Ty, const Address &addr) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, addr, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
@@ -3038,7 +2947,6 @@ void AssemblerX86Base<TraitsType>::idiv(Type Ty, const Address &addr) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, addr, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
@@ -3069,7 +2977,6 @@ void AssemblerX86Base<TraitsType>::imul(Type Ty, GPRRegister reg,
          (Traits::Is64Bit && Ty == IceType_i64));
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, reg);
   emitUint8(0x0F);
   emitUint8(0xAF);
@@ -3113,7 +3020,6 @@ void AssemblerX86Base<TraitsType>::imul(Type Ty, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
@@ -3149,7 +3055,6 @@ void AssemblerX86Base<TraitsType>::imul(Type Ty, GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, dst);
   if (imm.is_int8()) {
     emitUint8(0x6B);
@@ -3182,7 +3087,6 @@ void AssemblerX86Base<TraitsType>::mul(Type Ty, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
@@ -3201,7 +3105,6 @@ void AssemblerX86Base<TraitsType>::incl(GPRRegister reg) {
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::incl(const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0xFF);
   emitOperand(0, address);
@@ -3217,7 +3120,6 @@ void AssemblerX86Base<TraitsType>::decl(GPRRegister reg) {
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::decl(const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitAddrSizeOverridePrefix();
   emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0xFF);
   emitOperand(1, address);
@@ -3330,7 +3232,6 @@ void AssemblerX86Base<TraitsType>::shld(Type Ty, const Address &operand,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, operand, src);
   emitUint8(0x0F);
   emitUint8(0xA5);
@@ -3372,7 +3273,6 @@ void AssemblerX86Base<TraitsType>::shrd(Type Ty, const Address &dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0xAD);
@@ -3397,7 +3297,6 @@ void AssemblerX86Base<TraitsType>::neg(Type Ty, const Address &addr) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, addr, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
@@ -3445,7 +3344,6 @@ void AssemblerX86Base<TraitsType>::bsf(Type Ty, GPRRegister dst,
          (Traits::Is64Bit && Ty == IceType_i64));
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xBC);
@@ -3474,7 +3372,6 @@ void AssemblerX86Base<TraitsType>::bsr(Type Ty, GPRRegister dst,
          (Traits::Is64Bit && Ty == IceType_i64));
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xBD);
@@ -3703,7 +3600,6 @@ void AssemblerX86Base<TraitsType>::cmpxchg(Type Ty, const Address &address,
     emitOperandSizeOverride();
   if (Locked)
     emitUint8(0xF0);
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, address, reg);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty))
@@ -3719,7 +3615,6 @@ void AssemblerX86Base<TraitsType>::cmpxchg8b(const Address &address,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Locked)
     emitUint8(0xF0);
-  emitAddrSizeOverridePrefix();
   emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0x0F);
   emitUint8(0xC7);
@@ -3734,7 +3629,6 @@ void AssemblerX86Base<TraitsType>::xadd(Type Ty, const Address &addr,
     emitOperandSizeOverride();
   if (Locked)
     emitUint8(0xF0);
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, addr, reg);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty))
@@ -3773,7 +3667,6 @@ void AssemblerX86Base<TraitsType>::xchg(Type Ty, const Address &addr,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitAddrSizeOverridePrefix();
   emitRex(Ty, addr, reg);
   if (isByteSizedArithType(Ty))
     emitUint8(0x86);

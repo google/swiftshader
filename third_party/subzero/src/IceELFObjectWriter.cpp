@@ -48,12 +48,6 @@ bool isELF64(const ClFlags &Flags) {
     return false;
   }
 
-  if (Flags.getApplicationBinaryInterface() == ABI_PNaCl &&
-      !Flags.getUseSandboxing()) {
-    // Unsandboxed PNaCl code is always ELF32 (pexes are ILP32.)
-    return false;
-  }
-
   return ELFTargetInfo[Arch].IsELF64;
 }
 

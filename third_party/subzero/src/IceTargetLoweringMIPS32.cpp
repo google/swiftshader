@@ -5155,8 +5155,7 @@ void TargetMIPS32::lowerIntrinsic(const InstIntrinsic *Instr) {
       }
       _mov(Dest, T);
     } else {
-      assert(getFlags().getApplicationBinaryInterface() != ::Ice::ABI_PNaCl);
-      UnimplementedLoweringError(this, Instr); // Not required for PNaCl
+      UnimplementedLoweringError(this, Instr);
     }
     return;
   }
@@ -5176,11 +5175,11 @@ void TargetMIPS32::lowerIntrinsic(const InstIntrinsic *Instr) {
     return;
   }
   case Intrinsics::LoadSubVector: {
-    UnimplementedLoweringError(this, Instr); // Not required for PNaCl
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::StoreSubVector: {
-    UnimplementedLoweringError(this, Instr); // Not required for PNaCl
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   default: // UnknownIntrinsic
