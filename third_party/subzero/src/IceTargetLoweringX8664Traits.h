@@ -30,7 +30,6 @@
 #include <initializer_list>
 
 namespace Ice {
-
 namespace X8664 {
 using namespace ::Ice::X86;
 
@@ -49,8 +48,6 @@ struct TargetX8664Traits {
   //      \/_/\/_/\/_____/\/_/  \/_/
   //
   //----------------------------------------------------------------------------
-
-  static constexpr bool Is64Bit = true;
   static constexpr ::Ice::RegX8664::GPRRegister Last8BitGPR =
       ::Ice::RegX8664::GPRRegister::Encoded_Reg_r15d;
 

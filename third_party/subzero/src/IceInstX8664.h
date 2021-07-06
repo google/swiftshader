@@ -2081,8 +2081,7 @@ class InstX86Pcmpgt
                                  InstX86Base::SseSuffix::Integral> {
 public:
   static InstX86Pcmpgt *create(Cfg *Func, Variable *Dest, Operand *Source) {
-    assert(Dest->getType() != IceType_f64 ||
-           getInstructionSet(Func) >= SSE4_1);
+    assert(Dest->getType() != IceType_f64 || getInstructionSet(Func) >= SSE4_1);
     return new (Func->allocate<InstX86Pcmpgt>())
         InstX86Pcmpgt(Func, Dest, Source);
   }

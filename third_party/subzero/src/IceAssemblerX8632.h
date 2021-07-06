@@ -577,12 +577,6 @@ public:
   void cbw();
   void cwd();
   void cdq();
-  template <typename T = Traits>
-  typename std::enable_if<T::Is64Bit, void>::type cqo();
-  template <typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, void>::type cqo() {
-    llvm::report_fatal_error("CQO is only available in 64-bit x86 backends.");
-  }
 
   void div(Type Ty, GPRRegister reg);
   void div(Type Ty, const Address &address);
@@ -604,13 +598,9 @@ public:
   void mul(Type Ty, GPRRegister reg);
   void mul(Type Ty, const Address &address);
 
-  template <class T = Traits,
-            typename = typename std::enable_if<!T::Is64Bit>::type>
   void incl(GPRRegister reg);
   void incl(const Address &address);
 
-  template <class T = Traits,
-            typename = typename std::enable_if<!T::Is64Bit>::type>
   void decl(GPRRegister reg);
   void decl(const Address &address);
 
@@ -749,18 +739,9 @@ private:
   template <uint32_t Tag>
   void arith_int(Type Ty, const Address &address, const Immediate &imm);
 
-  // gprEncoding returns Reg encoding for operand emission. For x86-64 we mask
-  // out the 4th bit as it is encoded in the REX.[RXB] bits. No other bits are
-  // touched because we don't want to mask errors.
+  // gprEncoding returns Reg encoding for operand emission.
   template <typename RegType, typename T = Traits>
-  typename std::enable_if<T::Is64Bit, typename T::GPRRegister>::type
-  gprEncoding(const RegType Reg) {
-    return static_cast<GPRRegister>(static_cast<uint8_t>(Reg) & ~0x08);
-  }
-
-  template <typename RegType, typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, typename T::GPRRegister>::type
-  gprEncoding(const RegType Reg) {
+  typename T::GPRRegister gprEncoding(const RegType Reg) {
     return static_cast<typename T::GPRRegister>(Reg);
   }
 };

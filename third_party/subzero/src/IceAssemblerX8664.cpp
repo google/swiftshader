@@ -276,7 +276,7 @@ void AssemblerX8664::movabs(const GPRRegister Dst, uint64_t Imm64) {
 }
 
 void AssemblerX8664::movzx(Type SrcTy, GPRRegister dst, GPRRegister src) {
-  if (Traits::Is64Bit && SrcTy == IceType_i32) {
+  if (SrcTy == IceType_i32) {
     // 32-bit mov clears the upper 32 bits, hence zero-extending the 32-bit
     // operand to 64-bit.
     mov(IceType_i32, dst, src);
@@ -293,7 +293,7 @@ void AssemblerX8664::movzx(Type SrcTy, GPRRegister dst, GPRRegister src) {
 }
 
 void AssemblerX8664::movzx(Type SrcTy, GPRRegister dst, const Address &src) {
-  if (Traits::Is64Bit && SrcTy == IceType_i32) {
+  if (SrcTy == IceType_i32) {
     // 32-bit mov clears the upper 32 bits, hence zero-extending the 32-bit
     // operand to 64-bit.
     mov(IceType_i32, dst, src);
@@ -317,7 +317,7 @@ void AssemblerX8664::movsx(Type SrcTy, GPRRegister dst, GPRRegister src) {
     emitUint8(0x0F);
     emitUint8(ByteSized ? 0xBE : 0xBF);
   } else {
-    assert(Traits::Is64Bit && SrcTy == IceType_i32);
+    assert(SrcTy == IceType_i32);
     emitUint8(0x63);
   }
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
@@ -331,7 +331,7 @@ void AssemblerX8664::movsx(Type SrcTy, GPRRegister dst, const Address &src) {
     emitUint8(0x0F);
     emitUint8(ByteSized ? 0xBE : 0xBF);
   } else {
-    assert(Traits::Is64Bit && SrcTy == IceType_i32);
+    assert(SrcTy == IceType_i32);
     emitUint8(0x63);
   }
   emitOperand(gprEncoding(dst), src);
@@ -339,8 +339,7 @@ void AssemblerX8664::movsx(Type SrcTy, GPRRegister dst, const Address &src) {
 
 void AssemblerX8664::lea(Type Ty, GPRRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
-         (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRex(Ty, src, dst);
@@ -354,7 +353,7 @@ void AssemblerX8664::cmov(Type Ty, BrCond cond, GPRRegister dst,
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   else
-    assert(Ty == IceType_i32 || (Traits::Is64Bit && Ty == IceType_i64));
+    assert(Ty == IceType_i32 || Ty == IceType_i64);
   emitRexRB(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0x40 + cond);
@@ -367,7 +366,7 @@ void AssemblerX8664::cmov(Type Ty, BrCond cond, GPRRegister dst,
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   else
-    assert(Ty == IceType_i32 || (Traits::Is64Bit && Ty == IceType_i64));
+    assert(Ty == IceType_i32 || Ty == IceType_i64);
   emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0x40 + cond);
@@ -2466,8 +2465,7 @@ void AssemblerX8664::idiv(Type Ty, const Address &addr) {
 
 void AssemblerX8664::imul(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
-         (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRexRB(Ty, dst, src);
@@ -2478,8 +2476,7 @@ void AssemblerX8664::imul(Type Ty, GPRRegister dst, GPRRegister src) {
 
 void AssemblerX8664::imul(Type Ty, GPRRegister reg, const Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
-         (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRex(Ty, address, reg);
@@ -2758,7 +2755,7 @@ void AssemblerX8664::notl(GPRRegister reg) {
 
 void AssemblerX8664::bswap(Type Ty, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i32 || (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i32 || Ty == IceType_i64);
   emitRexB(Ty, reg);
   emitUint8(0x0F);
   emitUint8(0xC8 | gprEncoding(reg));
@@ -2766,8 +2763,7 @@ void AssemblerX8664::bswap(Type Ty, GPRRegister reg) {
 
 void AssemblerX8664::bsf(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
-         (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRexRB(Ty, dst, src);
@@ -2778,8 +2774,7 @@ void AssemblerX8664::bsf(Type Ty, GPRRegister dst, GPRRegister src) {
 
 void AssemblerX8664::bsf(Type Ty, GPRRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
-         (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRex(Ty, src, dst);
@@ -2790,8 +2785,7 @@ void AssemblerX8664::bsf(Type Ty, GPRRegister dst, const Address &src) {
 
 void AssemblerX8664::bsr(Type Ty, GPRRegister dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
-         (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRexRB(Ty, dst, src);
@@ -2802,8 +2796,7 @@ void AssemblerX8664::bsr(Type Ty, GPRRegister dst, GPRRegister src) {
 
 void AssemblerX8664::bsr(Type Ty, GPRRegister dst, const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
-         (Traits::Is64Bit && Ty == IceType_i64));
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRex(Ty, src, dst);

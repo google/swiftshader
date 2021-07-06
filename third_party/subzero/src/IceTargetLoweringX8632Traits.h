@@ -29,7 +29,6 @@
 #include <array>
 
 namespace Ice {
-
 namespace X8632 {
 using namespace ::Ice::X86;
 
@@ -48,7 +47,6 @@ struct TargetX8632Traits {
   //      \/_/\/_/\/_____/\/_/  \/_/
   //
   //----------------------------------------------------------------------------
-  static constexpr bool Is64Bit = false;
   static constexpr ::Ice::RegX8632::GPRRegister Last8BitGPR =
       ::Ice::RegX8632::GPRRegister::Encoded_Reg_ebx;
 

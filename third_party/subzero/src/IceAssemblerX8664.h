@@ -718,16 +718,8 @@ private:
   // gprEncoding returns Reg encoding for operand emission. For x86-64 we mask
   // out the 4th bit as it is encoded in the REX.[RXB] bits. No other bits are
   // touched because we don't want to mask errors.
-  template <typename RegType, typename T = Traits>
-  typename std::enable_if<T::Is64Bit, typename T::GPRRegister>::type
-  gprEncoding(const RegType Reg) {
+  template <typename RegType> GPRRegister gprEncoding(const RegType Reg) {
     return static_cast<GPRRegister>(static_cast<uint8_t>(Reg) & ~0x08);
-  }
-
-  template <typename RegType, typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, typename T::GPRRegister>::type
-  gprEncoding(const RegType Reg) {
-    return static_cast<typename T::GPRRegister>(Reg);
   }
 
   template <typename RegType>
@@ -755,35 +747,29 @@ private:
   // mov[sz]x instructions.) If Addr is not nullptr, then Rm is ignored, and
   // Rex.B is determined by Addr instead. TyRm is still used to determine
   // Addr's size.
-  template <typename RegType, typename RmType, typename T = Traits>
-  typename std::enable_if<T::Is64Bit, void>::type
-  assembleAndEmitRex(const Type TyReg, const RegType Reg, const Type TyRm,
-                     const RmType Rm,
-                     const typename T::Address *Addr = nullptr) {
+  template <typename RegType, typename RmType>
+  void assembleAndEmitRex(const Type TyReg, const RegType Reg, const Type TyRm,
+                          const RmType Rm,
+                          const Address *Addr = nullptr) {
     const uint8_t W = (TyReg == IceType_i64 || TyRm == IceType_i64)
-                          ? T::Operand::RexW
-                          : T::Operand::RexNone;
-    const uint8_t R = (Reg & 0x08) ? T::Operand::RexR : T::Operand::RexNone;
+                          ? Operand::RexW
+                          : Operand::RexNone;
+    const uint8_t R = (Reg & 0x08) ? Operand::RexR : Operand::RexNone;
     const uint8_t X = (Addr != nullptr)
-                          ? (typename T::Operand::RexBits)Addr->rexX()
-                          : T::Operand::RexNone;
+                          ? (typename Operand::RexBits)Addr->rexX()
+                          : Operand::RexNone;
     const uint8_t B = (Addr != nullptr)
-                          ? (typename T::Operand::RexBits)Addr->rexB()
-                      : (Rm & 0x08) ? T::Operand::RexB
-                                    : T::Operand::RexNone;
+                          ? (typename Operand::RexBits)Addr->rexB()
+                      : (Rm & 0x08) ? Operand::RexB
+                                    : Operand::RexNone;
     const uint8_t Prefix = W | R | X | B;
-    if (Prefix != T::Operand::RexNone) {
+    if (Prefix != Operand::RexNone) {
       emitUint8(Prefix);
     } else if (is8BitRegisterRequiringRex(TyReg, Reg) ||
                (Addr == nullptr && is8BitRegisterRequiringRex(TyRm, Rm))) {
-      emitUint8(T::Operand::RexBase);
+      emitUint8(Operand::RexBase);
     }
   }
-
-  template <typename RegType, typename RmType, typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, void>::type
-  assembleAndEmitRex(const Type, const RegType, const Type, const RmType,
-                     const typename T::Address * = nullptr) {}
 
   // emitRexRB is used for emitting a Rex prefix instructions with two
   // explicit register operands in its mod-rm byte.

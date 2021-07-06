@@ -248,7 +248,7 @@ public:
   }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
-    return Traits::Is64Bit ? false : Ty == IceType_i64;
+    return Ty == IceType_i64;
   }
 
   SizeT getMinJumpTableSize() const override { return 4; }
@@ -264,23 +264,8 @@ public:
 
   void initNodeForLowering(CfgNode *Node) override;
 
-  template <typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, Operand>::type *
-  loOperand(Operand *Operand);
-  template <typename T = Traits>
-  typename std::enable_if<T::Is64Bit, Operand>::type *loOperand(Operand *) {
-    llvm::report_fatal_error(
-        "Hey, yo! This is x86-64. Watcha doin'? (loOperand)");
-  }
-
-  template <typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, Operand>::type *
-  hiOperand(Operand *Operand);
-  template <typename T = Traits>
-  typename std::enable_if<T::Is64Bit, Operand>::type *hiOperand(Operand *) {
-    llvm::report_fatal_error(
-        "Hey, yo! This is x86-64. Watcha doin'? (hiOperand)");
-  }
+  Operand *loOperand(Operand *Operand);
+  Operand *hiOperand(Operand *Operand);
 
   void addProlog(CfgNode *Node) override;
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
@@ -530,9 +515,7 @@ protected:
   void _bsr(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Bsr>(Dest, Src0);
   }
-  void _bswap(Variable *SrcDest) {
-    Context.insert<Insts::Bswap>(SrcDest);
-  }
+  void _bswap(Variable *SrcDest) { Context.insert<Insts::Bswap>(SrcDest); }
   void _cbwdq(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Cbwdq>(Dest, Src0);
   }
@@ -547,8 +530,7 @@ protected:
   }
   void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,
                 bool Locked) {
-    Context.insert<Insts::Cmpxchg>(DestOrAddr, Eax, Desired,
-                                                    Locked);
+    Context.insert<Insts::Cmpxchg>(DestOrAddr, Eax, Desired, Locked);
     // Mark eax as possibly modified by cmpxchg.
     Context.insert<InstFakeDef>(Eax, llvm::dyn_cast<Variable>(DestOrAddr));
     _set_dest_redefined();
@@ -556,8 +538,7 @@ protected:
   }
   void _cmpxchg8b(X86OperandMem *Addr, Variable *Edx, Variable *Eax,
                   Variable *Ecx, Variable *Ebx, bool Locked) {
-    Context.insert<Insts::Cmpxchg8b>(Addr, Edx, Eax, Ecx, Ebx,
-                                                      Locked);
+    Context.insert<Insts::Cmpxchg8b>(Addr, Edx, Eax, Ecx, Ebx, Locked);
     // Mark edx, and eax as possibly modified by cmpxchg8b.
     Context.insert<InstFakeDef>(Edx);
     _set_dest_redefined();
@@ -566,8 +547,7 @@ protected:
     _set_dest_redefined();
     Context.insert<InstFakeUse>(Eax);
   }
-  void _cvt(Variable *Dest, Operand *Src0,
-            Insts::Cvt::CvtVariant Variant) {
+  void _cvt(Variable *Dest, Operand *Src0, Insts::Cvt::CvtVariant Variant) {
     Context.insert<Insts::Cvt>(Dest, Src0, Variant);
   }
   void _round(Variable *Dest, Operand *Src0, Operand *Imm) {
@@ -582,12 +562,8 @@ protected:
   void _divss(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Divss>(Dest, Src0);
   }
-  void _fld(Operand *Src0) {
-    Context.insert<Insts::Fld>(Src0);
-  }
-  void _fstp(Variable *Dest) {
-    Context.insert<Insts::Fstp>(Dest);
-  }
+  void _fld(Operand *Src0) { Context.insert<Insts::Fld>(Src0); }
+  void _fstp(Variable *Dest) { Context.insert<Insts::Fstp>(Dest); }
   void _idiv(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert<Insts::Idiv>(Dest, Src0, Src1);
   }
@@ -601,9 +577,7 @@ protected:
     Context.insert<Insts::Insertps>(Dest, Src0, Src1);
   }
   void _int3() { Context.insert<Insts::Int3>(); }
-  void _jmp(Operand *Target) {
-    Context.insert<Insts::Jmp>(Target);
-  }
+  void _jmp(Operand *Target) { Context.insert<Insts::Jmp>(Target); }
   void _lea(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Lea>(Dest, Src0);
   }
@@ -620,8 +594,7 @@ protected:
   /// If Dest=nullptr is passed in, then a new variable is created, marked as
   /// infinite register allocation weight, and returned through the in/out Dest
   /// argument.
-  Insts::Mov *_mov(Variable *&Dest, Operand *Src0,
-                                    RegNumT RegNum = RegNumT()) {
+  Insts::Mov *_mov(Variable *&Dest, Operand *Src0, RegNumT RegNum = RegNumT()) {
     if (Dest == nullptr)
       Dest = makeReg(Src0->getType(), RegNum);
     return Context.insert<Insts::Mov>(Dest, Src0);
@@ -666,12 +639,8 @@ protected:
   void _mulss(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Mulss>(Dest, Src0);
   }
-  void _neg(Variable *SrcDest) {
-    Context.insert<Insts::Neg>(SrcDest);
-  }
-  void _nop(SizeT Variant) {
-    Context.insert<Insts::Nop>(Variant);
-  }
+  void _neg(Variable *SrcDest) { Context.insert<Insts::Neg>(SrcDest); }
+  void _nop(SizeT Variant) { Context.insert<Insts::Nop>(Variant); }
   void _or(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Or>(Dest, Src0);
   }
@@ -701,8 +670,7 @@ protected:
   }
   void _pcmpeq(Variable *Dest, Operand *Src0,
                Type ArithmeticTypeOverride = IceType_void) {
-    Context.insert<Insts::Pcmpeq>(Dest, Src0,
-                                                   ArithmeticTypeOverride);
+    Context.insert<Insts::Pcmpeq>(Dest, Src0, ArithmeticTypeOverride);
   }
   void _pcmpgt(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Pcmpgt>(Dest, Src0);
@@ -728,9 +696,7 @@ protected:
   void _pmuludq(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Pmuludq>(Dest, Src0);
   }
-  void _pop(Variable *Dest) {
-    Context.insert<Insts::Pop>(Dest);
-  }
+  void _pop(Variable *Dest) { Context.insert<Insts::Pop>(Dest); }
   void _por(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Por>(Dest, Src0);
   }
@@ -770,15 +736,11 @@ protected:
   void _psubus(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Psubus>(Dest, Src0);
   }
-  void _push(Operand *Src0) {
-    Context.insert<Insts::Push>(Src0);
-  }
+  void _push(Operand *Src0) { Context.insert<Insts::Push>(Src0); }
   void _pxor(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Pxor>(Dest, Src0);
   }
-  void _ret(Variable *Src0 = nullptr) {
-    Context.insert<Insts::Ret>(Src0);
-  }
+  void _ret(Variable *Src0 = nullptr) { Context.insert<Insts::Ret>(Src0); }
   void _rol(Variable *Dest, Operand *Src0) {
     Context.insert<Insts::Rol>(Dest, Src0);
   }
@@ -962,18 +924,8 @@ private:
   /// Optimizations for idiom recognition.
   bool lowerOptimizeFcmpSelect(const InstFcmp *Fcmp, const InstSelect *Select);
 
-  /// Complains loudly if invoked because the cpu can handle 64-bit types
-  /// natively.
-  template <typename T = Traits>
-  typename std::enable_if<T::Is64Bit, void>::type lowerIcmp64(const InstIcmp *,
-                                                              const Inst *) {
-    llvm::report_fatal_error(
-        "Hey, yo! This is x86-64. Watcha doin'? (lowerIcmp64)");
-  }
   /// x86lowerIcmp64 handles 64-bit icmp lowering.
-  template <typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, void>::type
-  lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer);
+  void lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer);
 
   BoolFolding FoldingInfo;
 

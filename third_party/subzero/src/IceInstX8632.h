@@ -28,7 +28,6 @@
 #include "IceTargetLoweringX86.h"
 
 namespace Ice {
-
 namespace X8632 {
 
 using Traits = TargetX8632Traits;
@@ -1183,8 +1182,6 @@ private:
 
   InstX86Movzx(Cfg *Func, Variable *Dest, Operand *Src)
       : InstX86BaseUnaryopGPR<InstX86Base::Movzx>(Func, Dest, Src) {}
-
-  bool mayBeElided(const Variable *Dest, const Operand *Src) const;
 };
 
 class InstX86Movd : public InstX86BaseUnaryopXmm<InstX86Base::Movd> {
