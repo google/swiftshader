@@ -76,8 +76,7 @@ public:
   }
 
   std::unique_ptr<::Ice::Assembler> createAssembler() const override {
-    const bool IsNonsfi = SandboxingType == ST_Nonsfi;
-    return makeUnique<ARM32::AssemblerARM32>(IsNonsfi);
+    return makeUnique<ARM32::AssemblerARM32>();
   }
 
   void initNodeForLowering(CfgNode *Node) override {
@@ -991,16 +990,6 @@ protected:
 
   void postLowerLegalization();
 
-  /// Manages the GotPtr variable, which is used for Nonsfi sandboxing.
-  /// @{
-  void createGotPtr();
-  void insertGotPtrInitPlaceholder();
-  VariableDeclaration *createGotRelocation(RelocOffset *AddPcReloc);
-  void materializeGotAddr(CfgNode *Node);
-  Variable *GotPtr = nullptr;
-  // TODO(jpp): use CfgLocalAllocator.
-  /// @}
-
   /// Manages the Gotoff relocations created during the function lowering. A
   /// single Gotoff relocation is created for each global variable used by the
   /// function being lowered.
@@ -1010,156 +999,6 @@ protected:
   GlobalString createGotoffRelocation(const ConstantRelocatable *CR);
   CfgUnorderedSet<GlobalString> KnownGotoffs;
   /// @}
-
-  /// Loads the constant relocatable Name to Register. Then invoke Finish to
-  /// finish the relocatable lowering. Finish **must** use PC in its first
-  /// emitted instruction, or the relocatable in Register will contain the wrong
-  /// value.
-  //
-  // Lowered sequence:
-  //
-  // Movw:
-  //     movw Register, #:lower16:Name - (End - Movw) - 8 .
-  // Movt:
-  //     movt Register, #:upper16:Name - (End - Movt) - 8 .
-  //     PC = fake-def
-  // End:
-  //     Finish(PC)
-  //
-  // The -8 in movw/movt above is to account for the PC value that the first
-  // instruction emitted by Finish(PC) will read.
-  void
-  loadNamedConstantRelocatablePIC(GlobalString Name, Variable *Register,
-                                  std::function<void(Variable *PC)> Finish);
-
-  /// Sandboxer defines methods for ensuring that "dangerous" operations are
-  /// masked during sandboxed code emission. For regular, non-sandboxed code
-  /// emission, its methods are simple pass-through methods.
-  ///
-  /// The Sandboxer also emits BundleLock/BundleUnlock pseudo-instructions
-  /// in the constructor/destructor during sandboxed code emission. Therefore,
-  /// it is a bad idea to create an object of this type and "keep it around."
-  /// The recommended usage is:
-  ///
-  /// AutoSandboxing(this).<<operation>>(...);
-  ///
-  /// This usage ensures that no other instructions are inadvertently added to
-  /// the bundle.
-  class Sandboxer {
-    Sandboxer() = delete;
-    Sandboxer(const Sandboxer &) = delete;
-    Sandboxer &operator=(const Sandboxer &) = delete;
-
-  public:
-    explicit Sandboxer(
-        TargetARM32 *Target,
-        InstBundleLock::Option BundleOption = InstBundleLock::Opt_None);
-    ~Sandboxer();
-
-    /// Increments sp:
-    ///
-    ///   add sp, sp, AddAmount
-    ///   bic sp, sp, 0xc0000000
-    ///
-    /// (for the rationale, see the ARM 32-bit Sandbox Specification.)
-    void add_sp(Operand *AddAmount);
-
-    /// Emits code to align sp to the specified alignment:
-    ///
-    ///   bic/and sp, sp, Alignment
-    ///   bic, sp, sp, 0xc0000000
-    void align_sp(size_t Alignment);
-
-    /// Emits a call instruction. If CallTarget is a Variable, it emits
-    ///
-    ///   bic CallTarget, CallTarget, 0xc000000f
-    ///   bl CallTarget
-    ///
-    /// Otherwise, it emits
-    ///
-    ///   bl CallTarget
-    ///
-    /// Note: in sandboxed code calls are always emitted in addresses 12 mod 16.
-    InstARM32Call *bl(Variable *ReturnReg, Operand *CallTarget);
-
-    /// Emits a load:
-    ///
-    ///   bic rBase, rBase, 0xc0000000
-    ///   ldr rDest, [rBase, #Offset]
-    ///
-    /// Exception: if rBase is r9 or sp, then the load is emitted as:
-    ///
-    ///   ldr rDest, [rBase, #Offset]
-    ///
-    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
-    /// always valid.
-    void ldr(Variable *Dest, OperandARM32Mem *Mem, CondARM32::Cond Pred);
-
-    /// Emits a load exclusive:
-    ///
-    ///   bic rBase, rBase, 0xc0000000
-    ///   ldrex rDest, [rBase]
-    ///
-    /// Exception: if rBase is r9 or sp, then the load is emitted as:
-    ///
-    ///   ldrex rDest, [rBase]
-    ///
-    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
-    /// always valid.
-    void ldrex(Variable *Dest, OperandARM32Mem *Mem, CondARM32::Cond Pred);
-
-    /// Resets sp to Src:
-    ///
-    ///   mov sp, Src
-    ///   bic sp, sp, 0xc0000000
-    void reset_sp(Variable *Src);
-
-    /// Emits code to return from a function:
-    ///
-    ///   bic lr, lr, 0xc000000f
-    ///   bx lr
-    void ret(Variable *RetAddr, Variable *RetValue);
-
-    /// Emits a store:
-    ///
-    ///   bic rBase, rBase, 0xc0000000
-    ///   str rSrc, [rBase, #Offset]
-    ///
-    /// Exception: if rBase is r9 or sp, then the store is emitted as:
-    ///
-    ///   str rDest, [rBase, #Offset]
-    ///
-    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
-    /// always valid.
-    void str(Variable *Src, OperandARM32Mem *Mem, CondARM32::Cond Pred);
-
-    /// Emits a store exclusive:
-    ///
-    ///   bic rBase, rBase, 0xc0000000
-    ///   strex rDest, rSrc, [rBase]
-    ///
-    /// Exception: if rBase is r9 or sp, then the store is emitted as:
-    ///
-    ///   strex rDest, rSrc, [rBase]
-    ///
-    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
-    /// always valid.
-    void strex(Variable *Dest, Variable *Src, OperandARM32Mem *Mem,
-               CondARM32::Cond Pred);
-
-    /// Decrements sp:
-    ///
-    ///   sub sp, sp, SubAmount
-    ///   bic sp, sp, 0xc0000000
-    void sub_sp(Operand *SubAmount);
-
-  private:
-    TargetARM32 *const Target;
-    const InstBundleLock::Option BundleOption;
-    std::unique_ptr<AutoBundle> Bundler;
-
-    void createAutoBundle();
-  };
 
   class PostLoweringLegalizer {
     PostLoweringLegalizer() = delete;
@@ -1217,7 +1056,6 @@ protected:
     int32_t TempBaseOffset = 0;
   };
 
-  const bool NeedSandboxing;
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;

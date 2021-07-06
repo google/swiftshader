@@ -28,7 +28,7 @@ struct dev_opt_flag {};
 // Multi-value flag, not available in a non-LLVM_CL build.
 struct dev_list_flag {};
 
-} // end of namespace detail
+} // namespace cl_detail
 
 #define COMMAND_LINE_FLAGS                                                     \
   /* Name, Type, ClType, <<flag declaration ctor arguments>> */                \
@@ -65,7 +65,7 @@ struct dev_list_flag {};
         clEnumValN(Ice::Target_ARM64, "arm64", "arm64"),                       \
         clEnumValN(Ice::Target_MIPS32, "mips", "mips32"),                      \
         clEnumValN(Ice::Target_MIPS32, "mips32", "mips32 (same as mips)")      \
-        CLENUMVALEND))                                                         \
+            CLENUMVALEND))                                                     \
                                                                                \
   /* The following are development flags, and ideally should not appear in a   \
    * release build. */                                                         \
@@ -134,10 +134,8 @@ struct dev_list_flag {};
   X(DumpStats, bool, dev_opt_flag, "szstats",                                  \
     cl::desc("Print statistics after translating each function"))              \
                                                                                \
-  X(DumpStrings, bool, dev_opt_flag,                                           \
-    "dump-strings",                                                            \
-    cl::desc("Dump string pools during compilation"),                          \
-    cl::init(false))                                                           \
+  X(DumpStrings, bool, dev_opt_flag, "dump-strings",                           \
+    cl::desc("Dump string pools during compilation"), cl::init(false))         \
                                                                                \
   X(EnableBlockProfile, bool, dev_opt_flag, "enable-block-profile",            \
     cl::desc("Instrument basic blocks, and output profiling "                  \
@@ -147,11 +145,10 @@ struct dev_list_flag {};
   X(LocalCSE, Ice::LCSEOptions, dev_opt_flag, "lcse",                          \
     cl::desc("Local common subexpression elimination"),                        \
     cl::init(Ice::LCSE_EnabledSSA),                                            \
-    cl::values(                                                                \
-      clEnumValN(Ice::LCSE_Disabled, "0", "disabled"),                         \
-      clEnumValN(Ice::LCSE_EnabledSSA, "enabled", "assume-ssa"),               \
-      clEnumValN(Ice::LCSE_EnabledNoSSA, "no-ssa", "no-assume-ssa")            \
-      CLENUMVALEND))                                                           \
+    cl::values(clEnumValN(Ice::LCSE_Disabled, "0", "disabled"),                \
+               clEnumValN(Ice::LCSE_EnabledSSA, "enabled", "assume-ssa"),      \
+               clEnumValN(Ice::LCSE_EnabledNoSSA, "no-ssa", "no-assume-ssa")   \
+                   CLENUMVALEND))                                              \
                                                                                \
   X(EmitRevision, bool, dev_opt_flag, "emit-revision",                         \
     cl::desc("Emit Subzero revision string into the output"), cl::init(true))  \
@@ -183,14 +180,13 @@ struct dev_list_flag {};
     cl::init(false))                                                           \
                                                                                \
   X(SplitGlobalVars, bool, dev_opt_flag, "split-global-vars",                  \
-    cl::desc("Global live range splitting"),                                   \
-    cl::init(false))                                                           \
+    cl::desc("Global live range splitting"), cl::init(false))                  \
                                                                                \
   X(InputFileFormat, llvm::NaClFileFormat, dev_opt_flag, "bitcode-format",     \
     cl::desc("Define format of input file:"),                                  \
     cl::values(clEnumValN(llvm::LLVMFormat, "llvm", "LLVM file (default)"),    \
                clEnumValN(llvm::PNaClFormat, "pnacl", "PNaCl bitcode file")    \
-               CLENUMVALEND),                                                  \
+                   CLENUMVALEND),                                              \
     cl::init(llvm::LLVMFormat))                                                \
                                                                                \
   X(KeepDeletedInsts, bool, dev_opt_flag, "keep-deleted-insts",                \
@@ -202,7 +198,7 @@ struct dev_list_flag {};
              "building LLVM IR first"),                                        \
     cl::init(false))                                                           \
                                                                                \
-   X(LocalCseMaxIterations, uint32_t, dev_opt_flag, "lcse-max-iters",          \
+  X(LocalCseMaxIterations, uint32_t, dev_opt_flag, "lcse-max-iters",           \
     cl::desc("Number of times local-cse is run on a block"), cl::init(1))      \
                                                                                \
   X(LoopInvariantCodeMotion, bool, dev_opt_flag, "licm",                       \
@@ -267,7 +263,7 @@ struct dev_list_flag {};
                    "Enable ARM Neon instructions"),                            \
         clEnumValN(Ice::ARM32InstructionSet_HWDivArm, "hwdiv-arm",             \
                    "Enable ARM integer divide instructions in ARM mode")       \
-        CLENUMVALEND))                                                         \
+            CLENUMVALEND))                                                     \
                                                                                \
   X(TestPrefix, std::string, dev_opt_flag, "prefix",                           \
     cl::desc("Prepend a prefix to symbol names for testing"), cl::init(""),    \
@@ -291,14 +287,10 @@ struct dev_list_flag {};
   X(TranslateOnlyString, std::string, dev_opt_flag, "translate-only",          \
     cl::desc("Translate only the given functions"), cl::init(":"))             \
                                                                                \
-  X(UseNonsfi, bool, dev_opt_flag, "nonsfi", cl::desc("Enable Non-SFI mode"))  \
-                                                                               \
   X(UseRestrictedRegisters, std::string, dev_list_flag, "reg-use",             \
     cl::CommaSeparated,                                                        \
     cl::desc("Only use specified registers for corresponding register "        \
              "classes"))                                                       \
-                                                                               \
-  X(UseSandboxing, bool, dev_opt_flag, "sandbox", cl::desc("Use sandboxing"))  \
                                                                                \
   X(Verbose, Ice::VerboseItem, dev_list_flag, "verbose", cl::CommaSeparated,   \
     cl::desc("Verbose options (can be comma-separated):"),                     \
@@ -340,8 +332,7 @@ struct dev_list_flag {};
     cl::init(":"))                                                             \
                                                                                \
   X(WasmBoundsCheck, bool, dev_opt_flag, "wasm-bounds-check",                  \
-    cl::desc("Add bounds checking code in WASM frontend"),                     \
-    cl::init(true))
+    cl::desc("Add bounds checking code in WASM frontend"), cl::init(true))
 
 //#define X(Name, Type, ClType, ...)
 

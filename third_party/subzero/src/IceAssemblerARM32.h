@@ -95,11 +95,7 @@ public:
     const RegNumT FrameOrStackReg;
   };
 
-  explicit AssemblerARM32(bool IsNonsfi, bool use_far_branches = false)
-      : Assembler(Asm_ARM32), IsNonsfi(IsNonsfi) {
-    // TODO(kschimpf): Add mode if needed when branches are handled.
-    (void)use_far_branches;
-  }
+  AssemblerARM32() : Assembler(Asm_ARM32) {}
   ~AssemblerARM32() override {
     if (BuildDefs::asserts()) {
       for (const Label *Label : CfgNodeLabels) {
@@ -677,8 +673,6 @@ public:
 
 private:
   ENABLE_MAKE_UNIQUE;
-
-  const bool IsNonsfi;
 
   // A vector of pool-allocated x86 labels for CFG nodes.
   using LabelVector = std::vector<Label *>;

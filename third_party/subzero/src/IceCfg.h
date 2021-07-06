@@ -219,7 +219,6 @@ public:
   bool validateLiveness() const;
   void contractEmptyNodes();
   void doBranchOpt();
-  void markNodesForSandboxing();
 
   /// \name  Manage the CurrentNode field.
   /// CurrentNode is used for validating the Variable::DefNode field during

@@ -48,20 +48,14 @@ public:
 protected:
   void _add_sp(Operand *Adjustment);
   void _mov_sp(Operand *NewValue);
-  Traits::X86OperandMem *_sandbox_mem_reference(X86OperandMem *Mem);
   void _sub_sp(Operand *Adjustment);
   void _link_bp();
   void _unlink_bp();
   void _push_reg(RegNumT RegNum);
   void _pop_reg(RegNumT RegNum);
 
-  void initRebasePtr();
-  void initSandbox();
-  bool legalizeOptAddrForSandbox(OptAddr *Addr);
-  void emitSandboxedReturn();
   void emitStackProbe(size_t StackSizeBytes);
   void lowerIndirectJump(Variable *JumpTarget);
-  void emitGetIP(CfgNode *Node);
   Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
                          size_t NumVariadicFpArgs = 0) override;
   Variable *moveReturnValueToRegister(Operand *Value, Type ReturnType) override;
@@ -71,13 +65,6 @@ private:
   friend class X8632::TargetX86Base<X8632::Traits>;
 
   explicit TargetX8632(Cfg *Func) : TargetX86Base(Func) {}
-
-  Operand *createNaClReadTPSrcOperand() {
-    Constant *Zero = Ctx->getConstantZero(IceType_i32);
-    return Traits::X86OperandMem::create(Func, IceType_i32, nullptr, Zero,
-                                         nullptr, 0,
-                                         Traits::X86OperandMem::SegReg_GS);
-  }
 };
 
 // The -Wundefined-var-template warning requires to forward-declare static
@@ -101,10 +88,6 @@ template <>
 std::array<SmallBitVector,
            TargetX86Base<X8632::Traits>::Traits::RegisterSet::Reg_NUM>
     TargetX86Base<X8632::Traits>::RegisterAliases;
-
-template <> FixupKind TargetX86Base<X8632::Traits>::PcRelFixup;
-
-template <> FixupKind TargetX86Base<X8632::Traits>::AbsFixup;
 #endif // defined(__clang__)
 
 } // end of namespace X8632

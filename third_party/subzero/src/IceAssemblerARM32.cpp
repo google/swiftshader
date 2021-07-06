@@ -686,10 +686,8 @@ MoveRelocatableFixup *AssemblerARM32::createMoveFixup(bool IsMovW,
                                                       const Constant *Value) {
   MoveRelocatableFixup *F =
       new (allocate<MoveRelocatableFixup>()) MoveRelocatableFixup();
-  F->set_kind(IsMovW ? (IsNonsfi ? llvm::ELF::R_ARM_MOVW_PREL_NC
-                                 : llvm::ELF::R_ARM_MOVW_ABS_NC)
-                     : (IsNonsfi ? llvm::ELF::R_ARM_MOVT_PREL
-                                 : llvm::ELF::R_ARM_MOVT_ABS));
+  F->set_kind(IsMovW ? llvm::ELF::R_ARM_MOVW_ABS_NC
+                     : llvm::ELF::R_ARM_MOVT_ABS);
   F->set_value(Value);
   Buffer.installFixup(F);
   return F;

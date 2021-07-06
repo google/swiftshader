@@ -101,7 +101,6 @@ template <typename TraitsType> struct InstImpl {
       FakeRMW,
       Fld,
       Fstp,
-      GetIP,
       Icmp,
       Idiv,
       Imul,
@@ -282,26 +281,6 @@ template <typename TraitsType> struct InstImpl {
     InstArithmetic::OpKind Op;
     InstX86FakeRMW(Cfg *Func, Operand *Data, Operand *Addr,
                    InstArithmetic::OpKind Op, Variable *Beacon);
-  };
-
-  class InstX86GetIP final : public InstX86Base {
-    InstX86GetIP() = delete;
-    InstX86GetIP(const InstX86GetIP &) = delete;
-    InstX86GetIP &operator=(const InstX86GetIP &) = delete;
-
-  public:
-    static InstX86GetIP *create(Cfg *Func, Variable *Dest) {
-      return new (Func->allocate<InstX86GetIP>()) InstX86GetIP(Func, Dest);
-    }
-    void emit(const Cfg *Func) const override;
-    void emitIAS(const Cfg *Func) const override;
-    void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Instr) {
-      return InstX86Base::isClassof(Instr, InstX86Base::GetIP);
-    }
-
-  private:
-    InstX86GetIP(Cfg *Func, Variable *Dest);
   };
 
   /// InstX86Label represents an intra-block label that is the target of an
@@ -3189,7 +3168,6 @@ template <typename TraitsType> struct InstImpl {
 ///
 /// using Insts = ::Ice::X86NAMESPACE::Insts<TraitsType>;
 template <typename TraitsType> struct Insts {
-  using GetIP = typename InstImpl<TraitsType>::InstX86GetIP;
   using FakeRMW = typename InstImpl<TraitsType>::InstX86FakeRMW;
   using Label = typename InstImpl<TraitsType>::InstX86Label;
 

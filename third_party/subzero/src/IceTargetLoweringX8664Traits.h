@@ -547,7 +547,6 @@ public:
 #undef X
     };
 
-    const bool NeedSandboxing = Flags.getUseSandboxing();
     for (SizeT ii = 0; ii < llvm::array_lengthof(X8664RegTable); ++ii) {
       const auto &Entry = X8664RegTable[ii];
       // Even though the register is disabled for register allocation, it might
@@ -561,11 +560,7 @@ public:
       }
 
       (*RegisterAliases)[Entry.Val].set(Entry.Val);
-      const bool DisabledRegister =
-          NeedSandboxing && Entry.IsReservedWhenSandboxing;
-      if (DisabledRegister) {
-        continue;
-      }
+
       (IntegerRegistersI64)[Entry.Val] = Entry.Is64;
       (IntegerRegistersI32)[Entry.Val] = Entry.Is32;
       (IntegerRegistersI16)[Entry.Val] = Entry.Is16;
@@ -606,28 +601,25 @@ public:
                                        TargetLowering::RegSetMask Exclude) {
     SmallBitVector Registers(RegisterSet::Reg_NUM);
 
-    const bool NeedSandboxing = Flags.getUseSandboxing();
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
           is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
-  if (!NeedSandboxing || !(sboxres)) {                                         \
-    if (scratch && (Include & ::Ice::TargetLowering::RegSet_CallerSave))       \
-      Registers[RegisterSet::val] = true;                                      \
-    if (preserved && (Include & ::Ice::TargetLowering::RegSet_CalleeSave))     \
-      Registers[RegisterSet::val] = true;                                      \
-    if (stackptr && (Include & ::Ice::TargetLowering::RegSet_StackPointer))    \
-      Registers[RegisterSet::val] = true;                                      \
-    if (frameptr && (Include & ::Ice::TargetLowering::RegSet_FramePointer))    \
-      Registers[RegisterSet::val] = true;                                      \
-    if (scratch && (Exclude & ::Ice::TargetLowering::RegSet_CallerSave))       \
-      Registers[RegisterSet::val] = false;                                     \
-    if (preserved && (Exclude & ::Ice::TargetLowering::RegSet_CalleeSave))     \
-      Registers[RegisterSet::val] = false;                                     \
-    if (stackptr && (Exclude & ::Ice::TargetLowering::RegSet_StackPointer))    \
-      Registers[RegisterSet::val] = false;                                     \
-    if (frameptr && (Exclude & ::Ice::TargetLowering::RegSet_FramePointer))    \
-      Registers[RegisterSet::val] = false;                                     \
-  }
+  if (scratch && (Include & ::Ice::TargetLowering::RegSet_CallerSave))         \
+    Registers[RegisterSet::val] = true;                                        \
+  if (preserved && (Include & ::Ice::TargetLowering::RegSet_CalleeSave))       \
+    Registers[RegisterSet::val] = true;                                        \
+  if (stackptr && (Include & ::Ice::TargetLowering::RegSet_StackPointer))      \
+    Registers[RegisterSet::val] = true;                                        \
+  if (frameptr && (Include & ::Ice::TargetLowering::RegSet_FramePointer))      \
+    Registers[RegisterSet::val] = true;                                        \
+  if (scratch && (Exclude & ::Ice::TargetLowering::RegSet_CallerSave))         \
+    Registers[RegisterSet::val] = false;                                       \
+  if (preserved && (Exclude & ::Ice::TargetLowering::RegSet_CalleeSave))       \
+    Registers[RegisterSet::val] = false;                                       \
+  if (stackptr && (Exclude & ::Ice::TargetLowering::RegSet_StackPointer))      \
+    Registers[RegisterSet::val] = false;                                       \
+  if (frameptr && (Exclude & ::Ice::TargetLowering::RegSet_FramePointer))      \
+    Registers[RegisterSet::val] = false;
 
     REGX8664_TABLE
 

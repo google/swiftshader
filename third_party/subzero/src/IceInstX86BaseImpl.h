@@ -58,10 +58,6 @@ InstImpl<TraitsType>::InstX86FakeRMW::InstX86FakeRMW(Cfg *Func, Operand *Data,
 }
 
 template <typename TraitsType>
-InstImpl<TraitsType>::InstX86GetIP::InstX86GetIP(Cfg *Func, Variable *Dest)
-    : InstX86Base(Func, InstX86Base::GetIP, 0, Dest) {}
-
-template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Mul::InstX86Mul(Cfg *Func, Variable *Dest,
                                              Variable *Source1,
                                              Operand *Source2)
@@ -418,38 +414,6 @@ void InstImpl<TraitsType>::InstX86FakeRMW::dump(const Cfg *Func) const {
   getData()->dump(Func);
   Str << ", beacon=";
   getBeacon()->dump(Func);
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86GetIP::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  const auto *Dest = this->getDest();
-  assert(Dest->hasReg());
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\t"
-         "call"
-         "\t";
-  auto *Target = static_cast<TargetLowering *>(Func->getTarget());
-  Target->emitWithoutPrefix(Target->createGetIPForRegister(Dest));
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86GetIP::emitIAS(const Cfg *Func) const {
-  const auto *Dest = this->getDest();
-  Assembler *Asm = Func->getAssembler<Assembler>();
-  assert(Dest->hasReg());
-  Asm->call(static_cast<TargetLowering *>(Func->getTarget())
-                ->createGetIPForRegister(Dest));
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86GetIP::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  this->getDest()->dump(Func);
-  Str << " = call getIP";
 }
 
 template <typename TraitsType>

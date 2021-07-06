@@ -40,11 +40,7 @@ template <typename Traits> class BoolFolding;
 
 /// TargetX86Base is a template for all X86 Targets, and it relies on the CRT
 /// pattern for generating code, delegating to actual backends target-specific
-/// lowerings (e.g., call, ret, and intrinsics.) Backends are expected to
-/// implement the following methods (which should be accessible from
-/// TargetX86Base):
-///
-/// Operand *createNaClReadTPSrcOperand()
+/// lowerings (e.g., call, ret, and intrinsics.).
 ///
 /// Note: Ideally, we should be able to
 ///
@@ -83,8 +79,6 @@ public:
 
   static FixupKind getPcRelFixup() { return PcRelFixup; }
   static FixupKind getAbsFixup() { return AbsFixup; }
-
-  bool needSandboxing() const { return NeedSandboxing; }
 
   void translateOm1() override;
   void translateO2() override;
@@ -193,13 +187,6 @@ public:
     return Traits::Is64Bit ? false : Ty == IceType_i64;
   }
 
-  ConstantRelocatable *createGetIPForRegister(const Variable *Dest) {
-    assert(Dest->hasReg());
-    const std::string RegName = Traits::getRegName(Dest->getRegNum());
-    return llvm::cast<ConstantRelocatable>(Ctx->getConstantExternSym(
-        Ctx->getGlobalString(H_getIP_prefix + RegName)));
-  }
-
   SizeT getMinJumpTableSize() const override { return 4; }
 
   void emitVariable(const Variable *Var) const override;
@@ -242,25 +229,9 @@ public:
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 
 protected:
-  const bool NeedSandboxing;
-
   explicit TargetX86Base(Cfg *Func);
 
   void postLower() override;
-
-  /// Initializes the RebasePtr member variable -- if so required by
-  /// SandboxingType for the concrete Target.
-  void initRebasePtr() {
-    assert(SandboxingType != ST_None);
-    dispatchToConcrete(&Traits::ConcreteTarget::initRebasePtr);
-  }
-
-  /// Emit code that initializes the value of the RebasePtr near the start of
-  /// the function -- if so required by SandboxingType for the concrete type.
-  void initSandbox() {
-    assert(SandboxingType != ST_None);
-    dispatchToConcrete(&Traits::ConcreteTarget::initSandbox);
-  }
 
   void lowerAlloca(const InstAlloca *Instr) override;
   void lowerArguments() override;
@@ -300,12 +271,7 @@ protected:
     int32_t Offset = 0;
     ConstantRelocatable *Relocatable = nullptr;
   };
-  /// Legalizes Addr w.r.t. SandboxingType. The exact type of legalization
-  /// varies for different <Target, SandboxingType> tuples.
-  bool legalizeOptAddrForSandbox(OptAddr *Addr) {
-    return dispatchToConcrete(
-        &Traits::ConcreteTarget::legalizeOptAddrForSandbox, std::move(Addr));
-  }
+
   // Builds information for a canonical address expresion:
   //   <Relocatable + Offset>(Base, Index, Shift)
   X86OperandMem *computeAddressOpt(const Inst *Instr, Type MemType,
@@ -340,7 +306,6 @@ protected:
   /// Replace some calls to memset with inline instructions.
   void lowerMemset(Operand *Dest, Operand *Val, Operand *Count);
 
-  /// Lower an indirect jump adding sandboxing when needed.
   void lowerIndirectJump(Variable *JumpTarget) {
     // Without std::move below, the compiler deduces that the argument to
     // lowerIndirectJmp is a Variable *&, not a Variable *.
@@ -367,21 +332,13 @@ protected:
 
   void eliminateNextVectorSextInstruction(Variable *SignExtendedResult);
 
-  void emitGetIP(CfgNode *Node) {
-    dispatchToConcrete(&Traits::ConcreteTarget::emitGetIP, std::move(Node));
-  }
-  /// Emit a sandboxed return sequence rather than a return.
-  void emitSandboxedReturn() {
-    dispatchToConcrete(&Traits::ConcreteTarget::emitSandboxedReturn);
-  }
-
   void emitStackProbe(size_t StackSizeBytes) {
     dispatchToConcrete(&Traits::ConcreteTarget::emitStackProbe,
                        std::move(StackSizeBytes));
   }
 
   /// Emit just the call instruction (without argument or return variable
-  /// processing), sandboxing if needed.
+  /// processing).
   virtual Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
                                  size_t NumVariadicFpArgs = 0) = 0;
   /// Materialize the moves needed to return a value of the specified type.
@@ -463,101 +420,43 @@ protected:
   X86OperandMem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                               uint32_t Offset = 0);
 
-  /// AutoMemorySandboxer emits a bundle-lock/bundle-unlock pair if the
-  /// instruction's operand is a memory reference. This is only needed for
-  /// x86-64 NaCl sandbox.
-  template <InstBundleLock::Option BundleLockOpt = InstBundleLock::Opt_None>
-  class AutoMemorySandboxer {
-    AutoMemorySandboxer() = delete;
-    AutoMemorySandboxer(const AutoMemorySandboxer &) = delete;
-    AutoMemorySandboxer &operator=(const AutoMemorySandboxer &) = delete;
-
-  private:
-    typename Traits::TargetLowering *Target;
-
-    template <typename T, typename... Tail>
-    X86OperandMem **findMemoryReference(T **First, Tail... Others) {
-      if (llvm::isa<X86OperandMem>(*First)) {
-        return reinterpret_cast<X86OperandMem **>(First);
-      }
-      return findMemoryReference(Others...);
-    }
-
-    X86OperandMem **findMemoryReference() { return nullptr; }
-
-  public:
-    AutoBundle *Bundler = nullptr;
-    X86OperandMem **const MemOperand;
-
-    template <typename... T>
-    AutoMemorySandboxer(typename Traits::TargetLowering *Target, T... Args)
-        : Target(Target), MemOperand(Target->SandboxingType == ST_None
-                                         ? nullptr
-                                         : findMemoryReference(Args...)) {
-      if (MemOperand != nullptr) {
-        if (Traits::Is64Bit) {
-          Bundler = new (Target->Func->template allocate<AutoBundle>())
-              AutoBundle(Target, BundleLockOpt);
-        }
-        *MemOperand = Target->_sandbox_mem_reference(*MemOperand);
-      }
-    }
-
-    ~AutoMemorySandboxer() {
-      if (Bundler != nullptr) {
-        Bundler->~AutoBundle();
-      }
-    }
-  };
-
   /// The following are helpers that insert lowered x86 instructions with
   /// minimal syntactic overhead, so that the lowering code can look as close to
   /// assembly as practical.
   void _adc(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Adc>(Dest, Src0);
   }
   void _adc_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &DestSrc0, &Src1);
     Context.insert<typename Traits::Insts::AdcRMW>(DestSrc0, Src1);
   }
   void _add(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Add>(Dest, Src0);
   }
   void _add_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &DestSrc0, &Src1);
     Context.insert<typename Traits::Insts::AddRMW>(DestSrc0, Src1);
   }
   void _addps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Addps>(Dest, Src0);
   }
   void _addss(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Addss>(Dest, Src0);
   }
   void _add_sp(Operand *Adjustment) {
     dispatchToConcrete(&Traits::ConcreteTarget::_add_sp, std::move(Adjustment));
   }
   void _and(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::And>(Dest, Src0);
   }
   void _andnps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Andnps>(Dest, Src0);
   }
   void _andps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Andps>(Dest, Src0);
   }
   void _and_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &DestSrc0, &Src1);
     Context.insert<typename Traits::Insts::AndRMW>(DestSrc0, Src1);
   }
   void _blendvps(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Blendvps>(Dest, Src0, Src1);
   }
   void _br(BrCond Condition, CfgNode *TargetTrue, CfgNode *TargetFalse) {
@@ -575,36 +474,28 @@ protected:
     Context.insert<InstX86Br>(Label, Condition, Kind);
   }
   void _bsf(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Bsf>(Dest, Src0);
   }
   void _bsr(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Bsr>(Dest, Src0);
   }
   void _bswap(Variable *SrcDest) {
-    AutoMemorySandboxer<> _(this, &SrcDest);
     Context.insert<typename Traits::Insts::Bswap>(SrcDest);
   }
   void _cbwdq(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Cbwdq>(Dest, Src0);
   }
   void _cmov(Variable *Dest, Operand *Src0, BrCond Condition) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Cmov>(Dest, Src0, Condition);
   }
   void _cmp(Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Icmp>(Src0, Src1);
   }
   void _cmpps(Variable *Dest, Operand *Src0, CmppsCond Condition) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Cmpps>(Dest, Src0, Condition);
   }
   void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,
                 bool Locked) {
-    AutoMemorySandboxer<> _(this, &DestOrAddr);
     Context.insert<typename Traits::Insts::Cmpxchg>(DestOrAddr, Eax, Desired,
                                                     Locked);
     // Mark eax as possibly modified by cmpxchg.
@@ -614,7 +505,6 @@ protected:
   }
   void _cmpxchg8b(X86OperandMem *Addr, Variable *Edx, Variable *Eax,
                   Variable *Ecx, Variable *Ebx, bool Locked) {
-    AutoMemorySandboxer<> _(this, &Addr);
     Context.insert<typename Traits::Insts::Cmpxchg8b>(Addr, Edx, Eax, Ecx, Ebx,
                                                       Locked);
     // Mark edx, and eax as possibly modified by cmpxchg8b.
@@ -627,28 +517,22 @@ protected:
   }
   void _cvt(Variable *Dest, Operand *Src0,
             typename Traits::Insts::Cvt::CvtVariant Variant) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Cvt>(Dest, Src0, Variant);
   }
   void _round(Variable *Dest, Operand *Src0, Operand *Imm) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Round>(Dest, Src0, Imm);
   }
   void _div(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Div>(Dest, Src0, Src1);
   }
   void _divps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Divps>(Dest, Src0);
   }
   void _divss(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Divss>(Dest, Src0);
   }
   template <typename T = Traits>
   typename std::enable_if<T::UsesX87, void>::type _fld(Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Src0);
     Context.insert<typename Traits::Insts::template Fld<>>(Src0);
   }
   // TODO(jpp): when implementing the X8664 calling convention, make sure x8664
@@ -659,7 +543,6 @@ protected:
   }
   template <typename T = Traits>
   typename std::enable_if<T::UsesX87, void>::type _fstp(Variable *Dest) {
-    AutoMemorySandboxer<> _(this, &Dest);
     Context.insert<typename Traits::Insts::template Fstp<>>(Dest);
   }
   // TODO(jpp): when implementing the X8664 calling convention, make sure x8664
@@ -669,24 +552,19 @@ protected:
     llvm::report_fatal_error("fstp is not available in x86-64");
   }
   void _idiv(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Idiv>(Dest, Src0, Src1);
   }
   void _imul(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Imul>(Dest, Src0);
   }
   void _imul_imm(Variable *Dest, Operand *Src0, Constant *Imm) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::ImulImm>(Dest, Src0, Imm);
   }
   void _insertps(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Insertps>(Dest, Src0, Src1);
   }
   void _int3() { Context.insert<typename Traits::Insts::Int3>(); }
   void _jmp(Operand *Target) {
-    AutoMemorySandboxer<> _(this, &Target);
     Context.insert<typename Traits::Insts::Jmp>(Target);
   }
   void _lea(Variable *Dest, Operand *Src0) {
@@ -713,311 +591,238 @@ protected:
                                     RegNumT RegNum = RegNumT()) {
     if (Dest == nullptr)
       Dest = makeReg(Src0->getType(), RegNum);
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     return Context.insert<typename Traits::Insts::Mov>(Dest, Src0);
   }
   void _mov_sp(Operand *NewValue) {
     dispatchToConcrete(&Traits::ConcreteTarget::_mov_sp, std::move(NewValue));
   }
   typename Traits::Insts::Movp *_movp(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     return Context.insert<typename Traits::Insts::Movp>(Dest, Src0);
   }
   void _movd(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Movd>(Dest, Src0);
   }
   void _movq(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Movq>(Dest, Src0);
   }
   void _movss(Variable *Dest, Variable *Src0) {
     Context.insert<typename Traits::Insts::MovssRegs>(Dest, Src0);
   }
   void _movsx(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Movsx>(Dest, Src0);
   }
   typename Traits::Insts::Movzx *_movzx(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     return Context.insert<typename Traits::Insts::Movzx>(Dest, Src0);
   }
   void _maxss(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Maxss>(Dest, Src0);
   }
   void _minss(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Minss>(Dest, Src0);
   }
   void _maxps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Maxps>(Dest, Src0);
   }
   void _minps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Minps>(Dest, Src0);
   }
   void _mul(Variable *Dest, Variable *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Mul>(Dest, Src0, Src1);
   }
   void _mulps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Mulps>(Dest, Src0);
   }
   void _mulss(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Mulss>(Dest, Src0);
   }
   void _neg(Variable *SrcDest) {
-    AutoMemorySandboxer<> _(this, &SrcDest);
     Context.insert<typename Traits::Insts::Neg>(SrcDest);
   }
   void _nop(SizeT Variant) {
     Context.insert<typename Traits::Insts::Nop>(Variant);
   }
   void _or(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Or>(Dest, Src0);
   }
   void _orps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Orps>(Dest, Src0);
   }
   void _or_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &DestSrc0, &Src1);
     Context.insert<typename Traits::Insts::OrRMW>(DestSrc0, Src1);
   }
   void _padd(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Padd>(Dest, Src0);
   }
   void _padds(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Padds>(Dest, Src0);
   }
   void _paddus(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Paddus>(Dest, Src0);
   }
   void _pand(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pand>(Dest, Src0);
   }
   void _pandn(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pandn>(Dest, Src0);
   }
   void _pblendvb(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Pblendvb>(Dest, Src0, Src1);
   }
   void _pcmpeq(Variable *Dest, Operand *Src0,
                Type ArithmeticTypeOverride = IceType_void) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pcmpeq>(Dest, Src0,
                                                    ArithmeticTypeOverride);
   }
   void _pcmpgt(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pcmpgt>(Dest, Src0);
   }
   void _pextr(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Pextr>(Dest, Src0, Src1);
   }
   void _pinsr(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Pinsr>(Dest, Src0, Src1);
   }
   void _pmull(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pmull>(Dest, Src0);
   }
   void _pmulhw(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pmulhw>(Dest, Src0);
   }
   void _pmulhuw(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pmulhuw>(Dest, Src0);
   }
   void _pmaddwd(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pmaddwd>(Dest, Src0);
   }
   void _pmuludq(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pmuludq>(Dest, Src0);
   }
   void _pop(Variable *Dest) {
     Context.insert<typename Traits::Insts::Pop>(Dest);
   }
   void _por(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Por>(Dest, Src0);
   }
   void _punpckl(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Punpckl>(Dest, Src0);
   }
   void _punpckh(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Punpckh>(Dest, Src0);
   }
   void _packss(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Packss>(Dest, Src0);
   }
   void _packus(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Packus>(Dest, Src0);
   }
   void _pshufb(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pshufb>(Dest, Src0);
   }
   void _pshufd(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Pshufd>(Dest, Src0, Src1);
   }
   void _psll(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Psll>(Dest, Src0);
   }
   void _psra(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Psra>(Dest, Src0);
   }
   void _psrl(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Psrl>(Dest, Src0);
   }
   void _psub(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Psub>(Dest, Src0);
   }
   void _psubs(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Psubs>(Dest, Src0);
   }
   void _psubus(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Psubus>(Dest, Src0);
   }
   void _push(Operand *Src0) {
     Context.insert<typename Traits::Insts::Push>(Src0);
   }
   void _pxor(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pxor>(Dest, Src0);
   }
   void _ret(Variable *Src0 = nullptr) {
     Context.insert<typename Traits::Insts::Ret>(Src0);
   }
   void _rol(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Rol>(Dest, Src0);
   }
   void _round(Variable *Dest, Operand *Src, Constant *Imm) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src);
     Context.insert<typename Traits::Insts::Round>(Dest, Src, Imm);
   }
-  X86OperandMem *_sandbox_mem_reference(X86OperandMem *Mem) {
-    return dispatchToConcrete(&Traits::ConcreteTarget::_sandbox_mem_reference,
-                              std::move(Mem));
-  }
   void _sar(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Sar>(Dest, Src0);
   }
   void _sbb(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Sbb>(Dest, Src0);
   }
   void _sbb_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &DestSrc0, &Src1);
     Context.insert<typename Traits::Insts::SbbRMW>(DestSrc0, Src1);
   }
   void _setcc(Variable *Dest, BrCond Condition) {
     Context.insert<typename Traits::Insts::Setcc>(Dest, Condition);
   }
   void _shl(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Shl>(Dest, Src0);
   }
   void _shld(Variable *Dest, Variable *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Shld>(Dest, Src0, Src1);
   }
   void _shr(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Shr>(Dest, Src0);
   }
   void _shrd(Variable *Dest, Variable *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Shrd>(Dest, Src0, Src1);
   }
   void _shufps(Variable *Dest, Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Shufps>(Dest, Src0, Src1);
   }
   void _movmsk(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Movmsk>(Dest, Src0);
   }
   void _sqrt(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Sqrt>(Dest, Src0);
   }
   void _store(Operand *Value, X86Operand *Mem) {
-    AutoMemorySandboxer<> _(this, &Value, &Mem);
     Context.insert<typename Traits::Insts::Store>(Value, Mem);
   }
   void _storep(Variable *Value, X86OperandMem *Mem) {
-    AutoMemorySandboxer<> _(this, &Value, &Mem);
     Context.insert<typename Traits::Insts::StoreP>(Value, Mem);
   }
   void _storeq(Operand *Value, X86OperandMem *Mem) {
-    AutoMemorySandboxer<> _(this, &Value, &Mem);
     Context.insert<typename Traits::Insts::StoreQ>(Value, Mem);
   }
   void _stored(Operand *Value, X86OperandMem *Mem) {
-    AutoMemorySandboxer<> _(this, &Value, &Mem);
     Context.insert<typename Traits::Insts::StoreD>(Value, Mem);
   }
   void _sub(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Sub>(Dest, Src0);
   }
   void _sub_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &DestSrc0, &Src1);
     Context.insert<typename Traits::Insts::SubRMW>(DestSrc0, Src1);
   }
   void _sub_sp(Operand *Adjustment) {
     dispatchToConcrete(&Traits::ConcreteTarget::_sub_sp, std::move(Adjustment));
   }
   void _subps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Subps>(Dest, Src0);
   }
   void _subss(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Subss>(Dest, Src0);
   }
   void _test(Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Test>(Src0, Src1);
   }
   void _ucomiss(Operand *Src0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Ucomiss>(Src0, Src1);
   }
   void _ud2() { Context.insert<typename Traits::Insts::UD2>(); }
   void _unlink_bp() { dispatchToConcrete(&Traits::ConcreteTarget::_unlink_bp); }
   void _xadd(Operand *Dest, Variable *Src, bool Locked) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src);
     Context.insert<typename Traits::Insts::Xadd>(Dest, Src, Locked);
     // The xadd exchanges Dest and Src (modifying Src). Model that update with
     // a FakeDef followed by a FakeUse.
@@ -1026,7 +831,6 @@ protected:
     Context.insert<InstFakeUse>(Src);
   }
   void _xchg(Operand *Dest, Variable *Src) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src);
     Context.insert<typename Traits::Insts::Xchg>(Dest, Src);
     // The xchg modifies Dest and Src -- model that update with a
     // FakeDef/FakeUse.
@@ -1035,15 +839,12 @@ protected:
     Context.insert<InstFakeUse>(Src);
   }
   void _xor(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Xor>(Dest, Src0);
   }
   void _xorps(Variable *Dest, Operand *Src0) {
-    AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Xorps>(Dest, Src0);
   }
   void _xor_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
-    AutoMemorySandboxer<> _(this, &DestSrc0, &Src1);
     Context.insert<typename Traits::Insts::XorRMW>(DestSrc0, Src1);
   }
 
@@ -1095,32 +896,30 @@ protected:
       RegisterAliases;
   SmallBitVector RegsUsed;
   std::array<VarList, IceType_NUM> PhysicalRegisters;
-  // RebasePtr is a Variable that holds the Rebasing pointer (if any) for the
-  // current sandboxing type.
-  Variable *RebasePtr = nullptr;
 
 private:
   /// dispatchToConcrete is the template voodoo that allows TargetX86Base to
   /// invoke methods in Machine (which inherits from TargetX86Base) without
-  /// having to rely on virtual method calls. There are two overloads, one for
-  /// non-void types, and one for void types. We need this becase, for non-void
-  /// types, we need to return the method result, where as for void, we don't.
-  /// While it is true that the code compiles without the void "version", there
-  /// used to be a time when compilers would reject such code.
+  /// having to rely on virtual method calls. There are two overloads, one
+  /// for non-void types, and one for void types. We need this becase, for
+  /// non-void types, we need to return the method result, where as for
+  /// void, we don't. While it is true that the code compiles without the
+  /// void "version", there used to be a time when compilers would reject
+  /// such code.
   ///
   /// This machinery is far from perfect. Note that, in particular, the
-  /// arguments provided to dispatchToConcrete() need to match the arguments for
-  /// Method **exactly** (i.e., no argument promotion is performed.)
+  /// arguments provided to dispatchToConcrete() need to match the arguments
+  /// for Method **exactly** (i.e., no argument promotion is performed.)
   template <typename Ret, typename... Args>
   typename std::enable_if<!std::is_void<Ret>::value, Ret>::type
-  dispatchToConcrete(Ret (ConcreteTarget::*Method)(Args...), Args &&... args) {
+  dispatchToConcrete(Ret (ConcreteTarget::*Method)(Args...), Args &&...args) {
     return (static_cast<ConcreteTarget *>(this)->*Method)(
         std::forward<Args>(args)...);
   }
 
   template <typename... Args>
   void dispatchToConcrete(void (ConcreteTarget::*Method)(Args...),
-                          Args &&... args) {
+                          Args &&...args) {
     (static_cast<ConcreteTarget *>(this)->*Method)(std::forward<Args>(args)...);
   }
 
@@ -1204,8 +1003,8 @@ private:
                                       int8_t Idx14, int8_t Idx15);
   /// @}
 
-  static FixupKind PcRelFixup;
-  static FixupKind AbsFixup;
+  static constexpr FixupKind PcRelFixup = Traits::FK_PcRel;
+  static constexpr FixupKind AbsFixup = Traits::FK_Abs;
 };
 
 template <typename TraitsType>

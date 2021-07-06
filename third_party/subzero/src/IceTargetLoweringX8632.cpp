@@ -39,14 +39,6 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 
 void staticInit(::Ice::GlobalContext *Ctx) {
   ::Ice::X8632::TargetX8632::staticInit(Ctx);
-  if (Ice::getFlags().getUseNonsfi()) {
-    // In nonsfi, we need to reference the _GLOBAL_OFFSET_TABLE_ for accessing
-    // globals. The GOT is an external symbol (i.e., it is not defined in the
-    // pexe) so we need to register it as such so that ELF emission won't barf
-    // on an "unknown" symbol. The GOT is added to the External symbols list
-    // here because staticInit() is invoked in a single-thread context.
-    Ctx->getConstantExternSym(Ctx->getGlobalString(::Ice::GlobalOffsetTable));
-  }
 }
 
 bool shouldBePooled(const class ::Ice::Constant *C) {
@@ -136,14 +128,6 @@ std::array<SmallBitVector,
            TargetX86Base<X8632::Traits>::Traits::RegisterSet::Reg_NUM>
     TargetX86Base<X8632::Traits>::RegisterAliases = {{}};
 
-template <>
-FixupKind TargetX86Base<X8632::Traits>::PcRelFixup =
-    TargetX86Base<X8632::Traits>::Traits::FK_PcRel;
-
-template <>
-FixupKind TargetX86Base<X8632::Traits>::AbsFixup =
-    TargetX86Base<X8632::Traits>::Traits::FK_Abs;
-
 //------------------------------------------------------------------------------
 //     __      ______  __     __  ______  ______  __  __   __  ______
 //    /\ \    /\  __ \/\ \  _ \ \/\  ___\/\  == \/\ \/\ "-.\ \/\  ___\
@@ -160,45 +144,6 @@ void TargetX8632::_add_sp(Operand *Adjustment) {
 void TargetX8632::_mov_sp(Operand *NewValue) {
   Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   _redefined(_mov(esp, NewValue));
-}
-
-Traits::X86OperandMem *TargetX8632::_sandbox_mem_reference(X86OperandMem *Mem) {
-  switch (SandboxingType) {
-  case ST_None:
-  case ST_NaCl:
-    return Mem;
-  case ST_Nonsfi: {
-    if (Mem->getIsRebased()) {
-      return Mem;
-    }
-    // For Non-SFI mode, if the Offset field is a ConstantRelocatable, we
-    // replace either Base or Index with a legalized RebasePtr. At emission
-    // time, the ConstantRelocatable will be emitted with the @GOTOFF
-    // relocation.
-    if (llvm::dyn_cast_or_null<ConstantRelocatable>(Mem->getOffset()) ==
-        nullptr) {
-      return Mem;
-    }
-    Variable *T;
-    uint16_t Shift = 0;
-    if (Mem->getIndex() == nullptr) {
-      T = Mem->getBase();
-    } else if (Mem->getBase() == nullptr) {
-      T = Mem->getIndex();
-      Shift = Mem->getShift();
-    } else {
-      llvm::report_fatal_error(
-          "Either Base or Index must be unused in Non-SFI mode");
-    }
-    Variable *RebasePtrR = legalizeToReg(RebasePtr);
-    static constexpr bool IsRebased = true;
-    return Traits::X86OperandMem::create(
-        Func, Mem->getType(), RebasePtrR, Mem->getOffset(), T, Shift,
-        Traits::X86OperandMem::DefaultSegment, IsRebased);
-  }
-  }
-  llvm::report_fatal_error("Unhandled sandboxing type: " +
-                           std::to_string(SandboxingType));
 }
 
 void TargetX8632::_sub_sp(Operand *Adjustment) {
@@ -237,114 +182,7 @@ void TargetX8632::_pop_reg(RegNumT RegNum) {
   _pop(getPhysicalRegister(RegNum, Traits::WordType));
 }
 
-void TargetX8632::emitGetIP(CfgNode *Node) {
-  // If there is a non-deleted InstX86GetIP instruction, we need to move it to
-  // the point after the stack frame has stabilized but before
-  // register-allocated in-args are copied into their home registers.  It would
-  // be slightly faster to search for the GetIP instruction before other prolog
-  // instructions are inserted, but it's more clear to do the whole
-  // transformation in a single place.
-  Traits::Insts::GetIP *GetIPInst = nullptr;
-  if (getFlags().getUseNonsfi()) {
-    for (Inst &Instr : Node->getInsts()) {
-      if (auto *GetIP = llvm::dyn_cast<Traits::Insts::GetIP>(&Instr)) {
-        if (!Instr.isDeleted())
-          GetIPInst = GetIP;
-        break;
-      }
-    }
-  }
-  // Delete any existing InstX86GetIP instruction and reinsert it here.  Also,
-  // insert the call to the helper function and the spill to the stack, to
-  // simplify emission.
-  if (GetIPInst) {
-    GetIPInst->setDeleted();
-    Variable *Dest = GetIPInst->getDest();
-    Variable *CallDest =
-        Dest->hasReg() ? Dest
-                       : getPhysicalRegister(Traits::RegisterSet::Reg_eax);
-    auto *BeforeAddReloc = RelocOffset::create(Ctx);
-    BeforeAddReloc->setSubtract(true);
-    auto *BeforeAdd = InstX86Label::create(Func, this);
-    BeforeAdd->setRelocOffset(BeforeAddReloc);
-
-    auto *AfterAddReloc = RelocOffset::create(Ctx);
-    auto *AfterAdd = InstX86Label::create(Func, this);
-    AfterAdd->setRelocOffset(AfterAddReloc);
-
-    const RelocOffsetT ImmSize = -typeWidthInBytes(IceType_i32);
-
-    auto *GotFromPc =
-        llvm::cast<ConstantRelocatable>(Ctx->getConstantSymWithEmitString(
-            ImmSize, {AfterAddReloc, BeforeAddReloc},
-            Ctx->getGlobalString(GlobalOffsetTable), GlobalOffsetTable));
-
-    // Insert a new version of InstX86GetIP.
-    Context.insert<Traits::Insts::GetIP>(CallDest);
-
-    Context.insert(BeforeAdd);
-    _add(CallDest, GotFromPc);
-    Context.insert(AfterAdd);
-
-    // Spill the register to its home stack location if necessary.
-    if (Dest != CallDest) {
-      _mov(Dest, CallDest);
-    }
-  }
-}
-
-void TargetX8632::lowerIndirectJump(Variable *JumpTarget) {
-  AutoBundle _(this);
-
-  if (NeedSandboxing) {
-    const SizeT BundleSize =
-        1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-    _and(JumpTarget, Ctx->getConstantInt32(~(BundleSize - 1)));
-  }
-
-  _jmp(JumpTarget);
-}
-
-void TargetX8632::initRebasePtr() {
-  if (SandboxingType == ST_Nonsfi) {
-    RebasePtr = Func->makeVariable(IceType_i32);
-  }
-}
-
-void TargetX8632::initSandbox() {
-  if (SandboxingType != ST_Nonsfi) {
-    return;
-  }
-  // Insert the RebasePtr assignment as the very first lowered instruction.
-  // Later, it will be moved into the right place - after the stack frame is set
-  // up but before in-args are copied into registers.
-  Context.init(Func->getEntryNode());
-  Context.setInsertPoint(Context.getCur());
-  Context.insert<Traits::Insts::GetIP>(RebasePtr);
-}
-
-bool TargetX8632::legalizeOptAddrForSandbox(OptAddr *Addr) {
-  if (Addr->Relocatable == nullptr || SandboxingType != ST_Nonsfi) {
-    return true;
-  }
-
-  if (Addr->Base == RebasePtr || Addr->Index == RebasePtr) {
-    return true;
-  }
-
-  if (Addr->Base == nullptr) {
-    Addr->Base = RebasePtr;
-    return true;
-  }
-
-  if (Addr->Index == nullptr) {
-    Addr->Index = RebasePtr;
-    Addr->Shift = 0;
-    return true;
-  }
-
-  return false;
-}
+void TargetX8632::lowerIndirectJump(Variable *JumpTarget) { _jmp(JumpTarget); }
 
 Inst *TargetX8632::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
                                     size_t NumVariadicFpArgs) {
@@ -353,20 +191,6 @@ Inst *TargetX8632::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
   // calls, because floating point arguments are passed via vector registers,
   // whereas for x86-32, all args are passed via the stack.
 
-  std::unique_ptr<AutoBundle> Bundle;
-  if (NeedSandboxing) {
-    if (llvm::isa<Constant>(CallTarget)) {
-      Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
-    } else {
-      Variable *CallTargetVar = nullptr;
-      _mov(CallTargetVar, CallTarget);
-      Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
-      const SizeT BundleSize =
-          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
-      CallTarget = CallTargetVar;
-    }
-  }
   return Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
 }
 
@@ -392,19 +216,6 @@ Variable *TargetX8632::moveReturnValueToRegister(Operand *Value,
       return Reg;
     }
   }
-}
-
-void TargetX8632::emitSandboxedReturn() {
-  // Change the original ret instruction into a sandboxed return sequence.
-  // t:ecx = pop
-  // bundle_lock
-  // and t, ~31
-  // jmp *t
-  // bundle_unlock
-  // FakeUse <original_ret_operand>
-  Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
-  _pop(T_ecx);
-  lowerIndirectJump(T_ecx);
 }
 
 void TargetX8632::emitStackProbe(size_t StackSizeBytes) {

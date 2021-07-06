@@ -605,38 +605,6 @@ public:
 
   void lowerArguments() override;
 
-  class Sandboxer {
-    Sandboxer() = delete;
-    Sandboxer(const Sandboxer &) = delete;
-    Sandboxer &operator=(const Sandboxer &) = delete;
-
-  public:
-    explicit Sandboxer(
-        TargetMIPS32 *Target,
-        InstBundleLock::Option BundleOption = InstBundleLock::Opt_None);
-    ~Sandboxer();
-
-    void addiu_sp(uint32_t StackOffset);
-    void lw(Variable *Dest, OperandMIPS32Mem *Mem);
-    void sw(Variable *Dest, OperandMIPS32Mem *Mem);
-    void ll(Variable *Dest, OperandMIPS32Mem *Mem);
-    void sc(Variable *Dest, OperandMIPS32Mem *Mem);
-    void lwc1(Variable *Dest, OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No);
-    void ldc1(Variable *Dest, OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No);
-    void ret(Variable *RetAddr, Variable *RetValue);
-    void reset_sp(Variable *Src);
-    InstMIPS32Call *jal(Variable *ReturnReg, Operand *CallTarget);
-
-  private:
-    TargetMIPS32 *const Target;
-    const InstBundleLock::Option BundleOption;
-    std::unique_ptr<AutoBundle> Bundler;
-
-    void createAutoBundle();
-  };
-
-  const bool NeedSandboxing;
-
   /// Make a pass through the SortedSpilledVariables and actually assign stack
   /// slots. SpillAreaPaddingBytes takes into account stack alignment padding.
   /// The SpillArea starts after that amount of padding. This matches the scheme

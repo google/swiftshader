@@ -108,8 +108,7 @@ public:
     return new (Func->allocate<OperandARM32Mem>())
         OperandARM32Mem(Func, Ty, Base, ImmOffset, Mode);
   }
-  /// (2) Reg +/- Reg with an optional shift of some kind and amount. Note that
-  /// this mode is disallowed in the NaCl sandbox.
+  /// (2) Reg +/- Reg with an optional shift of some kind and amount.
   static OperandARM32Mem *create(Cfg *Func, Type Ty, Variable *Base,
                                  Variable *Index, ShiftKind ShiftOp = kNoShift,
                                  uint16_t ShiftAmt = 0,

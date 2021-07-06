@@ -252,8 +252,7 @@ instruction space with its own set of low-level instructions.  Generally,
 low-level instructions correspond to individual machine instructions.  The
 high-level ICE instruction space includes a few additional instruction kinds
 that are not part of LLVM but are generally useful (e.g., an Assignment
-instruction), or are useful across targets (e.g., BundleLock and BundleUnlock
-instructions for sandboxing).
+instruction), or are useful across targets.
 
 Specifically, high-level ICE instructions that derive from LLVM (but with PNaCl
 ABI restrictions as documented in the `PNaCl Bitcode Reference Manual
@@ -298,10 +297,6 @@ The additional high-level ICE instructions are the following:
 
 - Assign: a simple ``A=B`` assignment.  This is useful for e.g. lowering Phi
   instructions to non-SSA assignments, before lowering to machine code.
-
-- BundleLock, BundleUnlock.  These are markers used for sandboxing, but are
-  common across all targets and so they are elevated to the high-level
-  instruction set.
 
 - FakeDef, FakeUse, FakeKill.  These are tools used to preserve consistency in
   liveness analysis, elevated to the high-level because they are used by all
@@ -953,36 +948,6 @@ Boolean producers include icmp (integer compare), fcmp (floating-point compare),
 and trunc (integer truncation when the destination has bool type).  Boolean
 consumers include branch, select (the ternary operator from the C language), and
 sign-extend and zero-extend when the source has bool type.
-
-Sandboxing
-^^^^^^^^^^
-
-Native Client's sandbox model uses software fault isolation (SFI) to provide
-safety when running untrusted code in a browser or other environment.  Subzero
-implements Native Client's `sandboxing
-<https://developer.chrome.com/native-client/reference/sandbox_internals/index>`_
-to enable Subzero-translated executables to be run inside Chrome.  Subzero also
-provides a fairly simple framework for investigating alternative sandbox models
-or other restrictions on the sandbox model.
-
-Sandboxing in Subzero is not actually implemented as a separate pass, but is
-integrated into lowering and assembly.
-
-- Indirect branches, including the ret instruction, are masked to a bundle
-  boundary and bundle-locked.
-
-- Call instructions are aligned to the end of the bundle so that the return
-  address is bundle-aligned.
-
-- Indirect branch targets, including function entry and targets in a switch
-  statement jump table, are bundle-aligned.
-
-- The intrinsic for reading the thread pointer is inlined appropriately.
-
-- For x86-64, non-stack memory accesses are with respect to the reserved sandbox
-  base register.  We reduce the aggressiveness of address mode inference to
-  leave room for the sandbox base register during lowering.  There are no memory
-  sandboxing changes for x86-32.
 
 Code emission
 -------------

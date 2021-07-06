@@ -101,8 +101,6 @@ const char *Inst::getInstName() const {
     X(Switch, "switch");
     X(Assign, "assign");
     X(Breakpoint, "break");
-    X(BundleLock, "bundlelock");
-    X(BundleUnlock, "bundleunlock");
     X(FakeDef, "fakedef");
     X(FakeUse, "fakeuse");
     X(FakeKill, "fakekill");
@@ -551,13 +549,6 @@ bool InstSwitch::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
 InstUnreachable::InstUnreachable(Cfg *Func)
     : InstHighLevel(Func, Inst::Unreachable, 0, nullptr) {}
 
-InstBundleLock::InstBundleLock(Cfg *Func, InstBundleLock::Option BundleOption)
-    : InstHighLevel(Func, Inst::BundleLock, 0, nullptr),
-      BundleOption(BundleOption) {}
-
-InstBundleUnlock::InstBundleUnlock(Cfg *Func)
-    : InstHighLevel(Func, Inst::BundleUnlock, 0, nullptr) {}
-
 InstFakeDef::InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src)
     : InstHighLevel(Func, Inst::FakeDef, Src ? 1 : 0, Dest) {
   assert(Dest);
@@ -944,58 +935,6 @@ void InstUnreachable::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "unreachable";
-}
-
-void InstBundleLock::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\t.bundle_lock";
-  switch (BundleOption) {
-  case Opt_None:
-    break;
-  case Opt_AlignToEnd:
-    Str << "\t"
-           "align_to_end";
-    break;
-  case Opt_PadToEnd:
-    Str << "\t"
-           "align_to_end /* pad_to_end */";
-    break;
-  }
-  Str << "\n";
-}
-
-void InstBundleLock::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "bundle_lock";
-  switch (BundleOption) {
-  case Opt_None:
-    break;
-  case Opt_AlignToEnd:
-    Str << " align_to_end";
-    break;
-  case Opt_PadToEnd:
-    Str << " pad_to_end";
-    break;
-  }
-}
-
-void InstBundleUnlock::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\t.bundle_unlock";
-  Str << "\n";
-}
-
-void InstBundleUnlock::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "bundle_unlock";
 }
 
 void InstFakeDef::emit(const Cfg *Func) const {

@@ -2438,9 +2438,6 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src0)) {
     Str << "#:lower16:";
     CR->emitWithoutPrefix(Func->getTarget());
-    if (getFlags().getUseNonsfi()) {
-      Str << " - .";
-    }
   } else {
     Src0->emit(Func);
   }
@@ -2467,9 +2464,6 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src1)) {
     Str << "#:upper16:";
     CR->emitWithoutPrefix(Func->getTarget());
-    if (getFlags().getUseNonsfi()) {
-      Str << " - .";
-    }
   } else {
     Src1->emit(Func);
   }

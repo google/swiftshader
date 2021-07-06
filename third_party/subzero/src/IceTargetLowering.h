@@ -94,7 +94,7 @@ public:
   InstList::iterator getNext() const { return Next; }
   InstList::iterator getEnd() const { return End; }
   void insert(Inst *Instr);
-  template <typename Inst, typename... Args> Inst *insert(Args &&... A) {
+  template <typename Inst, typename... Args> Inst *insert(Args &&...A) {
     auto *New = Inst::create(Node->getCfg(), std::forward<Args>(A)...);
     insert(New);
     return New;
@@ -343,46 +343,11 @@ public:
   virtual ~TargetLowering() = default;
 
 private:
-  // This control variable is used by AutoBundle (RAII-style bundle
-  // locking/unlocking) to prevent nested bundles.
-  bool AutoBundling = false;
-
   /// This indicates whether we are in the genTargetHelperCalls phase, and
   /// therefore can do things like scalarization.
   bool GeneratingTargetHelpers = false;
 
-  // _bundle_lock(), and _bundle_unlock(), were made private to force subtargets
-  // to use the AutoBundle helper.
-  void
-  _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
-    Context.insert<InstBundleLock>(BundleOption);
-  }
-  void _bundle_unlock() { Context.insert<InstBundleUnlock>(); }
-
 protected:
-  /// AutoBundle provides RIAA-style bundling. Sub-targets are expected to use
-  /// it when emitting NaCl Bundles to ensure proper bundle_unlocking, and
-  /// prevent nested bundles.
-  ///
-  /// AutoBundle objects will emit a _bundle_lock during construction (but only
-  /// if sandboxed code generation was requested), and a bundle_unlock() during
-  /// destruction. By carefully scoping objects of this type, Subtargets can
-  /// ensure proper bundle emission.
-  class AutoBundle {
-    AutoBundle() = delete;
-    AutoBundle(const AutoBundle &) = delete;
-    AutoBundle &operator=(const AutoBundle &) = delete;
-
-  public:
-    explicit AutoBundle(TargetLowering *Target, InstBundleLock::Option Option =
-                                                    InstBundleLock::Opt_None);
-    ~AutoBundle();
-
-  private:
-    TargetLowering *const Target;
-    const bool NeedSandboxing;
-  };
-
   explicit TargetLowering(Cfg *Func);
   // Applies command line filters to TypeToRegisterSet array.
   static void filterTypeToRegisterSet(
@@ -501,7 +466,7 @@ protected:
   template <typename... Operands,
             typename F = std::function<Inst *(Variable *, Operands *...)>>
   void scalarizeInstruction(Variable *Dest, F insertScalarInstruction,
-                            Operands *... Srcs) {
+                            Operands *...Srcs) {
     assert(GeneratingTargetHelpers &&
            "scalarizeInstruction called during incorrect phase");
     const Type DestTy = Dest->getType();
@@ -580,15 +545,6 @@ protected:
     return insertScalarInstruction(Res, Src0, Src1, Src2);
   }
 
-  /// SandboxType enumerates all possible sandboxing strategies that
-  enum SandboxType {
-    ST_None,
-    ST_NaCl,
-    ST_Nonsfi,
-  };
-
-  static SandboxType determineSandboxTypeFromFlags(const ClFlags &Flags);
-
   Cfg *Func;
   GlobalContext *Ctx;
   bool HasComputedFrame = false;
@@ -596,9 +552,6 @@ protected:
   SizeT NextLabelNumber = 0;
   SizeT NextJumpTableNumber = 0;
   LoweringContext Context;
-  const SandboxType SandboxingType = ST_None;
-
-  const static constexpr char *H_getIP_prefix = "__Sz_getIP_";
 };
 
 /// TargetDataLowering is used for "lowering" data including initializers for

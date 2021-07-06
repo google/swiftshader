@@ -3490,13 +3490,6 @@ void AssemblerX86Base<TraitsType>::j(BrCond condition, Label *label,
     intptr_t offset = label->getPosition() - Buffer.size();
     assert(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
-      // TODO(stichnot): Here and in jmp(), we may need to be more
-      // conservative about the backward branch distance if the branch
-      // instruction is within a bundle_lock sequence, because the
-      // distance may increase when padding is added. This isn't an issue for
-      // branches outside a bundle_lock, because if padding is added, the retry
-      // may change it to a long backward branch without affecting any of the
-      // bookkeeping.
       emitUint8(0x70 + condition);
       emitUint8((offset - kShortSize) & 0xFF);
     } else {

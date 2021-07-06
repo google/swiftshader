@@ -106,8 +106,7 @@ int32_t getRematerializableOffset(Variable *Var,
   return Disp;
 }
 
-void validateMemOperandPIC(const TargetX8632Traits::X86OperandMem *Mem,
-                           bool UseNonsfi) {
+void validateMemOperandPIC(const TargetX8632Traits::X86OperandMem *Mem) {
   if (!BuildDefs::asserts())
     return;
   const bool HasCR =
@@ -115,10 +114,7 @@ void validateMemOperandPIC(const TargetX8632Traits::X86OperandMem *Mem,
   (void)HasCR;
   const bool IsRebased = Mem->getIsRebased();
   (void)IsRebased;
-  if (UseNonsfi)
-    assert(HasCR == IsRebased);
-  else
-    assert(!IsRebased);
+  assert(!IsRebased);
 }
 
 } // end of anonymous namespace
@@ -126,8 +122,7 @@ void validateMemOperandPIC(const TargetX8632Traits::X86OperandMem *Mem,
 void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  const bool UseNonsfi = getFlags().getUseNonsfi();
-  validateMemOperandPIC(this, UseNonsfi);
+  validateMemOperandPIC(this);
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(Func->getTarget());
   // If the base is rematerializable, we need to replace it with the correct
@@ -161,7 +156,7 @@ void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
     // TODO(sehr): ConstantRelocatable still needs updating for
     // rematerializable base/index and Disp.
     assert(Disp == 0);
-    CR->emitWithoutPrefix(Target, UseNonsfi ? "@GOTOFF" : "");
+    CR->emitWithoutPrefix(Target);
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }
@@ -258,8 +253,7 @@ TargetX8632Traits::Address TargetX8632Traits::X86OperandMem::toAsmAddress(
     const Ice::TargetLowering *TargetLowering, bool /*IsLeaAddr*/) const {
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(TargetLowering);
-  const bool UseNonsfi = getFlags().getUseNonsfi();
-  validateMemOperandPIC(this, UseNonsfi);
+  validateMemOperandPIC(this);
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
     Disp += getRematerializableOffset(getBase(), Target);
