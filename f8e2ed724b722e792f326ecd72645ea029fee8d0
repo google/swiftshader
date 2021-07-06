@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8a90d748_3115f26b",
+        "filename": "third_party/subzero/src/IceAssemblerX86Base.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 846,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-06T20:29:24Z",
+      "side": 1,
+      "message": "Just a clang-format change.",
+      "range": {
+        "startLine": 846,
+        "startChar": 0,
+        "endLine": 846,
+        "endChar": 36
+      },
+      "revId": "f8e2ed724b722e792f326ecd72645ea029fee8d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
