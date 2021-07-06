@@ -17,7 +17,7 @@
 
 #include "IceTargetLoweringX8632Traits.h"
 
-#if defined(SUBZERO_USE_MICROSOFT_ABI)
+#if defined(_WIN32)
 extern "C" void _chkstk();
 #endif
 
@@ -115,7 +115,7 @@ const TargetX8632Traits::TableTypeX8632AttributesType
 const size_t TargetX8632Traits::TableTypeX8632AttributesSize =
     llvm::array_lengthof(TableTypeX8632Attributes);
 
-#if defined(SUBZERO_USE_MICROSOFT_ABI)
+#if defined(_WIN32)
 // Windows 32-bit only guarantees 4 byte stack alignment
 const uint32_t TargetX8632Traits::X86_STACK_ALIGNMENT_BYTES = 4;
 #else
@@ -408,7 +408,7 @@ void TargetX8632::emitSandboxedReturn() {
 }
 
 void TargetX8632::emitStackProbe(size_t StackSizeBytes) {
-#if defined(SUBZERO_USE_MICROSOFT_ABI)
+#if defined(_WIN32)
   if (StackSizeBytes >= 4096) {
     // _chkstk on Win32 is actually __alloca_probe, which adjusts ESP by the
     // stack amount specified in EAX, so we save ESP in ECX, and restore them

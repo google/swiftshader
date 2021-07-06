@@ -72,10 +72,6 @@ if (supports_subzero) {
       "ICE_THREAD_LOCAL_HACK=0",
     ]
 
-    if (is_win) {
-      defines += [ "SUBZERO_USE_MICROSOFT_ABI" ]
-    }
-
     if (current_cpu == "x64") {
       defines += [
         "SZTARGET=X8664",

@@ -89,14 +89,12 @@ template <> struct PoolTypeConverter<uint8_t> {
 
 namespace X86NAMESPACE {
 
-// The Microsoft x64 ABI requires the caller to allocate a minimum 32 byte
+// The Microsoft x64 ABI requires the caller to allocate a 32 byte
 // "shadow store" (aka "home space") so that the callee may copy the 4
 // register args to it.
-template <typename Traits> SizeT getShadowStoreSize() {
-#if defined(SUBZERO_USE_MICROSOFT_ABI)
-  static const SizeT ShadowStoreSize =
-      Traits::Is64Bit ? 4 * typeWidthInBytes(Traits::WordType) : 0;
-  return ShadowStoreSize;
+constexpr SizeT getShadowStoreSize() {
+#if defined(_WIN64)
+  return 4 * sizeof(int64_t);
 #else
   return 0;
 #endif
@@ -1049,7 +1047,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // space on the frame for globals (variables with multi-block lifetime), and
   // one block to share for locals (single-block lifetime).
 
-  const SizeT ShadowStoreSize = getShadowStoreSize<Traits>();
+  const SizeT ShadowStoreSize = getShadowStoreSize();
 
   // StackPointer: points just past return address of calling function
 
@@ -2681,7 +2679,7 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   OperandList StackArgs, StackArgLocations;
   uint32_t ParameterAreaSizeBytes = 0;
 
-  ParameterAreaSizeBytes += getShadowStoreSize<Traits>();
+  ParameterAreaSizeBytes += getShadowStoreSize();
 
   // Classify each argument operand according to the location where the argument
   // is passed.
@@ -7693,7 +7691,7 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
   Variable *Dest = Instr->getDest();
   if (Dest != nullptr)
     ReturnType = Dest->getType();
-  return getShadowStoreSize<Traits>() +
+  return getShadowStoreSize() +
          getCallStackArgumentsSizeBytes(ArgTypes, ReturnType);
 }
 

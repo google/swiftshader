@@ -211,7 +211,7 @@
 //          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,
 //          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)
 
-#if defined(SUBZERO_USE_MICROSOFT_ABI)  // Microsoft x86-64 ABI
+#if defined(_WIN64)  // Microsoft x86-64 ABI
 #define REGX8664_BYTEREG_TABLE REGX8664_BYTEREG_TABLE2(0, 1)
 #define REGX8664_GPR_TABLE REGX8664_GPR_TABLE2(0, 1)
 #else  // System V AMD64 ABI
@@ -264,7 +264,7 @@
 //          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,
 //          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)
 
-#if defined(SUBZERO_USE_MICROSOFT_ABI)  // Microsoft x86-64 ABI
+#if defined(_WIN64)  // Microsoft x86-64 ABI
 #define REGX8664_XMM_TABLE REGX8664_XMM_TABLE2(0, 1)
 #else  // System V AMD64 ABI
 #define REGX8664_XMM_TABLE REGX8664_XMM_TABLE2(1, 0)

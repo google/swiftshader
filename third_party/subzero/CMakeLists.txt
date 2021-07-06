@@ -119,8 +119,6 @@ target_compile_definitions(subzero
         "ALLOW_MINIMAL_BUILD=0"
         "ALLOW_WASM=0"
         "ICE_THREAD_LOCAL_HACK=0"
-    PRIVATE
-        $<$<BOOL:${WIN32}>:"SUBZERO_USE_MICROSOFT_ABI">
 )
 
 target_link_libraries(subzero
