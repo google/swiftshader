@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bbeacee6_387f8156",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-06T15:18:04Z",
+      "side": 1,
+      "message": "Note I\u0027ve split off making the pointers const into a separate change: https://swiftshader-review.googlesource.com/c/SwiftShader/+/55448. That\u0027s useful regardless of the -Wundefined-var-template issue.\n\nThis change takes advantage of the strings being const and constexpr being inline in C++17, to move the definitions to the header file, simplifying the declare/define macro, and avoid the MSVC bug. Applying the same approach to the ARM32 and MIPS32 backends results in an elegant solution: https://swiftshader-review.googlesource.com/c/SwiftShader/+/55508",
+      "revId": "857aa3f4eb366fc78443d31abfad8ff7d94d8dbb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
