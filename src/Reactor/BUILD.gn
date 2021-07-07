@@ -209,7 +209,6 @@ if (supports_subzero) {
       "$subzero_dir/src/IceRevision.cpp",
       "$subzero_dir/src/IceSwitchLowering.cpp",
       "$subzero_dir/src/IceTargetLowering.cpp",
-      "$subzero_dir/src/IceTargetLoweringX86.cpp",
       "$subzero_dir/src/IceThreading.cpp",
       "$subzero_dir/src/IceTimerTree.cpp",
       "$subzero_dir/src/IceTypes.cpp",

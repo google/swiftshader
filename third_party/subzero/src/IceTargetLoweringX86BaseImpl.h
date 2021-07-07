@@ -27,6 +27,7 @@
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IcePhiLoweringImpl.h"
+#include "IceTargetLoweringX86.h"
 #include "IceUtils.h"
 #include "IceVariableSplitting.h"
 
@@ -35,58 +36,6 @@
 #include <stack>
 
 namespace Ice {
-namespace X86 {
-template <typename T> struct PoolTypeConverter {};
-
-template <> struct PoolTypeConverter<float> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantFloat;
-  static const Type Ty = IceType_f32;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-template <> struct PoolTypeConverter<double> {
-  using PrimitiveIntType = uint64_t;
-  using IceType = ConstantDouble;
-  static const Type Ty = IceType_f64;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-// Add converter for int type constant pooling
-template <> struct PoolTypeConverter<uint32_t> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantInteger32;
-  static const Type Ty = IceType_i32;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-// Add converter for int type constant pooling
-template <> struct PoolTypeConverter<uint16_t> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantInteger32;
-  static const Type Ty = IceType_i16;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-// Add converter for int type constant pooling
-template <> struct PoolTypeConverter<uint8_t> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantInteger32;
-  static const Type Ty = IceType_i8;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-} // end of namespace X86
-
 namespace X86NAMESPACE {
 
 // The Microsoft x64 ABI requires the caller to allocate a 32 byte
