@@ -23,9 +23,7 @@
 #ifndef SUBZERO_SRC_ICEASSEMBLERX8664_H
 #define SUBZERO_SRC_ICEASSEMBLERX8664_H
 
-#define X86NAMESPACE X8664
-#include "IceAssemblerX86Base.h"
-#undef X86NAMESPACE
+#include "IceAssemblerX8664Base.h"
 #include "IceTargetLoweringX8664Traits.h"
 
 namespace Ice {

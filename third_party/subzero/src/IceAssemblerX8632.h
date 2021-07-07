@@ -23,9 +23,7 @@
 #ifndef SUBZERO_SRC_ICEASSEMBLERX8632_H
 #define SUBZERO_SRC_ICEASSEMBLERX8632_H
 
-#define X86NAMESPACE X8632
-#include "IceAssemblerX86Base.h"
-#undef X86NAMESPACE
+#include "IceAssemblerX8632Base.h"
 #include "IceTargetLoweringX8632Traits.h"
 
 namespace Ice {

@@ -1,4 +1,5 @@
-//===- subzero/src/IceInstX86BaseImpl.h - Generic X86 instructions -*- C++ -*=//
+//===- subzero/src/IceInstX8664BaseImpl.h - Generic X86 instructions -*- C++
+//-*=//
 //
 //                        The Subzero Code Generator
 //
@@ -12,23 +13,22 @@
 ///
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ICEINSTX86BASEIMPL_H
-#define SUBZERO_SRC_ICEINSTX86BASEIMPL_H
+#ifndef SUBZERO_SRC_ICEINSTX8664BASEIMPL_H
+#define SUBZERO_SRC_ICEINSTX8664BASEIMPL_H
 
-#include "IceInstX86Base.h"
+#include "IceInstX8664Base.h"
 
-#include "IceAssemblerX86Base.h"
+#include "IceAssemblerX8664Base.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
-#include "IceTargetLoweringX86Base.h"
+#include "IceTargetLoweringX8664Base.h"
 
 namespace Ice {
-
-namespace X86NAMESPACE {
+namespace X8664 {
 
 template <typename TraitsType>
 const char *InstImpl<TraitsType>::InstX86Base::getWidthString(Type Ty) {
@@ -3112,8 +3112,7 @@ void InstImpl<TraitsType>::InstX86IacaEnd::dump(const Cfg *Func) const {
   Str << "IACA_END";
 }
 
-} // end of namespace X86NAMESPACE
-
+} // end of namespace X8664
 } // end of namespace Ice
 
-#endif // SUBZERO_SRC_ICEINSTX86BASEIMPL_H
+#endif // SUBZERO_SRC_ICEINSTX8664BASEIMPL_H

@@ -1,4 +1,5 @@
-//===- subzero/src/IceInstX86Base.h - Generic x86 instructions -*- C++ -*--===//
+//===- subzero/src/IceInstX8632Base.h - Generic x86 instructions -*- C++
+//-*--===//
 //
 //                        The Subzero Code Generator
 //
@@ -16,20 +17,15 @@
 ///
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ICEINSTX86BASE_H
-#define SUBZERO_SRC_ICEINSTX86BASE_H
+#ifndef SUBZERO_SRC_ICEINSTX8632BASE_H
+#define SUBZERO_SRC_ICEINSTX8632BASE_H
 
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 
 namespace Ice {
-
-#ifndef X86NAMESPACE
-#error "You must define the X86 Target namespace."
-#endif
-
-namespace X86NAMESPACE {
+namespace X8632 {
 
 template <typename TraitsType> struct InstImpl {
   using Traits = TraitsType;
@@ -3166,7 +3162,7 @@ template <typename TraitsType> struct InstImpl {
 /// struct Insts is a template that can be used to instantiate all the X86
 /// instructions for a target with a simple
 ///
-/// using Insts = ::Ice::X86NAMESPACE::Insts<TraitsType>;
+/// using Insts = ::Ice::X8632::Insts<TraitsType>;
 template <typename TraitsType> struct Insts {
   using FakeRMW = typename InstImpl<TraitsType>::InstX86FakeRMW;
   using Label = typename InstImpl<TraitsType>::InstX86Label;
@@ -3305,9 +3301,9 @@ template <typename TraitsType> struct Insts {
 /// emitters). Each X86 target needs to declare and define all of these, so the
 /// macros below are provided so that, if something changes, all X86
 /// targets will be updated automatically.
-#define X86INSTS_DEFINE_STATIC_DATA(X86NAMESPACE, TraitsType)                  \
+#define X86INSTS_DEFINE_STATIC_DATA(TraitsType)                                \
   namespace Ice {                                                              \
-  namespace X86NAMESPACE {                                                     \
+  namespace X8632 {                                                            \
   /* In-place ops */                                                           \
   template <>                                                                  \
   template <>                                                                  \
@@ -4101,9 +4097,9 @@ template <typename TraitsType> struct Insts {
   }                                                                            \
   }
 
-} // end of namespace X86NAMESPACE
+} // namespace X8632
 } // end of namespace Ice
 
-#include "IceInstX86BaseImpl.h"
+#include "IceInstX8632BaseImpl.h"
 
-#endif // SUBZERO_SRC_ICEINSTX86BASE_H
+#endif // SUBZERO_SRC_ICEINSTX8632BASE_H

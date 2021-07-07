@@ -20,14 +20,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceAssemblerX86Base.h"
+#include "IceAssemblerX8664Base.h"
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceOperand.h"
 
 namespace Ice {
-namespace X86NAMESPACE {
+namespace X8664 {
 
 template <typename TraitsType>
 AssemblerX86Base<TraitsType>::~AssemblerX86Base() {
@@ -3913,5 +3913,5 @@ void AssemblerX86Base<TraitsType>::emitGenericShift(int rm, Type Ty,
   emitOperand(rm, operand);
 }
 
-} // end of namespace X86NAMESPACE
+} // end of namespace X8664
 } // end of namespace Ice

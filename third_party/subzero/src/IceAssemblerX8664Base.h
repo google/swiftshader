@@ -1,4 +1,5 @@
-//===- subzero/src/IceAssemblerX86Base.h - base x86 assembler -*- C++ -*---===//
+//===- subzero/src/IceAssemblerX8664Base.h - base x86 assembler -*- C++
+//-*---===//
 //
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16,13 +17,13 @@
 //===----------------------------------------------------------------------===//
 //
 /// \file
-/// \brief Defines the AssemblerX86 template class for x86, the base of all X86
-/// assemblers.
+/// \brief Defines the AssemblerX8664 template class for x86, the base of all
+/// X8664 assemblers.
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ICEASSEMBLERX86BASE_H
-#define SUBZERO_SRC_ICEASSEMBLERX86BASE_H
+#ifndef SUBZERO_SRC_ICEASSEMBLERX8664BASE_H
+#define SUBZERO_SRC_ICEASSEMBLERX8664BASE_H
 
 #include "IceAssembler.h"
 #include "IceDefs.h"
@@ -31,12 +32,7 @@
 #include "IceUtils.h"
 
 namespace Ice {
-
-#ifndef X86NAMESPACE
-#error "You must define the X86 Target namespace."
-#endif
-
-namespace X86NAMESPACE {
+namespace X8664 {
 
 template <typename TraitsType>
 class AssemblerX86Base : public ::Ice::Assembler {
@@ -926,10 +922,9 @@ inline void AssemblerX86Base<TraitsType>::emitOperandSizeOverride() {
   emitUint8(0x66);
 }
 
-} // end of namespace X86NAMESPACE
-
+} // end of namespace X8664
 } // end of namespace Ice
 
-#include "IceAssemblerX86BaseImpl.h"
+#include "IceAssemblerX8664BaseImpl.h"
 
-#endif // SUBZERO_SRC_ICEASSEMBLERX86BASE_H
+#endif // SUBZERO_SRC_ICEASSEMBLERX8664BASE_H

@@ -21,9 +21,7 @@
 #include "IceGlobalContext.h"
 #include "IceInstX8664.h"
 #include "IceTargetLowering.h"
-#define X86NAMESPACE X8664
-#include "IceTargetLoweringX86Base.h"
-#undef X86NAMESPACE
+#include "IceTargetLoweringX8664Base.h"
 #include "IceTargetLoweringX8664Traits.h"
 
 namespace Ice {

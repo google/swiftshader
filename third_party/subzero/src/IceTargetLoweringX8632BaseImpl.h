@@ -1,4 +1,5 @@
-//===- subzero/src/IceTargetLoweringX86BaseImpl.h - x86 lowering -*- C++ -*-==//
+//===- subzero/src/IceTargetLoweringX8632BaseImpl.h - x86 lowering -*- C++
+//-*-==//
 //
 //                        The Subzero Code Generator
 //
@@ -13,8 +14,8 @@
 ///
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ICETARGETLOWERINGX86BASEIMPL_H
-#define SUBZERO_SRC_ICETARGETLOWERINGX86BASEIMPL_H
+#ifndef SUBZERO_SRC_ICETARGETLOWERINGX8632BASEIMPL_H
+#define SUBZERO_SRC_ICETARGETLOWERINGX8632BASEIMPL_H
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
@@ -23,7 +24,7 @@
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
 #include "IceInstVarIter.h"
-#include "IceInstX86Base.h"
+#include "IceInstX8632Base.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IcePhiLoweringImpl.h"
@@ -36,7 +37,7 @@
 #include <stack>
 
 namespace Ice {
-namespace X86NAMESPACE {
+namespace X8632 {
 
 // The Microsoft x64 ABI requires the caller to allocate a 32 byte
 // "shadow store" (aka "home space") so that the callee may copy the 4
@@ -4038,7 +4039,7 @@ void TargetX86Base<TraitsType>::lowerIntrinsic(const InstIntrinsic *Instr) {
     return;
   case Intrinsics::AtomicFenceAll:
     // NOTE: FenceAll should prevent and load/store from being moved across the
-    // fence (both atomic and non-atomic). The InstX8632Mfence instruction is
+    // fence (both atomic and non-atomic). The InstX86Mfence instruction is
     // currently marked coarsely as "HasSideEffects".
     _mfence();
     return;
@@ -8175,7 +8176,7 @@ void TargetDataX86<TraitsType>::lowerGlobals(
   } break;
   }
 }
-} // end of namespace X86NAMESPACE
+} // namespace X8632
 } // end of namespace Ice
 
-#endif // SUBZERO_SRC_ICETARGETLOWERINGX86BASEIMPL_H
+#endif // SUBZERO_SRC_ICETARGETLOWERINGX8632BASEIMPL_H

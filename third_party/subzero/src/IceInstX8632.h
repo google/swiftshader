@@ -28,12 +28,10 @@
 
 #include "IceDefs.h"
 #include "IceInst.h"
-#define X86NAMESPACE X8632
-#include "IceInstX86Base.h"
-#undef X86NAMESPACE
+#include "IceInstX8632Base.h"
 #include "IceOperand.h"
 #include "IceTargetLoweringX8632Traits.h"
 
-X86INSTS_DEFINE_STATIC_DATA(X8632, X8632::Traits)
+X86INSTS_DEFINE_STATIC_DATA(X8632::Traits)
 
 #endif // SUBZERO_SRC_ICEINSTX8632_H
