@@ -58,22 +58,6 @@ config("swiftshader_config") {
       cflags += [ "-Os" ]
     }
 
-    if (current_cpu == "x64") {  # 64 bit version
-      cflags += [
-        "-m64",
-        "-fPIC",
-        "-march=x86-64",
-        "-mtune=generic",
-      ]
-    } else if (current_cpu == "x86") {  # 32 bit version
-      cflags += [
-        "-m32",
-        "-mfpmath=sse",
-        "-march=pentium4",
-        "-mtune=generic",
-      ]
-    }
-
     if (is_linux || is_chromeos) {
       # A bug in the gold linker prevents using ICF on 32-bit (crbug.com/729532)
       if (use_gold && (current_cpu == "x86" || current_cpu == "mipsel")) {
