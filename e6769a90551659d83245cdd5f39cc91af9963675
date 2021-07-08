@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac62ca4d_72489917",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-08T07:29:24Z",
+      "side": 1,
+      "message": "Note this shows that all current dEQP-VK 1.2.6.2 failures also occur when only advertising Vulkan 1.1.",
+      "revId": "e6769a90551659d83245cdd5f39cc91af9963675",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
