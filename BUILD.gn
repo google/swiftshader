@@ -53,10 +53,7 @@ config("swiftshader_config") {
         [ "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))" ]
 
     if (!is_debug) {
-      cflags += [
-        "-fomit-frame-pointer",
-        "-Os",
-      ]
+      cflags += [ "-Os" ]
 
       defines += [ "ANGLE_DISABLE_TRACE" ]
     }
