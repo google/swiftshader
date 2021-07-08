@@ -148,10 +148,6 @@ if (supports_subzero) {
         "-Wno-unused-function",
       ]
     }
-
-    if (is_fuchsia) {
-      cflags += [ "-Wno-error" ]
-    }
   }
 
   config("swiftshader_reactor_with_subzero_private_config") {
@@ -183,10 +179,6 @@ if (supports_subzero) {
 
     if (is_clang) {
       cflags += [ "-Wno-header-hygiene" ]
-    }
-
-    if (is_fuchsia) {
-      cflags += [ "-Wno-error" ]
     }
   }
 
