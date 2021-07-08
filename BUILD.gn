@@ -21,6 +21,10 @@ import("src/Reactor/reactor.gni")
 config("swiftshader_config") {
   defines = []
 
+  if (!is_debug) {
+    defines += [ "ANGLE_DISABLE_TRACE" ]
+  }
+
   if (is_win) {
     defines += [
       "_WINDLL",
@@ -30,10 +34,6 @@ config("swiftshader_config") {
       # VS 2017 15.8
       "_ENABLE_EXTENDED_ALIGNED_STORAGE",
     ]
-
-    if (!is_debug) {
-      defines += [ "ANGLE_DISABLE_TRACE" ]
-    }
 
     # Diable some MSVC warnings.
     if (!is_clang) {
@@ -54,8 +54,6 @@ config("swiftshader_config") {
 
     if (!is_debug) {
       cflags += [ "-Os" ]
-
-      defines += [ "ANGLE_DISABLE_TRACE" ]
     }
 
     if (current_cpu == "x64") {  # 64 bit version
