@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c03ea32b_c1e2973b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 1,
+      "message": "I didn\u0027t find anything about a stand-alone gn build on https://swiftshader.googlesource.com/SwiftShader, but if there is a standalone gn build somewhere it should unaffected by this cl.",
+      "revId": "4a1c17bc756ddf51e869c8ccfb632bc401779299",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4042c8c1_360cb154",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 1,
+      "message": "(ran `gn format`)",
+      "revId": "4a1c17bc756ddf51e869c8ccfb632bc401779299",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4d304635_4bf25338",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 1,
+      "message": "(just `gn format`)",
+      "revId": "4a1c17bc756ddf51e869c8ccfb632bc401779299",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

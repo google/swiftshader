@@ -1,0 +1,293 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45f909a0_8971525d",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "`/GS` is enabled by default (https://docs.microsoft.com/en-us/cpp/build/reference/gs-buffer-security-check?view\u003dmsvc-160)",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d4eb20e_54da16fd",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "Also enabled by default.",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e40f2784_eff6373c",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "Exceptions are disabled by default, no need for this flag.",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "27a77629_b4ce8b9d",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "Passed here https://source.chromium.org/chromium/chromium/src/+/main:third_party/perfetto/gn/standalone/toolchain/BUILD.gn;l\u003d387?q\u003d%5C%2Fnologo%20case:yes%20file:%5C.gn , removes a redundant flag.",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "79221d89_ea6e3e13",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "This is the default",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "180c2ee4_6e3a6cc5",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "Moved into the defines section below",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "86c42663_831e1058",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "passed here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d1891?q\u003d_HAS_EXCEPTIONS%20file:%5C.gn (and this is a default config: https://source.chromium.org/chromium/chromium/src/+/main:build/config/BUILDCONFIG.gn;l\u003d330?q\u003dno_exceptions%20file:%5C.gn)",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "48b3a132_91c5c18f",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "passed here https://source.chromium.org/chromium/chromium/src/+/main:build/config/win/BUILD.gn;l\u003d204?q\u003dCRT_SECURE_NO_DEPRECATE%20file:%5C.gn",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5f403445_bf5b3b84",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "passed here https://source.chromium.org/chromium/chromium/src/+/main:build/config/win/BUILD.gn;l\u003d596?q\u003dnominmax%20file:%5C.gn",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "64e0167c_28592c3b",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "passed here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d1894?q\u003d_HAS_EXCEPTIONS%20file:%5C.gn",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a59f24ea_7e27be99",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "both passed here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d1674?q\u003d__STDC_CONSTANT_MACROS%20file:%5C.gn , swiftshader has the chromium_code config which includes this",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a697886_34635729",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "passed here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d381?q\u003d%5C-g%5Cb%20file:%5C.gn (admittedly no `-g3` -- if you want `-g3` for some reason, let me know why and I\u0027ll put it back with a comment. But this seems like something that should be a global and not a per-project decision.)",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "35517501_f600fdd3",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "both passed here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d2053?q\u003dffunction-sections%20file:%5C.gn",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2cc7c499_fbf50477",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "This should go too, but I\u0027ll leave that to a future cl since that\u0027s a behavior-changing change",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e99210f1_43b8d0e4",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "https://source.chromium.org/chromium/chromium/src/+/main:build/config/BUILD.gn;l\u003d141?q\u003d%5Cbndebug%5Cb%20file:%5C.gn",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a55550c0_4430ef8b",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d2061?q\u003d%5Cbgc-sections%5Cb%20file:%5C.gn",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d895786e_48133e99",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:29:49Z",
+      "side": 0,
+      "message": "The mips bits are here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d875?q\u003d%5Cbhash-style%5Cb%20file:%5C.gn and i think they were only needed due to the explicit hash-style\u003dboth flag. not requiring both hash styles makes for faster links and should be fine, so dropping it.\n\n(I think many of the ldflags and arch flags etc can go too, but these too should be in a separate cl -- this one is for the fairly safe things)",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
