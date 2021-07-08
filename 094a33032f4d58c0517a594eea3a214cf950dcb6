@@ -16,6 +16,23 @@
       "message": "FYI, if you author changes as thakis@google.com, or log in with that account and +1 (Code-Review or Verified) your own change, it will also count as a Googler review when this gets imported into Google3.",
       "revId": "094a33032f4d58c0517a594eea3a214cf950dcb6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3621b1a1_a03204c7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2021-07-08T22:09:37Z",
+      "side": 1,
+      "message": "Good to know, thanks 😊",
+      "revId": "094a33032f4d58c0517a594eea3a214cf950dcb6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
