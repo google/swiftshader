@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dd101ae9_3de597e6",
+        "filename": "src/Main/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:42:53Z",
+      "side": 0,
+      "message": "(already set in the toplevel BUILD.gn)",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8dcdedbf_e2de1ddd",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:42:53Z",
+      "side": 0,
+      "message": "(per https://swiftshader-review.googlesource.com/c/SwiftShader/+/55608)",
+      "revId": "9534228df856f618086d8640fd67b2888f172c16",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
