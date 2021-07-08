@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "023ba038_9bb6a3fe",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-08T16:37:08Z",
+      "side": 1,
+      "message": "Just FYI, I believe hash-style\u003dboth is required for being able to use the same libraries with applications/platforms that use either style.\n\nAt least at one point we recommended people who didn\u0027t want to build SwiftShader themselves, to take the builds that come with Chrome. I don\u0027t think that\u0027s a common thing nowadays, and we should really set up creating distro packages built from our CMake build files for that, instead of inflicting Chrome in any way.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 56
+      },
+      "revId": "8cf962d6feb24a373dc62056baf5232c90c38af5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ceb974b_2645d140",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-08T16:37:08Z",
+      "side": 1,
+      "message": "Just as a reminder, our Verified review flag is a manual one that we let the author of the change set if all affected tests pass (in this case, just the tryjobs and perhaps any local testing you\u0027ve done).",
+      "revId": "8cf962d6feb24a373dc62056baf5232c90c38af5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
