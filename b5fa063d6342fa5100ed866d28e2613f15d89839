@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a3e6256_e89ddb09",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-08T17:50:19Z",
+      "side": 1,
+      "message": "Probably made a measurable performance difference on x86-32 at one point. More downsides to it than upsides these days.",
+      "revId": "b5fa063d6342fa5100ed866d28e2613f15d89839",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
