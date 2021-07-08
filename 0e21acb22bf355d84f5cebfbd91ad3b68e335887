@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b6c2f79f_e1f3ade6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T21:49:06Z",
+      "side": 1,
+      "message": "See here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d842?q\u003dfPIC%20case:yes%20file:%5C.gn and here https://source.chromium.org/chromium/chromium/src/+/main:build/config/compiler/BUILD.gn;l\u003d432?q\u003dfPIC%20case:yes%20file:%5C.gn",
+      "revId": "0e21acb22bf355d84f5cebfbd91ad3b68e335887",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
