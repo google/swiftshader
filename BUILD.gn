@@ -19,7 +19,9 @@ import("//build/config/sysroot.gni")
 import("src/Reactor/reactor.gni")
 
 config("swiftshader_config") {
+  cflags = []
   defines = []
+  ldflags = []
 
   if (!is_debug) {
     defines += [ "ANGLE_DISABLE_TRACE" ]
@@ -46,7 +48,7 @@ config("swiftshader_config") {
 
     cflags_cc = [ "/std:c++17" ]
   } else {
-    cflags = [ "-fno-operator-names" ]
+    cflags += [ "-fno-operator-names" ]
     cflags_cc = [ "-std=c++17" ]
 
     defines +=
