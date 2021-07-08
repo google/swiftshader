@@ -49,18 +49,6 @@ config("swiftshader_config") {
     cflags = [ "-fno-operator-names" ]
     cflags_cc = [ "-std=c++17" ]
 
-    # On macOS for the ARM architecture, some C++17 features require version
-    # 10.14, while Chrome must support 10.11 (El Capitan). However, the first
-    # 'Apple Silicon' devices launched with macOS 11.0 (Big Sur).
-    # TODO(b/174843857): Remove once Chrome demands macOS 10.14.
-    if (is_mac && current_cpu == "arm64") {
-      cflags += [
-        "-isysroot",
-        rebase_path(sysroot, root_build_dir),
-        "-mmacosx-version-min=10.14.0",
-      ]
-    }
-
     defines +=
         [ "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))" ]
 
