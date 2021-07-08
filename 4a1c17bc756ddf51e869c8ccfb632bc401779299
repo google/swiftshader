@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "417efb42_68ab47ba",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-08T15:39:03Z",
+      "side": 1,
+      "message": "Please add:\n\nBug: chromium:1220175",
+      "revId": "4a1c17bc756ddf51e869c8ccfb632bc401779299",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "c03ea32b_c1e2973b",
@@ -14,6 +31,23 @@
       "writtenOn": "2021-07-08T15:29:49Z",
       "side": 1,
       "message": "I didn\u0027t find anything about a stand-alone gn build on https://swiftshader.googlesource.com/SwiftShader, but if there is a standalone gn build somewhere it should unaffected by this cl.",
+      "revId": "4a1c17bc756ddf51e869c8ccfb632bc401779299",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "03a0ec09_6c3795e6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-08T15:39:03Z",
+      "side": 1,
+      "message": "I\u0027ll let Alexis do approval review. Also CC Jamie and Corentin for any effect this might have on ANGLE/Dawn standalone build with SwiftShader.\n\nThanks for detailing every change! One minor request:",
       "revId": "4a1c17bc756ddf51e869c8ccfb632bc401779299",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
