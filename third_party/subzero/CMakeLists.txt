@@ -48,12 +48,14 @@ set(SUBZERO_SRC_FILES
 
 if(ARCH STREQUAL "x86_64")
     list(APPEND SUBZERO_SRC_FILES
+        src/IceAssemblerX8664.cpp
         src/IceInstX8664.cpp
         src/IceTargetLoweringX8664.cpp
     )
     set(SUBZERO_TARGET_CPU X8664)
 elseif(ARCH STREQUAL "x86")
     list(APPEND SUBZERO_SRC_FILES
+        src/IceAssemblerX8632.cpp
         src/IceInstX8632.cpp
         src/IceTargetLoweringX8632.cpp
     )

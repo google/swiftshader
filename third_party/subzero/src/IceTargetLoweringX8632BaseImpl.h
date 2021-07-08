@@ -1063,14 +1063,12 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // This is done by a movp[sd] and an fld[sd].  Ensure there is enough scratch
   // space on the stack for this.
   const Type ReturnType = Func->getReturnType();
-  if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-    if (isScalarFloatingType(ReturnType)) {
-      // Avoid misaligned double-precision load/store.
-      RequiredStackAlignment = std::max<size_t>(
-          RequiredStackAlignment, Traits::X86_STACK_ALIGNMENT_BYTES);
-      SpillAreaSizeBytes =
-          std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
-    }
+  if (isScalarFloatingType(ReturnType)) {
+    // Avoid misaligned double-precision load/store.
+    RequiredStackAlignment = std::max<size_t>(
+        RequiredStackAlignment, Traits::X86_STACK_ALIGNMENT_BYTES);
+    SpillAreaSizeBytes =
+        std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
   }
 
   RequiredStackAlignment =
@@ -1155,14 +1153,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
         ++NumXmmArgs;
         continue;
       }
-    } else if (isScalarFloatingType(Arg->getType())) {
-      if (Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs))
-              .hasValue()) {
-        ++NumXmmArgs;
-        continue;
-      }
-    } else {
+    } else if (!isScalarFloatingType(Arg->getType())) {
       assert(isScalarIntegerType(Arg->getType()));
       if (Traits::getRegisterForGprArgNum(Traits::WordType,
                                           Traits::getArgIndex(i, NumGPRArgs))
@@ -1511,17 +1502,7 @@ void TargetX86Base<TraitsType>::lowerArguments() {
       ++NumXmmArgs;
       RegisterArg = Func->makeVariable(Ty);
     } else if (isScalarFloatingType(Ty)) {
-      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-        continue;
-      }
-      RegNum =
-          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs));
-      if (RegNum.hasNoValue()) {
-        XmmSlotsRemain = false;
-        continue;
-      }
-      ++NumXmmArgs;
-      RegisterArg = Func->makeVariable(Ty);
+      continue;
     } else if (isScalarIntegerType(Ty)) {
       RegNum = Traits::getRegisterForGprArgNum(
           Ty, Traits::getArgIndex(i, NumGprArgs));
@@ -2600,12 +2581,6 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
             .hasValue()) {
       XmmArgs.push_back(Arg);
       XmmArgIndices.push_back(i);
-    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               Traits::getRegisterForXmmArgNum(
-                   Traits::getArgIndex(i, XmmArgs.size()))
-                   .hasValue()) {
-      XmmArgs.push_back(Arg);
-      XmmArgIndices.push_back(i);
     } else if (isScalarIntegerType(Ty) &&
                Traits::getRegisterForGprArgNum(
                    Ty, Traits::getArgIndex(i, GprArgs.size()))
@@ -2629,12 +2604,10 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Ensure there is enough space for the fstp/movs for floating returns.
   Variable *Dest = Instr->getDest();
   const Type DestTy = Dest ? Dest->getType() : IceType_void;
-  if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-    if (isScalarFloatingType(DestTy)) {
-      ParameterAreaSizeBytes =
-          std::max(static_cast<size_t>(ParameterAreaSizeBytes),
-                   typeWidthInBytesOnStack(DestTy));
-    }
+  if (isScalarFloatingType(DestTy)) {
+    ParameterAreaSizeBytes =
+        std::max(static_cast<size_t>(ParameterAreaSizeBytes),
+                 typeWidthInBytesOnStack(DestTy));
   }
   // Adjust the parameter area so that the stack is aligned. It is assumed that
   // the stack is already aligned at the start of the calling sequence.
@@ -2701,12 +2674,9 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
       break;
     case IceType_f32:
     case IceType_f64:
-      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-        // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
-        // the fstp instruction.
-        break;
-      }
-    // Fallthrough intended.
+      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
+      // the fstp instruction.
+      break;
     case IceType_v4i1:
     case IceType_v8i1:
     case IceType_v16i1:
@@ -2729,8 +2699,7 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Mark the call as killing all the caller-save registers.
   Context.insert<InstFakeKill>(NewCall);
   // Handle x86-32 floating point returns.
-  if (Dest != nullptr && isScalarFloatingType(DestTy) &&
-      !Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+  if (Dest != nullptr && isScalarFloatingType(DestTy)) {
     // Special treatment for an FP function which returns its result in st(0).
     // If Dest ends up being a physical xmm register, the fstp emit code will
     // route st(0) through the space reserved in the function argument area
@@ -2755,13 +2724,7 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
     Tmp = makeReg(DestTy);
     _movp(Tmp, ReturnReg);
     _movp(Dest, Tmp);
-  } else if (isScalarFloatingType(DestTy)) {
-    if (Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-      assert(ReturnReg && "FP type requires a return register");
-      _mov(Tmp, ReturnReg);
-      _mov(Dest, Tmp);
-    }
-  } else {
+  } else if (!isScalarFloatingType(DestTy)) {
     assert(isScalarIntegerType(DestTy));
     assert(ReturnReg && "Integer type requires a return register");
     if (DestTy == IceType_i64 && !Traits::Is64Bit) {
@@ -7464,11 +7427,6 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
     if (isVectorType(Ty) &&
         Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, XmmArgCount))
             .hasValue()) {
-      ++XmmArgCount;
-    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               Traits::getRegisterForXmmArgNum(
-                   Traits::getArgIndex(i, XmmArgCount))
-                   .hasValue()) {
       ++XmmArgCount;
     } else if (isScalarIntegerType(Ty) &&
                Traits::getRegisterForGprArgNum(

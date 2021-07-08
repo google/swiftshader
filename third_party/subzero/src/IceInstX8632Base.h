@@ -20,6 +20,7 @@
 #ifndef SUBZERO_SRC_ICEINSTX8632BASE_H
 #define SUBZERO_SRC_ICEINSTX8632BASE_H
 
+#include "IceAssemblerX8632.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceOperand.h"
@@ -29,7 +30,7 @@ namespace X8632 {
 
 template <typename TraitsType> struct InstImpl {
   using Traits = TraitsType;
-  using Assembler = typename Traits::Assembler;
+  using Assembler = AssemblerX8632;
   using AssemblerLabel = typename Assembler::Label;
   using AssemblerImmediate = typename Assembler::Immediate;
   using TargetLowering = typename Traits::TargetLowering;
@@ -48,18 +49,18 @@ template <typename TraitsType> struct InstImpl {
 
   template <typename SReg_t, typename DReg_t>
   using CastEmitterRegOp =
-      typename Traits::Assembler::template CastEmitterRegOp<SReg_t, DReg_t>;
+      typename Assembler::template CastEmitterRegOp<SReg_t, DReg_t>;
   template <typename SReg_t, typename DReg_t>
   using ThreeOpImmEmitter =
-      typename Traits::Assembler::template ThreeOpImmEmitter<SReg_t, DReg_t>;
-  using GPREmitterAddrOp = typename Traits::Assembler::GPREmitterAddrOp;
-  using GPREmitterRegOp = typename Traits::Assembler::GPREmitterRegOp;
-  using GPREmitterShiftD = typename Traits::Assembler::GPREmitterShiftD;
-  using GPREmitterShiftOp = typename Traits::Assembler::GPREmitterShiftOp;
-  using GPREmitterOneOp = typename Traits::Assembler::GPREmitterOneOp;
-  using XmmEmitterRegOp = typename Traits::Assembler::XmmEmitterRegOp;
-  using XmmEmitterShiftOp = typename Traits::Assembler::XmmEmitterShiftOp;
-  using XmmEmitterMovOps = typename Traits::Assembler::XmmEmitterMovOps;
+      typename Assembler::template ThreeOpImmEmitter<SReg_t, DReg_t>;
+  using GPREmitterAddrOp = typename Assembler::GPREmitterAddrOp;
+  using GPREmitterRegOp = typename Assembler::GPREmitterRegOp;
+  using GPREmitterShiftD = typename Assembler::GPREmitterShiftD;
+  using GPREmitterShiftOp = typename Assembler::GPREmitterShiftOp;
+  using GPREmitterOneOp = typename Assembler::GPREmitterOneOp;
+  using XmmEmitterRegOp = typename Assembler::XmmEmitterRegOp;
+  using XmmEmitterShiftOp = typename Assembler::XmmEmitterShiftOp;
+  using XmmEmitterMovOps = typename Assembler::XmmEmitterMovOps;
 
   class InstX86Base : public InstTarget {
     InstX86Base() = delete;
@@ -3272,14 +3273,8 @@ template <typename TraitsType> struct Insts {
   using StoreQ = typename InstImpl<TraitsType>::InstX86StoreQ;
   using StoreD = typename InstImpl<TraitsType>::InstX86StoreD;
   using Nop = typename InstImpl<TraitsType>::InstX86Nop;
-  template <typename T = typename InstImpl<TraitsType>::Traits>
-  using Fld =
-      typename std::enable_if<T::UsesX87,
-                              typename InstImpl<TraitsType>::InstX86Fld>::type;
-  template <typename T = typename InstImpl<TraitsType>::Traits>
-  using Fstp =
-      typename std::enable_if<T::UsesX87,
-                              typename InstImpl<TraitsType>::InstX86Fstp>::type;
+  using Fld = typename InstImpl<TraitsType>::InstX86Fld;
+  using Fstp = typename InstImpl<TraitsType>::InstX86Fstp;
   using Pop = typename InstImpl<TraitsType>::InstX86Pop;
   using Push = typename InstImpl<TraitsType>::InstX86Push;
   using Ret = typename InstImpl<TraitsType>::InstX86Ret;

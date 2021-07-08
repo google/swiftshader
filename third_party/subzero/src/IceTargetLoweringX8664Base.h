@@ -528,26 +528,6 @@ protected:
   void _divss(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Divss>(Dest, Src0);
   }
-  template <typename T = Traits>
-  typename std::enable_if<T::UsesX87, void>::type _fld(Operand *Src0) {
-    Context.insert<typename Traits::Insts::template Fld<>>(Src0);
-  }
-  // TODO(jpp): when implementing the X8664 calling convention, make sure x8664
-  // does not invoke this method, and remove it.
-  template <typename T = Traits>
-  typename std::enable_if<!T::UsesX87, void>::type _fld(Operand *) {
-    llvm::report_fatal_error("fld is not available in x86-64");
-  }
-  template <typename T = Traits>
-  typename std::enable_if<T::UsesX87, void>::type _fstp(Variable *Dest) {
-    Context.insert<typename Traits::Insts::template Fstp<>>(Dest);
-  }
-  // TODO(jpp): when implementing the X8664 calling convention, make sure x8664
-  // does not invoke this method, and remove it.
-  template <typename T = Traits>
-  typename std::enable_if<!T::UsesX87, void>::type _fstp(Variable *) {
-    llvm::report_fatal_error("fstp is not available in x86-64");
-  }
   void _idiv(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert<typename Traits::Insts::Idiv>(Dest, Src0, Src1);
   }

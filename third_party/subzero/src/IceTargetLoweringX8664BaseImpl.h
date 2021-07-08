@@ -1058,21 +1058,6 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   uint32_t GlobalsAndSubsequentPaddingSize =
       GlobalsSize + LocalsSlotsPaddingBytes;
 
-  // Functions returning scalar floating point types may need to convert values
-  // from an in-register xmm value to the top of the x87 floating point stack.
-  // This is done by a movp[sd] and an fld[sd].  Ensure there is enough scratch
-  // space on the stack for this.
-  const Type ReturnType = Func->getReturnType();
-  if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-    if (isScalarFloatingType(ReturnType)) {
-      // Avoid misaligned double-precision load/store.
-      RequiredStackAlignment = std::max<size_t>(
-          RequiredStackAlignment, Traits::X86_STACK_ALIGNMENT_BYTES);
-      SpillAreaSizeBytes =
-          std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
-    }
-  }
-
   RequiredStackAlignment =
       std::max<size_t>(RequiredStackAlignment, SpillAreaAlignmentBytes);
 
@@ -1156,8 +1141,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
         continue;
       }
     } else if (isScalarFloatingType(Arg->getType())) {
-      if (Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs))
+      if (Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs))
               .hasValue()) {
         ++NumXmmArgs;
         continue;
@@ -1511,9 +1495,6 @@ void TargetX86Base<TraitsType>::lowerArguments() {
       ++NumXmmArgs;
       RegisterArg = Func->makeVariable(Ty);
     } else if (isScalarFloatingType(Ty)) {
-      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-        continue;
-      }
       RegNum =
           Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs));
       if (RegNum.hasNoValue()) {
@@ -2600,7 +2581,7 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
             .hasValue()) {
       XmmArgs.push_back(Arg);
       XmmArgIndices.push_back(i);
-    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
+    } else if (isScalarFloatingType(Ty) &&
                Traits::getRegisterForXmmArgNum(
                    Traits::getArgIndex(i, XmmArgs.size()))
                    .hasValue()) {
@@ -2629,13 +2610,6 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Ensure there is enough space for the fstp/movs for floating returns.
   Variable *Dest = Instr->getDest();
   const Type DestTy = Dest ? Dest->getType() : IceType_void;
-  if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-    if (isScalarFloatingType(DestTy)) {
-      ParameterAreaSizeBytes =
-          std::max(static_cast<size_t>(ParameterAreaSizeBytes),
-                   typeWidthInBytesOnStack(DestTy));
-    }
-  }
   // Adjust the parameter area so that the stack is aligned. It is assumed that
   // the stack is already aligned at the start of the calling sequence.
   ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
@@ -2701,11 +2675,6 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
       break;
     case IceType_f32:
     case IceType_f64:
-      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-        // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
-        // the fstp instruction.
-        break;
-      }
     // Fallthrough intended.
     case IceType_v4i1:
     case IceType_v8i1:
@@ -2728,18 +2697,6 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
     Context.insert<InstFakeDef>(ReturnRegHi);
   // Mark the call as killing all the caller-save registers.
   Context.insert<InstFakeKill>(NewCall);
-  // Handle x86-32 floating point returns.
-  if (Dest != nullptr && isScalarFloatingType(DestTy) &&
-      !Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-    // Special treatment for an FP function which returns its result in st(0).
-    // If Dest ends up being a physical xmm register, the fstp emit code will
-    // route st(0) through the space reserved in the function argument area
-    // we allocated.
-    _fstp(Dest);
-    // Create a fake use of Dest in case it actually isn't used, because st(0)
-    // still needs to be popped.
-    Context.insert<InstFakeUse>(Dest);
-  }
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
     Context.insert<InstFakeUse>(ReturnReg);
@@ -2756,11 +2713,9 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
     _movp(Tmp, ReturnReg);
     _movp(Dest, Tmp);
   } else if (isScalarFloatingType(DestTy)) {
-    if (Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-      assert(ReturnReg && "FP type requires a return register");
-      _mov(Tmp, ReturnReg);
-      _mov(Dest, Tmp);
-    }
+    assert(ReturnReg && "FP type requires a return register");
+    _mov(Tmp, ReturnReg);
+    _mov(Dest, Tmp);
   } else {
     assert(isScalarIntegerType(DestTy));
     assert(ReturnReg && "Integer type requires a return register");
@@ -7465,7 +7420,7 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
         Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, XmmArgCount))
             .hasValue()) {
       ++XmmArgCount;
-    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
+    } else if (isScalarFloatingType(Ty) &&
                Traits::getRegisterForXmmArgNum(
                    Traits::getArgIndex(i, XmmArgCount))
                    .hasValue()) {

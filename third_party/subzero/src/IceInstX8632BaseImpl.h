@@ -18,7 +18,7 @@
 
 #include "IceInstX8632Base.h"
 
-#include "IceAssemblerX8632Base.h"
+#include "IceAssemblerX8632.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceDefs.h"
@@ -2270,13 +2270,6 @@ void InstImpl<TraitsType>::InstX86Mov::emitIAS(const Cfg *Func) const {
       assert(isScalarIntegerType(DestTy));
       // Widen DestTy for truncation (see above note). We should only do this
       // when both Src and Dest are integer types.
-      if (Traits::Is64Bit && DestTy == IceType_i64) {
-        if (const auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src)) {
-          Func->getAssembler<Assembler>()->movabs(
-              Traits::getEncodedGPR(Dest->getRegNum()), C64->getValue());
-          return;
-        }
-      }
       if (isScalarIntegerType(SrcTy)) {
         SrcTy = DestTy;
       }

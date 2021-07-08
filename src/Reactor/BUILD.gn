@@ -254,11 +254,13 @@ if (supports_subzero) {
 
     if (current_cpu == "x64") {
       sources += [
+        "$subzero_dir/src/IceAssemblerX8664.cpp",
         "$subzero_dir/src/IceInstX8664.cpp",
         "$subzero_dir/src/IceTargetLoweringX8664.cpp",
       ]
     } else if (current_cpu == "x86") {
       sources += [
+        "$subzero_dir/src/IceAssemblerX8632.cpp",
         "$subzero_dir/src/IceInstX8632.cpp",
         "$subzero_dir/src/IceTargetLoweringX8632.cpp",
       ]

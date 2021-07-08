@@ -20,6 +20,7 @@
 #ifndef SUBZERO_SRC_ICEINSTX8664BASE_H
 #define SUBZERO_SRC_ICEINSTX8664BASE_H
 
+#include "IceAssemblerX8664.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceOperand.h"
@@ -29,7 +30,7 @@ namespace X8664 {
 
 template <typename TraitsType> struct InstImpl {
   using Traits = TraitsType;
-  using Assembler = typename Traits::Assembler;
+  using Assembler = AssemblerX8664;
   using AssemblerLabel = typename Assembler::Label;
   using AssemblerImmediate = typename Assembler::Immediate;
   using TargetLowering = typename Traits::TargetLowering;
@@ -2842,48 +2843,6 @@ template <typename TraitsType> struct InstImpl {
     NopVariant Variant;
   };
 
-  /// Fld - load a value onto the x87 FP stack.
-  class InstX86Fld final : public InstX86Base {
-    InstX86Fld() = delete;
-    InstX86Fld(const InstX86Fld &) = delete;
-    InstX86Fld &operator=(const InstX86Fld &) = delete;
-
-  public:
-    static InstX86Fld *create(Cfg *Func, Operand *Src) {
-      return new (Func->allocate<InstX86Fld>()) InstX86Fld(Func, Src);
-    }
-    void emit(const Cfg *Func) const override;
-    void emitIAS(const Cfg *Func) const override;
-    void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Instr) {
-      return InstX86Base::isClassof(Instr, InstX86Base::Fld);
-    }
-
-  private:
-    InstX86Fld(Cfg *Func, Operand *Src);
-  };
-
-  /// Fstp - store x87 st(0) into memory and pop st(0).
-  class InstX86Fstp final : public InstX86Base {
-    InstX86Fstp() = delete;
-    InstX86Fstp(const InstX86Fstp &) = delete;
-    InstX86Fstp &operator=(const InstX86Fstp &) = delete;
-
-  public:
-    static InstX86Fstp *create(Cfg *Func, Variable *Dest) {
-      return new (Func->allocate<InstX86Fstp>()) InstX86Fstp(Func, Dest);
-    }
-    void emit(const Cfg *Func) const override;
-    void emitIAS(const Cfg *Func) const override;
-    void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Instr) {
-      return InstX86Base::isClassof(Instr, InstX86Base::Fstp);
-    }
-
-  private:
-    InstX86Fstp(Cfg *Func, Variable *Dest);
-  };
-
   class InstX86Pop final : public InstX86Base {
     InstX86Pop() = delete;
     InstX86Pop(const InstX86Pop &) = delete;
@@ -3272,14 +3231,6 @@ template <typename TraitsType> struct Insts {
   using StoreQ = typename InstImpl<TraitsType>::InstX86StoreQ;
   using StoreD = typename InstImpl<TraitsType>::InstX86StoreD;
   using Nop = typename InstImpl<TraitsType>::InstX86Nop;
-  template <typename T = typename InstImpl<TraitsType>::Traits>
-  using Fld =
-      typename std::enable_if<T::UsesX87,
-                              typename InstImpl<TraitsType>::InstX86Fld>::type;
-  template <typename T = typename InstImpl<TraitsType>::Traits>
-  using Fstp =
-      typename std::enable_if<T::UsesX87,
-                              typename InstImpl<TraitsType>::InstX86Fstp>::type;
   using Pop = typename InstImpl<TraitsType>::InstX86Pop;
   using Push = typename InstImpl<TraitsType>::InstX86Push;
   using Ret = typename InstImpl<TraitsType>::InstX86Ret;

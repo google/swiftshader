@@ -18,7 +18,7 @@
 
 #include "IceInstX8664Base.h"
 
-#include "IceAssemblerX8664Base.h"
+#include "IceAssemblerX8664.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceDefs.h"
@@ -318,16 +318,6 @@ InstImpl<TraitsType>::InstX86StoreD::InstX86StoreD(Cfg *Func, Operand *Value,
 template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Nop::InstX86Nop(Cfg *Func, NopVariant Variant)
     : InstX86Base(Func, InstX86Base::Nop, 0, nullptr), Variant(Variant) {}
-
-template <typename TraitsType>
-InstImpl<TraitsType>::InstX86Fld::InstX86Fld(Cfg *Func, Operand *Src)
-    : InstX86Base(Func, InstX86Base::Fld, 1, nullptr) {
-  this->addSource(Src);
-}
-
-template <typename TraitsType>
-InstImpl<TraitsType>::InstX86Fstp::InstX86Fstp(Cfg *Func, Variable *Dest)
-    : InstX86Base(Func, InstX86Base::Fstp, 0, Dest) {}
 
 template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Pop::InstX86Pop(Cfg *Func, Variable *Dest)
@@ -2566,151 +2556,6 @@ void InstImpl<TraitsType>::InstX86Nop::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "nop (variant = " << Variant << ")";
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86Fld::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(this->getSrcSize() == 1);
-  Type Ty = this->getSrc(0)->getType();
-  const auto *Var = llvm::dyn_cast<Variable>(this->getSrc(0));
-  if (Var && Var->hasReg()) {
-    // This is a physical xmm register, so we need to spill it to a temporary
-    // stack slot.  Function prolog emission guarantees that there is sufficient
-    // space to do this.
-    Str << "\t"
-           "mov"
-        << Traits::TypeAttributes[Ty].SdSsString << "\t";
-    Var->emit(Func);
-    Str << ", (%esp)\n"
-           "\t"
-           "fld"
-        << this->getFldString(Ty)
-        << "\t"
-           "(%esp)";
-    return;
-  }
-  Str << "\t"
-         "fld"
-      << this->getFldString(Ty) << "\t";
-  this->getSrc(0)->emit(Func);
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86Fld::emitIAS(const Cfg *Func) const {
-  Assembler *Asm = Func->getAssembler<Assembler>();
-  assert(this->getSrcSize() == 1);
-  const Operand *Src = this->getSrc(0);
-  auto *Target = InstX86Base::getTarget(Func);
-  Type Ty = Src->getType();
-  if (const auto *Var = llvm::dyn_cast<Variable>(Src)) {
-    if (Var->hasReg()) {
-      // This is a physical xmm register, so we need to spill it to a temporary
-      // stack slot.  Function prolog emission guarantees that there is
-      // sufficient space to do this.
-      Address StackSlot =
-          Address(RegisterSet::Encoded_Reg_esp, 0, AssemblerFixup::NoFixup);
-      Asm->movss(Ty, StackSlot, Traits::getEncodedXmm(Var->getRegNum()));
-      Asm->fld(Ty, StackSlot);
-    } else {
-      Address StackAddr(Target->stackVarToAsmOperand(Var));
-      Asm->fld(Ty, StackAddr);
-    }
-  } else if (const auto *Mem = llvm::dyn_cast<X86OperandMem>(Src)) {
-    assert(Mem->getSegmentRegister() == X86OperandMem::DefaultSegment);
-    Asm->fld(Ty, Mem->toAsmAddress(Asm, Target));
-  } else if (const auto *Imm = llvm::dyn_cast<Constant>(Src)) {
-    Asm->fld(Ty, Traits::Address::ofConstPool(Asm, Imm));
-  } else {
-    llvm_unreachable("Unexpected operand type");
-  }
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86Fld::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "fld." << this->getSrc(0)->getType() << " ";
-  this->dumpSources(Func);
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86Fstp::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(this->getSrcSize() == 0);
-  // TODO(jvoung,stichnot): Utilize this by setting Dest to nullptr to
-  // "partially" delete the fstp if the Dest is unused. Even if Dest is unused,
-  // the fstp should be kept for the SideEffects of popping the stack.
-  if (!this->getDest()) {
-    Str << "\t"
-           "fstp\t"
-           "st(0)";
-    return;
-  }
-  Type Ty = this->getDest()->getType();
-  if (!this->getDest()->hasReg()) {
-    Str << "\t"
-           "fstp"
-        << this->getFldString(Ty) << "\t";
-    this->getDest()->emit(Func);
-    return;
-  }
-  // Dest is a physical (xmm) register, so st(0) needs to go through memory.
-  // Hack this by using caller-reserved memory at the top of stack, spilling
-  // st(0) there, and loading it into the xmm register.
-  Str << "\t"
-         "fstp"
-      << this->getFldString(Ty)
-      << "\t"
-         "(%esp)\n";
-  Str << "\t"
-         "mov"
-      << Traits::TypeAttributes[Ty].SdSsString
-      << "\t"
-         "(%esp), ";
-  this->getDest()->emit(Func);
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86Fstp::emitIAS(const Cfg *Func) const {
-  Assembler *Asm = Func->getAssembler<Assembler>();
-  assert(this->getSrcSize() == 0);
-  const Variable *Dest = this->getDest();
-  // TODO(jvoung,stichnot): Utilize this by setting Dest to nullptr to
-  // "partially" delete the fstp if the Dest is unused. Even if Dest is unused,
-  // the fstp should be kept for the SideEffects of popping the stack.
-  if (!Dest) {
-    Asm->fstp(RegisterSet::getEncodedSTReg(0));
-    return;
-  }
-  auto *Target = InstX86Base::getTarget(Func);
-  Type Ty = Dest->getType();
-  if (!Dest->hasReg()) {
-    Address StackAddr(Target->stackVarToAsmOperand(Dest));
-    Asm->fstp(Ty, StackAddr);
-  } else {
-    // Dest is a physical (xmm) register, so st(0) needs to go through memory.
-    // Hack this by using caller-reserved memory at the top of stack, spilling
-    // st(0) there, and loading it into the xmm register.
-    Address StackSlot =
-        Address(RegisterSet::Encoded_Reg_esp, 0, AssemblerFixup::NoFixup);
-    Asm->fstp(Ty, StackSlot);
-    Asm->movss(Ty, Traits::getEncodedXmm(Dest->getRegNum()), StackSlot);
-  }
-}
-
-template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86Fstp::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  this->dumpDest(Func);
-  Str << " = fstp." << this->getDest()->getType() << ", st(0)";
 }
 
 template <typename TraitsType>
