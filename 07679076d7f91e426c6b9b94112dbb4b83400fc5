@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ae16b88_65ea1ae1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-08T17:46:43Z",
+      "side": 1,
+      "message": "This was added in https://swiftshader-review.googlesource.com/c/SwiftShader/+/52068 to fix a build issue, but I suspect newer versions of Clang on Mac fixed it.\n\n+Alexis for second @google account approval. Otherwise we need to manually unblock Google3 imports.",
+      "revId": "07679076d7f91e426c6b9b94112dbb4b83400fc5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
