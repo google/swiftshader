@@ -83,7 +83,6 @@ config("swiftshader_config") {
     } else if (current_cpu == "x86") {  # 32 bit version
       cflags += [
         "-m32",
-        "-msse2",
         "-mfpmath=sse",
         "-march=pentium4",
         "-mtune=generic",

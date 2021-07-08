@@ -26,14 +26,6 @@ config("swiftshader_llvm_reactor_private_config") {
     ]
   } else {
     cflags = [ "-Wno-unused-local-typedef" ]
-    defines = [
-      "__STDC_CONSTANT_MACROS",
-      "__STDC_LIMIT_MACROS",
-    ]
-
-    if (current_cpu == "x86" || current_cpu == "x64") {
-      cflags += [ "-msse2" ]
-    }
   }
 }
 

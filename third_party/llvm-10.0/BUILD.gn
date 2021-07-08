@@ -70,9 +70,6 @@ config("swiftshader_llvm_private_config") {
       "-Wno-unused-result",
       "-Wno-unused-variable",
     ]
-    if (current_cpu == "x86" || current_cpu == "x64") {
-      cflags += [ "-msse2" ]
-    }
   }
 
   defines = [

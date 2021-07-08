@@ -29,10 +29,6 @@ config("swiftshader_main_private_config") {
         "-Wno-sign-compare",
       ]
     }
-  } else if (current_cpu == "x86" || current_cpu == "x64") {
-    cflags = [ "-msse2" ]
-    defines =
-        [ "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))" ]
   }
 }
 
