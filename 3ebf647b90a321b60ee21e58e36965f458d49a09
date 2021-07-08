@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "336657cb_c87bf10a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-08T15:43:41Z",
+      "side": 1,
+      "message": "Looks like there\u0027s no fuchsia trybot, so not sure what the best way to test this is.",
+      "revId": "3ebf647b90a321b60ee21e58e36965f458d49a09",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
