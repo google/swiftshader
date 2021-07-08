@@ -56,8 +56,8 @@ public:
   using ConcreteTarget = typename Traits::ConcreteTarget;
   using InstructionSetEnum = typename Traits::InstructionSet;
 
-  using BrCond = typename Traits::Cond::BrCond;
-  using CmppsCond = typename Traits::Cond::CmppsCond;
+  using BrCond = CondX86::BrCond;
+  using CmppsCond = CondX86::CmppsCond;
 
   using X86Address = typename Traits::Address;
   using X86Operand = typename Traits::X86Operand;

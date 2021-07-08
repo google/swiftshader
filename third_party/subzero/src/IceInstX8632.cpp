@@ -20,7 +20,7 @@
 #include "IceAssemblerX8632.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
-#include "IceConditionCodesX8632.h"
+#include "IceConditionCodesX86.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceRegistersX8632.h"
@@ -32,15 +32,15 @@ namespace X8632 {
 
 const TargetX8632Traits::InstBrAttributesType
     TargetX8632Traits::InstBrAttributes[] = {
-#define X(val, encode, opp, dump, emit) {X8632::Traits::Cond::opp, dump, emit},
-        ICEINSTX8632BR_TABLE
+#define X(val, encode, opp, dump, emit) {CondX86::opp, dump, emit},
+        ICEINSTX86BR_TABLE
 #undef X
 };
 
 const TargetX8632Traits::InstCmppsAttributesType
     TargetX8632Traits::InstCmppsAttributes[] = {
 #define X(val, emit) {emit},
-        ICEINSTX8632CMPPS_TABLE
+        ICEINSTX86CMPPS_TABLE
 #undef X
 };
 
@@ -48,7 +48,7 @@ const TargetX8632Traits::TypeAttributesType
     TargetX8632Traits::TypeAttributes[] = {
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
   {cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld},
-        ICETYPEX8632_TABLE
+        ICETYPEX86_TABLE
 #undef X
 };
 

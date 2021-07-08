@@ -1,4 +1,4 @@
-//===- subzero/src/IceConditionCodesX8632.h - Condition Codes ---*- C++ -*-===//
+//===- subzero/src/IceConditionCodesX8664.h - Condition Codes ---*- C++ -*-===//
 //
 //                        The Subzero Code Generator
 //
@@ -8,29 +8,25 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// \brief Declares the condition codes for x86-32.
+/// \brief Declares the condition codes for x86.
 ///
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ICECONDITIONCODESX8632_H
-#define SUBZERO_SRC_ICECONDITIONCODESX8632_H
+#ifndef SUBZERO_SRC_ICECONDITIONCODESX86_H
+#define SUBZERO_SRC_ICECONDITIONCODESX86_H
 
 #include "IceDefs.h"
-#include "IceInstX8632.def"
+#include "IceInstX86.def"
 
 namespace Ice {
 
 class CondX86 {
-  CondX86() = delete;
-  CondX86(const CondX86 &) = delete;
-  CondX86 &operator=(const CondX86 &) = delete;
-
 public:
   /// An enum of condition codes used for branches and cmov. The enum value
   /// should match the value used to encode operands in binary instructions.
   enum BrCond {
 #define X(val, encode, opp, dump, emit) val = encode,
-    ICEINSTX8632BR_TABLE
+    ICEINSTX86BR_TABLE
 #undef X
         Br_None
   };
@@ -40,7 +36,7 @@ public:
   /// instructions.
   enum CmppsCond {
 #define X(val, emit) val,
-    ICEINSTX8632CMPPS_TABLE
+    ICEINSTX86CMPPS_TABLE
 #undef X
         Cmpps_Invalid
   };
@@ -48,4 +44,4 @@ public:
 
 } // end of namespace Ice
 
-#endif // SUBZERO_SRC_ICECONDITIONCODESX8632_H
+#endif // SUBZERO_SRC_ICECONDITIONCODESX86_H

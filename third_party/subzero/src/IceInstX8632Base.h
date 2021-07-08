@@ -43,9 +43,9 @@ template <typename TraitsType> struct InstImpl {
   using RegisterSet = typename Traits::RegisterSet;
   using XmmRegister = typename Traits::RegisterSet::XmmRegister;
 
-  using Cond = typename Traits::Cond;
-  using BrCond = typename Traits::Cond::BrCond;
-  using CmppsCond = typename Traits::Cond::CmppsCond;
+  using Cond = CondX86;
+  using BrCond = Cond::BrCond;
+  using CmppsCond = Cond::CmppsCond;
 
   template <typename SReg_t, typename DReg_t>
   using CastEmitterRegOp =

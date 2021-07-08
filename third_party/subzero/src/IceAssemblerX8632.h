@@ -45,8 +45,8 @@ public:
   using Traits = TargetX8632Traits;
   using Address = typename Traits::Address;
   using ByteRegister = typename Traits::ByteRegister;
-  using BrCond = typename Traits::Cond::BrCond;
-  using CmppsCond = typename Traits::Cond::CmppsCond;
+  using BrCond = CondX86::BrCond;
+  using CmppsCond = CondX86::CmppsCond;
   using GPRRegister = typename Traits::GPRRegister;
   using Operand = typename Traits::Operand;
   using XmmRegister = typename Traits::XmmRegister;

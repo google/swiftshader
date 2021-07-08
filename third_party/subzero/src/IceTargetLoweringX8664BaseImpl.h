@@ -193,7 +193,7 @@ bool BoolFolding<Traits>::hasComplexLowering(const Inst *Instr) {
     return !Traits::Is64Bit;
   case PK_Fcmp:
     return Traits::TableFcmp[llvm::cast<InstFcmp>(Instr)->getCondition()].C2 !=
-           Traits::Cond::Br_None;
+           CondX86::Br_None;
   }
 }
 
@@ -1799,7 +1799,7 @@ void TargetX86Base<TraitsType>::lowerShift64(InstArithmetic::OpKind Op,
       _shld(T_3, T_2, T_1);
       _shl(T_2, T_1);
       _test(T_1, BitTest);
-      _br(Traits::Cond::Br_e, Label);
+      _br(CondX86::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the intra-block control
       // flow, so we need to use _redefined to avoid liveness problems.
       _redefined(_mov(T_3, T_2));
@@ -1817,7 +1817,7 @@ void TargetX86Base<TraitsType>::lowerShift64(InstArithmetic::OpKind Op,
       _shrd(T_2, T_3, T_1);
       _shr(T_3, T_1);
       _test(T_1, BitTest);
-      _br(Traits::Cond::Br_e, Label);
+      _br(CondX86::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the intra-block control
       // flow, so we need to use _redefined to avoid liveness problems.
       _redefined(_mov(T_2, T_3));
@@ -1836,7 +1836,7 @@ void TargetX86Base<TraitsType>::lowerShift64(InstArithmetic::OpKind Op,
       _shrd(T_2, T_3, T_1);
       _sar(T_3, T_1);
       _test(T_1, BitTest);
-      _br(Traits::Cond::Br_e, Label);
+      _br(CondX86::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the intra-block control
       // flow, so T_2 needs to use _redefined to avoid liveness problems. T_3
       // doesn't need special treatment because it is reassigned via _sar
@@ -2531,7 +2531,7 @@ void TargetX86Base<TraitsType>::lowerBr(const InstBr *Br) {
   Operand *Src0 = legalize(Cond, Legal_Reg | Legal_Mem);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0, Zero);
-  _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+  _br(CondX86::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
 }
 
 // constexprMax returns a (constexpr) max(S0, S1), and it is used for defining
@@ -3298,8 +3298,8 @@ void TargetX86Base<TraitsType>::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
   assert(static_cast<size_t>(Condition) < Traits::TableFcmpSize);
   if (Traits::TableFcmp[Condition].SwapScalarOperands)
     std::swap(Src0, Src1);
-  const bool HasC1 = (Traits::TableFcmp[Condition].C1 != Traits::Cond::Br_None);
-  const bool HasC2 = (Traits::TableFcmp[Condition].C2 != Traits::Cond::Br_None);
+  const bool HasC1 = (Traits::TableFcmp[Condition].C1 != CondX86::Br_None);
+  const bool HasC2 = (Traits::TableFcmp[Condition].C2 != CondX86::Br_None);
   if (HasC1) {
     Src0 = legalize(Src0);
     Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -3397,7 +3397,7 @@ void TargetX86Base<TraitsType>::lowerFcmpVector(const InstFcmp *Fcmp) {
     switch (Condition) {
     default: {
       const CmppsCond Predicate = Traits::TableFcmp[Condition].Predicate;
-      assert(Predicate != Traits::Cond::Cmpps_Invalid);
+      assert(Predicate != CondX86::Cmpps_Invalid);
       T = makeReg(Src0RM->getType());
       _movp(T, Src0RM);
       _cmpps(T, Src1RM, Predicate);
@@ -3407,9 +3407,9 @@ void TargetX86Base<TraitsType>::lowerFcmpVector(const InstFcmp *Fcmp) {
       T = makeReg(Src0RM->getType());
       Variable *T2 = makeReg(Src0RM->getType());
       _movp(T, Src0RM);
-      _cmpps(T, Src1RM, Traits::Cond::Cmpps_neq);
+      _cmpps(T, Src1RM, CondX86::Cmpps_neq);
       _movp(T2, Src0RM);
-      _cmpps(T2, Src1RM, Traits::Cond::Cmpps_ord);
+      _cmpps(T2, Src1RM, CondX86::Cmpps_ord);
       _pand(T, T2);
     } break;
     case InstFcmp::Ueq: {
@@ -3417,9 +3417,9 @@ void TargetX86Base<TraitsType>::lowerFcmpVector(const InstFcmp *Fcmp) {
       T = makeReg(Src0RM->getType());
       Variable *T2 = makeReg(Src0RM->getType());
       _movp(T, Src0RM);
-      _cmpps(T, Src1RM, Traits::Cond::Cmpps_eq);
+      _cmpps(T, Src1RM, CondX86::Cmpps_eq);
       _movp(T2, Src0RM);
-      _cmpps(T2, Src1RM, Traits::Cond::Cmpps_unord);
+      _cmpps(T2, Src1RM, CondX86::Cmpps_unord);
       _por(T, T2);
     } break;
     }
@@ -3653,7 +3653,7 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
       _mov(Temp, Src0HiRM);
       _or(Temp, Src0LoRM);
       Context.insert<InstFakeUse>(Temp);
-      setccOrConsumer(Traits::Cond::Br_e, Dest, Consumer);
+      setccOrConsumer(CondX86::Br_e, Dest, Consumer);
       return;
     case InstIcmp::Ne:
     case InstIcmp::Ugt:
@@ -3662,7 +3662,7 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
       _mov(Temp, Src0HiRM);
       _or(Temp, Src0LoRM);
       Context.insert<InstFakeUse>(Temp);
-      setccOrConsumer(Traits::Cond::Br_ne, Dest, Consumer);
+      setccOrConsumer(CondX86::Br_ne, Dest, Consumer);
       return;
     case InstIcmp::Uge:
       movOrConsumer(true, Dest, Consumer);
@@ -3674,11 +3674,11 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
       break;
     case InstIcmp::Sge:
       _test(Src0HiRM, SignMask);
-      setccOrConsumer(Traits::Cond::Br_e, Dest, Consumer);
+      setccOrConsumer(CondX86::Br_e, Dest, Consumer);
       return;
     case InstIcmp::Slt:
       _test(Src0HiRM, SignMask);
-      setccOrConsumer(Traits::Cond::Br_ne, Dest, Consumer);
+      setccOrConsumer(CondX86::Br_ne, Dest, Consumer);
       return;
     case InstIcmp::Sle:
       break;
@@ -3694,9 +3694,9 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
     InstX86Label *LabelTrue = InstX86Label::create(Func, this);
     _mov(Dest, One);
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Condition].C1 != Traits::Cond::Br_None)
+    if (Traits::TableIcmp64[Condition].C1 != CondX86::Br_None)
       _br(Traits::TableIcmp64[Condition].C1, LabelTrue);
-    if (Traits::TableIcmp64[Condition].C2 != Traits::Cond::Br_None)
+    if (Traits::TableIcmp64[Condition].C2 != CondX86::Br_None)
       _br(Traits::TableIcmp64[Condition].C2, LabelFalse);
     _cmp(Src0LoRM, Src1LoRI);
     _br(Traits::TableIcmp64[Condition].C3, LabelTrue);
@@ -3707,9 +3707,9 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
   }
   if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Condition].C1 != Traits::Cond::Br_None)
+    if (Traits::TableIcmp64[Condition].C1 != CondX86::Br_None)
       _br(Traits::TableIcmp64[Condition].C1, Br->getTargetTrue());
-    if (Traits::TableIcmp64[Condition].C2 != Traits::Cond::Br_None)
+    if (Traits::TableIcmp64[Condition].C2 != CondX86::Br_None)
       _br(Traits::TableIcmp64[Condition].C2, Br->getTargetFalse());
     _cmp(Src0LoRM, Src1LoRI);
     _br(Traits::TableIcmp64[Condition].C3, Br->getTargetTrue(),
@@ -3724,9 +3724,9 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
     InstX86Label *LabelTrue = InstX86Label::create(Func, this);
     lowerMove(SelectDest, SrcT, false);
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Condition].C1 != Traits::Cond::Br_None)
+    if (Traits::TableIcmp64[Condition].C1 != CondX86::Br_None)
       _br(Traits::TableIcmp64[Condition].C1, LabelTrue);
-    if (Traits::TableIcmp64[Condition].C2 != Traits::Cond::Br_None)
+    if (Traits::TableIcmp64[Condition].C2 != CondX86::Br_None)
       _br(Traits::TableIcmp64[Condition].C2, LabelFalse);
     _cmp(Src0LoRM, Src1LoRI);
     _br(Traits::TableIcmp64[Condition].C3, LabelTrue);
@@ -3774,7 +3774,7 @@ void TargetX86Base<TraitsType>::movOrConsumer(bool IcmpResult, Variable *Dest,
     // control flow graph changes now.  Make it do so to eliminate mov and cmp.
     _mov(Dest, Ctx->getConstantInt(Dest->getType(), (IcmpResult ? 1 : 0)));
     _cmp(Dest, Ctx->getConstantInt(Dest->getType(), 0));
-    _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+    _br(CondX86::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
     return;
   }
   if (const auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
@@ -3824,7 +3824,7 @@ void TargetX86Base<TraitsType>::lowerArithAndConsumer(
   if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
     Context.insert<InstFakeUse>(T);
     Context.insert<InstFakeDef>(Dest);
-    _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+    _br(CondX86::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
     return;
   }
   llvm::report_fatal_error("Unexpected consumer type");
@@ -4660,8 +4660,7 @@ bool TargetX86Base<TraitsType>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
           lowerAssign(PhiAssign);
           Context.advanceNext();
         }
-        _br(Traits::Cond::Br_e, NextBr->getTargetTrue(),
-            NextBr->getTargetFalse());
+        _br(CondX86::Br_e, NextBr->getTargetTrue(), NextBr->getTargetFalse());
         // Skip over the old compare and branch, by deleting them.
         NextCmp->setDeleted();
         NextBr->setDeleted();
@@ -4818,7 +4817,7 @@ void TargetX86Base<TraitsType>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     }
     constexpr bool Locked = true;
     _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
-    _br(Traits::Cond::Br_ne, Label);
+    _br(CondX86::Br_ne, Label);
     if (!IsXchg8b) {
       // If Val is a variable, model the extended live range of Val through
       // the end of the loop, since it will be re-used by the loop.
@@ -4870,7 +4869,7 @@ void TargetX86Base<TraitsType>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   (this->*Op_Lo)(T, Val);
   constexpr bool Locked = true;
   _cmpxchg(Addr, T_eax, T, Locked);
-  _br(Traits::Cond::Br_ne, Label);
+  _br(CondX86::Br_ne, Label);
   // If Val is a variable, model the extended live range of Val through
   // the end of the loop, since it will be re-used by the loop.
   if (auto *ValVar = llvm::dyn_cast<Variable>(Val)) {
@@ -4949,7 +4948,7 @@ void TargetX86Base<TraitsType>::lowerCountZeros(bool Cttz, Type Ty,
       _mov(T_Dest, _63);
     }
   }
-  _cmov(T_Dest, T, Traits::Cond::Br_ne);
+  _cmov(T_Dest, T, CondX86::Br_ne);
   if (!Cttz) {
     if (DestTy == IceType_i64) {
       // Even though there's a _63 available at this point, that constant might
@@ -4977,7 +4976,7 @@ void TargetX86Base<TraitsType>::lowerCountZeros(bool Cttz, Type Ty,
     _xor(T_Dest2, _31);
   }
   _test(SecondVar, SecondVar);
-  _cmov(T_Dest2, T_Dest, Traits::Cond::Br_e);
+  _cmov(T_Dest2, T_Dest, CondX86::Br_e);
   _mov(DestLo, T_Dest2);
   _mov(DestHi, Ctx->getConstantZero(IceType_i32));
 }
@@ -5833,9 +5832,9 @@ void TargetX86Base<TraitsType>::doMockBoundsCheck(Operand *Opnd) {
 
   auto *Label = InstX86Label::create(Func, this);
   _cmp(Opnd, Ctx->getConstantZero(IceType_i32));
-  _br(Traits::Cond::Br_e, Label);
+  _br(CondX86::Br_e, Label);
   _cmp(Opnd, Ctx->getConstantInt32(1));
-  _br(Traits::Cond::Br_e, Label);
+  _br(CondX86::Br_e, Label);
   Context.insert(Label);
 }
 
@@ -6502,7 +6501,7 @@ void TargetX86Base<TraitsType>::lowerSelect(const InstSelect *Select) {
   _cmp(CmpResult, Zero);
   Operand *SrcT = Select->getTrueOperand();
   Operand *SrcF = Select->getFalseOperand();
-  const BrCond Cond = Traits::Cond::Br_ne;
+  const BrCond Cond = CondX86::Br_ne;
   lowerSelectMove(Dest, Cond, SrcT, SrcF);
 }
 
@@ -6814,9 +6813,9 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
     if (DefaultTarget == nullptr) {
       // Skip over jump table logic if comparison not in range and no default
       SkipJumpTable = InstX86Label::create(Func, this);
-      _br(Traits::Cond::Br_a, SkipJumpTable);
+      _br(CondX86::Br_a, SkipJumpTable);
     } else {
-      _br(Traits::Cond::Br_a, DefaultTarget);
+      _br(CondX86::Br_a, DefaultTarget);
     }
 
     InstJumpTable *JumpTable = Case.getJumpTable();
@@ -6870,17 +6869,17 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
         Constant *Value = Ctx->getConstantInt32(Case.getLow());
         _cmp(Comparison, Value);
       }
-      _br(Traits::Cond::Br_e, Case.getTarget());
+      _br(CondX86::Br_e, Case.getTarget());
     } else if (DoneCmp && Case.isPairRange()) {
       // Range of two items with first item aleady compared against
-      _br(Traits::Cond::Br_e, Case.getTarget());
+      _br(CondX86::Br_e, Case.getTarget());
       Constant *Value = Ctx->getConstantInt32(Case.getHigh());
       _cmp(Comparison, Value);
-      _br(Traits::Cond::Br_e, Case.getTarget());
+      _br(CondX86::Br_e, Case.getTarget());
     } else {
       // Range
       lowerCmpRange(Comparison, Case.getLow(), Case.getHigh());
-      _br(Traits::Cond::Br_be, Case.getTarget());
+      _br(CondX86::Br_be, Case.getTarget());
     }
     if (DefaultTarget != nullptr)
       _br(DefaultTarget);
@@ -6918,9 +6917,9 @@ void TargetX86Base<TraitsType>::lowerSwitch(const InstSwitch *Instr) {
         Constant *ValueHi = Ctx->getConstantInt32(Instr->getValue(I) >> 32);
         InstX86Label *Label = InstX86Label::create(Func, this);
         _cmp(Src0Lo, ValueLo);
-        _br(Traits::Cond::Br_ne, Label);
+        _br(CondX86::Br_ne, Label);
         _cmp(Src0Hi, ValueHi);
-        _br(Traits::Cond::Br_e, Instr->getLabel(I));
+        _br(CondX86::Br_e, Instr->getLabel(I));
         Context.insert(Label);
       }
       _br(Instr->getLabelDefault());
@@ -6931,7 +6930,7 @@ void TargetX86Base<TraitsType>::lowerSwitch(const InstSwitch *Instr) {
       Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
       Constant *Zero = Ctx->getConstantInt32(0);
       _cmp(Src0Hi, Zero);
-      _br(Traits::Cond::Br_ne, DefaultTarget);
+      _br(CondX86::Br_ne, DefaultTarget);
       Src0 = Src0Lo;
     }
   }
@@ -7013,7 +7012,7 @@ void TargetX86Base<TraitsType>::lowerSwitch(const InstSwitch *Instr) {
       InstX86Label *Label = InstX86Label::create(Func, this);
       _cmp(Comparison, Value);
       // TODO(ascull): does it alway have to be far?
-      _br(Traits::Cond::Br_b, Label, InstX86Br::Far);
+      _br(CondX86::Br_b, Label, InstX86Br::Far);
       // Lower the left and (pivot+right) sides, falling through to the right
       SearchSpanStack.emplace(Span.Begin, Span.Size / 2, Label);
       SearchSpanStack.emplace(PivotIndex, Span.Size - (Span.Size / 2), nullptr);

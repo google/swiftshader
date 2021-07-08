@@ -21,7 +21,7 @@
 #include "IceAssemblerX8664.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
-#include "IceConditionCodesX8664.h"
+#include "IceConditionCodesX86.h"
 #include "IceInst.h"
 #include "IceOperand.h"
 #include "IceRegistersX8664.h"
@@ -33,15 +33,15 @@ namespace X8664 {
 
 const TargetX8664Traits::InstBrAttributesType
     TargetX8664Traits::InstBrAttributes[] = {
-#define X(val, encode, opp, dump, emit) {X8664::Traits::Cond::opp, dump, emit},
-        ICEINSTX8664BR_TABLE
+#define X(val, encode, opp, dump, emit) {CondX86::opp, dump, emit},
+        ICEINSTX86BR_TABLE
 #undef X
 };
 
 const TargetX8664Traits::InstCmppsAttributesType
     TargetX8664Traits::InstCmppsAttributes[] = {
 #define X(val, emit) {emit},
-        ICEINSTX8664CMPPS_TABLE
+        ICEINSTX86CMPPS_TABLE
 #undef X
 };
 
@@ -49,7 +49,7 @@ const TargetX8664Traits::TypeAttributesType
     TargetX8664Traits::TypeAttributes[] = {
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
   {cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld},
-        ICETYPEX8664_TABLE
+        ICETYPEX86_TABLE
 #undef X
 };
 

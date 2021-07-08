@@ -64,12 +64,7 @@ namespace X8664 {
 //------------------------------------------------------------------------------
 const TargetX8664Traits::TableFcmpType TargetX8664Traits::TableFcmp[] = {
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
-  {dflt,                                                                       \
-   swapS,                                                                      \
-   X8664::Traits::Cond::C1,                                                    \
-   X8664::Traits::Cond::C2,                                                    \
-   swapV,                                                                      \
-   X8664::Traits::Cond::pred},
+  {dflt, swapS, CondX86::C1, CondX86::C2, swapV, CondX86::pred},
     FCMPX8664_TABLE
 #undef X
 };
@@ -77,7 +72,7 @@ const TargetX8664Traits::TableFcmpType TargetX8664Traits::TableFcmp[] = {
 const size_t TargetX8664Traits::TableFcmpSize = llvm::array_lengthof(TableFcmp);
 
 const TargetX8664Traits::TableIcmp32Type TargetX8664Traits::TableIcmp32[] = {
-#define X(val, C_32, C1_64, C2_64, C3_64) {X8664::Traits::Cond::C_32},
+#define X(val, C_32, C1_64, C2_64, C3_64) {CondX86::C_32},
     ICMPX8664_TABLE
 #undef X
 };
@@ -87,8 +82,7 @@ const size_t TargetX8664Traits::TableIcmp32Size =
 
 const TargetX8664Traits::TableIcmp64Type TargetX8664Traits::TableIcmp64[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
-  {X8664::Traits::Cond::C1_64, X8664::Traits::Cond::C2_64,                     \
-   X8664::Traits::Cond::C3_64},
+  {CondX86::C1_64, CondX86::C2_64, CondX86::C3_64},
     ICMPX8664_TABLE
 #undef X
 };
@@ -100,7 +94,7 @@ const TargetX8664Traits::TableTypeX8664AttributesType
     TargetX8664Traits::TableTypeX8664Attributes[] = {
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
   {IceType_##elty},
-        ICETYPEX8664_TABLE
+        ICETYPEX86_TABLE
 #undef X
 };
 
@@ -378,13 +372,13 @@ ICEINSTICMP_TABLE
 #undef X
 } // end of namespace dummy2
 
-// Validate the enum values in ICETYPEX8664_TABLE.
+// Validate the enum values in ICETYPEX86_TABLE.
 namespace dummy3 {
 // Define a temporary set of enum values based on low-level table entries.
 enum _tmp_enum {
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
   _tmp_##tag,
-  ICETYPEX8664_TABLE
+  ICETYPEX86_TABLE
 #undef X
       _num
 };
@@ -398,14 +392,14 @@ ICETYPE_TABLE
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
   static const int _table2_##tag = _tmp_##tag;                                 \
   static_assert(_table1_##tag == _table2_##tag,                                \
-                "Inconsistency between ICETYPEX8664_TABLE and ICETYPE_TABLE");
-ICETYPEX8664_TABLE
+                "Inconsistency between ICETYPEX86_TABLE and ICETYPE_TABLE");
+ICETYPEX86_TABLE
 #undef X
 // Repeat the static asserts with respect to the high-level table entries in
 // case the high-level table has extra entries.
 #define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
   static_assert(_table1_##tag == _table2_##tag,                                \
-                "Inconsistency between ICETYPEX8664_TABLE and ICETYPE_TABLE");
+                "Inconsistency between ICETYPEX86_TABLE and ICETYPE_TABLE");
 ICETYPE_TABLE
 #undef X
 } // end of namespace dummy3

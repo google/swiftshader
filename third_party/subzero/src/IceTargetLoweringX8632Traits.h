@@ -16,7 +16,7 @@
 #define SUBZERO_SRC_ICETARGETLOWERINGX8632TRAITS_H
 
 #include "IceAssemblerX8632.h"
-#include "IceConditionCodesX8632.h"
+#include "IceConditionCodesX86.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceInstX8632.def"
@@ -61,8 +61,6 @@ struct TargetX8632Traits {
   using ByteRegister = ::Ice::RegX8632::ByteRegister;
   using XmmRegister = ::Ice::RegX8632::XmmRegister;
   using X87STRegister = ::Ice::RegX8632::X87STRegister;
-
-  using Cond = ::Ice::CondX86;
 
   using RegisterSet = ::Ice::RegX8632;
   static constexpr RegisterSet::AllRegisters StackPtr = RegX8632::Reg_esp;
@@ -690,9 +688,9 @@ public:
   static const struct TableFcmpType {
     uint32_t Default;
     bool SwapScalarOperands;
-    Cond::BrCond C1, C2;
+    CondX86::BrCond C1, C2;
     bool SwapVectorOperands;
-    Cond::CmppsCond Predicate;
+    CondX86::CmppsCond Predicate;
   } TableFcmp[];
   static const size_t TableFcmpSize;
   /// @}
@@ -701,7 +699,9 @@ public:
   /// for i32 and narrower types. Each icmp condition has a clear mapping to an
   /// x86 conditional branch instruction.
   /// {@
-  static const struct TableIcmp32Type { Cond::BrCond Mapping; } TableIcmp32[];
+  static const struct TableIcmp32Type {
+    CondX86::BrCond Mapping;
+  } TableIcmp32[];
   static const size_t TableIcmp32Size;
   /// @}
 
@@ -711,12 +711,12 @@ public:
   /// conditional branches are needed.
   /// {@
   static const struct TableIcmp64Type {
-    Cond::BrCond C1, C2, C3;
+    CondX86::BrCond C1, C2, C3;
   } TableIcmp64[];
   static const size_t TableIcmp64Size;
   /// @}
 
-  static Cond::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
+  static CondX86::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
     assert(static_cast<size_t>(Cond) < TableIcmp32Size);
     return TableIcmp32[Cond].Mapping;
   }
@@ -866,7 +866,7 @@ public:
   // Note: The following data structures are defined in IceInstX8632.cpp.
 
   static const struct InstBrAttributesType {
-    Cond::BrCond Opposite;
+    CondX86::BrCond Opposite;
     const char *DisplayString;
     const char *EmitString;
   } InstBrAttributes[];
