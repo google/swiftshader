@@ -16,6 +16,41 @@
       "message": "Mind removing this flag from the Android.bp and CMakeLists.txt while you\u0027re at it?\n\nHistoric note: This used to be required by Reactor, which had and() / or() / xor() etc. to match x86 instructions, but those are replaced by operators now (only architecture-specific intrinsics remain).",
       "revId": "a2fa13e2daa256624d6a57d5ef43fd2ec5c9945d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "75e8f187_b7daea70",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-09T15:34:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69df5525_440a17a5",
+      "revId": "a2fa13e2daa256624d6a57d5ef43fd2ec5c9945d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32cf359b_00753253",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2021-07-09T15:34:48Z",
+      "side": 1,
+      "message": "Thanks!",
+      "revId": "a2fa13e2daa256624d6a57d5ef43fd2ec5c9945d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
