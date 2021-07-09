@@ -16,6 +16,23 @@
       "message": "(+1 from @google acct :) )",
       "revId": "2eeb0ad2ceadce99df9e1fa116393f64b1791c0f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "65fbd740_45b2be95",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-09T00:31:38Z",
+      "side": 1,
+      "message": "Sticky +2 for when the tryjob failure is addressed.",
+      "revId": "2eeb0ad2ceadce99df9e1fa116393f64b1791c0f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
