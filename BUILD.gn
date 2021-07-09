@@ -42,7 +42,6 @@ config("swiftshader_config") {
 
     cflags_cc = [ "/std:c++17" ]
   } else {
-    cflags += [ "-fno-operator-names" ]
     cflags_cc = [ "-std=c++17" ]
 
     defines +=

@@ -484,12 +484,6 @@ else()
         )
     endif()
 
-    # Remove xor, and, or and friends from the list of keywords, they are used
-    # by Reactor
-    list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-        "-fno-operator-names"
-    )
-
     if(ARCH STREQUAL "x86")
         set_cpp_flag("-m32")
         set_cpp_flag("-msse2")
