@@ -24,7 +24,6 @@ config("swiftshader_config") {
 
   if (is_win) {
     defines += [
-      "_WINDLL",
       "NO_SANITIZE_FUNCTION=",
 
       # Disable MSVC warnings about std::aligned_storage being broken before
