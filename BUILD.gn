@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/config/c++/c++.gni")
 import("//build/config/compiler/compiler.gni")
-import("//build/config/mips.gni")
-import("//build/config/sysroot.gni")
 import("src/Reactor/reactor.gni")
 
 config("swiftshader_config") {
