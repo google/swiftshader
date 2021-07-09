@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/config/compiler/compiler.gni")
 import("src/Reactor/reactor.gni")
 
 config("swiftshader_config") {
   cflags = []
   defines = []
-  ldflags = []
 
   if (!is_debug) {
     defines += [ "ANGLE_DISABLE_TRACE" ]
@@ -53,13 +51,6 @@ config("swiftshader_config") {
 
     if (!is_debug) {
       cflags += [ "-Os" ]
-    }
-
-    if (is_linux || is_chromeos) {
-      # A bug in the gold linker prevents using ICF on 32-bit (crbug.com/729532)
-      if (use_gold && (current_cpu == "x86" || current_cpu == "mipsel")) {
-        ldflags += [ "-Wl,--icf=none" ]
-      }
     }
   }
 }
