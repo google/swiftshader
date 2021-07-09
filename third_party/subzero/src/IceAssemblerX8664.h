@@ -39,7 +39,7 @@ class AssemblerX8664 : public ::Ice::Assembler {
   AssemblerX8664 &operator=(const AssemblerX8664 &) = delete;
 
 protected:
-  explicit AssemblerX8664() : Assembler(Traits::AsmKind) {}
+  explicit AssemblerX8664() : Assembler(Asm_X8664) {}
 
 public:
   using Traits = TargetX8664Traits;
@@ -54,7 +54,7 @@ public:
   static constexpr int MAX_NOP_SIZE = 8;
 
   static bool classof(const Assembler *Asm) {
-    return Asm->getKind() == Traits::AsmKind;
+    return Asm->getKind() == Asm_X8664;
   }
 
   class Immediate {

@@ -13,10 +13,60 @@
 ///
 //===----------------------------------------------------------------------===//
 
+#ifndef SUBZERO_SRC_ICETARGETLOWERINGX86_H
+#define SUBZERO_SRC_ICETARGETLOWERINGX86_H
+
+#include "IceCfg.h"
+#include "IceTargetLowering.h"
+
 #include <inttypes.h>
 
 namespace Ice {
 namespace X86 {
+
+enum InstructionSetX86 {
+  Begin,
+  // SSE2 is the baseline instruction set.
+  SSE2 = Begin,
+  SSE4_1,
+  End
+};
+
+class TargetX86 : public ::Ice::TargetLowering {
+  TargetX86() = delete;
+  TargetX86(const TargetX86 &) = delete;
+  TargetX86 &operator=(const TargetX86 &) = delete;
+
+public:
+  ~TargetX86() override = default;
+
+  InstructionSetX86 getInstructionSet() const { return InstructionSet; }
+
+protected:
+  explicit TargetX86(Cfg *Func) : TargetLowering(Func) {
+    static_assert(
+        (InstructionSetX86::End - InstructionSetX86::Begin) ==
+            (TargetInstructionSet::X86InstructionSet_End -
+             TargetInstructionSet::X86InstructionSet_Begin),
+        "Traits::InstructionSet range different from TargetInstructionSet");
+    if (getFlags().getTargetInstructionSet() !=
+        TargetInstructionSet::BaseInstructionSet) {
+      InstructionSet = static_cast<InstructionSetX86>(
+          (getFlags().getTargetInstructionSet() -
+           TargetInstructionSet::X86InstructionSet_Begin) +
+          InstructionSetX86::Begin);
+    }
+  }
+
+  InstructionSetX86 InstructionSet = InstructionSetX86::Begin;
+
+private:
+  ENABLE_MAKE_UNIQUE;
+};
+
+inline InstructionSetX86 getInstructionSet(const Cfg *Func) {
+  return reinterpret_cast<TargetX86 *>(Func->getTarget())->getInstructionSet();
+}
 
 template <typename T> struct PoolTypeConverter {};
 
@@ -70,3 +120,5 @@ template <> struct PoolTypeConverter<uint8_t> {
 
 } // end of namespace X86
 } // end of namespace Ice
+
+#endif // SUBZERO_SRC_ICETARGETLOWERINGX8632_H

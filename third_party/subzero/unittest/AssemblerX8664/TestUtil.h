@@ -37,7 +37,7 @@ namespace Test {
 class AssemblerX8664TestBase : public ::testing::Test {
 protected:
   using Address = AssemblerX8664::Traits::Address;
-  using Cond = AssemblerX8664::Traits::Cond;
+  using Cond = AssemblerX8664::CondX86;
   using GPRRegister = AssemblerX8664::Traits::GPRRegister;
   using ByteRegister = AssemblerX8664::Traits::ByteRegister;
   using Traits = AssemblerX8664::Traits;

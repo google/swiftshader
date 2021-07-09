@@ -15,7 +15,7 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX8632TRAITS_H
 #define SUBZERO_SRC_ICETARGETLOWERINGX8632TRAITS_H
 
-#include "IceAssemblerX8632.h"
+#include "IceAssembler.h"
 #include "IceConditionCodesX86.h"
 #include "IceDefs.h"
 #include "IceInst.h"
@@ -33,9 +33,9 @@ namespace Ice {
 namespace X8632 {
 using namespace ::Ice::X86;
 
+struct Insts;
+class TargetX8632;
 class AssemblerX8632;
-template <class Machine> struct Insts;
-template <class Machine> class TargetX86Base;
 
 class TargetX8632;
 
@@ -48,9 +48,6 @@ struct TargetX8632Traits {
   //      \/_/\/_/\/_____/\/_/  \/_/
   //
   //----------------------------------------------------------------------------
-  static constexpr ::Ice::Assembler::AssemblerKind AsmKind =
-      ::Ice::Assembler::Asm_X8632;
-
   static constexpr bool Is64Bit = false;
   static constexpr ::Ice::RegX8632::GPRRegister Last8BitGPR =
       ::Ice::RegX8632::GPRRegister::Encoded_Reg_ebx;
@@ -259,14 +256,6 @@ struct TargetX8632Traits {
   //      \/_____/\/_____/\/_/   \/_/\/_____/\/_/ /_/\/_/\/_/ \/_/\/_____/
   //
   //----------------------------------------------------------------------------
-  enum InstructionSet {
-    Begin,
-    // SSE2 is the PNaCl baseline instruction set.
-    SSE2 = Begin,
-    SSE4_1,
-    End
-  };
-
   static const char *TargetName;
   static constexpr Type WordType = IceType_i32;
 
@@ -607,6 +596,8 @@ public:
   static constexpr uint32_t X86_MAX_XMM_ARGS = 4;
   /// The maximum number of arguments to pass in GPR registers
   static constexpr uint32_t X86_MAX_GPR_ARGS = 0;
+  /// Whether scalar floating point arguments are passed in XMM registers
+  static constexpr bool X86_PASS_SCALAR_FP_IN_XMM = false;
   /// Get the register for a given argument slot in the XMM registers.
   static RegNumT getRegisterForXmmArgNum(uint32_t ArgNum) {
     // TODO(sehr): Change to use the CCArg technique used in ARM32.
@@ -735,10 +726,8 @@ public:
   //
   //----------------------------------------------------------------------------
   using Traits = TargetX8632Traits;
-  using Insts = ::Ice::X8632::Insts<Traits>;
 
-  using TargetLowering = ::Ice::X8632::TargetX86Base<Traits>;
-  using ConcreteTarget = ::Ice::X8632::TargetX8632;
+  using TargetLowering = ::Ice::X8632::TargetX8632;
   using Assembler = ::Ice::X8632::AssemblerX8632;
 
   /// X86Operand extends the Operand hierarchy. Its subclasses are X86OperandMem
