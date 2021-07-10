@@ -16,6 +16,23 @@
       "message": "I needed to add this library to get the vk-unittests target to build on debian 10.",
       "revId": "e12774a026d696da5032ab2a89315217ef5a0958",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "54acf678_f63aaed4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-10T03:05:25Z",
+      "side": 1,
+      "message": "Thanks for your interest in SwiftShader!\n\nUnfortunately, this fails to build on Windows and MacOS. I\u0027m also curious why this library is needed on Debian 10, but not on the Linux platforms we are working with (including a Debian-based one). Which compiler are you using?\n\nI also wonder if you need vk-unittests at all?  I\u0027m assuming you\u0027re just interested in the Vulkan library build. Feel free to file a bug at g.co/swiftshaderbugs for a more detailed discussion of the issue and your expectations, and how we could resolve this in a way that doesn\u0027t break anything.",
+      "revId": "e12774a026d696da5032ab2a89315217ef5a0958",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
