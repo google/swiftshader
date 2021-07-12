@@ -16,6 +16,24 @@
       "message": "This macro is used for supressing a UBSan error. I added the bug reference for context.\n\nGreat to see Clang ASan is also working on Windows. I assume this attribute is a bit of a bigger hammer than what we need for suppressing a UBSan specific issue? Anyway, this is all in the legacy SwiftShader code stack, which will be removed once we\u0027ve switched everything over to SwANGLE. Then this macro can go away. I\u0027ll set a reminder.\n\nThanks!",
       "revId": "22d0108284bad032878d7e78dace37d31dee37bd",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cfbc70d6_16ef5158",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-12T15:19:32Z",
+      "side": 1,
+      "message": "Oh, I just realized that since the use of this macro is UBSan specific, and Windows only supports ASan, this change isn\u0027t strictly needed. Anyway, no real harm in it either.",
+      "parentUuid": "a5137518_2e1afebb",
+      "revId": "22d0108284bad032878d7e78dace37d31dee37bd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
