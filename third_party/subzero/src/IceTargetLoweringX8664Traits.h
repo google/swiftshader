@@ -68,7 +68,7 @@ struct TargetX8664Traits {
   static constexpr FixupKind FK_Gotoff = llvm::ELF::R_X86_64_GOTOFF64;
   static constexpr FixupKind FK_GotPC = llvm::ELF::R_X86_64_GOTPC32;
 
-  class Operand {
+  class AsmOperand {
   public:
     enum RexBits {
       RexNone = 0x00,
@@ -81,13 +81,13 @@ struct TargetX8664Traits {
 
   protected:
     // Needed by subclass Address.
-    Operand() = default;
+    AsmOperand() = default;
 
   public:
-    Operand(const Operand &) = default;
-    Operand(Operand &&) = default;
-    Operand &operator=(const Operand &) = default;
-    Operand &operator=(Operand &&) = default;
+    AsmOperand(const AsmOperand &) = default;
+    AsmOperand(AsmOperand &&) = default;
+    AsmOperand &operator=(const AsmOperand &) = default;
+    AsmOperand &operator=(AsmOperand &&) = default;
 
     uint8_t mod() const { return (encoding_at(0) >> 6) & 3; }
 
@@ -157,7 +157,7 @@ struct TargetX8664Traits {
     uint8_t encoding_[6];
     uint8_t length_ = 0;
 
-    explicit Operand(GPRRegister reg) : fixup_(nullptr) { SetModRM(3, reg); }
+    explicit AsmOperand(GPRRegister reg) : fixup_(nullptr) { SetModRM(3, reg); }
 
     /// Get the operand encoding byte at the given index.
     uint8_t encoding_at(intptr_t index) const {
@@ -176,7 +176,7 @@ struct TargetX8664Traits {
     friend class AssemblerX8664;
   };
 
-  class Address : public Operand {
+  class Address : public AsmOperand {
     Address() = default;
 
   public:

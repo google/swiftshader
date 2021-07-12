@@ -48,7 +48,7 @@ public:
   using BrCond = CondX86::BrCond;
   using CmppsCond = CondX86::CmppsCond;
   using GPRRegister = typename Traits::GPRRegister;
-  using Operand = typename Traits::Operand;
+  using AsmOperand = typename Traits::AsmOperand;
   using XmmRegister = typename Traits::XmmRegister;
 
   static constexpr int MAX_NOP_SIZE = 8;
@@ -675,18 +675,18 @@ private:
   inline void emitXmmRegisterOperand(RegType reg, RmType rm);
   inline void emitOperandSizeOverride();
 
-  void emitOperand(int rm, const Operand &operand, RelocOffsetT Addend = 0);
+  void emitOperand(int rm, const AsmOperand &operand, RelocOffsetT Addend = 0);
   void emitImmediate(Type ty, const Immediate &imm);
-  void emitComplexI8(int rm, const Operand &operand,
+  void emitComplexI8(int rm, const AsmOperand &operand,
                      const Immediate &immediate);
-  void emitComplex(Type Ty, int rm, const Operand &operand,
+  void emitComplex(Type Ty, int rm, const AsmOperand &operand,
                    const Immediate &immediate);
   void emitLabel(Label *label, intptr_t instruction_size);
   void emitLabelLink(Label *label);
   void emitNearLabelLink(Label *label);
 
   void emitGenericShift(int rm, Type Ty, GPRRegister reg, const Immediate &imm);
-  void emitGenericShift(int rm, Type Ty, const Operand &operand,
+  void emitGenericShift(int rm, Type Ty, const AsmOperand &operand,
                         GPRRegister shifter);
 
   using LabelVector = std::vector<Label *>;
@@ -752,22 +752,22 @@ private:
                           const RmType Rm,
                           const Address *Addr = nullptr) {
     const uint8_t W = (TyReg == IceType_i64 || TyRm == IceType_i64)
-                          ? Operand::RexW
-                          : Operand::RexNone;
-    const uint8_t R = (Reg & 0x08) ? Operand::RexR : Operand::RexNone;
+                          ? AsmOperand::RexW
+                          : AsmOperand::RexNone;
+    const uint8_t R = (Reg & 0x08) ? AsmOperand::RexR : AsmOperand::RexNone;
     const uint8_t X = (Addr != nullptr)
-                          ? (typename Operand::RexBits)Addr->rexX()
-                          : Operand::RexNone;
+                          ? (typename AsmOperand::RexBits)Addr->rexX()
+                          : AsmOperand::RexNone;
     const uint8_t B = (Addr != nullptr)
-                          ? (typename Operand::RexBits)Addr->rexB()
-                      : (Rm & 0x08) ? Operand::RexB
-                                    : Operand::RexNone;
+                          ? (typename AsmOperand::RexBits)Addr->rexB()
+                      : (Rm & 0x08) ? AsmOperand::RexB
+                                    : AsmOperand::RexNone;
     const uint8_t Prefix = W | R | X | B;
-    if (Prefix != Operand::RexNone) {
+    if (Prefix != AsmOperand::RexNone) {
       emitUint8(Prefix);
     } else if (is8BitRegisterRequiringRex(TyReg, Reg) ||
                (Addr == nullptr && is8BitRegisterRequiringRex(TyRm, Rm))) {
-      emitUint8(Operand::RexBase);
+      emitUint8(AsmOperand::RexBase);
     }
   }
 

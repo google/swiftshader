@@ -68,14 +68,14 @@ struct TargetX8632Traits {
   static constexpr FixupKind FK_Gotoff = llvm::ELF::R_386_GOTOFF;
   static constexpr FixupKind FK_GotPC = llvm::ELF::R_386_GOTPC;
 
-  class Operand {
+  class AsmOperand {
   public:
-    Operand(const Operand &other)
+    AsmOperand(const AsmOperand &other)
         : fixup_(other.fixup_), length_(other.length_) {
       memmove(&encoding_[0], &other.encoding_[0], other.length_);
     }
 
-    Operand &operator=(const Operand &other) {
+    AsmOperand &operator=(const AsmOperand &other) {
       length_ = other.length_;
       fixup_ = other.fixup_;
       memmove(&encoding_[0], &other.encoding_[0], other.length_);
@@ -116,7 +116,7 @@ struct TargetX8632Traits {
     AssemblerFixup *fixup() const { return fixup_; }
 
   protected:
-    Operand() : fixup_(nullptr), length_(0) {} // Needed by subclass Address.
+    AsmOperand() : fixup_(nullptr), length_(0) {} // Needed by subclass Address.
 
     void SetModRM(int mod, GPRRegister rm) {
       assert((mod & ~3) == 0);
@@ -150,7 +150,7 @@ struct TargetX8632Traits {
     uint8_t encoding_[6];
     uint8_t length_;
 
-    explicit Operand(GPRRegister reg) : fixup_(nullptr) { SetModRM(3, reg); }
+    explicit AsmOperand(GPRRegister reg) : fixup_(nullptr) { SetModRM(3, reg); }
 
     /// Get the operand encoding byte at the given index.
     uint8_t encoding_at(intptr_t index) const {
@@ -169,14 +169,14 @@ struct TargetX8632Traits {
     friend class AssemblerX8632;
   };
 
-  class Address : public Operand {
+  class Address : public AsmOperand {
     Address() = delete;
 
   public:
-    Address(const Address &other) : Operand(other) {}
+    Address(const Address &other) : AsmOperand(other) {}
 
     Address &operator=(const Address &other) {
-      Operand::operator=(other);
+      AsmOperand::operator=(other);
       return *this;
     }
 

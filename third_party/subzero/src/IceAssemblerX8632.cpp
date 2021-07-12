@@ -1946,9 +1946,9 @@ void AssemblerX8632::arith_int(Type Ty, GPRRegister reg, const Immediate &imm) {
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   if (isByteSizedType(Ty)) {
-    emitComplexI8(Tag, Operand(reg), imm);
+    emitComplexI8(Tag, AsmOperand(reg), imm);
   } else {
-    emitComplex(Ty, Tag, Operand(reg), imm);
+    emitComplex(Ty, Tag, AsmOperand(reg), imm);
   }
 }
 
@@ -2453,7 +2453,7 @@ void AssemblerX8632::rol(Type Ty, GPRRegister reg, const Immediate &imm) {
 }
 
 void AssemblerX8632::rol(Type Ty, GPRRegister operand, GPRRegister shifter) {
-  emitGenericShift(0, Ty, Operand(operand), shifter);
+  emitGenericShift(0, Ty, AsmOperand(operand), shifter);
 }
 
 void AssemblerX8632::rol(Type Ty, const Address &operand, GPRRegister shifter) {
@@ -2465,7 +2465,7 @@ void AssemblerX8632::shl(Type Ty, GPRRegister reg, const Immediate &imm) {
 }
 
 void AssemblerX8632::shl(Type Ty, GPRRegister operand, GPRRegister shifter) {
-  emitGenericShift(4, Ty, Operand(operand), shifter);
+  emitGenericShift(4, Ty, AsmOperand(operand), shifter);
 }
 
 void AssemblerX8632::shl(Type Ty, const Address &operand, GPRRegister shifter) {
@@ -2477,7 +2477,7 @@ void AssemblerX8632::shr(Type Ty, GPRRegister reg, const Immediate &imm) {
 }
 
 void AssemblerX8632::shr(Type Ty, GPRRegister operand, GPRRegister shifter) {
-  emitGenericShift(5, Ty, Operand(operand), shifter);
+  emitGenericShift(5, Ty, AsmOperand(operand), shifter);
 }
 
 void AssemblerX8632::shr(Type Ty, const Address &operand, GPRRegister shifter) {
@@ -2489,7 +2489,7 @@ void AssemblerX8632::sar(Type Ty, GPRRegister reg, const Immediate &imm) {
 }
 
 void AssemblerX8632::sar(Type Ty, GPRRegister operand, GPRRegister shifter) {
-  emitGenericShift(7, Ty, Operand(operand), shifter);
+  emitGenericShift(7, Ty, AsmOperand(operand), shifter);
 }
 
 void AssemblerX8632::sar(Type Ty, const Address &address, GPRRegister shifter) {
@@ -2974,7 +2974,7 @@ void AssemblerX8632::bind(Label *L) {
   L->bindTo(Bound);
 }
 
-void AssemblerX8632::emitOperand(int rm, const Operand &operand,
+void AssemblerX8632::emitOperand(int rm, const AsmOperand &operand,
                                  RelocOffsetT Addend) {
   assert(rm >= 0 && rm < 8);
   const intptr_t length = operand.length_;
@@ -3030,7 +3030,7 @@ void AssemblerX8632::emitImmediate(Type Ty, const Immediate &imm) {
   emitInt32(0);
 }
 
-void AssemblerX8632::emitComplexI8(int rm, const Operand &operand,
+void AssemblerX8632::emitComplexI8(int rm, const AsmOperand &operand,
                                    const Immediate &immediate) {
   assert(rm >= 0 && rm < 8);
   assert(immediate.is_int8());
@@ -3047,7 +3047,7 @@ void AssemblerX8632::emitComplexI8(int rm, const Operand &operand,
   }
 }
 
-void AssemblerX8632::emitComplex(Type Ty, int rm, const Operand &operand,
+void AssemblerX8632::emitComplex(Type Ty, int rm, const AsmOperand &operand,
                                  const Immediate &immediate) {
   assert(rm >= 0 && rm < 8);
   if (immediate.is_int8()) {
@@ -3103,16 +3103,16 @@ void AssemblerX8632::emitGenericShift(int rm, Type Ty, GPRRegister reg,
     emitOperandSizeOverride();
   if (imm.value() == 1) {
     emitUint8(isByteSizedArithType(Ty) ? 0xD0 : 0xD1);
-    emitOperand(rm, Operand(reg));
+    emitOperand(rm, AsmOperand(reg));
   } else {
     emitUint8(isByteSizedArithType(Ty) ? 0xC0 : 0xC1);
     static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
-    emitOperand(rm, Operand(reg), OffsetFromNextInstruction);
+    emitOperand(rm, AsmOperand(reg), OffsetFromNextInstruction);
     emitUint8(imm.value() & 0xFF);
   }
 }
 
-void AssemblerX8632::emitGenericShift(int rm, Type Ty, const Operand &operand,
+void AssemblerX8632::emitGenericShift(int rm, Type Ty, const AsmOperand &operand,
                                       GPRRegister shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(shifter == Traits::Encoded_Reg_Counter);
