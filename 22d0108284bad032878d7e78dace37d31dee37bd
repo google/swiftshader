@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5137518_2e1afebb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-12T15:17:05Z",
+      "side": 1,
+      "message": "This macro is used for supressing a UBSan error. I added the bug reference for context.\n\nGreat to see Clang ASan is also working on Windows. I assume this attribute is a bit of a bigger hammer than what we need for suppressing a UBSan specific issue? Anyway, this is all in the legacy SwiftShader code stack, which will be removed once we\u0027ve switched everything over to SwANGLE. Then this macro can go away. I\u0027ll set a reminder.\n\nThanks!",
+      "revId": "22d0108284bad032878d7e78dace37d31dee37bd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
