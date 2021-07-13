@@ -24,9 +24,96 @@
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceOperand.h"
+#include "IceTargetLoweringX8632.h"
 
 namespace Ice {
 namespace X8632 {
+
+AsmAddress::AsmAddress(const Variable *Var, const TargetX8632 *Target) {
+  if (Var->hasReg())
+    llvm::report_fatal_error("Stack Variable has a register assigned");
+  if (Var->mustHaveReg()) {
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName() +
+                             ") has no register assigned - function " +
+                             Target->getFunc()->getFunctionName());
+  }
+  int32_t Offset = Var->getStackOffset();
+  auto BaseRegNum = Var->getBaseRegNum();
+  if (Var->getBaseRegNum().hasNoValue()) {
+    // If the stack pointer needs alignment, we must use the frame pointer
+    // for arguments. For locals, getFrameOrStackReg will return the stack
+    // pointer in this case.
+    if (Target->needsStackPointerAlignment() && Var->getIsArg()) {
+      assert(Target->hasFramePointer());
+      BaseRegNum = Target->getFrameReg();
+    } else {
+      BaseRegNum = Target->getFrameOrStackReg();
+    }
+  }
+
+  GPRRegister Base = Traits::getEncodedGPR(BaseRegNum);
+
+  if (Utils::IsInt(8, Offset)) {
+    SetModRM(1, Base);
+    if (Base == RegX8632::Encoded_Reg_esp)
+      SetSIB(TIMES_1, RegX8632::Encoded_Reg_esp, Base);
+    SetDisp8(Offset);
+  } else {
+    SetModRM(2, Base);
+    if (Base == RegX8632::Encoded_Reg_esp)
+      SetSIB(TIMES_1, RegX8632::Encoded_Reg_esp, Base);
+    SetDisp32(Offset);
+  }
+}
+
+AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
+                       const Ice::TargetLowering *Target) {
+  Mem->validateMemOperandPIC();
+  int32_t Disp = 0;
+  if (Mem->getBase() && Mem->getBase()->isRematerializable()) {
+    Disp += Mem->getBase()->getRematerializableOffset(Target);
+  }
+  // The index should never be rematerializable.  But if we ever allow it, then
+  // we should make sure the rematerialization offset is shifted by the Shift
+  // value.
+  assert(!Mem->getIndex() || !Mem->getIndex()->isRematerializable());
+
+  AssemblerFixup *Fixup = nullptr;
+  // Determine the offset (is it relocatable?)
+  if (Mem->getOffset()) {
+    if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(Mem->getOffset())) {
+      Disp += static_cast<int32_t>(CI->getValue());
+    } else if (const auto CR =
+                   llvm::dyn_cast<ConstantRelocatable>(Mem->getOffset())) {
+      Disp += CR->getOffset();
+      Fixup = Asm->createFixup(Traits::FK_Abs, CR);
+    } else {
+      llvm_unreachable("Unexpected offset type");
+    }
+  }
+
+  // Now convert to the various possible forms.
+  if (Mem->getBase() && Mem->getIndex()) {
+    SetBaseIndex(getEncodedGPR(Mem->getBase()->getRegNum()),
+                 getEncodedGPR(Mem->getIndex()->getRegNum()),
+                 X8632::Traits::ScaleFactor(Mem->getShift()), Disp, Fixup);
+  } else if (Mem->getBase()) {
+    SetBase(getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
+  } else if (Mem->getIndex()) {
+    SetIndex(getEncodedGPR(Mem->getIndex()->getRegNum()),
+             X8632::Traits::ScaleFactor(Mem->getShift()), Disp, Fixup);
+  } else {
+    SetAbsolute(Disp, Fixup);
+  }
+}
+
+AsmAddress::AsmAddress(const VariableSplit *Split, const Cfg *Func) {
+  assert(!Split->getVar()->hasReg());
+  const ::Ice::TargetLowering *Target = Func->getTarget();
+  int32_t Offset = Split->getVar()->getStackOffset() + Split->getOffset();
+  SetBase(getEncodedGPR(Target->getFrameOrStackReg()), Offset,
+          AssemblerFixup::NoFixup);
+}
 
 AssemblerX8632::~AssemblerX8632() {
   if (BuildDefs::asserts()) {
@@ -616,7 +703,8 @@ void AssemblerX8632::pand(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::pand(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::pand(Type /* Ty */, XmmRegister dst,
+                          const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitUint8(0x0F);
@@ -632,7 +720,8 @@ void AssemblerX8632::pandn(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::pandn(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::pandn(Type /* Ty */, XmmRegister dst,
+                           const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitUint8(0x0F);
@@ -753,7 +842,8 @@ void AssemblerX8632::por(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::por(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::por(Type /* Ty */, XmmRegister dst,
+                         const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitUint8(0x0F);
@@ -853,7 +943,8 @@ void AssemblerX8632::pxor(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::pxor(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::pxor(Type /* Ty */, XmmRegister dst,
+                          const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitUint8(0x0F);
@@ -1001,7 +1092,8 @@ void AssemblerX8632::addps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::addps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::addps(Type /* Ty */, XmmRegister dst,
+                           const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x58);
@@ -1015,7 +1107,8 @@ void AssemblerX8632::subps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::subps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::subps(Type /* Ty */, XmmRegister dst,
+                           const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x5C);
@@ -1029,7 +1122,8 @@ void AssemblerX8632::divps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::divps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::divps(Type /* Ty */, XmmRegister dst,
+                           const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x5E);
@@ -1043,7 +1137,8 @@ void AssemblerX8632::mulps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8632::mulps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
+void AssemblerX8632::mulps(Type /* Ty */, XmmRegister dst,
+                           const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x59);
@@ -1338,8 +1433,8 @@ void AssemblerX8632::pshufd(Type /* Ty */, XmmRegister dst, XmmRegister src,
   emitUint8(imm.value());
 }
 
-void AssemblerX8632::pshufd(Type /* Ty */, XmmRegister dst, const AsmAddress &src,
-                            const Immediate &imm) {
+void AssemblerX8632::pshufd(Type /* Ty */, XmmRegister dst,
+                            const AsmAddress &src, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitUint8(0x0F);
@@ -1482,8 +1577,8 @@ void AssemblerX8632::shufps(Type /* Ty */, XmmRegister dst, XmmRegister src,
   emitUint8(imm.value());
 }
 
-void AssemblerX8632::shufps(Type /* Ty */, XmmRegister dst, const AsmAddress &src,
-                            const Immediate &imm) {
+void AssemblerX8632::shufps(Type /* Ty */, XmmRegister dst,
+                            const AsmAddress &src, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0xC6);
@@ -2140,7 +2235,8 @@ void AssemblerX8632::Or(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<1>(Ty, address, reg);
 }
 
-void AssemblerX8632::Or(Type Ty, const AsmAddress &address, const Immediate &imm) {
+void AssemblerX8632::Or(Type Ty, const AsmAddress &address,
+                        const Immediate &imm) {
   arith_int<1>(Ty, address, imm);
 }
 
@@ -2456,7 +2552,8 @@ void AssemblerX8632::rol(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(0, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8632::rol(Type Ty, const AsmAddress &operand, GPRRegister shifter) {
+void AssemblerX8632::rol(Type Ty, const AsmAddress &operand,
+                         GPRRegister shifter) {
   emitGenericShift(0, Ty, operand, shifter);
 }
 
@@ -2468,7 +2565,8 @@ void AssemblerX8632::shl(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(4, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8632::shl(Type Ty, const AsmAddress &operand, GPRRegister shifter) {
+void AssemblerX8632::shl(Type Ty, const AsmAddress &operand,
+                         GPRRegister shifter) {
   emitGenericShift(4, Ty, operand, shifter);
 }
 
@@ -2480,7 +2578,8 @@ void AssemblerX8632::shr(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(5, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8632::shr(Type Ty, const AsmAddress &operand, GPRRegister shifter) {
+void AssemblerX8632::shr(Type Ty, const AsmAddress &operand,
+                         GPRRegister shifter) {
   emitGenericShift(5, Ty, operand, shifter);
 }
 
@@ -2492,7 +2591,8 @@ void AssemblerX8632::sar(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(7, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8632::sar(Type Ty, const AsmAddress &address, GPRRegister shifter) {
+void AssemblerX8632::sar(Type Ty, const AsmAddress &address,
+                         GPRRegister shifter) {
   emitGenericShift(7, Ty, address, shifter);
 }
 
@@ -2831,8 +2931,8 @@ void AssemblerX8632::lock() {
   emitUint8(0xF0);
 }
 
-void AssemblerX8632::cmpxchg(Type Ty, const AsmAddress &address, GPRRegister reg,
-                             bool Locked) {
+void AssemblerX8632::cmpxchg(Type Ty, const AsmAddress &address,
+                             GPRRegister reg, bool Locked) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -3112,7 +3212,8 @@ void AssemblerX8632::emitGenericShift(int rm, Type Ty, GPRRegister reg,
   }
 }
 
-void AssemblerX8632::emitGenericShift(int rm, Type Ty, const AsmOperand &operand,
+void AssemblerX8632::emitGenericShift(int rm, Type Ty,
+                                      const AsmOperand &operand,
                                       GPRRegister shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(shifter == Traits::Encoded_Reg_Counter);

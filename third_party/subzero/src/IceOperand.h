@@ -765,6 +765,7 @@ public:
     setMustHaveReg();
   }
   bool isRematerializable() const { return IsRematerializable; }
+  int32_t getRematerializableOffset(const ::Ice::TargetLowering *Target);
 
   void setRegClass(uint8_t RC) { RegisterClass = static_cast<RegClass>(RC); }
   RegClass getRegClass() const { return RegisterClass; }

@@ -34,6 +34,15 @@
 namespace Ice {
 namespace X8664 {
 
+using Traits = TargetX8664Traits;
+using AsmAddress = typename Traits::AsmAddress;
+using ByteRegister = typename Traits::ByteRegister;
+using BrCond = CondX86::BrCond;
+using CmppsCond = CondX86::CmppsCond;
+using GPRRegister = typename Traits::GPRRegister;
+using AsmOperand = typename Traits::AsmOperand;
+using XmmRegister = typename Traits::XmmRegister;
+
 class AssemblerX8664 : public ::Ice::Assembler {
   AssemblerX8664(const AssemblerX8664 &) = delete;
   AssemblerX8664 &operator=(const AssemblerX8664 &) = delete;
@@ -42,15 +51,6 @@ protected:
   explicit AssemblerX8664() : Assembler(Asm_X8664) {}
 
 public:
-  using Traits = TargetX8664Traits;
-  using AsmAddress = typename Traits::AsmAddress;
-  using ByteRegister = typename Traits::ByteRegister;
-  using BrCond = CondX86::BrCond;
-  using CmppsCond = CondX86::CmppsCond;
-  using GPRRegister = typename Traits::GPRRegister;
-  using AsmOperand = typename Traits::AsmOperand;
-  using XmmRegister = typename Traits::XmmRegister;
-
   static constexpr int MAX_NOP_SIZE = 8;
 
   static bool classof(const Assembler *Asm) {
@@ -446,16 +446,19 @@ public:
   void cvtps2dq(Type, XmmRegister dst, const AsmAddress &src);
 
   void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, GPRRegister src);
-  void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, const AsmAddress &src);
+  void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy,
+                const AsmAddress &src);
 
   void cvtfloat2float(Type SrcTy, XmmRegister dst, XmmRegister src);
   void cvtfloat2float(Type SrcTy, XmmRegister dst, const AsmAddress &src);
 
   void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, XmmRegister src);
-  void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, const AsmAddress &src);
+  void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy,
+                 const AsmAddress &src);
 
   void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy, XmmRegister src);
-  void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy, const AsmAddress &src);
+  void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy,
+                const AsmAddress &src);
 
   void ucomiss(Type Ty, XmmRegister a, XmmRegister b);
   void ucomiss(Type Ty, XmmRegister a, const AsmAddress &b);
@@ -637,7 +640,8 @@ public:
   void mfence();
 
   void lock();
-  void cmpxchg(Type Ty, const AsmAddress &address, GPRRegister reg, bool Locked);
+  void cmpxchg(Type Ty, const AsmAddress &address, GPRRegister reg,
+               bool Locked);
   void cmpxchg8b(const AsmAddress &address, bool Locked);
   void xadd(Type Ty, const AsmAddress &address, GPRRegister reg, bool Locked);
   void xchg(Type Ty, GPRRegister reg0, GPRRegister reg1);
@@ -749,8 +753,7 @@ private:
   // Addr's size.
   template <typename RegType, typename RmType>
   void assembleAndEmitRex(const Type TyReg, const RegType Reg, const Type TyRm,
-                          const RmType Rm,
-                          const AsmAddress *Addr = nullptr) {
+                          const RmType Rm, const AsmAddress *Addr = nullptr) {
     const uint8_t W = (TyReg == IceType_i64 || TyRm == IceType_i64)
                           ? AsmOperand::RexW
                           : AsmOperand::RexNone;

@@ -35,7 +35,6 @@ using namespace ::Ice::X86;
 struct Insts;
 class TargetX8632;
 class AssemblerX8632;
-
 class TargetX8632;
 
 struct TargetX8632Traits {
@@ -67,6 +66,9 @@ struct TargetX8632Traits {
   static constexpr FixupKind FK_Abs = llvm::ELF::R_386_32;
   static constexpr FixupKind FK_Gotoff = llvm::ELF::R_386_GOTOFF;
   static constexpr FixupKind FK_GotPC = llvm::ELF::R_386_GOTPC;
+
+  class X86OperandMem;
+  class VariableSplit;
 
   class AsmOperand {
   public:
@@ -103,14 +105,6 @@ struct TargetX8632Traits {
     int8_t disp8() const {
       assert(length_ >= 2);
       return static_cast<int8_t>(encoding_[length_ - 1]);
-    }
-
-    int32_t disp32() const {
-      assert(length_ >= 5);
-      // TODO(stichnot): This method is not currently used.  Delete it along
-      // with other unused methods, or use a safe version of bitCopy().
-      llvm::report_fatal_error("Unexpected call to disp32()");
-      // return Utils::bitCopy<int32_t>(encoding_[length_ - 4]);
     }
 
     AssemblerFixup *fixup() const { return fixup_; }
@@ -174,6 +168,23 @@ struct TargetX8632Traits {
     AsmAddress() = delete;
 
   public:
+    AsmAddress(GPRRegister Base, int32_t Disp,
+               AssemblerFixup *Fixup = nullptr) {
+      SetBase(Base, Disp, Fixup);
+    }
+    AsmAddress(const Variable *Var, const TargetX8632 *Target);
+    AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
+               const Ice::TargetLowering *Target);
+    AsmAddress(const VariableSplit *Split, const Cfg *Func);
+
+    // Address into the constant pool.
+    AsmAddress(const Constant *Imm, Ice::Assembler *Asm) {
+      AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Imm);
+      const RelocOffsetT Offset = 0;
+      SetAbsolute(Offset, Fixup);
+    }
+
+  private:
     AsmAddress(const AsmAddress &other) : AsmOperand(other) {}
 
     AsmAddress &operator=(const AsmAddress &other) {
@@ -181,7 +192,7 @@ struct TargetX8632Traits {
       return *this;
     }
 
-    AsmAddress(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
+    void SetBase(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
       if (Fixup == nullptr && Disp == 0 && Base != RegX8632::Encoded_Reg_ebp) {
         SetModRM(0, Base);
         if (Base == RegX8632::Encoded_Reg_esp)
@@ -201,8 +212,8 @@ struct TargetX8632Traits {
       }
     }
 
-    AsmAddress(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
-               AssemblerFixup *Fixup) {
+    void SetIndex(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
+                  AssemblerFixup *Fixup) {
       assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
       SetModRM(0, RegX8632::Encoded_Reg_esp);
       SetSIB(Scale, Index, RegX8632::Encoded_Reg_ebp);
@@ -211,8 +222,8 @@ struct TargetX8632Traits {
         SetFixup(Fixup);
     }
 
-    AsmAddress(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
-               int32_t Disp, AssemblerFixup *Fixup) {
+    void SetBaseIndex(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
+                      int32_t Disp, AssemblerFixup *Fixup) {
       assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
       if (Fixup == nullptr && Disp == 0 && Base != RegX8632::Encoded_Reg_ebp) {
         SetModRM(0, RegX8632::Encoded_Reg_esp);
@@ -231,19 +242,13 @@ struct TargetX8632Traits {
     }
 
     /// Generate an absolute address expression on x86-32.
-    AsmAddress(RelocOffsetT Offset, AssemblerFixup *Fixup) {
+    void SetAbsolute(RelocOffsetT Offset, AssemblerFixup *Fixup) {
       SetModRM(0, RegX8632::Encoded_Reg_ebp);
       // Use the Offset in the displacement for now. If we decide to process
       // fixups later, we'll need to patch up the emitted displacement.
       SetDisp32(Offset);
       if (Fixup)
         SetFixup(Fixup);
-    }
-
-    static AsmAddress ofConstPool(Assembler *Asm, const Constant *Imm) {
-      AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Imm);
-      const RelocOffsetT Offset = 0;
-      return AsmAddress(Offset, Fixup);
     }
   };
 
@@ -785,9 +790,17 @@ public:
     SegmentRegisters getSegmentRegister() const { return SegmentReg; }
     void emitSegmentOverride(Assembler *Asm) const;
     bool getIsRebased() const { return IsRebased; }
-    static AsmAddress toAsmAddress(const X86OperandMem *Mem, Assembler *Asm,
-                                   const Ice::TargetLowering *Target,
-                                   bool LeaAddr = false);
+
+    void validateMemOperandPIC() const {
+      if (!BuildDefs::asserts())
+        return;
+      const bool HasCR =
+          getOffset() && llvm::isa<ConstantRelocatable>(getOffset());
+      (void)HasCR;
+      const bool IsRebased = getIsRebased();
+      (void)IsRebased;
+      assert(!IsRebased);
+    }
 
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
@@ -831,7 +844,6 @@ public:
     const Variable *getVar() const { return Var; }
     int32_t getOffset() const { return Part == High ? 4 : 0; }
 
-    static AsmAddress toAsmAddress(const VariableSplit *Split, const Cfg *Func);
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
     void dump(const Cfg *Func, Ostream &Str) const override;

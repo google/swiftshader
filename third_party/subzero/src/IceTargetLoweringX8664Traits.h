@@ -36,7 +36,6 @@ using namespace ::Ice::X86;
 class AssemblerX8664;
 struct Insts;
 class TargetX8664;
-
 class TargetX8664;
 
 struct TargetX8664Traits {
@@ -67,6 +66,8 @@ struct TargetX8664Traits {
   static constexpr FixupKind FK_Abs = llvm::ELF::R_X86_64_32S;
   static constexpr FixupKind FK_Gotoff = llvm::ELF::R_X86_64_GOTOFF64;
   static constexpr FixupKind FK_GotPC = llvm::ELF::R_X86_64_GOTPC32;
+
+  class X86OperandMem;
 
   class AsmOperand {
   public:
@@ -180,12 +181,25 @@ struct TargetX8664Traits {
     AsmAddress() = default;
 
   public:
+    AsmAddress(const Variable *Var, const TargetX8664 *Target);
+    AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
+               const Ice::TargetLowering *Target);
+
+    // Address into the constant pool.
+    AsmAddress(const Constant *Imm, Ice::Assembler *Asm) {
+      // TODO(jpp): ???
+      AssemblerFixup *Fixup = Asm->createFixup(FK_Abs, Imm);
+      const RelocOffsetT Offset = 4;
+      SetRipRelative(Offset, Fixup);
+    }
+
+  private:
     AsmAddress(const AsmAddress &) = default;
     AsmAddress(AsmAddress &&) = default;
     AsmAddress &operator=(const AsmAddress &) = default;
     AsmAddress &operator=(AsmAddress &&) = default;
 
-    AsmAddress(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
+    void SetBase(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
       if (Fixup == nullptr && Disp == 0 &&
           (Base & 7) != RegX8664::Encoded_Reg_rbp) {
         SetModRM(0, Base);
@@ -206,8 +220,8 @@ struct TargetX8664Traits {
       }
     }
 
-    AsmAddress(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
-               AssemblerFixup *Fixup) {
+    void SetIndex(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
+                  AssemblerFixup *Fixup) {
       assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
       SetModRM(0, RegX8664::Encoded_Reg_rsp);
       SetSIB(Scale, Index, RegX8664::Encoded_Reg_rbp);
@@ -216,8 +230,8 @@ struct TargetX8664Traits {
         SetFixup(Fixup);
     }
 
-    AsmAddress(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
-               int32_t Disp, AssemblerFixup *Fixup) {
+    void SetBaseIndex(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
+                      int32_t Disp, AssemblerFixup *Fixup) {
       assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
       if (Fixup == nullptr && Disp == 0 &&
           (Base & 7) != RegX8664::Encoded_Reg_rbp) {
@@ -237,37 +251,25 @@ struct TargetX8664Traits {
     }
 
     /// Generate a RIP-relative address expression on x86-64.
-    static AsmAddress RipRelative(RelocOffsetT Offset, AssemblerFixup *Fixup) {
+    void SetRipRelative(RelocOffsetT Offset, AssemblerFixup *Fixup) {
       assert(Fixup != nullptr);
       assert(Fixup->kind() == FK_PcRel);
-      AsmAddress NewAddress;
-      NewAddress.SetModRM(0x0, RegX8664::Encoded_Reg_rbp);
+
+      SetModRM(0x0, RegX8664::Encoded_Reg_rbp);
 
       // Use the Offset in the displacement for now. If we decide to process
       // fixups later, we'll need to patch up the emitted displacement.
-      NewAddress.SetDisp32(Offset);
+      SetDisp32(Offset);
       if (Fixup)
-        NewAddress.SetFixup(Fixup);
-
-      return NewAddress;
+        SetFixup(Fixup);
     }
 
     /// Generate an absolute address.
-    static AsmAddress Absolute(RelocOffsetT Addr) {
-      AsmAddress NewAddress;
-      NewAddress.SetModRM(0x0, RegX8664::Encoded_Reg_rsp);
+    void SetAbsolute(RelocOffsetT Addr) {
+      SetModRM(0x0, RegX8664::Encoded_Reg_rsp);
       static constexpr ScaleFactor NoScale = TIMES_1;
-      NewAddress.SetSIB(NoScale, RegX8664::Encoded_Reg_rsp,
-                        RegX8664::Encoded_Reg_rbp);
-      NewAddress.SetDisp32(Addr);
-      return NewAddress;
-    }
-
-    static AsmAddress ofConstPool(Assembler *Asm, const Constant *Imm) {
-      // TODO(jpp): ???
-      AssemblerFixup *Fixup = Asm->createFixup(FK_Abs, Imm);
-      const RelocOffsetT Offset = 4;
-      return AsmAddress::RipRelative(Offset, Fixup);
+      SetSIB(NoScale, RegX8664::Encoded_Reg_rsp, RegX8664::Encoded_Reg_rbp);
+      SetDisp32(Addr);
     }
   };
 
@@ -866,9 +868,6 @@ public:
     SegmentRegisters getSegmentRegister() const { return DefaultSegment; }
     void emitSegmentOverride(Assembler *) const {}
     bool getIsRebased() const { return IsRebased; }
-    static AsmAddress toAsmAddress(const X86OperandMem *Mem, Assembler *Asm,
-                                   const Ice::TargetLowering *Target,
-                                   bool IsLeaAddr = false);
 
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;

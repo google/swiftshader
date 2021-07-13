@@ -141,9 +141,6 @@ public:
   static bool shouldBePooled(const Constant *C);
   static ::Ice::Type getPointerType();
 
-  static FixupKind getPcRelFixup() { return PcRelFixup; }
-  static FixupKind getAbsFixup() { return AbsFixup; }
-
   void translateOm1() override;
   void translateO2() override;
   void doLoadOpt();
@@ -272,8 +269,6 @@ public:
                               size_t BasicFrameOffset, size_t StackAdjBytes,
                               size_t &InArgsSizeBytes);
   void addEpilog(CfgNode *Node) override;
-  static AsmAddress stackVarToAsmAddress(const Variable *Var,
-                                         const TargetX8632 *Target);
 
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 

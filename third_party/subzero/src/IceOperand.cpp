@@ -222,6 +222,17 @@ RegWeight Variable::getWeight(const Cfg *Func) const {
   return Func->getVMetadata()->getUseWeight(this);
 }
 
+int32_t
+Variable::getRematerializableOffset(const ::Ice::TargetLowering *Target) {
+  int32_t Disp = getStackOffset();
+  const auto RegNum = getRegNum();
+  if (RegNum == Target->getFrameReg()) {
+    Disp += Target->getFrameFixedAllocaOffset();
+  } else if (RegNum != Target->getStackReg()) {
+    llvm::report_fatal_error("Unexpected rematerializable register type");
+  }
+  return Disp;
+}
 void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
                                CfgNode *Node, bool IsImplicit) {
   (void)TrackingKind;

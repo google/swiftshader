@@ -513,9 +513,8 @@ void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
 /// Emit a two-operand (GPR) instruction, where the dest operand is a Variable
 /// that's guaranteed to be a register.
 template <bool VarCanBeByte = true, bool SrcCanBeByte = true>
-void emitIASRegOpTyGPR(const Cfg *Func, bool IsLea, Type Ty,
-                       const Variable *Dst, const Operand *Src,
-                       const GPREmitterRegOp &Emitter);
+void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
+                       const Operand *Src, const GPREmitterRegOp &Emitter);
 
 /// Instructions of the form x := op(x).
 template <typename InstX86Base::InstKindX86 K>
@@ -597,8 +596,7 @@ public:
     const Variable *Var = this->getDest();
     Type Ty = Var->getType();
     const Operand *Src = this->getSrc(0);
-    bool IsLea = false;
-    emitIASRegOpTyGPR(Func, IsLea, Ty, Var, Src, Emitter);
+    emitIASRegOpTyGPR(Func, Ty, Var, Src, Emitter);
   }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
@@ -729,10 +727,8 @@ public:
   void emitIAS(const Cfg *Func) const override {
     Type Ty = this->getDest()->getType();
     assert(this->getSrcSize() == 2);
-    constexpr bool ThisIsLEA = K == InstX86Base::Lea;
-    static_assert(!ThisIsLEA, "Lea should be a unaryop.");
-    emitIASRegOpTyGPR(Func, !ThisIsLEA, Ty, this->getDest(), this->getSrc(1),
-                      Emitter);
+    static_assert(K != InstX86Base::Lea, "Lea should be a unaryop.");
+    emitIASRegOpTyGPR(Func, Ty, this->getDest(), this->getSrc(1), Emitter);
   }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
@@ -2270,7 +2266,7 @@ private:
                                                        Source1) {}
 };
 
-/// Base class for a lockable x86-32 instruction (emits a locked prefix).
+/// Base class for a lockable x86-64 instruction (emits a locked prefix).
 class InstX86BaseLockable : public InstX86Base {
   InstX86BaseLockable() = delete;
   InstX86BaseLockable(const InstX86BaseLockable &) = delete;
