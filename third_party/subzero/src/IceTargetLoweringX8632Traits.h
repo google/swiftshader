@@ -116,7 +116,8 @@ struct TargetX8632Traits {
     AssemblerFixup *fixup() const { return fixup_; }
 
   protected:
-    AsmOperand() : fixup_(nullptr), length_(0) {} // Needed by subclass AsmAddress.
+    AsmOperand()
+        : fixup_(nullptr), length_(0) {} // Needed by subclass AsmAddress.
 
     void SetModRM(int mod, GPRRegister rm) {
       assert((mod & ~3) == 0);
@@ -201,7 +202,7 @@ struct TargetX8632Traits {
     }
 
     AsmAddress(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
-            AssemblerFixup *Fixup) {
+               AssemblerFixup *Fixup) {
       assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
       SetModRM(0, RegX8632::Encoded_Reg_esp);
       SetSIB(Scale, Index, RegX8632::Encoded_Reg_ebp);
@@ -211,7 +212,7 @@ struct TargetX8632Traits {
     }
 
     AsmAddress(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
-            int32_t Disp, AssemblerFixup *Fixup) {
+               int32_t Disp, AssemblerFixup *Fixup) {
       assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
       if (Fixup == nullptr && Disp == 0 && Base != RegX8632::Encoded_Reg_ebp) {
         SetModRM(0, RegX8632::Encoded_Reg_esp);
@@ -784,8 +785,9 @@ public:
     SegmentRegisters getSegmentRegister() const { return SegmentReg; }
     void emitSegmentOverride(Assembler *Asm) const;
     bool getIsRebased() const { return IsRebased; }
-    AsmAddress toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
-                         bool LeaAddr = false) const;
+    static AsmAddress toAsmAddress(const X86OperandMem *Mem, Assembler *Asm,
+                                   const Ice::TargetLowering *Target,
+                                   bool LeaAddr = false);
 
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
@@ -826,9 +828,10 @@ public:
       return new (Func->allocate<VariableSplit>())
           VariableSplit(Func, Var, Part);
     }
+    const Variable *getVar() const { return Var; }
     int32_t getOffset() const { return Part == High ? 4 : 0; }
 
-    AsmAddress toAsmAddress(const Cfg *Func) const;
+    static AsmAddress toAsmAddress(const VariableSplit *Split, const Cfg *Func);
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
     void dump(const Cfg *Func, Ostream &Str) const override;

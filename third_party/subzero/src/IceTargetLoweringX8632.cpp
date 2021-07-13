@@ -871,13 +871,14 @@ void TargetX8632::emitVariable(const Variable *Var) const {
   Str << "(%" << getRegName(BaseRegNum, FrameSPTy) << ")";
 }
 
-AsmAddress TargetX8632::stackVarToAsmAddress(const Variable *Var) const {
+AsmAddress TargetX8632::stackVarToAsmAddress(const Variable *Var,
+                                             const TargetX8632 *Target) {
   if (Var->hasReg())
     llvm::report_fatal_error("Stack Variable has a register assigned");
   if (Var->mustHaveReg()) {
     llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName() +
                              ") has no register assigned - function " +
-                             Func->getFunctionName());
+                             Target->getFunc()->getFunctionName());
   }
   int32_t Offset = Var->getStackOffset();
   auto BaseRegNum = Var->getBaseRegNum();
@@ -885,11 +886,11 @@ AsmAddress TargetX8632::stackVarToAsmAddress(const Variable *Var) const {
     // If the stack pointer needs alignment, we must use the frame pointer for
     // arguments. For locals, getFrameOrStackReg will return the stack pointer
     // in this case.
-    if (needsStackPointerAlignment() && Var->getIsArg()) {
-      assert(hasFramePointer());
-      BaseRegNum = getFrameReg();
+    if (Target->needsStackPointerAlignment() && Var->getIsArg()) {
+      assert(Target->hasFramePointer());
+      BaseRegNum = Target->getFrameReg();
     } else {
-      BaseRegNum = getFrameOrStackReg();
+      BaseRegNum = Target->getFrameOrStackReg();
     }
   }
   return AsmAddress(Traits::getEncodedGPR(BaseRegNum), Offset,

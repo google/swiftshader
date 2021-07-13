@@ -268,7 +268,8 @@ public:
                               size_t BasicFrameOffset, size_t StackAdjBytes,
                               size_t &InArgsSizeBytes);
   void addEpilog(CfgNode *Node) override;
-  AsmAddress stackVarToAsmAddress(const Variable *Var) const;
+  static AsmAddress stackVarToAsmAddress(const Variable *Var,
+                                         const TargetX8664 *Target);
 
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 

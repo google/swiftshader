@@ -207,7 +207,7 @@ struct TargetX8664Traits {
     }
 
     AsmAddress(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
-            AssemblerFixup *Fixup) {
+               AssemblerFixup *Fixup) {
       assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
       SetModRM(0, RegX8664::Encoded_Reg_rsp);
       SetSIB(Scale, Index, RegX8664::Encoded_Reg_rbp);
@@ -217,7 +217,7 @@ struct TargetX8664Traits {
     }
 
     AsmAddress(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
-            int32_t Disp, AssemblerFixup *Fixup) {
+               int32_t Disp, AssemblerFixup *Fixup) {
       assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
       if (Fixup == nullptr && Disp == 0 &&
           (Base & 7) != RegX8664::Encoded_Reg_rbp) {
@@ -866,8 +866,9 @@ public:
     SegmentRegisters getSegmentRegister() const { return DefaultSegment; }
     void emitSegmentOverride(Assembler *) const {}
     bool getIsRebased() const { return IsRebased; }
-    AsmAddress toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
-                         bool IsLeaAddr = false) const;
+    static AsmAddress toAsmAddress(const X86OperandMem *Mem, Assembler *Asm,
+                                   const Ice::TargetLowering *Target,
+                                   bool IsLeaAddr = false);
 
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
@@ -886,48 +887,6 @@ public:
     Variable *const Index;
     const uint16_t Shift;
     const bool IsRebased;
-  };
-
-  /// VariableSplit is a way to treat an f64 memory location as a pair of i32
-  /// locations (Low and High). This is needed for some cases of the Bitcast
-  /// instruction. Since it's not possible for integer registers to access the
-  /// XMM registers and vice versa, the lowering forces the f64 to be spilled to
-  /// the stack and then accesses through the VariableSplit.
-  // TODO(jpp): remove references to VariableSplit from IceInstX86Base as 64bit
-  // targets can natively handle these.
-  class VariableSplit : public X86Operand {
-    VariableSplit() = delete;
-    VariableSplit(const VariableSplit &) = delete;
-    VariableSplit &operator=(const VariableSplit &) = delete;
-
-  public:
-    enum Portion { Low, High };
-    static VariableSplit *create(Cfg *Func, Variable *Var, Portion Part) {
-      return new (Func->allocate<VariableSplit>())
-          VariableSplit(Func, Var, Part);
-    }
-    int32_t getOffset() const { return Part == High ? 4 : 0; }
-
-    AsmAddress toAsmAddress(const Cfg *Func) const;
-    void emit(const Cfg *Func) const override;
-    using X86Operand::dump;
-    void dump(const Cfg *Func, Ostream &Str) const override;
-
-    static bool classof(const Operand *Operand) {
-      return Operand->getKind() == static_cast<OperandKind>(kSplit);
-    }
-
-  private:
-    VariableSplit(Cfg *Func, Variable *Var, Portion Part)
-        : X86Operand(kSplit, IceType_i32), Var(Var), Part(Part) {
-      assert(Var->getType() == IceType_f64);
-      Vars = Func->allocateArrayOf<Variable *>(1);
-      Vars[0] = Var;
-      NumVars = 1;
-    }
-
-    Variable *Var;
-    Portion Part;
   };
 
   // Note: The following data structures are defined in IceInstX8664.cpp.
