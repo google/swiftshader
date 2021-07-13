@@ -2506,7 +2506,7 @@ inline constexpr SizeT constexprMax(SizeT S0, SizeT S1) {
 }
 
 void TargetX8632::lowerCall(const InstCall *Instr) {
-  // Common x86 calling convention lowering:
+  // System V x86-32 calling convention lowering:
   //
   // * At the point before the call, the stack must be aligned to 16 bytes.
   //
@@ -2517,6 +2517,10 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // * Stack arguments of vector type are aligned to start at the next highest
   // multiple of 16 bytes. Other stack arguments are aligned to the next word
   // size boundary (4 or 8 bytes, respectively).
+  //
+  // This is compatible with the Microsoft x86-32 'cdecl' calling convention,
+  // which doesn't have a 16-byte stack alignment requirement.
+
   RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
                                             Traits::X86_STACK_ALIGNMENT_BYTES);
 

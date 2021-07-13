@@ -1058,19 +1058,9 @@ void TargetX8664::addProlog(CfgNode *Node) {
   if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
     if (isScalarFloatingType(ReturnType)) {
       // Avoid misaligned double-precision load/store.
-      RequiredStackAlignment = std::max<size_t>(
-          RequiredStackAlignment, Traits::X86_STACK_ALIGNMENT_BYTES);
       SpillAreaSizeBytes =
           std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
     }
-  }
-
-  RequiredStackAlignment =
-      std::max<size_t>(RequiredStackAlignment, SpillAreaAlignmentBytes);
-
-  if (PrologEmitsFixedAllocas) {
-    RequiredStackAlignment =
-        std::max(RequiredStackAlignment, FixedAllocaAlignBytes);
   }
 
   // Combine fixed allocations into SpillAreaSizeBytes if we are emitting the
@@ -1107,16 +1097,6 @@ void TargetX8664::addProlog(CfgNode *Node) {
   }
 
   // StackPointer: points just past the spill area (end of stack frame)
-
-  // If the required alignment is greater than the stack pointer's guaranteed
-  // alignment, align the stack pointer accordingly.
-  if (RequiredStackAlignment > Traits::X86_STACK_ALIGNMENT_BYTES) {
-    assert(IsEbpBasedFrame);
-    _and(getPhysicalRegister(getStackReg(), Traits::WordType),
-         Ctx->getConstantInt32(-RequiredStackAlignment));
-  }
-
-  // StackPointer: may have just been offset for alignment
 
   // Account for known-frame-offset alloca instructions that were not already
   // combined into the prolog.
@@ -1313,25 +1293,15 @@ SmallBitVector TargetX8664::getRegisterSet(RegSetMask Include,
 }
 
 void TargetX8664::lowerAlloca(const InstAlloca *Instr) {
-  // Conservatively require the stack to be aligned. Some stack adjustment
-  // operations implemented below assume that the stack is aligned before the
-  // alloca. All the alloca code ensures that the stack alignment is preserved
-  // after the alloca. The stack alignment restriction can be relaxed in some
-  // cases.
-  RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
-                                            Traits::X86_STACK_ALIGNMENT_BYTES);
-
   // For default align=0, set it to the real value 1, to avoid any
   // bit-manipulation problems below.
   const uint32_t AlignmentParam = std::max(1u, Instr->getAlignInBytes());
 
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(AlignmentParam));
-  assert(llvm::isPowerOf2_32(Traits::X86_STACK_ALIGNMENT_BYTES));
 
-  const uint32_t Alignment =
-      std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
-  const bool OverAligned = Alignment > Traits::X86_STACK_ALIGNMENT_BYTES;
+  const uint32_t Alignment = std::max(AlignmentParam, RequiredStackAlignment);
+  const bool OverAligned = Alignment > RequiredStackAlignment;
   const bool OptM1 = Func->getOptLevel() == Opt_m1;
   const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
@@ -2336,7 +2306,7 @@ inline constexpr SizeT constexprMax(SizeT S0, SizeT S1) {
 }
 
 void TargetX8664::lowerCall(const InstCall *Instr) {
-  // Common x86 calling convention lowering:
+  // Common x86-64 calling convention lowering:
   //
   // * At the point before the call, the stack must be aligned to 16 bytes.
   //
@@ -2347,8 +2317,6 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
   // * Stack arguments of vector type are aligned to start at the next highest
   // multiple of 16 bytes. Other stack arguments are aligned to the next word
   // size boundary (4 or 8 bytes, respectively).
-  RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
-                                            Traits::X86_STACK_ALIGNMENT_BYTES);
 
   constexpr SizeT MaxOperands =
       constexprMax(Traits::X86_MAX_XMM_ARGS, Traits::X86_MAX_GPR_ARGS);

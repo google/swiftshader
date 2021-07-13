@@ -868,7 +868,7 @@ protected:
   void findRMW();
 
   bool IsEbpBasedFrame = false;
-  size_t RequiredStackAlignment = sizeof(int64_t); // 8 bytes
+  static constexpr uint32_t RequiredStackAlignment = 16;
   size_t SpillAreaSizeBytes = 0;
   size_t FixedAllocaSizeBytes = 0;
   size_t FixedAllocaAlignBytes = 0;
