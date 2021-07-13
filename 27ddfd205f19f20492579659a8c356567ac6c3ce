@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "247bc5f5_822194cf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2021-07-13T16:42:02Z",
+      "side": 1,
+      "message": "I think ubsan works on windows maybe (not 100% sure), but the linked bug was for CFI which probably doesn\u0027t work on windows.",
+      "revId": "27ddfd205f19f20492579659a8c356567ac6c3ce",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
