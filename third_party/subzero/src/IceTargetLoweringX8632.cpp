@@ -871,8 +871,7 @@ void TargetX8632::emitVariable(const Variable *Var) const {
   Str << "(%" << getRegName(BaseRegNum, FrameSPTy) << ")";
 }
 
-typename TargetX8632::X86Address
-TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
+AsmAddress TargetX8632::stackVarToAsmAddress(const Variable *Var) const {
   if (Var->hasReg())
     llvm::report_fatal_error("Stack Variable has a register assigned");
   if (Var->mustHaveReg()) {
@@ -893,7 +892,7 @@ TargetX8632::stackVarToAsmOperand(const Variable *Var) const {
       BaseRegNum = getFrameOrStackReg();
     }
   }
-  return X86Address(Traits::getEncodedGPR(BaseRegNum), Offset,
+  return AsmAddress(Traits::getEncodedGPR(BaseRegNum), Offset,
                     AssemblerFixup::NoFixup);
 }
 
@@ -1169,7 +1168,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Var->setStackOffset(Root->getStackOffset());
 
     // If the stack root variable is an arg, make this variable an arg too so
-    // that stackVarToAsmOperand uses the correct base pointer (e.g. ebp on
+    // that stackVarToAsmAddress uses the correct base pointer (e.g. ebp on
     // x86).
     Var->setIsArg(Root->getIsArg());
   }

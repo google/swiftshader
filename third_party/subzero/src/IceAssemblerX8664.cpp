@@ -102,7 +102,7 @@ void AssemblerX8664::call(GPRRegister reg) {
   emitRegisterOperand(2, gprEncoding(reg));
 }
 
-void AssemblerX8664::call(const Address &address) {
+void AssemblerX8664::call(const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0xFF);
@@ -164,7 +164,7 @@ void AssemblerX8664::popl(GPRRegister reg) {
   emitUint8(0x58 + gprEncoding(reg));
 }
 
-void AssemblerX8664::popl(const Address &address) {
+void AssemblerX8664::popl(const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0x8F);
@@ -179,7 +179,7 @@ void AssemblerX8664::setcc(BrCond condition, ByteRegister dst) {
   emitUint8(0xC0 + gprEncoding(dst));
 }
 
-void AssemblerX8664::setcc(BrCond condition, const Address &address) {
+void AssemblerX8664::setcc(BrCond condition, const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0x0F);
@@ -217,7 +217,7 @@ void AssemblerX8664::mov(Type Ty, GPRRegister dst, GPRRegister src) {
   emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
 }
 
-void AssemblerX8664::mov(Type Ty, GPRRegister dst, const Address &src) {
+void AssemblerX8664::mov(Type Ty, GPRRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -230,7 +230,7 @@ void AssemblerX8664::mov(Type Ty, GPRRegister dst, const Address &src) {
   emitOperand(gprEncoding(dst), src);
 }
 
-void AssemblerX8664::mov(Type Ty, const Address &dst, GPRRegister src) {
+void AssemblerX8664::mov(Type Ty, const AsmAddress &dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -243,7 +243,7 @@ void AssemblerX8664::mov(Type Ty, const Address &dst, GPRRegister src) {
   emitOperand(gprEncoding(src), dst);
 }
 
-void AssemblerX8664::mov(Type Ty, const Address &dst, const Immediate &imm) {
+void AssemblerX8664::mov(Type Ty, const AsmAddress &dst, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -292,7 +292,7 @@ void AssemblerX8664::movzx(Type SrcTy, GPRRegister dst, GPRRegister src) {
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
-void AssemblerX8664::movzx(Type SrcTy, GPRRegister dst, const Address &src) {
+void AssemblerX8664::movzx(Type SrcTy, GPRRegister dst, const AsmAddress &src) {
   if (SrcTy == IceType_i32) {
     // 32-bit mov clears the upper 32 bits, hence zero-extending the 32-bit
     // operand to 64-bit.
@@ -323,7 +323,7 @@ void AssemblerX8664::movsx(Type SrcTy, GPRRegister dst, GPRRegister src) {
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
-void AssemblerX8664::movsx(Type SrcTy, GPRRegister dst, const Address &src) {
+void AssemblerX8664::movsx(Type SrcTy, GPRRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
   emitRex(SrcTy, src, RexTypeForceRexW, dst);
@@ -337,7 +337,7 @@ void AssemblerX8664::movsx(Type SrcTy, GPRRegister dst, const Address &src) {
   emitOperand(gprEncoding(dst), src);
 }
 
-void AssemblerX8664::lea(Type Ty, GPRRegister dst, const Address &src) {
+void AssemblerX8664::lea(Type Ty, GPRRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
@@ -361,7 +361,7 @@ void AssemblerX8664::cmov(Type Ty, BrCond cond, GPRRegister dst,
 }
 
 void AssemblerX8664::cmov(Type Ty, BrCond cond, GPRRegister dst,
-                          const Address &src) {
+                          const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -379,7 +379,7 @@ void AssemblerX8664::rep_movsb() {
   emitUint8(0xA4);
 }
 
-void AssemblerX8664::movss(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::movss(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -388,7 +388,7 @@ void AssemblerX8664::movss(Type Ty, XmmRegister dst, const Address &src) {
   emitOperand(gprEncoding(dst), src);
 }
 
-void AssemblerX8664::movss(Type Ty, const Address &dst, XmmRegister src) {
+void AssemblerX8664::movss(Type Ty, const AsmAddress &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, dst, src);
@@ -415,7 +415,7 @@ void AssemblerX8664::movd(Type SrcTy, XmmRegister dst, GPRRegister src) {
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
-void AssemblerX8664::movd(Type SrcTy, XmmRegister dst, const Address &src) {
+void AssemblerX8664::movd(Type SrcTy, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(SrcTy, src, dst);
@@ -433,7 +433,7 @@ void AssemblerX8664::movd(Type DestTy, GPRRegister dst, XmmRegister src) {
   emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
 }
 
-void AssemblerX8664::movd(Type DestTy, const Address &dst, XmmRegister src) {
+void AssemblerX8664::movd(Type DestTy, const AsmAddress &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(DestTy, dst, src);
@@ -451,7 +451,7 @@ void AssemblerX8664::movq(XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::movq(const Address &dst, XmmRegister src) {
+void AssemblerX8664::movq(const AsmAddress &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, dst, src);
@@ -460,7 +460,7 @@ void AssemblerX8664::movq(const Address &dst, XmmRegister src) {
   emitOperand(gprEncoding(src), dst);
 }
 
-void AssemblerX8664::movq(XmmRegister dst, const Address &src) {
+void AssemblerX8664::movq(XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -478,7 +478,7 @@ void AssemblerX8664::addss(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::addss(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::addss(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -496,7 +496,7 @@ void AssemblerX8664::subss(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::subss(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::subss(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -514,7 +514,7 @@ void AssemblerX8664::mulss(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::mulss(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::mulss(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -532,7 +532,7 @@ void AssemblerX8664::divss(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::divss(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::divss(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -557,7 +557,7 @@ void AssemblerX8664::movups(XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::movups(XmmRegister dst, const Address &src) {
+void AssemblerX8664::movups(XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
@@ -565,7 +565,7 @@ void AssemblerX8664::movups(XmmRegister dst, const Address &src) {
   emitOperand(gprEncoding(dst), src);
 }
 
-void AssemblerX8664::movups(const Address &dst, XmmRegister src) {
+void AssemblerX8664::movups(const AsmAddress &dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
@@ -588,7 +588,7 @@ void AssemblerX8664::padd(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::padd(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::padd(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -618,7 +618,7 @@ void AssemblerX8664::padds(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::padds(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::padds(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -648,7 +648,7 @@ void AssemblerX8664::paddus(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::paddus(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::paddus(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -672,7 +672,7 @@ void AssemblerX8664::pand(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pand(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pand(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -690,7 +690,7 @@ void AssemblerX8664::pandn(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pandn(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pandn(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -714,7 +714,7 @@ void AssemblerX8664::pmull(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pmull(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pmull(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -740,7 +740,7 @@ void AssemblerX8664::pmulhw(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pmulhw(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pmulhw(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -762,7 +762,7 @@ void AssemblerX8664::pmulhuw(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pmulhuw(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pmulhuw(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -784,7 +784,7 @@ void AssemblerX8664::pmaddwd(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pmaddwd(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pmaddwd(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -805,7 +805,7 @@ void AssemblerX8664::pmuludq(Type /* Ty */, XmmRegister dst, XmmRegister src) {
 }
 
 void AssemblerX8664::pmuludq(Type /* Ty */, XmmRegister dst,
-                             const Address &src) {
+                             const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -823,7 +823,7 @@ void AssemblerX8664::por(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::por(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::por(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -847,7 +847,7 @@ void AssemblerX8664::psub(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::psub(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::psub(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -877,7 +877,7 @@ void AssemblerX8664::psubs(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::psubs(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::psubs(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -907,7 +907,7 @@ void AssemblerX8664::psubus(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::psubus(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::psubus(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -931,7 +931,7 @@ void AssemblerX8664::pxor(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pxor(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pxor(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -954,7 +954,7 @@ void AssemblerX8664::psll(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::psll(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::psll(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -998,7 +998,7 @@ void AssemblerX8664::psra(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::psra(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::psra(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1044,7 +1044,7 @@ void AssemblerX8664::psrl(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::psrl(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::psrl(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1090,7 +1090,7 @@ void AssemblerX8664::addps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::addps(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::addps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
@@ -1106,7 +1106,7 @@ void AssemblerX8664::subps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::subps(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::subps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
@@ -1122,7 +1122,7 @@ void AssemblerX8664::divps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::divps(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::divps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
@@ -1138,7 +1138,7 @@ void AssemblerX8664::mulps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::mulps(Type /* Ty */, XmmRegister dst, const Address &src) {
+void AssemblerX8664::mulps(Type /* Ty */, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
@@ -1156,7 +1156,7 @@ void AssemblerX8664::minps(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::minps(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::minps(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
@@ -1175,7 +1175,7 @@ void AssemblerX8664::minss(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::minss(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::minss(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1194,7 +1194,7 @@ void AssemblerX8664::maxps(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::maxps(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::maxps(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
@@ -1213,7 +1213,7 @@ void AssemblerX8664::maxss(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::maxss(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::maxss(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1232,7 +1232,7 @@ void AssemblerX8664::andnps(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::andnps(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::andnps(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
@@ -1252,7 +1252,7 @@ void AssemblerX8664::andps(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::andps(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::andps(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
@@ -1272,7 +1272,7 @@ void AssemblerX8664::orps(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::orps(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::orps(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
@@ -1293,7 +1293,7 @@ void AssemblerX8664::blendvps(Type /* Ty */, XmmRegister dst, XmmRegister src) {
 }
 
 void AssemblerX8664::blendvps(Type /* Ty */, XmmRegister dst,
-                              const Address &src) {
+                              const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1314,7 +1314,7 @@ void AssemblerX8664::pblendvb(Type /* Ty */, XmmRegister dst, XmmRegister src) {
 }
 
 void AssemblerX8664::pblendvb(Type /* Ty */, XmmRegister dst,
-                              const Address &src) {
+                              const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1336,7 +1336,7 @@ void AssemblerX8664::cmpps(Type Ty, XmmRegister dst, XmmRegister src,
   emitUint8(CmpCondition);
 }
 
-void AssemblerX8664::cmpps(Type Ty, XmmRegister dst, const Address &src,
+void AssemblerX8664::cmpps(Type Ty, XmmRegister dst, const AsmAddress &src,
                            CmppsCond CmpCondition) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_f64)
@@ -1444,7 +1444,7 @@ void AssemblerX8664::pshufb(Type /* Ty */, XmmRegister dst, XmmRegister src) {
 }
 
 void AssemblerX8664::pshufb(Type /* Ty */, XmmRegister dst,
-                            const Address &src) {
+                            const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1466,7 +1466,7 @@ void AssemblerX8664::pshufd(Type /* Ty */, XmmRegister dst, XmmRegister src,
   emitUint8(imm.value());
 }
 
-void AssemblerX8664::pshufd(Type /* Ty */, XmmRegister dst, const Address &src,
+void AssemblerX8664::pshufd(Type /* Ty */, XmmRegister dst, const AsmAddress &src,
                             const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
@@ -1496,7 +1496,7 @@ void AssemblerX8664::punpckl(Type Ty, XmmRegister Dst, XmmRegister Src) {
   emitXmmRegisterOperand(Dst, Src);
 }
 
-void AssemblerX8664::punpckl(Type Ty, XmmRegister Dst, const Address &Src) {
+void AssemblerX8664::punpckl(Type Ty, XmmRegister Dst, const AsmAddress &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, Src, Dst);
@@ -1530,7 +1530,7 @@ void AssemblerX8664::punpckh(Type Ty, XmmRegister Dst, XmmRegister Src) {
   emitXmmRegisterOperand(Dst, Src);
 }
 
-void AssemblerX8664::punpckh(Type Ty, XmmRegister Dst, const Address &Src) {
+void AssemblerX8664::punpckh(Type Ty, XmmRegister Dst, const AsmAddress &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, Src, Dst);
@@ -1562,7 +1562,7 @@ void AssemblerX8664::packss(Type Ty, XmmRegister Dst, XmmRegister Src) {
   emitXmmRegisterOperand(Dst, Src);
 }
 
-void AssemblerX8664::packss(Type Ty, XmmRegister Dst, const Address &Src) {
+void AssemblerX8664::packss(Type Ty, XmmRegister Dst, const AsmAddress &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, Src, Dst);
@@ -1593,7 +1593,7 @@ void AssemblerX8664::packus(Type Ty, XmmRegister Dst, XmmRegister Src) {
   emitXmmRegisterOperand(Dst, Src);
 }
 
-void AssemblerX8664::packus(Type Ty, XmmRegister Dst, const Address &Src) {
+void AssemblerX8664::packus(Type Ty, XmmRegister Dst, const AsmAddress &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, Src, Dst);
@@ -1620,7 +1620,7 @@ void AssemblerX8664::shufps(Type /* Ty */, XmmRegister dst, XmmRegister src,
   emitUint8(imm.value());
 }
 
-void AssemblerX8664::shufps(Type /* Ty */, XmmRegister dst, const Address &src,
+void AssemblerX8664::shufps(Type /* Ty */, XmmRegister dst, const AsmAddress &src,
                             const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1651,7 +1651,7 @@ void AssemblerX8664::cvtdq2ps(Type /* Ignore */, XmmRegister dst,
 }
 
 void AssemblerX8664::cvtdq2ps(Type /* Ignore */, XmmRegister dst,
-                              const Address &src) {
+                              const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
@@ -1670,7 +1670,7 @@ void AssemblerX8664::cvttps2dq(Type /* Ignore */, XmmRegister dst,
 }
 
 void AssemblerX8664::cvttps2dq(Type /* Ignore */, XmmRegister dst,
-                               const Address &src) {
+                               const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1690,7 +1690,7 @@ void AssemblerX8664::cvtps2dq(Type /* Ignore */, XmmRegister dst,
 }
 
 void AssemblerX8664::cvtps2dq(Type /* Ignore */, XmmRegister dst,
-                              const Address &src) {
+                              const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1710,7 +1710,7 @@ void AssemblerX8664::cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy,
 }
 
 void AssemblerX8664::cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy,
-                              const Address &src) {
+                              const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
   emitRex(SrcTy, src, dst);
@@ -1731,7 +1731,7 @@ void AssemblerX8664::cvtfloat2float(Type SrcTy, XmmRegister dst,
 }
 
 void AssemblerX8664::cvtfloat2float(Type SrcTy, XmmRegister dst,
-                                    const Address &src) {
+                                    const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -1751,7 +1751,7 @@ void AssemblerX8664::cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy,
 }
 
 void AssemblerX8664::cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy,
-                               const Address &src) {
+                               const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
   emitRex(DestTy, src, dst);
@@ -1771,7 +1771,7 @@ void AssemblerX8664::cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy,
 }
 
 void AssemblerX8664::cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy,
-                              const Address &src) {
+                              const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
   emitRex(DestTy, src, dst);
@@ -1790,7 +1790,7 @@ void AssemblerX8664::ucomiss(Type Ty, XmmRegister a, XmmRegister b) {
   emitXmmRegisterOperand(a, b);
 }
 
-void AssemblerX8664::ucomiss(Type Ty, XmmRegister a, const Address &b) {
+void AssemblerX8664::ucomiss(Type Ty, XmmRegister a, const AsmAddress &b) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_f64)
     emitUint8(0x66);
@@ -1821,7 +1821,7 @@ void AssemblerX8664::movmsk(Type Ty, GPRRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::sqrt(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::sqrt(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (isScalarFloatingType(Ty))
     emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
@@ -1841,7 +1841,7 @@ void AssemblerX8664::sqrt(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::xorps(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::xorps(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (!isFloat32Asserting32Or64(Ty))
     emitUint8(0x66);
@@ -1876,7 +1876,7 @@ void AssemblerX8664::insertps(Type Ty, XmmRegister dst, XmmRegister src,
   emitUint8(imm.value());
 }
 
-void AssemblerX8664::insertps(Type Ty, XmmRegister dst, const Address &src,
+void AssemblerX8664::insertps(Type Ty, XmmRegister dst, const AsmAddress &src,
                               const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_uint8());
@@ -1909,7 +1909,7 @@ void AssemblerX8664::pinsr(Type Ty, XmmRegister dst, GPRRegister src,
   emitUint8(imm.value());
 }
 
-void AssemblerX8664::pinsr(Type Ty, XmmRegister dst, const Address &src,
+void AssemblerX8664::pinsr(Type Ty, XmmRegister dst, const AsmAddress &src,
                            const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_uint8());
@@ -1976,7 +1976,7 @@ void AssemblerX8664::pcmpeq(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pcmpeq(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pcmpeq(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -2006,7 +2006,7 @@ void AssemblerX8664::pcmpgt(Type Ty, XmmRegister dst, XmmRegister src) {
   emitXmmRegisterOperand(dst, src);
 }
 
-void AssemblerX8664::pcmpgt(Type Ty, XmmRegister dst, const Address &src) {
+void AssemblerX8664::pcmpgt(Type Ty, XmmRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
@@ -2046,7 +2046,7 @@ void AssemblerX8664::round(Type Ty, XmmRegister dst, XmmRegister src,
   emitUint8(static_cast<uint8_t>(mode.value()) | 0x8);
 }
 
-void AssemblerX8664::round(Type Ty, XmmRegister dst, const Address &src,
+void AssemblerX8664::round(Type Ty, XmmRegister dst, const AsmAddress &src,
                            const Immediate &mode) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
@@ -2101,7 +2101,7 @@ void AssemblerX8664::arith_int(Type Ty, GPRRegister reg0, GPRRegister reg1) {
 
 template <uint32_t Tag>
 void AssemblerX8664::arith_int(Type Ty, GPRRegister reg,
-                               const Address &address) {
+                               const AsmAddress &address) {
   static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
@@ -2115,7 +2115,7 @@ void AssemblerX8664::arith_int(Type Ty, GPRRegister reg,
 }
 
 template <uint32_t Tag>
-void AssemblerX8664::arith_int(Type Ty, const Address &address,
+void AssemblerX8664::arith_int(Type Ty, const AsmAddress &address,
                                GPRRegister reg) {
   static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -2130,7 +2130,7 @@ void AssemblerX8664::arith_int(Type Ty, const Address &address,
 }
 
 template <uint32_t Tag>
-void AssemblerX8664::arith_int(Type Ty, const Address &address,
+void AssemblerX8664::arith_int(Type Ty, const AsmAddress &address,
                                const Immediate &imm) {
   static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -2152,15 +2152,15 @@ void AssemblerX8664::cmp(Type Ty, GPRRegister reg0, GPRRegister reg1) {
   arith_int<7>(Ty, reg0, reg1);
 }
 
-void AssemblerX8664::cmp(Type Ty, GPRRegister reg, const Address &address) {
+void AssemblerX8664::cmp(Type Ty, GPRRegister reg, const AsmAddress &address) {
   arith_int<7>(Ty, reg, address);
 }
 
-void AssemblerX8664::cmp(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::cmp(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<7>(Ty, address, reg);
 }
 
-void AssemblerX8664::cmp(Type Ty, const Address &address,
+void AssemblerX8664::cmp(Type Ty, const AsmAddress &address,
                          const Immediate &imm) {
   arith_int<7>(Ty, address, imm);
 }
@@ -2177,7 +2177,7 @@ void AssemblerX8664::test(Type Ty, GPRRegister reg1, GPRRegister reg2) {
   emitRegisterOperand(gprEncoding(reg1), gprEncoding(reg2));
 }
 
-void AssemblerX8664::test(Type Ty, const Address &addr, GPRRegister reg) {
+void AssemblerX8664::test(Type Ty, const AsmAddress &addr, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -2223,7 +2223,7 @@ void AssemblerX8664::test(Type Ty, GPRRegister reg,
   }
 }
 
-void AssemblerX8664::test(Type Ty, const Address &addr,
+void AssemblerX8664::test(Type Ty, const AsmAddress &addr,
                           const Immediate &immediate) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   // If the immediate is short, we only test the byte addr to keep the encoding
@@ -2250,7 +2250,7 @@ void AssemblerX8664::And(Type Ty, GPRRegister dst, GPRRegister src) {
   arith_int<4>(Ty, dst, src);
 }
 
-void AssemblerX8664::And(Type Ty, GPRRegister dst, const Address &address) {
+void AssemblerX8664::And(Type Ty, GPRRegister dst, const AsmAddress &address) {
   arith_int<4>(Ty, dst, address);
 }
 
@@ -2258,11 +2258,11 @@ void AssemblerX8664::And(Type Ty, GPRRegister dst, const Immediate &imm) {
   arith_int<4>(Ty, dst, imm);
 }
 
-void AssemblerX8664::And(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::And(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<4>(Ty, address, reg);
 }
 
-void AssemblerX8664::And(Type Ty, const Address &address,
+void AssemblerX8664::And(Type Ty, const AsmAddress &address,
                          const Immediate &imm) {
   arith_int<4>(Ty, address, imm);
 }
@@ -2271,7 +2271,7 @@ void AssemblerX8664::Or(Type Ty, GPRRegister dst, GPRRegister src) {
   arith_int<1>(Ty, dst, src);
 }
 
-void AssemblerX8664::Or(Type Ty, GPRRegister dst, const Address &address) {
+void AssemblerX8664::Or(Type Ty, GPRRegister dst, const AsmAddress &address) {
   arith_int<1>(Ty, dst, address);
 }
 
@@ -2279,11 +2279,11 @@ void AssemblerX8664::Or(Type Ty, GPRRegister dst, const Immediate &imm) {
   arith_int<1>(Ty, dst, imm);
 }
 
-void AssemblerX8664::Or(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::Or(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<1>(Ty, address, reg);
 }
 
-void AssemblerX8664::Or(Type Ty, const Address &address, const Immediate &imm) {
+void AssemblerX8664::Or(Type Ty, const AsmAddress &address, const Immediate &imm) {
   arith_int<1>(Ty, address, imm);
 }
 
@@ -2291,7 +2291,7 @@ void AssemblerX8664::Xor(Type Ty, GPRRegister dst, GPRRegister src) {
   arith_int<6>(Ty, dst, src);
 }
 
-void AssemblerX8664::Xor(Type Ty, GPRRegister dst, const Address &address) {
+void AssemblerX8664::Xor(Type Ty, GPRRegister dst, const AsmAddress &address) {
   arith_int<6>(Ty, dst, address);
 }
 
@@ -2299,11 +2299,11 @@ void AssemblerX8664::Xor(Type Ty, GPRRegister dst, const Immediate &imm) {
   arith_int<6>(Ty, dst, imm);
 }
 
-void AssemblerX8664::Xor(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::Xor(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<6>(Ty, address, reg);
 }
 
-void AssemblerX8664::Xor(Type Ty, const Address &address,
+void AssemblerX8664::Xor(Type Ty, const AsmAddress &address,
                          const Immediate &imm) {
   arith_int<6>(Ty, address, imm);
 }
@@ -2312,7 +2312,7 @@ void AssemblerX8664::add(Type Ty, GPRRegister dst, GPRRegister src) {
   arith_int<0>(Ty, dst, src);
 }
 
-void AssemblerX8664::add(Type Ty, GPRRegister reg, const Address &address) {
+void AssemblerX8664::add(Type Ty, GPRRegister reg, const AsmAddress &address) {
   arith_int<0>(Ty, reg, address);
 }
 
@@ -2320,11 +2320,11 @@ void AssemblerX8664::add(Type Ty, GPRRegister reg, const Immediate &imm) {
   arith_int<0>(Ty, reg, imm);
 }
 
-void AssemblerX8664::add(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::add(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<0>(Ty, address, reg);
 }
 
-void AssemblerX8664::add(Type Ty, const Address &address,
+void AssemblerX8664::add(Type Ty, const AsmAddress &address,
                          const Immediate &imm) {
   arith_int<0>(Ty, address, imm);
 }
@@ -2333,7 +2333,7 @@ void AssemblerX8664::adc(Type Ty, GPRRegister dst, GPRRegister src) {
   arith_int<2>(Ty, dst, src);
 }
 
-void AssemblerX8664::adc(Type Ty, GPRRegister dst, const Address &address) {
+void AssemblerX8664::adc(Type Ty, GPRRegister dst, const AsmAddress &address) {
   arith_int<2>(Ty, dst, address);
 }
 
@@ -2341,11 +2341,11 @@ void AssemblerX8664::adc(Type Ty, GPRRegister reg, const Immediate &imm) {
   arith_int<2>(Ty, reg, imm);
 }
 
-void AssemblerX8664::adc(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::adc(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<2>(Ty, address, reg);
 }
 
-void AssemblerX8664::adc(Type Ty, const Address &address,
+void AssemblerX8664::adc(Type Ty, const AsmAddress &address,
                          const Immediate &imm) {
   arith_int<2>(Ty, address, imm);
 }
@@ -2354,7 +2354,7 @@ void AssemblerX8664::sub(Type Ty, GPRRegister dst, GPRRegister src) {
   arith_int<5>(Ty, dst, src);
 }
 
-void AssemblerX8664::sub(Type Ty, GPRRegister reg, const Address &address) {
+void AssemblerX8664::sub(Type Ty, GPRRegister reg, const AsmAddress &address) {
   arith_int<5>(Ty, reg, address);
 }
 
@@ -2362,11 +2362,11 @@ void AssemblerX8664::sub(Type Ty, GPRRegister reg, const Immediate &imm) {
   arith_int<5>(Ty, reg, imm);
 }
 
-void AssemblerX8664::sub(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::sub(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<5>(Ty, address, reg);
 }
 
-void AssemblerX8664::sub(Type Ty, const Address &address,
+void AssemblerX8664::sub(Type Ty, const AsmAddress &address,
                          const Immediate &imm) {
   arith_int<5>(Ty, address, imm);
 }
@@ -2375,7 +2375,7 @@ void AssemblerX8664::sbb(Type Ty, GPRRegister dst, GPRRegister src) {
   arith_int<3>(Ty, dst, src);
 }
 
-void AssemblerX8664::sbb(Type Ty, GPRRegister dst, const Address &address) {
+void AssemblerX8664::sbb(Type Ty, GPRRegister dst, const AsmAddress &address) {
   arith_int<3>(Ty, dst, address);
 }
 
@@ -2383,11 +2383,11 @@ void AssemblerX8664::sbb(Type Ty, GPRRegister reg, const Immediate &imm) {
   arith_int<3>(Ty, reg, imm);
 }
 
-void AssemblerX8664::sbb(Type Ty, const Address &address, GPRRegister reg) {
+void AssemblerX8664::sbb(Type Ty, const AsmAddress &address, GPRRegister reg) {
   arith_int<3>(Ty, address, reg);
 }
 
-void AssemblerX8664::sbb(Type Ty, const Address &address,
+void AssemblerX8664::sbb(Type Ty, const AsmAddress &address,
                          const Immediate &imm) {
   arith_int<3>(Ty, address, imm);
 }
@@ -2427,7 +2427,7 @@ void AssemblerX8664::div(Type Ty, GPRRegister reg) {
   emitRegisterOperand(6, gprEncoding(reg));
 }
 
-void AssemblerX8664::div(Type Ty, const Address &addr) {
+void AssemblerX8664::div(Type Ty, const AsmAddress &addr) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -2451,7 +2451,7 @@ void AssemblerX8664::idiv(Type Ty, GPRRegister reg) {
   emitRegisterOperand(7, gprEncoding(reg));
 }
 
-void AssemblerX8664::idiv(Type Ty, const Address &addr) {
+void AssemblerX8664::idiv(Type Ty, const AsmAddress &addr) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -2474,7 +2474,7 @@ void AssemblerX8664::imul(Type Ty, GPRRegister dst, GPRRegister src) {
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
-void AssemblerX8664::imul(Type Ty, GPRRegister reg, const Address &address) {
+void AssemblerX8664::imul(Type Ty, GPRRegister reg, const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
@@ -2514,7 +2514,7 @@ void AssemblerX8664::imul(Type Ty, GPRRegister reg) {
   emitRegisterOperand(5, gprEncoding(reg));
 }
 
-void AssemblerX8664::imul(Type Ty, const Address &address) {
+void AssemblerX8664::imul(Type Ty, const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -2544,7 +2544,7 @@ void AssemblerX8664::imul(Type Ty, GPRRegister dst, GPRRegister src,
   }
 }
 
-void AssemblerX8664::imul(Type Ty, GPRRegister dst, const Address &address,
+void AssemblerX8664::imul(Type Ty, GPRRegister dst, const AsmAddress &address,
                           const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i16 || Ty == IceType_i32);
@@ -2576,7 +2576,7 @@ void AssemblerX8664::mul(Type Ty, GPRRegister reg) {
   emitRegisterOperand(4, gprEncoding(reg));
 }
 
-void AssemblerX8664::mul(Type Ty, const Address &address) {
+void AssemblerX8664::mul(Type Ty, const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -2588,14 +2588,14 @@ void AssemblerX8664::mul(Type Ty, const Address &address) {
   emitOperand(4, address);
 }
 
-void AssemblerX8664::incl(const Address &address) {
+void AssemblerX8664::incl(const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0xFF);
   emitOperand(0, address);
 }
 
-void AssemblerX8664::decl(const Address &address) {
+void AssemblerX8664::decl(const AsmAddress &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0xFF);
@@ -2610,7 +2610,7 @@ void AssemblerX8664::rol(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(0, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8664::rol(Type Ty, const Address &operand, GPRRegister shifter) {
+void AssemblerX8664::rol(Type Ty, const AsmAddress &operand, GPRRegister shifter) {
   emitGenericShift(0, Ty, operand, shifter);
 }
 
@@ -2622,7 +2622,7 @@ void AssemblerX8664::shl(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(4, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8664::shl(Type Ty, const Address &operand, GPRRegister shifter) {
+void AssemblerX8664::shl(Type Ty, const AsmAddress &operand, GPRRegister shifter) {
   emitGenericShift(4, Ty, operand, shifter);
 }
 
@@ -2634,7 +2634,7 @@ void AssemblerX8664::shr(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(5, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8664::shr(Type Ty, const Address &operand, GPRRegister shifter) {
+void AssemblerX8664::shr(Type Ty, const AsmAddress &operand, GPRRegister shifter) {
   emitGenericShift(5, Ty, operand, shifter);
 }
 
@@ -2646,7 +2646,7 @@ void AssemblerX8664::sar(Type Ty, GPRRegister operand, GPRRegister shifter) {
   emitGenericShift(7, Ty, AsmOperand(operand), shifter);
 }
 
-void AssemblerX8664::sar(Type Ty, const Address &address, GPRRegister shifter) {
+void AssemblerX8664::sar(Type Ty, const AsmAddress &address, GPRRegister shifter) {
   emitGenericShift(7, Ty, address, shifter);
 }
 
@@ -2675,7 +2675,7 @@ void AssemblerX8664::shld(Type Ty, GPRRegister dst, GPRRegister src,
   emitUint8(imm.value() & 0xFF);
 }
 
-void AssemblerX8664::shld(Type Ty, const Address &operand, GPRRegister src) {
+void AssemblerX8664::shld(Type Ty, const AsmAddress &operand, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
@@ -2711,7 +2711,7 @@ void AssemblerX8664::shrd(Type Ty, GPRRegister dst, GPRRegister src,
   emitUint8(imm.value() & 0xFF);
 }
 
-void AssemblerX8664::shrd(Type Ty, const Address &dst, GPRRegister src) {
+void AssemblerX8664::shrd(Type Ty, const AsmAddress &dst, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
@@ -2734,7 +2734,7 @@ void AssemblerX8664::neg(Type Ty, GPRRegister reg) {
   emitRegisterOperand(3, gprEncoding(reg));
 }
 
-void AssemblerX8664::neg(Type Ty, const Address &addr) {
+void AssemblerX8664::neg(Type Ty, const AsmAddress &addr) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -2772,7 +2772,7 @@ void AssemblerX8664::bsf(Type Ty, GPRRegister dst, GPRRegister src) {
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
-void AssemblerX8664::bsf(Type Ty, GPRRegister dst, const Address &src) {
+void AssemblerX8664::bsf(Type Ty, GPRRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
@@ -2794,7 +2794,7 @@ void AssemblerX8664::bsr(Type Ty, GPRRegister dst, GPRRegister src) {
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
-void AssemblerX8664::bsr(Type Ty, GPRRegister dst, const Address &src) {
+void AssemblerX8664::bsr(Type Ty, GPRRegister dst, const AsmAddress &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
@@ -3001,7 +3001,7 @@ void AssemblerX8664::lock() {
   emitUint8(0xF0);
 }
 
-void AssemblerX8664::cmpxchg(Type Ty, const Address &address, GPRRegister reg,
+void AssemblerX8664::cmpxchg(Type Ty, const AsmAddress &address, GPRRegister reg,
                              bool Locked) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
@@ -3017,7 +3017,7 @@ void AssemblerX8664::cmpxchg(Type Ty, const Address &address, GPRRegister reg,
   emitOperand(gprEncoding(reg), address);
 }
 
-void AssemblerX8664::cmpxchg8b(const Address &address, bool Locked) {
+void AssemblerX8664::cmpxchg8b(const AsmAddress &address, bool Locked) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Locked)
     emitUint8(0xF0);
@@ -3027,7 +3027,7 @@ void AssemblerX8664::cmpxchg8b(const Address &address, bool Locked) {
   emitOperand(1, address);
 }
 
-void AssemblerX8664::xadd(Type Ty, const Address &addr, GPRRegister reg,
+void AssemblerX8664::xadd(Type Ty, const AsmAddress &addr, GPRRegister reg,
                           bool Locked) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
@@ -3064,7 +3064,7 @@ void AssemblerX8664::xchg(Type Ty, GPRRegister reg0, GPRRegister reg1) {
   }
 }
 
-void AssemblerX8664::xchg(Type Ty, const Address &addr, GPRRegister reg) {
+void AssemblerX8664::xchg(Type Ty, const AsmAddress &addr, GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();

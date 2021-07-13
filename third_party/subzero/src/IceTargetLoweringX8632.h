@@ -126,7 +126,7 @@ public:
   using BrCond = CondX86::BrCond;
   using CmppsCond = CondX86::CmppsCond;
 
-  using X86Address = typename Traits::Address;
+  using AsmAddress = typename Traits::AsmAddress;
   using X86Operand = typename Traits::X86Operand;
   using X86OperandMem = typename Traits::X86OperandMem;
   using SegmentRegisters = typename Traits::X86OperandMem::SegmentRegisters;
@@ -272,7 +272,7 @@ public:
                               size_t BasicFrameOffset, size_t StackAdjBytes,
                               size_t &InArgsSizeBytes);
   void addEpilog(CfgNode *Node) override;
-  X86Address stackVarToAsmOperand(const Variable *Var) const;
+  AsmAddress stackVarToAsmAddress(const Variable *Var) const;
 
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 

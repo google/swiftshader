@@ -116,7 +116,7 @@ struct TargetX8632Traits {
     AssemblerFixup *fixup() const { return fixup_; }
 
   protected:
-    AsmOperand() : fixup_(nullptr), length_(0) {} // Needed by subclass Address.
+    AsmOperand() : fixup_(nullptr), length_(0) {} // Needed by subclass AsmAddress.
 
     void SetModRM(int mod, GPRRegister rm) {
       assert((mod & ~3) == 0);
@@ -169,18 +169,18 @@ struct TargetX8632Traits {
     friend class AssemblerX8632;
   };
 
-  class Address : public AsmOperand {
-    Address() = delete;
+  class AsmAddress : public AsmOperand {
+    AsmAddress() = delete;
 
   public:
-    Address(const Address &other) : AsmOperand(other) {}
+    AsmAddress(const AsmAddress &other) : AsmOperand(other) {}
 
-    Address &operator=(const Address &other) {
+    AsmAddress &operator=(const AsmAddress &other) {
       AsmOperand::operator=(other);
       return *this;
     }
 
-    Address(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
+    AsmAddress(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
       if (Fixup == nullptr && Disp == 0 && Base != RegX8632::Encoded_Reg_ebp) {
         SetModRM(0, Base);
         if (Base == RegX8632::Encoded_Reg_esp)
@@ -200,7 +200,7 @@ struct TargetX8632Traits {
       }
     }
 
-    Address(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
+    AsmAddress(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
             AssemblerFixup *Fixup) {
       assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
       SetModRM(0, RegX8632::Encoded_Reg_esp);
@@ -210,7 +210,7 @@ struct TargetX8632Traits {
         SetFixup(Fixup);
     }
 
-    Address(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
+    AsmAddress(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
             int32_t Disp, AssemblerFixup *Fixup) {
       assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
       if (Fixup == nullptr && Disp == 0 && Base != RegX8632::Encoded_Reg_ebp) {
@@ -230,7 +230,7 @@ struct TargetX8632Traits {
     }
 
     /// Generate an absolute address expression on x86-32.
-    Address(RelocOffsetT Offset, AssemblerFixup *Fixup) {
+    AsmAddress(RelocOffsetT Offset, AssemblerFixup *Fixup) {
       SetModRM(0, RegX8632::Encoded_Reg_ebp);
       // Use the Offset in the displacement for now. If we decide to process
       // fixups later, we'll need to patch up the emitted displacement.
@@ -239,10 +239,10 @@ struct TargetX8632Traits {
         SetFixup(Fixup);
     }
 
-    static Address ofConstPool(Assembler *Asm, const Constant *Imm) {
+    static AsmAddress ofConstPool(Assembler *Asm, const Constant *Imm) {
       AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Imm);
       const RelocOffsetT Offset = 0;
-      return Address(Offset, Fixup);
+      return AsmAddress(Offset, Fixup);
     }
   };
 
@@ -784,7 +784,7 @@ public:
     SegmentRegisters getSegmentRegister() const { return SegmentReg; }
     void emitSegmentOverride(Assembler *Asm) const;
     bool getIsRebased() const { return IsRebased; }
-    Address toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
+    AsmAddress toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
                          bool LeaAddr = false) const;
 
     void emit(const Cfg *Func) const override;
@@ -828,7 +828,7 @@ public:
     }
     int32_t getOffset() const { return Part == High ? 4 : 0; }
 
-    Address toAsmAddress(const Cfg *Func) const;
+    AsmAddress toAsmAddress(const Cfg *Func) const;
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
     void dump(const Cfg *Func, Ostream &Str) const override;

@@ -34,7 +34,7 @@ using Traits = TargetX8664Traits;
 using Assembler = typename Traits::Assembler;
 using AssemblerImmediate = typename Assembler::Immediate;
 using TargetLowering = typename Traits::TargetLowering;
-using Address = typename Traits::Address;
+using AsmAddress = typename Traits::AsmAddress;
 using X86Operand = typename Traits::X86Operand;
 using X86OperandMem = typename Traits::X86OperandMem;
 using VariableSplit = typename Traits::VariableSplit;
@@ -476,7 +476,7 @@ void emitIASAsAddrOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op0,
 void emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
                      const Operand *Src, const GPREmitterShiftOp &Emitter);
 
-void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const Address &Addr,
+void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const AsmAddress &Addr,
                         const Operand *Src, const GPREmitterAddrOp &Emitter);
 
 void emitIASRegOpTyXMM(const Cfg *Func, Type Ty, const Variable *Var,

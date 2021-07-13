@@ -43,7 +43,7 @@ protected:
 
 public:
   using Traits = TargetX8664Traits;
-  using Address = typename Traits::Address;
+  using AsmAddress = typename Traits::AsmAddress;
   using ByteRegister = typename Traits::ByteRegister;
   using BrCond = CondX86::BrCond;
   using CmppsCond = CondX86::CmppsCond;
@@ -167,7 +167,7 @@ public:
 
   // Operations to emit GPR instructions (and dispatch on operand type).
   using TypedEmitGPR = void (AssemblerX8664::*)(Type, GPRRegister);
-  using TypedEmitAddr = void (AssemblerX8664::*)(Type, const Address &);
+  using TypedEmitAddr = void (AssemblerX8664::*)(Type, const AsmAddress &);
   struct GPREmitterOneOp {
     TypedEmitGPR Reg;
     TypedEmitAddr Addr;
@@ -176,7 +176,7 @@ public:
   using TypedEmitGPRGPR = void (AssemblerX8664::*)(Type, GPRRegister,
                                                    GPRRegister);
   using TypedEmitGPRAddr = void (AssemblerX8664::*)(Type, GPRRegister,
-                                                    const Address &);
+                                                    const AsmAddress &);
   using TypedEmitGPRImm = void (AssemblerX8664::*)(Type, GPRRegister,
                                                    const Immediate &);
   struct GPREmitterRegOp {
@@ -202,9 +202,9 @@ public:
     TypedEmitGPRGPRImm GPRGPRImm;
   };
 
-  using TypedEmitAddrGPR = void (AssemblerX8664::*)(Type, const Address &,
+  using TypedEmitAddrGPR = void (AssemblerX8664::*)(Type, const AsmAddress &,
                                                     GPRRegister);
-  using TypedEmitAddrImm = void (AssemblerX8664::*)(Type, const Address &,
+  using TypedEmitAddrImm = void (AssemblerX8664::*)(Type, const AsmAddress &,
                                                     const Immediate &);
   struct GPREmitterAddrOp {
     TypedEmitAddrGPR AddrGPR;
@@ -215,15 +215,15 @@ public:
   using TypedEmitXmmXmm = void (AssemblerX8664::*)(Type, XmmRegister,
                                                    XmmRegister);
   using TypedEmitXmmAddr = void (AssemblerX8664::*)(Type, XmmRegister,
-                                                    const Address &);
+                                                    const AsmAddress &);
   struct XmmEmitterRegOp {
     TypedEmitXmmXmm XmmXmm;
     TypedEmitXmmAddr XmmAddr;
   };
 
   using EmitXmmXmm = void (AssemblerX8664::*)(XmmRegister, XmmRegister);
-  using EmitXmmAddr = void (AssemblerX8664::*)(XmmRegister, const Address &);
-  using EmitAddrXmm = void (AssemblerX8664::*)(const Address &, XmmRegister);
+  using EmitXmmAddr = void (AssemblerX8664::*)(XmmRegister, const AsmAddress &);
+  using EmitAddrXmm = void (AssemblerX8664::*)(const AsmAddress &, XmmRegister);
   struct XmmEmitterMovOps {
     EmitXmmXmm XmmXmm;
     EmitXmmAddr XmmAddr;
@@ -243,7 +243,7 @@ public:
   template <typename DReg_t, typename SReg_t> struct CastEmitterRegOp {
     using TypedEmitRegs = void (AssemblerX8664::*)(Type, DReg_t, Type, SReg_t);
     using TypedEmitAddr = void (AssemblerX8664::*)(Type, DReg_t, Type,
-                                                   const Address &);
+                                                   const AsmAddress &);
 
     TypedEmitRegs RegReg;
     TypedEmitAddr RegAddr;
@@ -255,7 +255,7 @@ public:
     using TypedEmitRegRegImm = void (AssemblerX8664::*)(Type, DReg_t, SReg_t,
                                                         const Immediate &);
     using TypedEmitRegAddrImm = void (AssemblerX8664::*)(Type, DReg_t,
-                                                         const Address &,
+                                                         const AsmAddress &,
                                                          const Immediate &);
 
     TypedEmitRegRegImm RegRegImm;
@@ -266,7 +266,7 @@ public:
    * Emit Machine Instructions.
    */
   void call(GPRRegister reg);
-  void call(const Address &address);
+  void call(const AsmAddress &address);
   void call(const ConstantRelocatable *label); // not testable.
   void call(const Immediate &abs_address);
 
@@ -277,131 +277,131 @@ public:
   void pushl(const ConstantRelocatable *Label);
 
   void popl(GPRRegister reg);
-  void popl(const Address &address);
+  void popl(const AsmAddress &address);
 
   void setcc(BrCond condition, ByteRegister dst);
-  void setcc(BrCond condition, const Address &address);
+  void setcc(BrCond condition, const AsmAddress &address);
 
   void mov(Type Ty, GPRRegister dst, const Immediate &src);
   void mov(Type Ty, GPRRegister dst, GPRRegister src);
-  void mov(Type Ty, GPRRegister dst, const Address &src);
-  void mov(Type Ty, const Address &dst, GPRRegister src);
-  void mov(Type Ty, const Address &dst, const Immediate &imm);
+  void mov(Type Ty, GPRRegister dst, const AsmAddress &src);
+  void mov(Type Ty, const AsmAddress &dst, GPRRegister src);
+  void mov(Type Ty, const AsmAddress &dst, const Immediate &imm);
 
   void movabs(const GPRRegister Dst, uint64_t Imm64);
 
   void movzx(Type Ty, GPRRegister dst, GPRRegister src);
-  void movzx(Type Ty, GPRRegister dst, const Address &src);
+  void movzx(Type Ty, GPRRegister dst, const AsmAddress &src);
   void movsx(Type Ty, GPRRegister dst, GPRRegister src);
-  void movsx(Type Ty, GPRRegister dst, const Address &src);
+  void movsx(Type Ty, GPRRegister dst, const AsmAddress &src);
 
-  void lea(Type Ty, GPRRegister dst, const Address &src);
+  void lea(Type Ty, GPRRegister dst, const AsmAddress &src);
 
   void cmov(Type Ty, BrCond cond, GPRRegister dst, GPRRegister src);
-  void cmov(Type Ty, BrCond cond, GPRRegister dst, const Address &src);
+  void cmov(Type Ty, BrCond cond, GPRRegister dst, const AsmAddress &src);
 
   void rep_movsb();
 
-  void movss(Type Ty, XmmRegister dst, const Address &src);
-  void movss(Type Ty, const Address &dst, XmmRegister src);
+  void movss(Type Ty, XmmRegister dst, const AsmAddress &src);
+  void movss(Type Ty, const AsmAddress &dst, XmmRegister src);
   void movss(Type Ty, XmmRegister dst, XmmRegister src);
 
   void movd(Type SrcTy, XmmRegister dst, GPRRegister src);
-  void movd(Type SrcTy, XmmRegister dst, const Address &src);
+  void movd(Type SrcTy, XmmRegister dst, const AsmAddress &src);
   void movd(Type DestTy, GPRRegister dst, XmmRegister src);
-  void movd(Type DestTy, const Address &dst, XmmRegister src);
+  void movd(Type DestTy, const AsmAddress &dst, XmmRegister src);
 
   void movq(XmmRegister dst, XmmRegister src);
-  void movq(const Address &dst, XmmRegister src);
-  void movq(XmmRegister dst, const Address &src);
+  void movq(const AsmAddress &dst, XmmRegister src);
+  void movq(XmmRegister dst, const AsmAddress &src);
 
   void addss(Type Ty, XmmRegister dst, XmmRegister src);
-  void addss(Type Ty, XmmRegister dst, const Address &src);
+  void addss(Type Ty, XmmRegister dst, const AsmAddress &src);
   void subss(Type Ty, XmmRegister dst, XmmRegister src);
-  void subss(Type Ty, XmmRegister dst, const Address &src);
+  void subss(Type Ty, XmmRegister dst, const AsmAddress &src);
   void mulss(Type Ty, XmmRegister dst, XmmRegister src);
-  void mulss(Type Ty, XmmRegister dst, const Address &src);
+  void mulss(Type Ty, XmmRegister dst, const AsmAddress &src);
   void divss(Type Ty, XmmRegister dst, XmmRegister src);
-  void divss(Type Ty, XmmRegister dst, const Address &src);
+  void divss(Type Ty, XmmRegister dst, const AsmAddress &src);
 
   void movaps(XmmRegister dst, XmmRegister src);
 
   void movups(XmmRegister dst, XmmRegister src);
-  void movups(XmmRegister dst, const Address &src);
-  void movups(const Address &dst, XmmRegister src);
+  void movups(XmmRegister dst, const AsmAddress &src);
+  void movups(const AsmAddress &dst, XmmRegister src);
 
   void padd(Type Ty, XmmRegister dst, XmmRegister src);
-  void padd(Type Ty, XmmRegister dst, const Address &src);
+  void padd(Type Ty, XmmRegister dst, const AsmAddress &src);
   void padds(Type Ty, XmmRegister dst, XmmRegister src);
-  void padds(Type Ty, XmmRegister dst, const Address &src);
+  void padds(Type Ty, XmmRegister dst, const AsmAddress &src);
   void paddus(Type Ty, XmmRegister dst, XmmRegister src);
-  void paddus(Type Ty, XmmRegister dst, const Address &src);
+  void paddus(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pand(Type Ty, XmmRegister dst, XmmRegister src);
-  void pand(Type Ty, XmmRegister dst, const Address &src);
+  void pand(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pandn(Type Ty, XmmRegister dst, XmmRegister src);
-  void pandn(Type Ty, XmmRegister dst, const Address &src);
+  void pandn(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pmull(Type Ty, XmmRegister dst, XmmRegister src);
-  void pmull(Type Ty, XmmRegister dst, const Address &src);
+  void pmull(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pmulhw(Type Ty, XmmRegister dst, XmmRegister src);
-  void pmulhw(Type Ty, XmmRegister dst, const Address &src);
+  void pmulhw(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pmulhuw(Type Ty, XmmRegister dst, XmmRegister src);
-  void pmulhuw(Type Ty, XmmRegister dst, const Address &src);
+  void pmulhuw(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pmaddwd(Type Ty, XmmRegister dst, XmmRegister src);
-  void pmaddwd(Type Ty, XmmRegister dst, const Address &src);
+  void pmaddwd(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pmuludq(Type Ty, XmmRegister dst, XmmRegister src);
-  void pmuludq(Type Ty, XmmRegister dst, const Address &src);
+  void pmuludq(Type Ty, XmmRegister dst, const AsmAddress &src);
   void por(Type Ty, XmmRegister dst, XmmRegister src);
-  void por(Type Ty, XmmRegister dst, const Address &src);
+  void por(Type Ty, XmmRegister dst, const AsmAddress &src);
   void psub(Type Ty, XmmRegister dst, XmmRegister src);
-  void psub(Type Ty, XmmRegister dst, const Address &src);
+  void psub(Type Ty, XmmRegister dst, const AsmAddress &src);
   void psubs(Type Ty, XmmRegister dst, XmmRegister src);
-  void psubs(Type Ty, XmmRegister dst, const Address &src);
+  void psubs(Type Ty, XmmRegister dst, const AsmAddress &src);
   void psubus(Type Ty, XmmRegister dst, XmmRegister src);
-  void psubus(Type Ty, XmmRegister dst, const Address &src);
+  void psubus(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pxor(Type Ty, XmmRegister dst, XmmRegister src);
-  void pxor(Type Ty, XmmRegister dst, const Address &src);
+  void pxor(Type Ty, XmmRegister dst, const AsmAddress &src);
 
   void psll(Type Ty, XmmRegister dst, XmmRegister src);
-  void psll(Type Ty, XmmRegister dst, const Address &src);
+  void psll(Type Ty, XmmRegister dst, const AsmAddress &src);
   void psll(Type Ty, XmmRegister dst, const Immediate &src);
 
   void psra(Type Ty, XmmRegister dst, XmmRegister src);
-  void psra(Type Ty, XmmRegister dst, const Address &src);
+  void psra(Type Ty, XmmRegister dst, const AsmAddress &src);
   void psra(Type Ty, XmmRegister dst, const Immediate &src);
   void psrl(Type Ty, XmmRegister dst, XmmRegister src);
-  void psrl(Type Ty, XmmRegister dst, const Address &src);
+  void psrl(Type Ty, XmmRegister dst, const AsmAddress &src);
   void psrl(Type Ty, XmmRegister dst, const Immediate &src);
 
   void addps(Type Ty, XmmRegister dst, XmmRegister src);
-  void addps(Type Ty, XmmRegister dst, const Address &src);
+  void addps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void subps(Type Ty, XmmRegister dst, XmmRegister src);
-  void subps(Type Ty, XmmRegister dst, const Address &src);
+  void subps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void divps(Type Ty, XmmRegister dst, XmmRegister src);
-  void divps(Type Ty, XmmRegister dst, const Address &src);
+  void divps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void mulps(Type Ty, XmmRegister dst, XmmRegister src);
-  void mulps(Type Ty, XmmRegister dst, const Address &src);
-  void minps(Type Ty, XmmRegister dst, const Address &src);
+  void mulps(Type Ty, XmmRegister dst, const AsmAddress &src);
+  void minps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void minps(Type Ty, XmmRegister dst, XmmRegister src);
-  void minss(Type Ty, XmmRegister dst, const Address &src);
+  void minss(Type Ty, XmmRegister dst, const AsmAddress &src);
   void minss(Type Ty, XmmRegister dst, XmmRegister src);
-  void maxps(Type Ty, XmmRegister dst, const Address &src);
+  void maxps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void maxps(Type Ty, XmmRegister dst, XmmRegister src);
-  void maxss(Type Ty, XmmRegister dst, const Address &src);
+  void maxss(Type Ty, XmmRegister dst, const AsmAddress &src);
   void maxss(Type Ty, XmmRegister dst, XmmRegister src);
-  void andnps(Type Ty, XmmRegister dst, const Address &src);
+  void andnps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void andnps(Type Ty, XmmRegister dst, XmmRegister src);
-  void andps(Type Ty, XmmRegister dst, const Address &src);
+  void andps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void andps(Type Ty, XmmRegister dst, XmmRegister src);
-  void orps(Type Ty, XmmRegister dst, const Address &src);
+  void orps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void orps(Type Ty, XmmRegister dst, XmmRegister src);
 
   void blendvps(Type Ty, XmmRegister dst, XmmRegister src);
-  void blendvps(Type Ty, XmmRegister dst, const Address &src);
+  void blendvps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pblendvb(Type Ty, XmmRegister dst, XmmRegister src);
-  void pblendvb(Type Ty, XmmRegister dst, const Address &src);
+  void pblendvb(Type Ty, XmmRegister dst, const AsmAddress &src);
 
   void cmpps(Type Ty, XmmRegister dst, XmmRegister src, CmppsCond CmpCondition);
-  void cmpps(Type Ty, XmmRegister dst, const Address &src,
+  void cmpps(Type Ty, XmmRegister dst, const AsmAddress &src,
              CmppsCond CmpCondition);
 
   void sqrtps(XmmRegister dst);
@@ -420,61 +420,61 @@ public:
   void sqrtpd(XmmRegister dst);
 
   void pshufb(Type Ty, XmmRegister dst, XmmRegister src);
-  void pshufb(Type Ty, XmmRegister dst, const Address &src);
+  void pshufb(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pshufd(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
-  void pshufd(Type Ty, XmmRegister dst, const Address &src,
+  void pshufd(Type Ty, XmmRegister dst, const AsmAddress &src,
               const Immediate &mask);
   void punpckl(Type Ty, XmmRegister Dst, XmmRegister Src);
-  void punpckl(Type Ty, XmmRegister Dst, const Address &Src);
+  void punpckl(Type Ty, XmmRegister Dst, const AsmAddress &Src);
   void punpckh(Type Ty, XmmRegister Dst, XmmRegister Src);
-  void punpckh(Type Ty, XmmRegister Dst, const Address &Src);
+  void punpckh(Type Ty, XmmRegister Dst, const AsmAddress &Src);
   void packss(Type Ty, XmmRegister Dst, XmmRegister Src);
-  void packss(Type Ty, XmmRegister Dst, const Address &Src);
+  void packss(Type Ty, XmmRegister Dst, const AsmAddress &Src);
   void packus(Type Ty, XmmRegister Dst, XmmRegister Src);
-  void packus(Type Ty, XmmRegister Dst, const Address &Src);
+  void packus(Type Ty, XmmRegister Dst, const AsmAddress &Src);
   void shufps(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
-  void shufps(Type Ty, XmmRegister dst, const Address &src,
+  void shufps(Type Ty, XmmRegister dst, const AsmAddress &src,
               const Immediate &mask);
 
   void cvtdq2ps(Type, XmmRegister dst, XmmRegister src);
-  void cvtdq2ps(Type, XmmRegister dst, const Address &src);
+  void cvtdq2ps(Type, XmmRegister dst, const AsmAddress &src);
 
   void cvttps2dq(Type, XmmRegister dst, XmmRegister src);
-  void cvttps2dq(Type, XmmRegister dst, const Address &src);
+  void cvttps2dq(Type, XmmRegister dst, const AsmAddress &src);
 
   void cvtps2dq(Type, XmmRegister dst, XmmRegister src);
-  void cvtps2dq(Type, XmmRegister dst, const Address &src);
+  void cvtps2dq(Type, XmmRegister dst, const AsmAddress &src);
 
   void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, GPRRegister src);
-  void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, const Address &src);
+  void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, const AsmAddress &src);
 
   void cvtfloat2float(Type SrcTy, XmmRegister dst, XmmRegister src);
-  void cvtfloat2float(Type SrcTy, XmmRegister dst, const Address &src);
+  void cvtfloat2float(Type SrcTy, XmmRegister dst, const AsmAddress &src);
 
   void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, XmmRegister src);
-  void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, const Address &src);
+  void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, const AsmAddress &src);
 
   void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy, XmmRegister src);
-  void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy, const Address &src);
+  void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy, const AsmAddress &src);
 
   void ucomiss(Type Ty, XmmRegister a, XmmRegister b);
-  void ucomiss(Type Ty, XmmRegister a, const Address &b);
+  void ucomiss(Type Ty, XmmRegister a, const AsmAddress &b);
 
   void movmsk(Type Ty, GPRRegister dst, XmmRegister src);
 
-  void sqrt(Type Ty, XmmRegister dst, const Address &src);
+  void sqrt(Type Ty, XmmRegister dst, const AsmAddress &src);
   void sqrt(Type Ty, XmmRegister dst, XmmRegister src);
 
-  void xorps(Type Ty, XmmRegister dst, const Address &src);
+  void xorps(Type Ty, XmmRegister dst, const AsmAddress &src);
   void xorps(Type Ty, XmmRegister dst, XmmRegister src);
 
   void insertps(Type Ty, XmmRegister dst, XmmRegister src,
                 const Immediate &imm);
-  void insertps(Type Ty, XmmRegister dst, const Address &src,
+  void insertps(Type Ty, XmmRegister dst, const AsmAddress &src,
                 const Immediate &imm);
 
   void pinsr(Type Ty, XmmRegister dst, GPRRegister src, const Immediate &imm);
-  void pinsr(Type Ty, XmmRegister dst, const Address &src,
+  void pinsr(Type Ty, XmmRegister dst, const AsmAddress &src,
              const Immediate &imm);
 
   void pextr(Type Ty, GPRRegister dst, XmmRegister src, const Immediate &imm);
@@ -482,9 +482,9 @@ public:
   void pmovsxdq(XmmRegister dst, XmmRegister src);
 
   void pcmpeq(Type Ty, XmmRegister dst, XmmRegister src);
-  void pcmpeq(Type Ty, XmmRegister dst, const Address &src);
+  void pcmpeq(Type Ty, XmmRegister dst, const AsmAddress &src);
   void pcmpgt(Type Ty, XmmRegister dst, XmmRegister src);
-  void pcmpgt(Type Ty, XmmRegister dst, const Address &src);
+  void pcmpgt(Type Ty, XmmRegister dst, const AsmAddress &src);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
@@ -493,61 +493,61 @@ public:
     kRoundToZero = 0x3
   };
   void round(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mode);
-  void round(Type Ty, XmmRegister dst, const Address &src,
+  void round(Type Ty, XmmRegister dst, const AsmAddress &src,
              const Immediate &mode);
 
   void cmp(Type Ty, GPRRegister reg0, GPRRegister reg1);
-  void cmp(Type Ty, GPRRegister reg, const Address &address);
+  void cmp(Type Ty, GPRRegister reg, const AsmAddress &address);
   void cmp(Type Ty, GPRRegister reg, const Immediate &imm);
-  void cmp(Type Ty, const Address &address, GPRRegister reg);
-  void cmp(Type Ty, const Address &address, const Immediate &imm);
+  void cmp(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void cmp(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void test(Type Ty, GPRRegister reg0, GPRRegister reg1);
   void test(Type Ty, GPRRegister reg, const Immediate &imm);
-  void test(Type Ty, const Address &address, GPRRegister reg);
-  void test(Type Ty, const Address &address, const Immediate &imm);
+  void test(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void test(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void And(Type Ty, GPRRegister dst, GPRRegister src);
-  void And(Type Ty, GPRRegister dst, const Address &address);
+  void And(Type Ty, GPRRegister dst, const AsmAddress &address);
   void And(Type Ty, GPRRegister dst, const Immediate &imm);
-  void And(Type Ty, const Address &address, GPRRegister reg);
-  void And(Type Ty, const Address &address, const Immediate &imm);
+  void And(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void And(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void Or(Type Ty, GPRRegister dst, GPRRegister src);
-  void Or(Type Ty, GPRRegister dst, const Address &address);
+  void Or(Type Ty, GPRRegister dst, const AsmAddress &address);
   void Or(Type Ty, GPRRegister dst, const Immediate &imm);
-  void Or(Type Ty, const Address &address, GPRRegister reg);
-  void Or(Type Ty, const Address &address, const Immediate &imm);
+  void Or(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void Or(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void Xor(Type Ty, GPRRegister dst, GPRRegister src);
-  void Xor(Type Ty, GPRRegister dst, const Address &address);
+  void Xor(Type Ty, GPRRegister dst, const AsmAddress &address);
   void Xor(Type Ty, GPRRegister dst, const Immediate &imm);
-  void Xor(Type Ty, const Address &address, GPRRegister reg);
-  void Xor(Type Ty, const Address &address, const Immediate &imm);
+  void Xor(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void Xor(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void add(Type Ty, GPRRegister dst, GPRRegister src);
-  void add(Type Ty, GPRRegister reg, const Address &address);
+  void add(Type Ty, GPRRegister reg, const AsmAddress &address);
   void add(Type Ty, GPRRegister reg, const Immediate &imm);
-  void add(Type Ty, const Address &address, GPRRegister reg);
-  void add(Type Ty, const Address &address, const Immediate &imm);
+  void add(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void add(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void adc(Type Ty, GPRRegister dst, GPRRegister src);
-  void adc(Type Ty, GPRRegister dst, const Address &address);
+  void adc(Type Ty, GPRRegister dst, const AsmAddress &address);
   void adc(Type Ty, GPRRegister reg, const Immediate &imm);
-  void adc(Type Ty, const Address &address, GPRRegister reg);
-  void adc(Type Ty, const Address &address, const Immediate &imm);
+  void adc(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void adc(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void sub(Type Ty, GPRRegister dst, GPRRegister src);
-  void sub(Type Ty, GPRRegister reg, const Address &address);
+  void sub(Type Ty, GPRRegister reg, const AsmAddress &address);
   void sub(Type Ty, GPRRegister reg, const Immediate &imm);
-  void sub(Type Ty, const Address &address, GPRRegister reg);
-  void sub(Type Ty, const Address &address, const Immediate &imm);
+  void sub(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void sub(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void sbb(Type Ty, GPRRegister dst, GPRRegister src);
-  void sbb(Type Ty, GPRRegister reg, const Address &address);
+  void sbb(Type Ty, GPRRegister reg, const AsmAddress &address);
   void sbb(Type Ty, GPRRegister reg, const Immediate &imm);
-  void sbb(Type Ty, const Address &address, GPRRegister reg);
-  void sbb(Type Ty, const Address &address, const Immediate &imm);
+  void sbb(Type Ty, const AsmAddress &address, GPRRegister reg);
+  void sbb(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   void cbw();
   void cwd();
@@ -555,62 +555,62 @@ public:
   void cqo();
 
   void div(Type Ty, GPRRegister reg);
-  void div(Type Ty, const Address &address);
+  void div(Type Ty, const AsmAddress &address);
 
   void idiv(Type Ty, GPRRegister reg);
-  void idiv(Type Ty, const Address &address);
+  void idiv(Type Ty, const AsmAddress &address);
 
   void imul(Type Ty, GPRRegister dst, GPRRegister src);
   void imul(Type Ty, GPRRegister reg, const Immediate &imm);
-  void imul(Type Ty, GPRRegister reg, const Address &address);
+  void imul(Type Ty, GPRRegister reg, const AsmAddress &address);
 
   void imul(Type Ty, GPRRegister reg);
-  void imul(Type Ty, const Address &address);
+  void imul(Type Ty, const AsmAddress &address);
 
   void imul(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
-  void imul(Type Ty, GPRRegister dst, const Address &address,
+  void imul(Type Ty, GPRRegister dst, const AsmAddress &address,
             const Immediate &imm);
 
   void mul(Type Ty, GPRRegister reg);
-  void mul(Type Ty, const Address &address);
+  void mul(Type Ty, const AsmAddress &address);
 
   void incl(GPRRegister reg);
-  void incl(const Address &address);
+  void incl(const AsmAddress &address);
 
   void decl(GPRRegister reg);
-  void decl(const Address &address);
+  void decl(const AsmAddress &address);
 
   void rol(Type Ty, GPRRegister reg, const Immediate &imm);
   void rol(Type Ty, GPRRegister operand, GPRRegister shifter);
-  void rol(Type Ty, const Address &operand, GPRRegister shifter);
+  void rol(Type Ty, const AsmAddress &operand, GPRRegister shifter);
 
   void shl(Type Ty, GPRRegister reg, const Immediate &imm);
   void shl(Type Ty, GPRRegister operand, GPRRegister shifter);
-  void shl(Type Ty, const Address &operand, GPRRegister shifter);
+  void shl(Type Ty, const AsmAddress &operand, GPRRegister shifter);
 
   void shr(Type Ty, GPRRegister reg, const Immediate &imm);
   void shr(Type Ty, GPRRegister operand, GPRRegister shifter);
-  void shr(Type Ty, const Address &operand, GPRRegister shifter);
+  void shr(Type Ty, const AsmAddress &operand, GPRRegister shifter);
 
   void sar(Type Ty, GPRRegister reg, const Immediate &imm);
   void sar(Type Ty, GPRRegister operand, GPRRegister shifter);
-  void sar(Type Ty, const Address &address, GPRRegister shifter);
+  void sar(Type Ty, const AsmAddress &address, GPRRegister shifter);
 
   void shld(Type Ty, GPRRegister dst, GPRRegister src);
   void shld(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
-  void shld(Type Ty, const Address &operand, GPRRegister src);
+  void shld(Type Ty, const AsmAddress &operand, GPRRegister src);
   void shrd(Type Ty, GPRRegister dst, GPRRegister src);
   void shrd(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
-  void shrd(Type Ty, const Address &dst, GPRRegister src);
+  void shrd(Type Ty, const AsmAddress &dst, GPRRegister src);
 
   void neg(Type Ty, GPRRegister reg);
-  void neg(Type Ty, const Address &addr);
+  void neg(Type Ty, const AsmAddress &addr);
   void notl(GPRRegister reg);
 
   void bsf(Type Ty, GPRRegister dst, GPRRegister src);
-  void bsf(Type Ty, GPRRegister dst, const Address &src);
+  void bsf(Type Ty, GPRRegister dst, const AsmAddress &src);
   void bsr(Type Ty, GPRRegister dst, GPRRegister src);
-  void bsr(Type Ty, GPRRegister dst, const Address &src);
+  void bsr(Type Ty, GPRRegister dst, const AsmAddress &src);
 
   void bswap(Type Ty, GPRRegister reg);
 
@@ -637,11 +637,11 @@ public:
   void mfence();
 
   void lock();
-  void cmpxchg(Type Ty, const Address &address, GPRRegister reg, bool Locked);
-  void cmpxchg8b(const Address &address, bool Locked);
-  void xadd(Type Ty, const Address &address, GPRRegister reg, bool Locked);
+  void cmpxchg(Type Ty, const AsmAddress &address, GPRRegister reg, bool Locked);
+  void cmpxchg8b(const AsmAddress &address, bool Locked);
+  void xadd(Type Ty, const AsmAddress &address, GPRRegister reg, bool Locked);
   void xchg(Type Ty, GPRRegister reg0, GPRRegister reg1);
-  void xchg(Type Ty, const Address &address, GPRRegister reg);
+  void xchg(Type Ty, const AsmAddress &address, GPRRegister reg);
 
   /// \name Intel Architecture Code Analyzer markers.
   /// @{
@@ -707,13 +707,13 @@ private:
   void arith_int(Type Ty, GPRRegister reg0, GPRRegister reg1);
 
   template <uint32_t Tag>
-  void arith_int(Type Ty, GPRRegister reg, const Address &address);
+  void arith_int(Type Ty, GPRRegister reg, const AsmAddress &address);
 
   template <uint32_t Tag>
-  void arith_int(Type Ty, const Address &address, GPRRegister reg);
+  void arith_int(Type Ty, const AsmAddress &address, GPRRegister reg);
 
   template <uint32_t Tag>
-  void arith_int(Type Ty, const Address &address, const Immediate &imm);
+  void arith_int(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   // gprEncoding returns Reg encoding for operand emission. For x86-64 we mask
   // out the 4th bit as it is encoded in the REX.[RXB] bits. No other bits are
@@ -750,7 +750,7 @@ private:
   template <typename RegType, typename RmType>
   void assembleAndEmitRex(const Type TyReg, const RegType Reg, const Type TyRm,
                           const RmType Rm,
-                          const Address *Addr = nullptr) {
+                          const AsmAddress *Addr = nullptr) {
     const uint8_t W = (TyReg == IceType_i64 || TyRm == IceType_i64)
                           ? AsmOperand::RexW
                           : AsmOperand::RexNone;
@@ -794,12 +794,12 @@ private:
   // emitRex is used for emitting a Rex prefix for an address and a GPR. The
   // address may contain zero, one, or two registers.
   template <typename RegType>
-  void emitRex(const Type Ty, const Address &Addr, const RegType Reg) {
+  void emitRex(const Type Ty, const AsmAddress &Addr, const RegType Reg) {
     assembleAndEmitRex(Ty, Reg, Ty, RexRegIrrelevant, &Addr);
   }
 
   template <typename RegType>
-  void emitRex(const Type AddrTy, const Address &Addr, const Type TyReg,
+  void emitRex(const Type AddrTy, const AsmAddress &Addr, const Type TyReg,
                const RegType Reg) {
     assembleAndEmitRex(TyReg, Reg, AddrTy, RexRegIrrelevant, &Addr);
   }

@@ -80,7 +80,7 @@ struct TargetX8664Traits {
     };
 
   protected:
-    // Needed by subclass Address.
+    // Needed by subclass AsmAddress.
     AsmOperand() = default;
 
   public:
@@ -176,16 +176,16 @@ struct TargetX8664Traits {
     friend class AssemblerX8664;
   };
 
-  class Address : public AsmOperand {
-    Address() = default;
+  class AsmAddress : public AsmOperand {
+    AsmAddress() = default;
 
   public:
-    Address(const Address &) = default;
-    Address(Address &&) = default;
-    Address &operator=(const Address &) = default;
-    Address &operator=(Address &&) = default;
+    AsmAddress(const AsmAddress &) = default;
+    AsmAddress(AsmAddress &&) = default;
+    AsmAddress &operator=(const AsmAddress &) = default;
+    AsmAddress &operator=(AsmAddress &&) = default;
 
-    Address(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
+    AsmAddress(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
       if (Fixup == nullptr && Disp == 0 &&
           (Base & 7) != RegX8664::Encoded_Reg_rbp) {
         SetModRM(0, Base);
@@ -206,7 +206,7 @@ struct TargetX8664Traits {
       }
     }
 
-    Address(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
+    AsmAddress(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
             AssemblerFixup *Fixup) {
       assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
       SetModRM(0, RegX8664::Encoded_Reg_rsp);
@@ -216,7 +216,7 @@ struct TargetX8664Traits {
         SetFixup(Fixup);
     }
 
-    Address(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
+    AsmAddress(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
             int32_t Disp, AssemblerFixup *Fixup) {
       assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
       if (Fixup == nullptr && Disp == 0 &&
@@ -237,10 +237,10 @@ struct TargetX8664Traits {
     }
 
     /// Generate a RIP-relative address expression on x86-64.
-    static Address RipRelative(RelocOffsetT Offset, AssemblerFixup *Fixup) {
+    static AsmAddress RipRelative(RelocOffsetT Offset, AssemblerFixup *Fixup) {
       assert(Fixup != nullptr);
       assert(Fixup->kind() == FK_PcRel);
-      Address NewAddress;
+      AsmAddress NewAddress;
       NewAddress.SetModRM(0x0, RegX8664::Encoded_Reg_rbp);
 
       // Use the Offset in the displacement for now. If we decide to process
@@ -253,8 +253,8 @@ struct TargetX8664Traits {
     }
 
     /// Generate an absolute address.
-    static Address Absolute(RelocOffsetT Addr) {
-      Address NewAddress;
+    static AsmAddress Absolute(RelocOffsetT Addr) {
+      AsmAddress NewAddress;
       NewAddress.SetModRM(0x0, RegX8664::Encoded_Reg_rsp);
       static constexpr ScaleFactor NoScale = TIMES_1;
       NewAddress.SetSIB(NoScale, RegX8664::Encoded_Reg_rsp,
@@ -263,11 +263,11 @@ struct TargetX8664Traits {
       return NewAddress;
     }
 
-    static Address ofConstPool(Assembler *Asm, const Constant *Imm) {
+    static AsmAddress ofConstPool(Assembler *Asm, const Constant *Imm) {
       // TODO(jpp): ???
       AssemblerFixup *Fixup = Asm->createFixup(FK_Abs, Imm);
       const RelocOffsetT Offset = 4;
-      return Address::RipRelative(Offset, Fixup);
+      return AsmAddress::RipRelative(Offset, Fixup);
     }
   };
 
@@ -866,7 +866,7 @@ public:
     SegmentRegisters getSegmentRegister() const { return DefaultSegment; }
     void emitSegmentOverride(Assembler *) const {}
     bool getIsRebased() const { return IsRebased; }
-    Address toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
+    AsmAddress toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
                          bool IsLeaAddr = false) const;
 
     void emit(const Cfg *Func) const override;
@@ -908,7 +908,7 @@ public:
     }
     int32_t getOffset() const { return Part == High ? 4 : 0; }
 
-    Address toAsmAddress(const Cfg *Func) const;
+    AsmAddress toAsmAddress(const Cfg *Func) const;
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
     void dump(const Cfg *Func, Ostream &Str) const override;
