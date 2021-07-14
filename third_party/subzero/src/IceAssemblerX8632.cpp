@@ -51,7 +51,7 @@ AsmAddress::AsmAddress(const Variable *Var, const TargetX8632 *Target) {
     }
   }
 
-  GPRRegister Base = Traits::getEncodedGPR(BaseRegNum);
+  GPRRegister Base = Traits::Traits::getEncodedGPR(BaseRegNum);
 
   if (Utils::IsInt(8, Offset)) {
     SetModRM(1, Base);
@@ -86,7 +86,7 @@ AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(Mem->getOffset())) {
       Disp += CR->getOffset();
-      Fixup = Asm->createFixup(Traits::FK_Abs, CR);
+      Fixup = Asm->createFixup(FK_Abs, CR);
     } else {
       llvm_unreachable("Unexpected offset type");
     }
@@ -94,14 +94,14 @@ AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
 
   // Now convert to the various possible forms.
   if (Mem->getBase() && Mem->getIndex()) {
-    SetBaseIndex(getEncodedGPR(Mem->getBase()->getRegNum()),
-                 getEncodedGPR(Mem->getIndex()->getRegNum()),
-                 X8632::Traits::ScaleFactor(Mem->getShift()), Disp, Fixup);
+    SetBaseIndex(Traits::getEncodedGPR(Mem->getBase()->getRegNum()),
+                 Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+                 ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else if (Mem->getBase()) {
-    SetBase(getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
+    SetBase(Traits::getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
   } else if (Mem->getIndex()) {
-    SetIndex(getEncodedGPR(Mem->getIndex()->getRegNum()),
-             X8632::Traits::ScaleFactor(Mem->getShift()), Disp, Fixup);
+    SetIndex(Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+             ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else {
     SetAbsolute(Disp, Fixup);
   }
@@ -111,7 +111,7 @@ AsmAddress::AsmAddress(const VariableSplit *Split, const Cfg *Func) {
   assert(!Split->getVar()->hasReg());
   const ::Ice::TargetLowering *Target = Func->getTarget();
   int32_t Offset = Split->getVar()->getStackOffset() + Split->getOffset();
-  SetBase(getEncodedGPR(Target->getFrameOrStackReg()), Offset,
+  SetBase(Traits::getEncodedGPR(Target->getFrameOrStackReg()), Offset,
           AssemblerFixup::NoFixup);
 }
 
@@ -198,7 +198,7 @@ void AssemblerX8632::call(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  auto *Fixup = this->createFixup(FK_PcRel, label);
   Fixup->set_addend(-4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -210,7 +210,7 @@ void AssemblerX8632::call(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
+  auto *Fixup = this->createFixup(FK_PcRel, AssemblerFixup::NullSymbol);
   Fixup->set_addend(abs_address.value() - 4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -232,7 +232,7 @@ void AssemblerX8632::pushl(const Immediate &Imm) {
 void AssemblerX8632::pushl(const ConstantRelocatable *Label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x68);
-  emitFixup(this->createFixup(Traits::FK_Abs, Label));
+  emitFixup(this->createFixup(FK_Abs, Label));
   // In x86-32, the emitted value is an addend to the relocation. Therefore, we
   // must emit a 0 (because we're pushing an absolute relocation.)
   // In x86-64, the emitted value does not matter (the addend lives in the
@@ -2153,16 +2153,17 @@ void AssemblerX8632::test(Type Ty, GPRRegister reg,
   // the register had high bits set since this only sets flags registers based
   // on the "AND" of the two operands, and the immediate had zeros at those
   // high bits.
-  if (immediate.is_uint8() && reg <= Traits::Last8BitGPR) {
+  constexpr GPRRegister Last8BitGPR = GPRRegister::Encoded_Reg_ebx;
+  if (immediate.is_uint8() && reg <= Last8BitGPR) {
     // Use zero-extended 8-bit immediate.
-    if (reg == Traits::Encoded_Reg_Accumulator) {
+    if (reg == RegX8632::Encoded_Reg_eax) {
       emitUint8(0xA8);
     } else {
       emitUint8(0xF6);
       emitUint8(0xC0 + gprEncoding(reg));
     }
     emitUint8(immediate.value() & 0xFF);
-  } else if (reg == Traits::Encoded_Reg_Accumulator) {
+  } else if (reg == RegX8632::Encoded_Reg_eax) {
     // Use short form if the destination is EAX.
     if (Ty == IceType_i16)
       emitOperandSizeOverride();
@@ -2865,7 +2866,7 @@ void AssemblerX8632::j(BrCond condition, const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x80 + condition);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  auto *Fixup = this->createFixup(FK_PcRel, label);
   Fixup->set_addend(-4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -2903,7 +2904,7 @@ void AssemblerX8632::jmp(Label *label, bool near) {
 void AssemblerX8632::jmp(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  auto *Fixup = this->createFixup(FK_PcRel, label);
   Fixup->set_addend(-4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -2913,7 +2914,7 @@ void AssemblerX8632::jmp(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
   AssemblerFixup *Fixup =
-      createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
+      createFixup(FK_PcRel, AssemblerFixup::NullSymbol);
   Fixup->set_addend(abs_address.value() - 4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -2975,9 +2976,9 @@ void AssemblerX8632::xchg(Type Ty, GPRRegister reg0, GPRRegister reg1) {
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   // Use short form if either register is EAX.
-  if (reg0 == Traits::Encoded_Reg_Accumulator) {
+  if (reg0 == RegX8632::Encoded_Reg_eax) {
     emitUint8(0x90 + gprEncoding(reg1));
-  } else if (reg1 == Traits::Encoded_Reg_Accumulator) {
+  } else if (reg1 == RegX8632::Encoded_Reg_eax) {
     emitUint8(0x90 + gprEncoding(reg0));
   } else {
     if (isByteSizedArithType(Ty))
@@ -3134,7 +3135,7 @@ void AssemblerX8632::emitComplexI8(int rm, const AsmOperand &operand,
                                    const Immediate &immediate) {
   assert(rm >= 0 && rm < 8);
   assert(immediate.is_int8());
-  if (operand.IsRegister(Traits::Encoded_Reg_Accumulator)) {
+  if (operand.IsRegister(RegX8632::Encoded_Reg_eax)) {
     // Use short form if the destination is al.
     emitUint8(0x04 + (rm << 3));
     emitUint8(immediate.value() & 0xFF);
@@ -3156,7 +3157,7 @@ void AssemblerX8632::emitComplex(Type Ty, int rm, const AsmOperand &operand,
     static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
     emitOperand(rm, operand, OffsetFromNextInstruction);
     emitUint8(immediate.value() & 0xFF);
-  } else if (operand.IsRegister(Traits::Encoded_Reg_Accumulator)) {
+  } else if (operand.IsRegister(RegX8632::Encoded_Reg_eax)) {
     // Use short form if the destination is eax.
     emitUint8(0x05 + (rm << 3));
     emitImmediate(Ty, immediate);
@@ -3216,7 +3217,7 @@ void AssemblerX8632::emitGenericShift(int rm, Type Ty,
                                       const AsmOperand &operand,
                                       GPRRegister shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(shifter == Traits::Encoded_Reg_Counter);
+  assert(shifter == RegX8632::Encoded_Reg_ecx);
   (void)shifter;
   if (Ty == IceType_i16)
     emitOperandSizeOverride();

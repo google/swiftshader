@@ -35,13 +35,200 @@ namespace Ice {
 namespace X8632 {
 
 using Traits = TargetX8632Traits;
-using AsmAddress = typename Traits::AsmAddress;
 using ByteRegister = typename Traits::ByteRegister;
 using BrCond = CondX86::BrCond;
 using CmppsCond = CondX86::CmppsCond;
 using GPRRegister = typename Traits::GPRRegister;
-using AsmOperand = typename Traits::AsmOperand;
 using XmmRegister = typename Traits::XmmRegister;
+using X86OperandMem = typename Traits::X86OperandMem;
+using VariableSplit = typename Traits::VariableSplit;
+
+constexpr FixupKind FK_PcRel = llvm::ELF::R_386_PC32;
+constexpr FixupKind FK_Abs = llvm::ELF::R_386_32;
+constexpr FixupKind FK_Gotoff = llvm::ELF::R_386_GOTOFF;
+constexpr FixupKind FK_GotPC = llvm::ELF::R_386_GOTPC;
+
+enum ScaleFactor { TIMES_1 = 0, TIMES_2 = 1, TIMES_4 = 2, TIMES_8 = 3 };
+
+class AsmOperand {
+public:
+  AsmOperand(const AsmOperand &other)
+      : fixup_(other.fixup_), length_(other.length_) {
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+  }
+
+  AsmOperand &operator=(const AsmOperand &other) {
+    length_ = other.length_;
+    fixup_ = other.fixup_;
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+    return *this;
+  }
+
+  uint8_t mod() const { return (encoding_at(0) >> 6) & 3; }
+
+  GPRRegister rm() const {
+    return static_cast<GPRRegister>(encoding_at(0) & 7);
+  }
+
+  ScaleFactor scale() const {
+    return static_cast<ScaleFactor>((encoding_at(1) >> 6) & 3);
+  }
+
+  GPRRegister index() const {
+    return static_cast<GPRRegister>((encoding_at(1) >> 3) & 7);
+  }
+
+  GPRRegister base() const {
+    return static_cast<GPRRegister>(encoding_at(1) & 7);
+  }
+
+  int8_t disp8() const {
+    assert(length_ >= 2);
+    return static_cast<int8_t>(encoding_[length_ - 1]);
+  }
+
+  AssemblerFixup *fixup() const { return fixup_; }
+
+protected:
+  AsmOperand()
+      : fixup_(nullptr), length_(0) {} // Needed by subclass AsmAddress.
+
+  void SetModRM(int mod, GPRRegister rm) {
+    assert((mod & ~3) == 0);
+    encoding_[0] = (mod << 6) | rm;
+    length_ = 1;
+  }
+
+  void SetSIB(ScaleFactor scale, GPRRegister index, GPRRegister base) {
+    assert(length_ == 1);
+    assert((scale & ~3) == 0);
+    encoding_[1] = (scale << 6) | (index << 3) | base;
+    length_ = 2;
+  }
+
+  void SetDisp8(int8_t disp) {
+    assert(length_ == 1 || length_ == 2);
+    encoding_[length_++] = static_cast<uint8_t>(disp);
+  }
+
+  void SetDisp32(int32_t disp) {
+    assert(length_ == 1 || length_ == 2);
+    intptr_t disp_size = sizeof(disp);
+    memmove(&encoding_[length_], &disp, disp_size);
+    length_ += disp_size;
+  }
+
+  void SetFixup(AssemblerFixup *fixup) { fixup_ = fixup; }
+
+private:
+  AssemblerFixup *fixup_;
+  uint8_t encoding_[6];
+  uint8_t length_;
+
+  explicit AsmOperand(GPRRegister reg) : fixup_(nullptr) { SetModRM(3, reg); }
+
+  /// Get the operand encoding byte at the given index.
+  uint8_t encoding_at(intptr_t index) const {
+    assert(index >= 0 && index < length_);
+    return encoding_[index];
+  }
+
+  /// Returns whether or not this operand is really the given register in
+  /// disguise. Used from the assembler to generate better encodings.
+  bool IsRegister(GPRRegister reg) const {
+    return ((encoding_[0] & 0xF8) == 0xC0) // Addressing mode is register only.
+           && ((encoding_[0] & 0x07) == reg); // Register codes match.
+  }
+
+  friend class AssemblerX8632;
+};
+
+class AsmAddress : public AsmOperand {
+  AsmAddress() = delete;
+
+public:
+  AsmAddress(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup = nullptr) {
+    SetBase(Base, Disp, Fixup);
+  }
+  AsmAddress(const Variable *Var, const TargetX8632 *Target);
+  AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
+             const Ice::TargetLowering *Target);
+  AsmAddress(const VariableSplit *Split, const Cfg *Func);
+
+  // Address into the constant pool.
+  AsmAddress(const Constant *Imm, Ice::Assembler *Asm) {
+    AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Imm);
+    const RelocOffsetT Offset = 0;
+    SetAbsolute(Offset, Fixup);
+  }
+
+private:
+  AsmAddress(const AsmAddress &other) : AsmOperand(other) {}
+
+  AsmAddress &operator=(const AsmAddress &other) {
+    AsmOperand::operator=(other);
+    return *this;
+  }
+
+  void SetBase(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
+    if (Fixup == nullptr && Disp == 0 && Base != RegX8632::Encoded_Reg_ebp) {
+      SetModRM(0, Base);
+      if (Base == RegX8632::Encoded_Reg_esp)
+        SetSIB(TIMES_1, RegX8632::Encoded_Reg_esp, Base);
+    } else if (Fixup == nullptr && Utils::IsInt(8, Disp)) {
+      SetModRM(1, Base);
+      if (Base == RegX8632::Encoded_Reg_esp)
+        SetSIB(TIMES_1, RegX8632::Encoded_Reg_esp, Base);
+      SetDisp8(Disp);
+    } else {
+      SetModRM(2, Base);
+      if (Base == RegX8632::Encoded_Reg_esp)
+        SetSIB(TIMES_1, RegX8632::Encoded_Reg_esp, Base);
+      SetDisp32(Disp);
+      if (Fixup)
+        SetFixup(Fixup);
+    }
+  }
+
+  void SetIndex(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
+                AssemblerFixup *Fixup) {
+    assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
+    SetModRM(0, RegX8632::Encoded_Reg_esp);
+    SetSIB(Scale, Index, RegX8632::Encoded_Reg_ebp);
+    SetDisp32(Disp);
+    if (Fixup)
+      SetFixup(Fixup);
+  }
+
+  void SetBaseIndex(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
+                    int32_t Disp, AssemblerFixup *Fixup) {
+    assert(Index != RegX8632::Encoded_Reg_esp); // Illegal addressing mode.
+    if (Fixup == nullptr && Disp == 0 && Base != RegX8632::Encoded_Reg_ebp) {
+      SetModRM(0, RegX8632::Encoded_Reg_esp);
+      SetSIB(Scale, Index, Base);
+    } else if (Fixup == nullptr && Utils::IsInt(8, Disp)) {
+      SetModRM(1, RegX8632::Encoded_Reg_esp);
+      SetSIB(Scale, Index, Base);
+      SetDisp8(Disp);
+    } else {
+      SetModRM(2, RegX8632::Encoded_Reg_esp);
+      SetSIB(Scale, Index, Base);
+      SetDisp32(Disp);
+      if (Fixup)
+        SetFixup(Fixup);
+    }
+  }
+
+  /// Generate an absolute address expression on x86-32.
+  void SetAbsolute(RelocOffsetT Offset, AssemblerFixup *Fixup) {
+    SetModRM(0, RegX8632::Encoded_Reg_ebp);
+    // Use the Offset in the displacement for now. If we decide to process
+    // fixups later, we'll need to patch up the emitted displacement.
+    SetDisp32(Offset);
+    if (Fixup)
+      SetFixup(Fixup);
+  }
+};
 
 class AssemblerX8632 : public ::Ice::Assembler {
   AssemblerX8632(const AssemblerX8632 &) = delete;
@@ -162,7 +349,7 @@ public:
   bool fixupIsPCRel(FixupKind Kind) const override {
     // Currently assuming this is the only PC-rel relocation type used.
     // TODO(jpp): Traits.PcRelTypes.count(Kind) != 0
-    return Kind == Traits::FK_PcRel;
+    return Kind == FK_PcRel;
   }
 
   // Operations to emit GPR instructions (and dispatch on operand type).

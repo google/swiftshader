@@ -622,8 +622,8 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
     const auto FixupKind = (Reloc->getName().hasStdString() &&
                             Reloc->getName().toString() == GlobalOffsetTable)
-                               ? Traits::FK_GotPC
-                               : Traits::FK_Abs;
+                               ? FK_GotPC
+                               : FK_Abs;
     AssemblerFixup *Fixup = Asm->createFixup(FixupKind, Reloc);
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Fixup));
   } else if (const auto *Split = llvm::dyn_cast<VariableSplit>(Src)) {
@@ -646,8 +646,8 @@ void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const AsmAddress &Addr,
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
     const auto FixupKind = (Reloc->getName().hasStdString() &&
                             Reloc->getName().toString() == GlobalOffsetTable)
-                               ? Traits::FK_GotPC
-                               : Traits::FK_Abs;
+                               ? FK_GotPC
+                               : FK_Abs;
     AssemblerFixup *Fixup = Asm->createFixup(FixupKind, Reloc);
     (Asm->*(Emitter.AddrImm))(Ty, Addr, AssemblerImmediate(Fixup));
   } else {

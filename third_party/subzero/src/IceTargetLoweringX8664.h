@@ -127,7 +127,6 @@ public:
   using BrCond = CondX86::BrCond;
   using CmppsCond = CondX86::CmppsCond;
 
-  using AsmAddress = typename Traits::AsmAddress;
   using X86Operand = typename Traits::X86Operand;
   using X86OperandMem = typename Traits::X86OperandMem;
   using SegmentRegisters = typename Traits::X86OperandMem::SegmentRegisters;
@@ -206,8 +205,8 @@ public:
 
   bool hasFramePointer() const override { return IsEbpBasedFrame; }
   void setHasFramePointer() override { IsEbpBasedFrame = true; }
-  RegNumT getStackReg() const override { return Traits::StackPtr; }
-  RegNumT getFrameReg() const override { return Traits::FramePtr; }
+  RegNumT getStackReg() const override { return RegX8664::Reg_rsp; }
+  RegNumT getFrameReg() const override { return RegX8664::Reg_rbp; }
   RegNumT getFrameOrStackReg() const override {
     // If the stack pointer needs to be aligned, then the frame pointer is
     // unaligned, so always use the stack pointer.
@@ -944,9 +943,6 @@ private:
                                       int8_t Idx11, int8_t Idx12, int8_t Idx13,
                                       int8_t Idx14, int8_t Idx15);
   /// @}
-
-  static constexpr FixupKind PcRelFixup = Traits::FK_PcRel;
-  static constexpr FixupKind AbsFixup = Traits::FK_Abs;
 
 public:
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {

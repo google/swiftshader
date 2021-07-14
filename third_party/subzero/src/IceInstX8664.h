@@ -34,7 +34,6 @@ using Traits = TargetX8664Traits;
 using Assembler = typename Traits::Assembler;
 using AssemblerImmediate = typename Assembler::Immediate;
 using TargetLowering = typename Traits::TargetLowering;
-using AsmAddress = typename Traits::AsmAddress;
 using X86Operand = typename Traits::X86Operand;
 using X86OperandMem = typename Traits::X86OperandMem;
 

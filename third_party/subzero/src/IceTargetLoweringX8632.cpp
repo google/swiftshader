@@ -7822,7 +7822,7 @@ void TargetDataX8632::lowerJumpTables() {
   switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    const FixupKind RelocationKind = Traits::FK_Abs;
+    const FixupKind RelocationKind = FK_Abs;
     for (const JumpTableData &JT : Ctx->getJumpTables())
       Writer->writeJumpTable(JT, RelocationKind, IsPIC);
   } break;
@@ -7856,7 +7856,7 @@ void TargetDataX8632::lowerGlobals(const VariableDeclarationList &Vars,
   switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, Traits::FK_Abs, SectionSuffix, IsPIC);
+    Writer->writeDataSection(Vars, FK_Abs, SectionSuffix, IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {

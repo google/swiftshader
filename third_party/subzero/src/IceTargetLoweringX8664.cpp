@@ -7067,7 +7067,7 @@ void TargetDataX8664::lowerJumpTables() {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     constexpr FixupKind FK_Abs64 = llvm::ELF::R_X86_64_64;
     const FixupKind RelocationKind =
-        (getPointerType() == IceType_i32) ? Traits::FK_Abs : FK_Abs64;
+        (getPointerType() == IceType_i32) ? FK_Abs : FK_Abs64;
     for (const JumpTableData &JT : Ctx->getJumpTables())
       Writer->writeJumpTable(JT, RelocationKind, IsPIC);
   } break;
@@ -7101,7 +7101,7 @@ void TargetDataX8664::lowerGlobals(const VariableDeclarationList &Vars,
   switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, Traits::FK_Abs, SectionSuffix, IsPIC);
+    Writer->writeDataSection(Vars, FK_Abs, SectionSuffix, IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {

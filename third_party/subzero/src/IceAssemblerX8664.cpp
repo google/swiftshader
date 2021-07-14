@@ -50,7 +50,8 @@ AsmAddress::AsmAddress(const Variable *Var, const TargetX8664 *Target) {
       BaseRegNum = Target->getFrameOrStackReg();
     }
   }
-  SetBase(Traits::getEncodedGPR(BaseRegNum), Offset, AssemblerFixup::NoFixup);
+  SetBase(Traits::Traits::getEncodedGPR(BaseRegNum), Offset,
+          AssemblerFixup::NoFixup);
 }
 
 AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
@@ -85,14 +86,14 @@ AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
 
   // Now convert to the various possible forms.
   if (Mem->getBase() && Mem->getIndex()) {
-    SetBaseIndex(getEncodedGPR(Mem->getBase()->getRegNum()),
-                 getEncodedGPR(Mem->getIndex()->getRegNum()),
-                 X8664::Traits::ScaleFactor(Mem->getShift()), Disp, Fixup);
+    SetBaseIndex(Traits::getEncodedGPR(Mem->getBase()->getRegNum()),
+                 Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+                 ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else if (Mem->getBase()) {
-    SetBase(getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
+    SetBase(Traits::getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
   } else if (Mem->getIndex()) {
-    SetIndex(getEncodedGPR(Mem->getIndex()->getRegNum()),
-             X8664::Traits::ScaleFactor(Mem->getShift()), Disp, Fixup);
+    SetIndex(Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+             ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else if (Fixup == nullptr) {
     SetAbsolute(Disp);
   } else {
@@ -185,7 +186,7 @@ void AssemblerX8664::call(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  auto *Fixup = this->createFixup(FK_PcRel, label);
   Fixup->set_addend(-4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -197,7 +198,7 @@ void AssemblerX8664::call(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
+  auto *Fixup = this->createFixup(FK_PcRel, AssemblerFixup::NullSymbol);
   Fixup->set_addend(abs_address.value() - 4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -220,7 +221,7 @@ void AssemblerX8664::pushl(const Immediate &Imm) {
 void AssemblerX8664::pushl(const ConstantRelocatable *Label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x68);
-  emitFixup(this->createFixup(Traits::FK_Abs, Label));
+  emitFixup(this->createFixup(FK_Abs, Label));
   // In x86-32, the emitted value is an addend to the relocation. Therefore, we
   // must emit a 0 (because we're pushing an absolute relocation.)
   // In x86-64, the emitted value does not matter (the addend lives in the
@@ -2277,17 +2278,18 @@ void AssemblerX8664::test(Type Ty, GPRRegister reg,
   // the register had high bits set since this only sets flags registers based
   // on the "AND" of the two operands, and the immediate had zeros at those
   // high bits.
-  if (immediate.is_uint8() && reg <= Traits::Last8BitGPR) {
+  constexpr GPRRegister Last8BitGPR = GPRRegister::Encoded_Reg_r15d;
+  if (immediate.is_uint8() && reg <= Last8BitGPR) {
     // Use zero-extended 8-bit immediate.
     emitRexB(Ty, reg);
-    if (reg == Traits::Encoded_Reg_Accumulator) {
+    if (reg == RegX8664::Encoded_Reg_rax) {
       emitUint8(0xA8);
     } else {
       emitUint8(0xF6);
       emitUint8(0xC0 + gprEncoding(reg));
     }
     emitUint8(immediate.value() & 0xFF);
-  } else if (reg == Traits::Encoded_Reg_Accumulator) {
+  } else if (reg == RegX8664::Encoded_Reg_rax) {
     // Use short form if the destination is EAX.
     if (Ty == IceType_i16)
       emitOperandSizeOverride();
@@ -3019,7 +3021,7 @@ void AssemblerX8664::j(BrCond condition, const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x80 + condition);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  auto *Fixup = this->createFixup(FK_PcRel, label);
   Fixup->set_addend(-4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -3058,7 +3060,7 @@ void AssemblerX8664::jmp(Label *label, bool near) {
 void AssemblerX8664::jmp(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
-  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  auto *Fixup = this->createFixup(FK_PcRel, label);
   Fixup->set_addend(-4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -3067,8 +3069,7 @@ void AssemblerX8664::jmp(const ConstantRelocatable *label) {
 void AssemblerX8664::jmp(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
-  AssemblerFixup *Fixup =
-      createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
+  AssemblerFixup *Fixup = createFixup(FK_PcRel, AssemblerFixup::NullSymbol);
   Fixup->set_addend(abs_address.value() - 4);
   emitFixup(Fixup);
   emitInt32(0);
@@ -3132,11 +3133,11 @@ void AssemblerX8664::xchg(Type Ty, GPRRegister reg0, GPRRegister reg1) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  // Use short form if either register is EAX.
-  if (reg0 == Traits::Encoded_Reg_Accumulator) {
+  // Use short form if either register is RAX.
+  if (reg0 == RegX8664::Encoded_Reg_rax) {
     emitRexB(Ty, reg1);
     emitUint8(0x90 + gprEncoding(reg1));
-  } else if (reg1 == Traits::Encoded_Reg_Accumulator) {
+  } else if (reg1 == RegX8664::Encoded_Reg_rax) {
     emitRexB(Ty, reg0);
     emitUint8(0x90 + gprEncoding(reg0));
   } else {
@@ -3298,7 +3299,7 @@ void AssemblerX8664::emitComplexI8(int rm, const AsmOperand &operand,
                                    const Immediate &immediate) {
   assert(rm >= 0 && rm < 8);
   assert(immediate.is_int8());
-  if (operand.IsRegister(Traits::Encoded_Reg_Accumulator)) {
+  if (operand.IsRegister(RegX8664::Encoded_Reg_rax)) {
     // Use short form if the destination is al.
     emitUint8(0x04 + (rm << 3));
     emitUint8(immediate.value() & 0xFF);
@@ -3320,7 +3321,7 @@ void AssemblerX8664::emitComplex(Type Ty, int rm, const AsmOperand &operand,
     static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
     emitOperand(rm, operand, OffsetFromNextInstruction);
     emitUint8(immediate.value() & 0xFF);
-  } else if (operand.IsRegister(Traits::Encoded_Reg_Accumulator)) {
+  } else if (operand.IsRegister(RegX8664::Encoded_Reg_rax)) {
     // Use short form if the destination is eax.
     emitUint8(0x05 + (rm << 3));
     emitImmediate(Ty, immediate);
@@ -3381,7 +3382,7 @@ void AssemblerX8664::emitGenericShift(int rm, Type Ty,
                                       const AsmOperand &operand,
                                       GPRRegister shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(shifter == Traits::Encoded_Reg_Counter);
+  assert(shifter == RegX8664::Encoded_Reg_rcx);
   (void)shifter;
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
