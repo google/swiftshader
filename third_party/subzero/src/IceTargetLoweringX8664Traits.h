@@ -19,7 +19,6 @@
 #include "IceConditionCodesX86.h"
 #include "IceDefs.h"
 #include "IceInst.h"
-#include "IceInstX8664.def"
 #include "IceOperand.h"
 #include "IceRegistersX8664.h"
 #include "IceTargetLowering.h"
@@ -573,120 +572,9 @@ public:
     Type InVectorElementType;
   } TableTypeX8664Attributes[];
   static const size_t TableTypeX8664AttributesSize;
-
-  //----------------------------------------------------------------------------
-  //      __  __   __  ______  ______
-  //    /\ \/\ "-.\ \/\  ___\/\__  _\
-  //    \ \ \ \ \-.  \ \___  \/_/\ \/
-  //     \ \_\ \_\\"\_\/\_____\ \ \_\
-  //      \/_/\/_/ \/_/\/_____/  \/_/
-  //
-  //----------------------------------------------------------------------------
-  using Traits = TargetX8664Traits;
-
-  using TargetLowering = ::Ice::X8664::TargetX8664;
-  using Assembler = ::Ice::X8664::AssemblerX8664;
-
-  /// X86Operand extends the Operand hierarchy. Its subclasses are X86OperandMem
-  /// and VariableSplit.
-  class X86Operand : public ::Ice::Operand {
-    X86Operand() = delete;
-    X86Operand(const X86Operand &) = delete;
-    X86Operand &operator=(const X86Operand &) = delete;
-
-  public:
-    enum OperandKindX8664 { k__Start = ::Ice::Operand::kTarget, kMem, kSplit };
-    using ::Ice::Operand::dump;
-
-    void dump(const Cfg *, Ostream &Str) const override;
-
-  protected:
-    X86Operand(OperandKindX8664 Kind, Type Ty)
-        : Operand(static_cast<::Ice::Operand::OperandKind>(Kind), Ty) {}
-  };
-
-  /// X86OperandMem represents the m64 addressing mode, with optional base and
-  /// index registers, a constant offset, and a fixed shift value for the index
-  /// register.
-  class X86OperandMem : public X86Operand {
-    X86OperandMem() = delete;
-    X86OperandMem(const X86OperandMem &) = delete;
-    X86OperandMem &operator=(const X86OperandMem &) = delete;
-
-  public:
-    enum SegmentRegisters { DefaultSegment = -1, SegReg_NUM };
-    static X86OperandMem *
-    create(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
-           Variable *Index = nullptr, uint16_t Shift = 0,
-           SegmentRegisters SegmentRegister = DefaultSegment,
-           bool IsRebased = false) {
-      assert(SegmentRegister == DefaultSegment);
-      (void)SegmentRegister;
-      return new (Func->allocate<X86OperandMem>())
-          X86OperandMem(Func, Ty, Base, Offset, Index, Shift, IsRebased);
-    }
-    static X86OperandMem *create(Cfg *Func, Type Ty, Variable *Base,
-                                 Constant *Offset, bool IsRebased) {
-      constexpr Variable *NoIndex = nullptr;
-      constexpr uint16_t NoShift = 0;
-      return new (Func->allocate<X86OperandMem>())
-          X86OperandMem(Func, Ty, Base, Offset, NoIndex, NoShift, IsRebased);
-    }
-    Variable *getBase() const { return Base; }
-    Constant *getOffset() const { return Offset; }
-    Variable *getIndex() const { return Index; }
-    uint16_t getShift() const { return Shift; }
-    SegmentRegisters getSegmentRegister() const { return DefaultSegment; }
-    void emitSegmentOverride(Assembler *) const {}
-    bool getIsRebased() const { return IsRebased; }
-
-    void emit(const Cfg *Func) const override;
-    using X86Operand::dump;
-    void dump(const Cfg *Func, Ostream &Str) const override;
-
-    static bool classof(const Operand *Operand) {
-      return Operand->getKind() == static_cast<OperandKind>(kMem);
-    }
-
-  private:
-    X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
-                  Variable *Index, uint16_t Shift, bool IsRebased);
-
-    Variable *const Base;
-    Constant *const Offset;
-    Variable *const Index;
-    const uint16_t Shift;
-    const bool IsRebased;
-  };
-
-  // Note: The following data structures are defined in IceInstX8664.cpp.
-
-  static const struct InstBrAttributesType {
-    CondX86::BrCond Opposite;
-    const char *DisplayString;
-    const char *EmitString;
-  } InstBrAttributes[];
-
-  static const struct InstCmppsAttributesType {
-    const char *EmitString;
-  } InstCmppsAttributes[];
-
-  static const struct TypeAttributesType {
-    const char *CvtString;      // i (integer), s (single FP), d (double FP)
-    const char *SdSsString;     // ss, sd, or <blank>
-    const char *PdPsString;     // ps, pd, or <blank>
-    const char *SpSdString;     // ss, sd, ps, pd, or <blank>
-    const char *IntegralString; // b, w, d, or <blank>
-    const char *UnpackString;   // bw, wd, dq, or <blank>
-    const char *PackString;     // wb, dw, or <blank>
-    const char *WidthString;    // b, w, l, q, or <blank>
-    const char *FldString;      // s, l, or <blank>
-  } TypeAttributes[];
 };
 
-using Traits = ::Ice::X8664::TargetX8664Traits;
 } // end of namespace X8664
-
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGX8664TRAITS_H

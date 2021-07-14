@@ -346,7 +346,7 @@ void BoolFolding::invalidateProducersOnStore(const Inst *Instr) {
     bool HasMemOperand = false;
     const SizeT SrcSize = PInst->getSrcSize();
     for (SizeT I = 0; I < SrcSize; ++I) {
-      if (llvm::isa<typename Traits::X86OperandMem>(PInst->getSrc(I))) {
+      if (llvm::isa<X86OperandMem>(PInst->getSrc(I))) {
         HasMemOperand = true;
         break;
       }
@@ -587,8 +587,8 @@ inline bool canRMW(const InstArithmetic *Arith) {
 bool isSameMemAddressOperand(const Operand *A, const Operand *B) {
   if (A == B)
     return true;
-  if (auto *MemA = llvm::dyn_cast<typename TargetX8632::X86OperandMem>(A)) {
-    if (auto *MemB = llvm::dyn_cast<typename TargetX8632::X86OperandMem>(B)) {
+  if (auto *MemA = llvm::dyn_cast<X86OperandMem>(A)) {
+    if (auto *MemB = llvm::dyn_cast<X86OperandMem>(B)) {
       return MemA->getBase() == MemB->getBase() &&
              MemA->getOffset() == MemB->getOffset() &&
              MemA->getIndex() == MemB->getIndex() &&
@@ -2113,7 +2113,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
                              llvm::isa<ConstantRelocatable>(Const));
     if (getFlags().getAggressiveLea() && ValidType && ValidKind) {
       auto *Var = legalizeToReg(Src0);
-      auto *Mem = Traits::X86OperandMem::create(Func, IceType_void, Var, Const);
+      auto *Mem = X86OperandMem::create(Func, IceType_void, Var, Const);
       T = makeReg(Ty);
       _lea(T, Mem);
       _mov(Dest, T);
@@ -2543,8 +2543,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       }
       Variable *esp = getPhysicalRegister(getStackReg(), Traits::WordType);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
-      StackArgLocations.push_back(
-          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
+      StackArgLocations.push_back(X86OperandMem::create(Func, Ty, esp, Loc));
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
     }
   }
@@ -3016,10 +3015,8 @@ void TargetX8632::lowerCast(const InstCast *Instr) {
         Spill->setLinkedTo(Src0Var);
         Spill->setMustNotHaveReg();
         _movq(Spill, Src0RM);
-        SpillLo = Traits::VariableSplit::create(Func, Spill,
-                                                Traits::VariableSplit::Low);
-        SpillHi = Traits::VariableSplit::create(Func, Spill,
-                                                Traits::VariableSplit::High);
+        SpillLo = VariableSplit::create(Func, Spill, VariableSplit::Low);
+        SpillHi = VariableSplit::create(Func, Spill, VariableSplit::High);
       } else {
         SpillLo = loOperand(Src0RM);
         SpillHi = hiOperand(Src0RM);
@@ -3056,10 +3053,8 @@ void TargetX8632::lowerCast(const InstCast *Instr) {
       Spill->setMustNotHaveReg();
 
       Variable *T_Lo = nullptr, *T_Hi = nullptr;
-      auto *SpillLo = Traits::VariableSplit::create(Func, Spill,
-                                                    Traits::VariableSplit::Low);
-      auto *SpillHi = Traits::VariableSplit::create(
-          Func, Spill, Traits::VariableSplit::High);
+      auto *SpillLo = VariableSplit::create(Func, Spill, VariableSplit::Low);
+      auto *SpillHi = VariableSplit::create(Func, Spill, VariableSplit::High);
       _mov(T_Lo, loOperand(Src0));
       // Technically, the Spill is defined after the _store happens, but
       // SpillLo is considered a "use" of Spill so define Spill before it is
@@ -5475,8 +5470,8 @@ const Inst *AddressOptimizer::matchOffsetIndexOrBase(
   return nullptr;
 }
 
-typename TargetX8632::X86OperandMem *
-TargetX8632::computeAddressOpt(const Inst *Instr, Type MemType, Operand *Addr) {
+X86OperandMem *TargetX8632::computeAddressOpt(const Inst *Instr, Type MemType,
+                                              Operand *Addr) {
   Func->resetCurrentNode();
   if (Func->isVerbose(IceV_AddrOpt)) {
     OstreamLocker L(Func->getContext());
@@ -7354,9 +7349,9 @@ Variable *TargetX8632::makeVectorOfFabsMask(Type Ty, RegNumT RegNum) {
   return Reg;
 }
 
-typename TargetX8632::X86OperandMem *
-TargetX8632::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
-                                          uint32_t Offset) {
+X86OperandMem *TargetX8632::getMemoryOperandForStackSlot(Type Ty,
+                                                         Variable *Slot,
+                                                         uint32_t Offset) {
   // Ensure that Loc is a stack slot.
   assert(Slot->mustNotHaveReg());
   assert(Slot->getRegNum().hasNoValue());
@@ -7631,8 +7626,8 @@ Operand *TargetX8632::legalizeSrc0ForCmp(Operand *Src0, Operand *Src1) {
   return legalize(Src0, IsSrc1ImmOrReg ? (Legal_Reg | Legal_Mem) : Legal_Reg);
 }
 
-typename TargetX8632::X86OperandMem *
-TargetX8632::formMemoryOperand(Operand *Opnd, Type Ty, bool DoLegalize) {
+X86OperandMem *TargetX8632::formMemoryOperand(Operand *Opnd, Type Ty,
+                                              bool DoLegalize) {
   auto *Mem = llvm::dyn_cast<X86OperandMem>(Opnd);
   // It may be the case that address mode optimization already creates an
   // X86OperandMem, so in that case it wouldn't need another level of
@@ -7930,8 +7925,8 @@ std::array<SmallBitVector, RCX86_NUM> TargetX8632::TypeToRegisterSet = {{}};
 std::array<SmallBitVector, RCX86_NUM> TargetX8632::TypeToRegisterSetUnfiltered =
     {{}};
 
-std::array<SmallBitVector, TargetX8632::Traits::RegisterSet::Reg_NUM>
-    TargetX8632::RegisterAliases = {{}};
+std::array<SmallBitVector, RegisterSet::Reg_NUM> TargetX8632::RegisterAliases =
+    {{}};
 
 //------------------------------------------------------------------------------
 //     __      ______  __     __  ______  ______  __  __   __  ______

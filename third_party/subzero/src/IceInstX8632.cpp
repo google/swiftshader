@@ -11,9 +11,6 @@
 /// \brief Defines X8632 specific data related to X8632 Instructions and
 /// Instruction traits.
 ///
-/// These are declared in the IceTargetLoweringX8632Traits.h header file. This
-/// file also defines X8632 operand specific methods (dump and emit.)
-///
 //===----------------------------------------------------------------------===//
 
 #include "IceInstX8632.h"
@@ -24,6 +21,7 @@
 #include "IceConditionCodesX86.h"
 #include "IceDefs.h"
 #include "IceInst.h"
+#include "IceInstX8632.def"
 #include "IceOperand.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLowering.h"
@@ -32,16 +30,87 @@
 namespace Ice {
 namespace X8632 {
 
+struct InstBrAttributesType {
+  CondX86::BrCond Opposite;
+  const char *const DisplayString;
+  const char *const EmitString;
+};
+
+struct InstCmppsAttributesType {
+  const char *const EmitString;
+};
+
+struct TypeAttributesType {
+  const char *const CvtString;      // i (integer), s (single FP), d (double FP)
+  const char *const SdSsString;     // ss, sd, or <blank>
+  const char *const PdPsString;     // ps, pd, or <blank>
+  const char *const SpSdString;     // ss, sd, ps, pd, or <blank>
+  const char *const IntegralString; // b, w, d, or <blank>
+  const char *const UnpackString;   // bw, wd, dq, or <blank>
+  const char *const PackString;     // wb, dw, or <blank>
+  const char *const WidthString;    // b, w, l, q, or <blank>
+  const char *const FldString;      // s, l, or <blank>
+};
+
+constexpr InstBrAttributesType InstBrAttributes[] = {
+#define X(val, encode, opp, dump, emit) {CondX86::opp, dump, emit},
+    ICEINSTX86BR_TABLE
+#undef X
+};
+
+constexpr InstCmppsAttributesType InstCmppsAttributes[] = {
+#define X(val, emit) {emit},
+    ICEINSTX86CMPPS_TABLE
+#undef X
+};
+
+constexpr TypeAttributesType TypeAttributes[] = {
+#define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
+  {cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld},
+    ICETYPEX86_TABLE
+#undef X
+};
+
+constexpr const char *InstSegmentRegNames[] = {
+#define X(val, name, prefix) name,
+    SEG_REGX8632_TABLE
+#undef X
+};
+
+constexpr uint8_t InstSegmentPrefixes[] = {
+#define X(val, name, prefix) prefix,
+    SEG_REGX8632_TABLE
+#undef X
+};
+
 const char *InstX86Base::getWidthString(Type Ty) {
-  return Traits::TypeAttributes[Ty].WidthString;
+  return TypeAttributes[Ty].WidthString;
 }
 
 const char *InstX86Base::getFldString(Type Ty) {
-  return Traits::TypeAttributes[Ty].FldString;
+  return TypeAttributes[Ty].FldString;
+}
+
+const char *InstX86Base::getSseSuffixString(Type DestTy, SseSuffix Suffix) {
+  switch (Suffix) {
+  default:
+  case InstX86Base::SseSuffix::None:
+    return "";
+  case InstX86Base::SseSuffix::Packed:
+    return TypeAttributes[DestTy].PdPsString;
+  case InstX86Base::SseSuffix::Unpack:
+    return TypeAttributes[DestTy].UnpackString;
+  case InstX86Base::SseSuffix::Scalar:
+    return TypeAttributes[DestTy].SdSsString;
+  case InstX86Base::SseSuffix::Integral:
+    return TypeAttributes[DestTy].IntegralString;
+  case InstX86Base::SseSuffix::Pack:
+    return TypeAttributes[DestTy].PackString;
+  }
 }
 
 typename Cond::BrCond InstX86Base::getOppositeCondition(BrCond Cond) {
-  return Traits::InstBrAttributes[Cond].Opposite;
+  return InstBrAttributes[Cond].Opposite;
 }
 
 InstX86FakeRMW::InstX86FakeRMW(Cfg *Func, Operand *Data, Operand *Addr,
@@ -375,7 +444,7 @@ void InstX86Br::emit(const Cfg *Func) const {
   if (Condition == Cond::Br_None) {
     Str << "jmp";
   } else {
-    Str << Traits::InstBrAttributes[Condition].EmitString;
+    Str << InstBrAttributes[Condition].EmitString;
   }
 
   if (Label) {
@@ -434,7 +503,7 @@ void InstX86Br::dump(const Cfg *Func) const {
     return;
   }
 
-  Str << Traits::InstBrAttributes[Condition].DisplayString;
+  Str << InstBrAttributes[Condition].DisplayString;
   if (Label) {
     Str << ", label %" << Label->getLabelName();
   } else {
@@ -909,7 +978,7 @@ void InstX86Sqrt::emit(const Cfg *Func) const {
   assert(isScalarFloatingType(Ty));
   Str << "\t"
          "sqrt"
-      << Traits::TypeAttributes[Ty].SpSdString << "\t";
+      << TypeAttributes[Ty].SpSdString << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);
@@ -1279,7 +1348,7 @@ void InstX86Cmov::emit(const Cfg *Func) const {
   Str << "\t";
   assert(Condition != Cond::Br_None);
   assert(this->getDest()->hasReg());
-  Str << "cmov" << Traits::InstBrAttributes[Condition].DisplayString
+  Str << "cmov" << InstBrAttributes[Condition].DisplayString
       << this->getWidthString(Dest->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
@@ -1319,7 +1388,7 @@ void InstX86Cmov::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << "cmov" << Traits::InstBrAttributes[Condition].DisplayString << ".";
+  Str << "cmov" << InstBrAttributes[Condition].DisplayString << ".";
   Str << this->getDest()->getType() << " ";
   this->dumpDest(Func);
   Str << ", ";
@@ -1335,8 +1404,8 @@ void InstX86Cmpps::emit(const Cfg *Func) const {
   Type DestTy = this->Dest->getType();
   Str << "\t"
          "cmp"
-      << Traits::InstCmppsAttributes[Condition].EmitString
-      << Traits::TypeAttributes[DestTy].PdPsString << "\t";
+      << InstCmppsAttributes[Condition].EmitString
+      << TypeAttributes[DestTy].PdPsString << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);
@@ -1369,7 +1438,7 @@ void InstX86Cmpps::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   assert(Condition < Cond::Cmpps_Invalid);
   this->dumpDest(Func);
-  Str << " = cmp" << Traits::InstCmppsAttributes[Condition].EmitString
+  Str << " = cmp" << InstCmppsAttributes[Condition].EmitString
       << "ps"
          "\t";
   this->dumpSources(Func);
@@ -1461,8 +1530,8 @@ void InstX86Cvt::emit(const Cfg *Func) const {
          "cvt";
   if (isTruncating())
     Str << "t";
-  Str << Traits::TypeAttributes[this->getSrc(0)->getType()].CvtString << "2"
-      << Traits::TypeAttributes[this->getDest()->getType()].CvtString << "\t";
+  Str << TypeAttributes[this->getSrc(0)->getType()].CvtString << "2"
+      << TypeAttributes[this->getDest()->getType()].CvtString << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);
@@ -1552,8 +1621,8 @@ void InstX86Cvt::dump(const Cfg *Func) const {
   Str << " = cvt";
   if (isTruncating())
     Str << "t";
-  Str << Traits::TypeAttributes[this->getSrc(0)->getType()].CvtString << "2"
-      << Traits::TypeAttributes[this->getDest()->getType()].CvtString << " ";
+  Str << TypeAttributes[this->getSrc(0)->getType()].CvtString << "2"
+      << TypeAttributes[this->getDest()->getType()].CvtString << " ";
   this->dumpSources(Func);
 }
 
@@ -1563,7 +1632,7 @@ void InstX86Round::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
   Str << "\t" << this->Opcode
-      << Traits::TypeAttributes[this->getDest()->getType()].SpSdString << "\t";
+      << TypeAttributes[this->getDest()->getType()].SpSdString << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -1629,7 +1698,7 @@ void InstX86Ucomiss::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
   Str << "\t"
          "ucomi"
-      << Traits::TypeAttributes[this->getSrc(0)->getType()].SdSsString << "\t";
+      << TypeAttributes[this->getSrc(0)->getType()].SdSsString << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -1766,8 +1835,7 @@ void InstX86Store::emit(const Cfg *Func) const {
   Type Ty = this->getSrc(0)->getType();
   Str << "\t"
          "mov"
-      << this->getWidthString(Ty) << Traits::TypeAttributes[Ty].SdSsString
-      << "\t";
+      << this->getWidthString(Ty) << TypeAttributes[Ty].SdSsString << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -1991,9 +2059,8 @@ void InstX86Mov::emit(const Cfg *Func) const {
   Type DestTy = this->getDest()->getType();
   Str << "\t"
          "mov"
-      << (!isScalarFloatingType(DestTy)
-              ? this->getWidthString(DestTy)
-              : Traits::TypeAttributes[DestTy].SdSsString)
+      << (!isScalarFloatingType(DestTy) ? this->getWidthString(DestTy)
+                                        : TypeAttributes[DestTy].SdSsString)
       << "\t";
   // For an integer truncation operation, src is wider than dest. In this case,
   // we use a mov instruction whose data width matches the narrower dest.
@@ -2281,7 +2348,7 @@ void InstX86Fld::emit(const Cfg *Func) const {
     // space to do this.
     Str << "\t"
            "mov"
-        << Traits::TypeAttributes[Ty].SdSsString << "\t";
+        << TypeAttributes[Ty].SdSsString << "\t";
     Var->emit(Func);
     Str << ", (%esp)\n"
            "\t"
@@ -2365,7 +2432,7 @@ void InstX86Fstp::emit(const Cfg *Func) const {
          "(%esp)\n";
   Str << "\t"
          "mov"
-      << Traits::TypeAttributes[Ty].SdSsString
+      << TypeAttributes[Ty].SdSsString
       << "\t"
          "(%esp), ";
   this->getDest()->emit(Func);
@@ -2412,8 +2479,7 @@ void InstX86Pextr::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
   // pextrb and pextrd are SSE4.1 instructions.
   Str << "\t" << this->Opcode
-      << Traits::TypeAttributes[this->getSrc(0)->getType()].IntegralString
-      << "\t";
+      << TypeAttributes[this->getSrc(0)->getType()].IntegralString << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -2450,8 +2516,7 @@ void InstX86Pinsr::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
   Str << "\t" << this->Opcode
-      << Traits::TypeAttributes[this->getDest()->getType()].IntegralString
-      << "\t";
+      << TypeAttributes[this->getDest()->getType()].IntegralString << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   Operand *Src1 = this->getSrc(1);
@@ -2617,7 +2682,7 @@ void InstX86Setcc::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
          "set"
-      << Traits::InstBrAttributes[Condition].DisplayString << "\t";
+      << InstBrAttributes[Condition].DisplayString << "\t";
   this->Dest->emit(Func);
 }
 
@@ -2639,7 +2704,7 @@ void InstX86Setcc::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << "setcc." << Traits::InstBrAttributes[Condition].DisplayString << " ";
+  Str << "setcc." << InstBrAttributes[Condition].DisplayString << " ";
   this->dumpDest(Func);
 }
 
@@ -2774,48 +2839,14 @@ void InstX86IacaEnd::dump(const Cfg *Func) const {
   Str << "IACA_END";
 }
 
-const TargetX8632Traits::InstBrAttributesType
-    TargetX8632Traits::InstBrAttributes[] = {
-#define X(val, encode, opp, dump, emit) {CondX86::opp, dump, emit},
-        ICEINSTX86BR_TABLE
-#undef X
-};
-
-const TargetX8632Traits::InstCmppsAttributesType
-    TargetX8632Traits::InstCmppsAttributes[] = {
-#define X(val, emit) {emit},
-        ICEINSTX86CMPPS_TABLE
-#undef X
-};
-
-const TargetX8632Traits::TypeAttributesType
-    TargetX8632Traits::TypeAttributes[] = {
-#define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
-  {cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld},
-        ICETYPEX86_TABLE
-#undef X
-};
-
-const char *TargetX8632Traits::InstSegmentRegNames[] = {
-#define X(val, name, prefix) name,
-    SEG_REGX8632_TABLE
-#undef X
-};
-
-uint8_t TargetX8632Traits::InstSegmentPrefixes[] = {
-#define X(val, name, prefix) prefix,
-    SEG_REGX8632_TABLE
-#undef X
-};
-
-void TargetX8632Traits::X86Operand::dump(const Cfg *, Ostream &Str) const {
+void X86Operand::dump(const Cfg *, Ostream &Str) const {
   if (BuildDefs::dump())
     Str << "<OperandX8632>";
 }
 
-TargetX8632Traits::X86OperandMem::X86OperandMem(
-    Cfg *Func, Type Ty, Variable *Base, Constant *Offset, Variable *Index,
-    uint16_t Shift, SegmentRegisters SegmentReg, bool IsRebased)
+X86OperandMem::X86OperandMem(Cfg *Func, Type Ty, Variable *Base,
+                             Constant *Offset, Variable *Index, uint16_t Shift,
+                             SegmentRegisters SegmentReg, bool IsRebased)
     : X86Operand(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
       Shift(Shift), SegmentReg(SegmentReg), IsRebased(IsRebased) {
   assert(Shift <= 3);
@@ -2836,7 +2867,7 @@ TargetX8632Traits::X86OperandMem::X86OperandMem(
   }
 }
 
-void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
+void X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   validateMemOperandPIC();
@@ -2856,7 +2887,7 @@ void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
-    Str << "%" << X8632::Traits::InstSegmentRegNames[SegmentReg] << ":";
+    Str << "%" << InstSegmentRegNames[SegmentReg] << ":";
   }
   // Emit as Offset(Base,Index,1<<Shift). Offset is emitted without the leading
   // '$'. Omit the (Base,Index,1<<Shift) part if Base==nullptr.
@@ -2892,13 +2923,12 @@ void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   }
 }
 
-void TargetX8632Traits::X86OperandMem::dump(const Cfg *Func,
-                                            Ostream &Str) const {
+void X86OperandMem::dump(const Cfg *Func, Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
-    Str << X8632::Traits::InstSegmentRegNames[SegmentReg] << ":";
+    Str << InstSegmentRegNames[SegmentReg] << ":";
   }
   bool Dumped = false;
   Str << "[";
@@ -2957,15 +2987,14 @@ void TargetX8632Traits::X86OperandMem::dump(const Cfg *Func,
   Str << "]";
 }
 
-void TargetX8632Traits::X86OperandMem::emitSegmentOverride(
-    TargetX8632Traits::Assembler *Asm) const {
+void X86OperandMem::emitSegmentOverride(Assembler *Asm) const {
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
-    Asm->emitSegmentOverride(X8632::Traits::InstSegmentPrefixes[SegmentReg]);
+    Asm->emitSegmentOverride(InstSegmentPrefixes[SegmentReg]);
   }
 }
 
-void TargetX8632Traits::VariableSplit::emit(const Cfg *Func) const {
+void VariableSplit::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -2979,8 +3008,7 @@ void TargetX8632Traits::VariableSplit::emit(const Cfg *Func) const {
   Str << "(%" << Target->getRegName(Target->getFrameOrStackReg(), Ty) << ")";
 }
 
-void TargetX8632Traits::VariableSplit::dump(const Cfg *Func,
-                                            Ostream &Str) const {
+void VariableSplit::dump(const Cfg *Func, Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   switch (Part) {

@@ -40,8 +40,9 @@ using BrCond = CondX86::BrCond;
 using CmppsCond = CondX86::CmppsCond;
 using GPRRegister = typename Traits::GPRRegister;
 using XmmRegister = typename Traits::XmmRegister;
-using X86OperandMem = typename Traits::X86OperandMem;
-using VariableSplit = typename Traits::VariableSplit;
+
+class X86OperandMem;
+class VariableSplit;
 
 constexpr FixupKind FK_PcRel = llvm::ELF::R_386_PC32;
 constexpr FixupKind FK_Abs = llvm::ELF::R_386_32;

@@ -121,15 +121,10 @@ class TargetX8664 : public TargetX86 {
   TargetX8664 &operator=(const TargetX8664 &) = delete;
 
 public:
-  using Traits = TargetX8664Traits;
-  using TargetLowering = typename Traits::TargetLowering;
-
   using BrCond = CondX86::BrCond;
   using CmppsCond = CondX86::CmppsCond;
 
-  using X86Operand = typename Traits::X86Operand;
-  using X86OperandMem = typename Traits::X86OperandMem;
-  using SegmentRegisters = typename Traits::X86OperandMem::SegmentRegisters;
+  using SegmentRegisters = X86OperandMem::SegmentRegisters;
 
   using InstX86Br = Insts::Br;
   using InstX86FakeRMW = Insts::FakeRMW;

@@ -31,11 +31,9 @@ namespace Ice {
 namespace X8664 {
 
 using Traits = TargetX8664Traits;
-using Assembler = typename Traits::Assembler;
-using AssemblerImmediate = typename Assembler::Immediate;
-using TargetLowering = typename Traits::TargetLowering;
-using X86Operand = typename Traits::X86Operand;
-using X86OperandMem = typename Traits::X86OperandMem;
+using Assembler = AssemblerX8664;
+using AssemblerImmediate = Assembler::Immediate;
+using TargetLowering = TargetX8664;
 
 using GPRRegister = typename Traits::RegisterSet::GPRRegister;
 using RegisterSet = typename Traits::RegisterSet;
@@ -46,19 +44,88 @@ using BrCond = Cond::BrCond;
 using CmppsCond = Cond::CmppsCond;
 
 template <typename SReg_t, typename DReg_t>
-using CastEmitterRegOp =
-    typename Traits::Assembler::template CastEmitterRegOp<SReg_t, DReg_t>;
+using CastEmitterRegOp = Assembler::template CastEmitterRegOp<SReg_t, DReg_t>;
 template <typename SReg_t, typename DReg_t>
-using ThreeOpImmEmitter =
-    typename Traits::Assembler::template ThreeOpImmEmitter<SReg_t, DReg_t>;
-using GPREmitterAddrOp = typename Traits::Assembler::GPREmitterAddrOp;
-using GPREmitterRegOp = typename Traits::Assembler::GPREmitterRegOp;
-using GPREmitterShiftD = typename Traits::Assembler::GPREmitterShiftD;
-using GPREmitterShiftOp = typename Traits::Assembler::GPREmitterShiftOp;
-using GPREmitterOneOp = typename Traits::Assembler::GPREmitterOneOp;
-using XmmEmitterRegOp = typename Traits::Assembler::XmmEmitterRegOp;
-using XmmEmitterShiftOp = typename Traits::Assembler::XmmEmitterShiftOp;
-using XmmEmitterMovOps = typename Traits::Assembler::XmmEmitterMovOps;
+using ThreeOpImmEmitter = Assembler::template ThreeOpImmEmitter<SReg_t, DReg_t>;
+using GPREmitterAddrOp = Assembler::GPREmitterAddrOp;
+using GPREmitterRegOp = Assembler::GPREmitterRegOp;
+using GPREmitterShiftD = Assembler::GPREmitterShiftD;
+using GPREmitterShiftOp = Assembler::GPREmitterShiftOp;
+using GPREmitterOneOp = Assembler::GPREmitterOneOp;
+using XmmEmitterRegOp = Assembler::XmmEmitterRegOp;
+using XmmEmitterShiftOp = Assembler::XmmEmitterShiftOp;
+using XmmEmitterMovOps = Assembler::XmmEmitterMovOps;
+
+/// X86Operand extends the Operand hierarchy. Its subclass is X86OperandMem.
+class X86Operand : public ::Ice::Operand {
+  X86Operand() = delete;
+  X86Operand(const X86Operand &) = delete;
+  X86Operand &operator=(const X86Operand &) = delete;
+
+public:
+  enum OperandKindX8664 { k__Start = ::Ice::Operand::kTarget, kMem, kSplit };
+  using ::Ice::Operand::dump;
+
+  void dump(const Cfg *, Ostream &Str) const override;
+
+protected:
+  X86Operand(OperandKindX8664 Kind, Type Ty)
+      : Operand(static_cast<::Ice::Operand::OperandKind>(Kind), Ty) {}
+};
+
+/// X86OperandMem represents the m64 addressing mode, with optional base and
+/// index registers, a constant offset, and a fixed shift value for the index
+/// register.
+class X86OperandMem : public X86Operand {
+  X86OperandMem() = delete;
+  X86OperandMem(const X86OperandMem &) = delete;
+  X86OperandMem &operator=(const X86OperandMem &) = delete;
+
+public:
+  enum SegmentRegisters { DefaultSegment = -1, SegReg_NUM };
+  static X86OperandMem *
+  create(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
+         Variable *Index = nullptr, uint16_t Shift = 0,
+         SegmentRegisters SegmentRegister = DefaultSegment,
+         bool IsRebased = false) {
+    assert(SegmentRegister == DefaultSegment);
+    (void)SegmentRegister;
+    return new (Func->allocate<X86OperandMem>())
+        X86OperandMem(Func, Ty, Base, Offset, Index, Shift, IsRebased);
+  }
+  static X86OperandMem *create(Cfg *Func, Type Ty, Variable *Base,
+                               Constant *Offset, bool IsRebased) {
+    constexpr Variable *NoIndex = nullptr;
+    constexpr uint16_t NoShift = 0;
+    return new (Func->allocate<X86OperandMem>())
+        X86OperandMem(Func, Ty, Base, Offset, NoIndex, NoShift, IsRebased);
+  }
+  Variable *getBase() const { return Base; }
+  Constant *getOffset() const { return Offset; }
+  Variable *getIndex() const { return Index; }
+  uint16_t getShift() const { return Shift; }
+  SegmentRegisters getSegmentRegister() const { return DefaultSegment; }
+  void emitSegmentOverride(Assembler *) const {}
+  bool getIsRebased() const { return IsRebased; }
+
+  void emit(const Cfg *Func) const override;
+  using X86Operand::dump;
+  void dump(const Cfg *Func, Ostream &Str) const override;
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == static_cast<OperandKind>(kMem);
+  }
+
+private:
+  X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
+                Variable *Index, uint16_t Shift, bool IsRebased);
+
+  Variable *const Base;
+  Constant *const Offset;
+  Variable *const Index;
+  const uint16_t Shift;
+  const bool IsRebased;
+};
 
 class InstX86Base : public InstTarget {
   InstX86Base() = delete;
@@ -196,6 +263,7 @@ public:
 
   static const char *getWidthString(Type Ty);
   static const char *getFldString(Type Ty);
+  static const char *getSseSuffixString(Type DestTy, SseSuffix Suffix);
   static BrCond getOppositeCondition(BrCond Cond);
   void dump(const Cfg *Func) const override;
 
@@ -810,26 +878,7 @@ public:
     const Type DestTy = ArithmeticTypeOverride == IceType_void
                             ? this->getDest()->getType()
                             : ArithmeticTypeOverride;
-    const char *SuffixString = "";
-    switch (Suffix) {
-    case InstX86Base::SseSuffix::None:
-      break;
-    case InstX86Base::SseSuffix::Packed:
-      SuffixString = Traits::TypeAttributes[DestTy].PdPsString;
-      break;
-    case InstX86Base::SseSuffix::Unpack:
-      SuffixString = Traits::TypeAttributes[DestTy].UnpackString;
-      break;
-    case InstX86Base::SseSuffix::Scalar:
-      SuffixString = Traits::TypeAttributes[DestTy].SdSsString;
-      break;
-    case InstX86Base::SseSuffix::Integral:
-      SuffixString = Traits::TypeAttributes[DestTy].IntegralString;
-      break;
-    case InstX86Base::SseSuffix::Pack:
-      SuffixString = Traits::TypeAttributes[DestTy].PackString;
-      break;
-    }
+    const char *SuffixString = getSseSuffixString(DestTy, Suffix);
     this->emitTwoAddress(Func, Opcode, SuffixString);
   }
   void emitIAS(const Cfg *Func) const override {
@@ -882,8 +931,8 @@ public:
     this->validateVectorAddrMode();
     // Shift operations are always integral, and hence always need a suffix.
     const Type DestTy = this->getDest()->getType();
-    this->emitTwoAddress(Func, this->Opcode,
-                         Traits::TypeAttributes[DestTy].IntegralString);
+    const char *SuffixString = getSseSuffixString(DestTy, SseSuffix::Integral);
+    this->emitTwoAddress(Func, this->Opcode, SuffixString);
   }
   void emitIAS(const Cfg *Func) const override {
     this->validateVectorAddrMode();

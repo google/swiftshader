@@ -51,7 +51,7 @@ AsmAddress::AsmAddress(const Variable *Var, const TargetX8632 *Target) {
     }
   }
 
-  GPRRegister Base = Traits::Traits::getEncodedGPR(BaseRegNum);
+  GPRRegister Base = Traits::getEncodedGPR(BaseRegNum);
 
   if (Utils::IsInt(8, Offset)) {
     SetModRM(1, Base);
@@ -2913,8 +2913,7 @@ void AssemblerX8632::jmp(const ConstantRelocatable *label) {
 void AssemblerX8632::jmp(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
-  AssemblerFixup *Fixup =
-      createFixup(FK_PcRel, AssemblerFixup::NullSymbol);
+  AssemblerFixup *Fixup = createFixup(FK_PcRel, AssemblerFixup::NullSymbol);
   Fixup->set_addend(abs_address.value() - 4);
   emitFixup(Fixup);
   emitInt32(0);

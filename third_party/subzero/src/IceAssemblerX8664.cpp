@@ -50,8 +50,7 @@ AsmAddress::AsmAddress(const Variable *Var, const TargetX8664 *Target) {
       BaseRegNum = Target->getFrameOrStackReg();
     }
   }
-  SetBase(Traits::Traits::getEncodedGPR(BaseRegNum), Offset,
-          AssemblerFixup::NoFixup);
+  SetBase(Traits::getEncodedGPR(BaseRegNum), Offset, AssemblerFixup::NoFixup);
 }
 
 AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
