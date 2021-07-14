@@ -16,6 +16,23 @@
       "message": "Thanks Adrian, looks great!",
       "revId": "ee2c69be8b805525f68f046a62b658e30b5da409",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b1489429_f4162174",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-07-14T14:35:41Z",
+      "side": 1,
+      "message": "Adrian, please feel free to set Verified+1 and submit to the Commit Queue. Thanks for your contribution!",
+      "revId": "ee2c69be8b805525f68f046a62b658e30b5da409",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
