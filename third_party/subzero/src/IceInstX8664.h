@@ -11,15 +11,10 @@
 /// \brief This file defines the InstX86Base template class, as well as the
 /// generic X86 Instruction class hierarchy.
 ///
-/// Only X86 instructions common across all/most X86 targets should be defined
-/// here, with target-specific instructions declared in the target's traits.
-///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEINSTX8664_H
 #define SUBZERO_SRC_ICEINSTX8664_H
-
-#include "IceTargetLoweringX8664Traits.h"
 
 #include "IceAssemblerX8664.h"
 #include "IceDefs.h"
@@ -30,14 +25,14 @@
 namespace Ice {
 namespace X8664 {
 
-using Traits = TargetX8664Traits;
 using Assembler = AssemblerX8664;
 using AssemblerImmediate = Assembler::Immediate;
 using TargetLowering = TargetX8664;
 
-using GPRRegister = typename Traits::RegisterSet::GPRRegister;
-using RegisterSet = typename Traits::RegisterSet;
-using XmmRegister = typename Traits::RegisterSet::XmmRegister;
+using RegisterSet = ::Ice::RegX8664;
+using GPRRegister = RegisterSet::GPRRegister;
+using ByteRegister = RegisterSet::ByteRegister;
+using XmmRegister = RegisterSet::XmmRegister;
 
 using Cond = CondX86;
 using BrCond = Cond::BrCond;
@@ -264,6 +259,7 @@ public:
   static const char *getWidthString(Type Ty);
   static const char *getFldString(Type Ty);
   static const char *getSseSuffixString(Type DestTy, SseSuffix Suffix);
+  static Type getInVectorElementType(Type Ty);
   static BrCond getOppositeCondition(BrCond Cond);
   void dump(const Cfg *Func) const override;
 
@@ -1078,8 +1074,9 @@ public:
         //                    is handled by Inst86Zext.
         const auto SrcReg = SrcVar->getRegNum();
         const auto DestReg = this->Dest->getRegNum();
-        return (Traits::getEncoding(SrcReg) == Traits::getEncoding(DestReg)) &&
-               (Traits::getBaseReg(SrcReg) == Traits::getBaseReg(DestReg));
+        return (RegX8664::getEncoding(SrcReg) ==
+                RegX8664::getEncoding(DestReg)) &&
+               (RegX8664::getBaseReg(SrcReg) == RegX8664::getBaseReg(DestReg));
       }
     }
     return checkForRedundantAssign(this->getDest(), this->getSrc(0));
@@ -2707,10 +2704,10 @@ private:
   InstX86Store(Cfg *Func, Operand *Value, X86Operand *Mem);
 };
 
-/// This is essentially a vector "mov" instruction with an typename
-/// X86OperandMem operand instead of Variable as the destination. It's
-/// important for liveness that there is no Dest operand. The source must be
-/// an Xmm register, since Dest is mem.
+/// This is essentially a vector "mov" instruction with an X86OperandMem operand
+/// instead of Variable as the destination. It's important for liveness that
+/// there is no Dest operand. The source must be an Xmm register, since Dest is
+/// mem.
 class InstX86StoreP final : public InstX86Base {
   InstX86StoreP() = delete;
   InstX86StoreP(const InstX86StoreP &) = delete;
@@ -3059,10 +3056,6 @@ private:
                             InstX86Base::SseSuffix::Pack>(Func, Dest, Source) {}
 };
 
-/// struct Insts is a template that can be used to instantiate all the X86
-/// instructions for a target with a simple
-///
-/// using Insts = ::Ice::X8664::Insts<TraitsType>;
 struct Insts {
   using FakeRMW = InstX86FakeRMW;
   using Label = InstX86Label;

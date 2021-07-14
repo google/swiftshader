@@ -24,25 +24,26 @@
 #define SUBZERO_SRC_ICEASSEMBLERX8632_H
 
 #include "IceAssembler.h"
+#include "IceConditionCodesX86.h"
 #include "IceDefs.h"
 #include "IceOperand.h"
+#include "IceRegistersX8632.h"
 #include "IceTypes.h"
 #include "IceUtils.h"
-
-#include "IceTargetLoweringX8632Traits.h"
 
 namespace Ice {
 namespace X8632 {
 
-using Traits = TargetX8632Traits;
-using ByteRegister = typename Traits::ByteRegister;
 using BrCond = CondX86::BrCond;
 using CmppsCond = CondX86::CmppsCond;
-using GPRRegister = typename Traits::GPRRegister;
-using XmmRegister = typename Traits::XmmRegister;
+using RegisterSet = ::Ice::RegX8632;
+using GPRRegister = RegisterSet::GPRRegister;
+using ByteRegister = RegisterSet::ByteRegister;
+using XmmRegister = RegisterSet::XmmRegister;
 
 class X86OperandMem;
 class VariableSplit;
+class TargetX8632;
 
 constexpr FixupKind FK_PcRel = llvm::ELF::R_386_PC32;
 constexpr FixupKind FK_Abs = llvm::ELF::R_386_32;
@@ -881,8 +882,7 @@ private:
 
   static constexpr Type RexTypeIrrelevant = IceType_i32;
   static constexpr Type RexTypeForceRexW = IceType_i64;
-  static constexpr GPRRegister RexRegIrrelevant =
-      Traits::GPRRegister::Encoded_Reg_eax;
+  static constexpr GPRRegister RexRegIrrelevant = GPRRegister::Encoded_Reg_eax;
 
   inline void emitInt16(int16_t value);
   inline void emitInt32(int32_t value);
@@ -932,9 +932,8 @@ private:
   void arith_int(Type Ty, const AsmAddress &address, const Immediate &imm);
 
   // gprEncoding returns Reg encoding for operand emission.
-  template <typename RegType, typename T = Traits>
-  typename T::GPRRegister gprEncoding(const RegType Reg) {
-    return static_cast<typename T::GPRRegister>(Reg);
+  template <typename RegType> GPRRegister gprEncoding(const RegType Reg) {
+    return static_cast<GPRRegister>(Reg);
   }
 };
 

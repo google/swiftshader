@@ -44,11 +44,10 @@ public:
 
 protected:
   explicit TargetX86(Cfg *Func) : TargetLowering(Func) {
-    static_assert(
-        (InstructionSetX86::End - InstructionSetX86::Begin) ==
-            (TargetInstructionSet::X86InstructionSet_End -
-             TargetInstructionSet::X86InstructionSet_Begin),
-        "Traits::InstructionSet range different from TargetInstructionSet");
+    static_assert((InstructionSetX86::End - InstructionSetX86::Begin) ==
+                      (TargetInstructionSet::X86InstructionSet_End -
+                       TargetInstructionSet::X86InstructionSet_Begin),
+                  "InstructionSet range different from TargetInstructionSet");
     if (getFlags().getTargetInstructionSet() !=
         TargetInstructionSet::BaseInstructionSet) {
       InstructionSet = static_cast<InstructionSetX86>(

@@ -51,7 +51,7 @@ AsmAddress::AsmAddress(const Variable *Var, const TargetX8632 *Target) {
     }
   }
 
-  GPRRegister Base = Traits::getEncodedGPR(BaseRegNum);
+  GPRRegister Base = RegX8632::getEncodedGPR(BaseRegNum);
 
   if (Utils::IsInt(8, Offset)) {
     SetModRM(1, Base);
@@ -94,13 +94,13 @@ AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
 
   // Now convert to the various possible forms.
   if (Mem->getBase() && Mem->getIndex()) {
-    SetBaseIndex(Traits::getEncodedGPR(Mem->getBase()->getRegNum()),
-                 Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+    SetBaseIndex(RegX8632::getEncodedGPR(Mem->getBase()->getRegNum()),
+                 RegX8632::getEncodedGPR(Mem->getIndex()->getRegNum()),
                  ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else if (Mem->getBase()) {
-    SetBase(Traits::getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
+    SetBase(RegX8632::getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
   } else if (Mem->getIndex()) {
-    SetIndex(Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+    SetIndex(RegX8632::getEncodedGPR(Mem->getIndex()->getRegNum()),
              ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else {
     SetAbsolute(Disp, Fixup);
@@ -111,7 +111,7 @@ AsmAddress::AsmAddress(const VariableSplit *Split, const Cfg *Func) {
   assert(!Split->getVar()->hasReg());
   const ::Ice::TargetLowering *Target = Func->getTarget();
   int32_t Offset = Split->getVar()->getStackOffset() + Split->getOffset();
-  SetBase(Traits::getEncodedGPR(Target->getFrameOrStackReg()), Offset,
+  SetBase(RegX8632::getEncodedGPR(Target->getFrameOrStackReg()), Offset,
           AssemblerFixup::NoFixup);
 }
 
@@ -136,8 +136,8 @@ void AssemblerX8632::alignFunction() {
   }
 }
 
-typename AssemblerX8632::Label *
-AssemblerX8632::getOrCreateLabel(SizeT Number, LabelVector &Labels) {
+AssemblerX8632::Label *AssemblerX8632::getOrCreateLabel(SizeT Number,
+                                                        LabelVector &Labels) {
   Label *L = nullptr;
   if (Number == Labels.size()) {
     L = new (this->allocate<Label>()) Label();
@@ -160,13 +160,12 @@ Ice::Label *AssemblerX8632::getCfgNodeLabel(SizeT NodeNumber) {
   return CfgNodeLabels[NodeNumber];
 }
 
-typename AssemblerX8632::Label *
+AssemblerX8632::Label *
 AssemblerX8632::getOrCreateCfgNodeLabel(SizeT NodeNumber) {
   return getOrCreateLabel(NodeNumber, CfgNodeLabels);
 }
 
-typename AssemblerX8632::Label *
-AssemblerX8632::getOrCreateLocalLabel(SizeT Number) {
+AssemblerX8632::Label *AssemblerX8632::getOrCreateLocalLabel(SizeT Number) {
   return getOrCreateLabel(Number, LocalLabels);
 }
 
@@ -3005,7 +3004,7 @@ void AssemblerX8632::iaca_start() {
   emitUint8(0x0B);
 
   // mov $111, ebx
-  constexpr GPRRegister dst = Traits::GPRRegister::Encoded_Reg_ebx;
+  constexpr GPRRegister dst = GPRRegister::Encoded_Reg_ebx;
   constexpr Type Ty = IceType_i32;
   emitUint8(0xB8 + gprEncoding(dst));
   emitImmediate(Ty, Immediate(111));
@@ -3019,7 +3018,7 @@ void AssemblerX8632::iaca_end() {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
 
   // mov $222, ebx
-  constexpr GPRRegister dst = Traits::GPRRegister::Encoded_Reg_ebx;
+  constexpr GPRRegister dst = GPRRegister::Encoded_Reg_ebx;
   constexpr Type Ty = IceType_i32;
   emitUint8(0xB8 + gprEncoding(dst));
   emitImmediate(Ty, Immediate(222));

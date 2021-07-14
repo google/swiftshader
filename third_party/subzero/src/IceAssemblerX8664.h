@@ -24,24 +24,25 @@
 #define SUBZERO_SRC_ICEASSEMBLERX8664_H
 
 #include "IceAssembler.h"
+#include "IceConditionCodesX86.h"
 #include "IceDefs.h"
 #include "IceOperand.h"
+#include "IceRegistersX8664.h"
 #include "IceTypes.h"
 #include "IceUtils.h"
-
-#include "IceTargetLoweringX8664Traits.h"
 
 namespace Ice {
 namespace X8664 {
 
-using Traits = TargetX8664Traits;
-using ByteRegister = typename Traits::ByteRegister;
 using BrCond = CondX86::BrCond;
 using CmppsCond = CondX86::CmppsCond;
-using GPRRegister = typename Traits::GPRRegister;
-using XmmRegister = typename Traits::XmmRegister;
+using RegisterSet = ::Ice::RegX8664;
+using GPRRegister = RegisterSet::GPRRegister;
+using ByteRegister = RegisterSet::ByteRegister;
+using XmmRegister = RegisterSet::XmmRegister;
 
 class X86OperandMem;
+class TargetX8664;
 
 constexpr FixupKind FK_PcRel = llvm::ELF::R_X86_64_PC32;
 constexpr FixupKind FK_Abs = llvm::ELF::R_X86_64_32S;
@@ -370,7 +371,6 @@ public:
 
   bool fixupIsPCRel(FixupKind Kind) const override {
     // Currently assuming this is the only PC-rel relocation type used.
-    // TODO(jpp): Traits.PcRelTypes.count(Kind) != 0
     return Kind == FK_PcRel;
   }
 
@@ -878,8 +878,7 @@ private:
 
   static constexpr Type RexTypeIrrelevant = IceType_i32;
   static constexpr Type RexTypeForceRexW = IceType_i64;
-  static constexpr GPRRegister RexRegIrrelevant =
-      Traits::GPRRegister::Encoded_Reg_eax;
+  static constexpr GPRRegister RexRegIrrelevant = GPRRegister::Encoded_Reg_eax;
 
   inline void emitInt16(int16_t value);
   inline void emitInt32(int32_t value);
@@ -948,8 +947,8 @@ private:
     //
     // The "local" uint32_t Encoded_Reg_ah is needed because RegType is an
     // enum that is not necessarily the same type of
-    // Traits::RegisterSet::Encoded_Reg_ah.
-    constexpr uint32_t Encoded_Reg_ah = Traits::RegisterSet::Encoded_Reg_ah;
+    // RegisterSet::Encoded_Reg_ah.
+    constexpr uint32_t Encoded_Reg_ah = RegisterSet::Encoded_Reg_ah;
     return IsGPR && (Reg & 0x04) != 0 && (Reg & 0x08) == 0 &&
            isByteSizedType(Ty) && (Reg != Encoded_Reg_ah);
   }
@@ -967,13 +966,11 @@ private:
                           ? AsmOperand::RexW
                           : AsmOperand::RexNone;
     const uint8_t R = (Reg & 0x08) ? AsmOperand::RexR : AsmOperand::RexNone;
-    const uint8_t X = (Addr != nullptr)
-                          ? (typename AsmOperand::RexBits)Addr->rexX()
-                          : AsmOperand::RexNone;
-    const uint8_t B = (Addr != nullptr)
-                          ? (typename AsmOperand::RexBits)Addr->rexB()
-                      : (Rm & 0x08) ? AsmOperand::RexB
-                                    : AsmOperand::RexNone;
+    const uint8_t X = (Addr != nullptr) ? (AsmOperand::RexBits)Addr->rexX()
+                                        : AsmOperand::RexNone;
+    const uint8_t B = (Addr != nullptr) ? (AsmOperand::RexBits)Addr->rexB()
+                      : (Rm & 0x08)     ? AsmOperand::RexB
+                                        : AsmOperand::RexNone;
     const uint8_t Prefix = W | R | X | B;
     if (Prefix != AsmOperand::RexNone) {
       emitUint8(Prefix);

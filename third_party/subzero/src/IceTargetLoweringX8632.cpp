@@ -26,7 +26,7 @@
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IcePhiLoweringImpl.h"
-#include "IceTargetLoweringX8632Traits.h"
+#include "IceTargetLoweringX8632.def"
 #include "IceUtils.h"
 #include "IceVariableSplitting.h"
 
@@ -69,80 +69,22 @@ bool shouldBePooled(const class ::Ice::Constant *C) {
 namespace Ice {
 namespace X8632 {
 
-template <typename T> struct PoolTypeConverter {};
+/// The number of bits in a byte
+static constexpr uint32_t X86_CHAR_BIT = 8;
+/// Size of the return address on the stack
+static constexpr uint32_t X86_RET_IP_SIZE_BYTES = 4;
 
-template <> struct PoolTypeConverter<float> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantFloat;
-  static const Type Ty = IceType_f32;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-template <> struct PoolTypeConverter<double> {
-  using PrimitiveIntType = uint64_t;
-  using IceType = ConstantDouble;
-  static const Type Ty = IceType_f64;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-// Add converter for int type constant pooling
-template <> struct PoolTypeConverter<uint32_t> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantInteger32;
-  static const Type Ty = IceType_i32;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-// Add converter for int type constant pooling
-template <> struct PoolTypeConverter<uint16_t> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantInteger32;
-  static const Type Ty = IceType_i16;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-// Add converter for int type constant pooling
-template <> struct PoolTypeConverter<uint8_t> {
-  using PrimitiveIntType = uint32_t;
-  using IceType = ConstantInteger32;
-  static const Type Ty = IceType_i8;
-  static const char *TypeName;
-  static const char *AsmTag;
-  static const char *PrintfString;
-};
-
-const char *PoolTypeConverter<float>::TypeName = "float";
-const char *PoolTypeConverter<float>::AsmTag = ".long";
-const char *PoolTypeConverter<float>::PrintfString = "0x%x";
-
-const char *PoolTypeConverter<double>::TypeName = "double";
-const char *PoolTypeConverter<double>::AsmTag = ".quad";
-const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
-
-const char *PoolTypeConverter<uint32_t>::TypeName = "i32";
-const char *PoolTypeConverter<uint32_t>::AsmTag = ".long";
-const char *PoolTypeConverter<uint32_t>::PrintfString = "0x%x";
-
-const char *PoolTypeConverter<uint16_t>::TypeName = "i16";
-const char *PoolTypeConverter<uint16_t>::AsmTag = ".short";
-const char *PoolTypeConverter<uint16_t>::PrintfString = "0x%x";
-
-const char *PoolTypeConverter<uint8_t>::TypeName = "i8";
-const char *PoolTypeConverter<uint8_t>::AsmTag = ".byte";
-const char *PoolTypeConverter<uint8_t>::PrintfString = "0x%x";
+/// \name Limits for unrolling memory intrinsics.
+/// @{
+static constexpr uint32_t MEMCPY_UNROLL_LIMIT = 8;
+static constexpr uint32_t MEMMOVE_UNROLL_LIMIT = 8;
+static constexpr uint32_t MEMSET_UNROLL_LIMIT = 8;
+/// @}
 
 BoolFoldingEntry::BoolFoldingEntry(Inst *I)
     : Instr(I), IsComplex(BoolFolding::hasComplexLowering(I)) {}
 
-typename BoolFolding::BoolFoldingProducerKind
+BoolFolding::BoolFoldingProducerKind
 BoolFolding::getProducerKind(const Inst *Instr) {
   if (llvm::isa<InstIcmp>(Instr)) {
     if (Instr->getSrc(0)->getType() != IceType_i64)
@@ -175,7 +117,7 @@ BoolFolding::getProducerKind(const Inst *Instr) {
   return PK_None;
 }
 
-typename BoolFolding::BoolFoldingConsumerKind
+BoolFolding::BoolFoldingConsumerKind
 BoolFolding::getConsumerKind(const Inst *Instr) {
   if (llvm::isa<InstBr>(Instr))
     return CK_Br;
@@ -209,14 +151,14 @@ bool BoolFolding::hasComplexLowering(const Inst *Instr) {
   case PK_Icmp64:
     return true;
   case PK_Fcmp:
-    return Traits::TableFcmp[llvm::cast<InstFcmp>(Instr)->getCondition()].C2 !=
-           CondX86::Br_None;
+    return TargetX8632::TableFcmp[llvm::cast<InstFcmp>(Instr)->getCondition()]
+               .C2 != CondX86::Br_None;
   }
 }
 
 bool BoolFolding::isValidFolding(
-    typename BoolFolding::BoolFoldingProducerKind ProducerKind,
-    typename BoolFolding::BoolFoldingConsumerKind ConsumerKind) {
+    BoolFolding::BoolFoldingProducerKind ProducerKind,
+    BoolFolding::BoolFoldingConsumerKind ConsumerKind) {
   switch (ProducerKind) {
   default:
     return false;
@@ -255,13 +197,13 @@ void BoolFolding::init(CfgNode *Node) {
         continue;
       }
       // Consumer instructions must be white-listed
-      typename BoolFolding::BoolFoldingConsumerKind ConsumerKind =
+      BoolFolding::BoolFoldingConsumerKind ConsumerKind =
           getConsumerKind(&Instr);
       if (ConsumerKind == CK_None) {
         setInvalid(VarNum);
         continue;
       }
-      typename BoolFolding::BoolFoldingProducerKind ProducerKind =
+      BoolFolding::BoolFoldingProducerKind ProducerKind =
           getProducerKind(Producers[VarNum].Instr);
       if (!isValidFolding(ProducerKind, ConsumerKind)) {
         setInvalid(VarNum);
@@ -365,13 +307,13 @@ void TargetX8632::initNodeForLowering(CfgNode *Node) {
 TargetX8632::TargetX8632(Cfg *Func) : TargetX86(Func) {}
 
 void TargetX8632::staticInit(GlobalContext *Ctx) {
-  RegNumT::setLimit(Traits::RegisterSet::Reg_NUM);
-  Traits::initRegisterSet(getFlags(), &TypeToRegisterSet, &RegisterAliases);
+  RegNumT::setLimit(RegX8632::Reg_NUM);
+  RegX8632::initRegisterSet(getFlags(), &TypeToRegisterSet, &RegisterAliases);
   for (size_t i = 0; i < TypeToRegisterSet.size(); ++i)
     TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
-  filterTypeToRegisterSet(Ctx, Traits::RegisterSet::Reg_NUM,
-                          TypeToRegisterSet.data(), TypeToRegisterSet.size(),
-                          Traits::getRegName, getRegClassName);
+  filterTypeToRegisterSet(Ctx, RegX8632::Reg_NUM, TypeToRegisterSet.data(),
+                          TypeToRegisterSet.size(), RegX8632::getRegName,
+                          getRegClassName);
 }
 
 bool TargetX8632::shouldBePooled(const Constant *C) {
@@ -693,6 +635,12 @@ void TargetX8632::findRMW() {
     Func->getContext()->unlockStr();
 }
 
+/// Value is in bytes. Return Value adjusted to the next highest multiple of
+/// the stack alignment.
+uint32_t TargetX8632::applyStackAlignment(uint32_t Value) {
+  return Utils::applyAlignment(Value, X86_STACK_ALIGNMENT_BYTES);
+}
+
 // Converts a ConstantInteger32 operand into its constant value, or
 // MemoryOrderInvalid if the operand is not a ConstantInteger32.
 inline uint64_t getConstantMemoryOrder(Operand *Opnd) {
@@ -821,7 +769,7 @@ Variable *TargetX8632::getPhysicalRegister(RegNumT RegNum, Type Ty) {
   if (Ty == IceType_void)
     Ty = IceType_i32;
   if (PhysicalRegisters[Ty].empty())
-    PhysicalRegisters[Ty].resize(Traits::RegisterSet::Reg_NUM);
+    PhysicalRegisters[Ty].resize(RegX8632::Reg_NUM);
   assert(unsigned(RegNum) < PhysicalRegisters[Ty].size());
   Variable *Reg = PhysicalRegisters[Ty][RegNum];
   if (Reg == nullptr) {
@@ -835,12 +783,12 @@ Variable *TargetX8632::getPhysicalRegister(RegNumT RegNum, Type Ty) {
     // Don't bother tracking the live range of a named physical register.
     Reg->setIgnoreLiveness();
   }
-  assert(Traits::getGprForType(Ty, RegNum) == RegNum);
+  assert(RegX8632::getGprForType(Ty, RegNum) == RegNum);
   return Reg;
 }
 
 const char *TargetX8632::getRegName(RegNumT RegNum, Type Ty) const {
-  return Traits::getRegName(Traits::getGprForType(Ty, RegNum));
+  return RegX8632::getRegName(RegX8632::getGprForType(Ty, RegNum));
 }
 
 void TargetX8632::emitVariable(const Variable *Var) const {
@@ -867,7 +815,7 @@ void TargetX8632::emitVariable(const Variable *Var) const {
   } else if (Offset != 0) {
     Str << Offset;
   }
-  const Type FrameSPTy = Traits::WordType;
+  const Type FrameSPTy = WordType;
   Str << "(%" << getRegName(BaseRegNum, FrameSPTy) << ")";
 }
 
@@ -965,19 +913,19 @@ void TargetX8632::addProlog(CfgNode *Node) {
   size_t PreservedRegsSizeBytes = 0;
   SmallBitVector Pushed(CalleeSaves.size());
   for (RegNumT i : RegNumBVIter(CalleeSaves)) {
-    const auto Canonical = Traits::getBaseReg(i);
-    assert(Canonical == Traits::getBaseReg(Canonical));
+    const auto Canonical = RegX8632::getBaseReg(i);
+    assert(Canonical == RegX8632::getBaseReg(Canonical));
     if (RegsUsed[i]) {
       Pushed[Canonical] = true;
     }
   }
   for (RegNumT RegNum : RegNumBVIter(Pushed)) {
-    assert(RegNum == Traits::getBaseReg(RegNum));
+    assert(RegNum == RegX8632::getBaseReg(RegNum));
     ++NumCallee;
-    if (Traits::isXmm(RegNum)) {
+    if (RegX8632::isXmm(RegNum)) {
       PreservedRegsSizeBytes += 16;
     } else {
-      PreservedRegsSizeBytes += typeWidthInBytes(Traits::WordType);
+      PreservedRegsSizeBytes += typeWidthInBytes(WordType);
     }
     _push_reg(RegNum);
   }
@@ -990,7 +938,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     assert(
         (RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None)).count() ==
         0);
-    PreservedRegsSizeBytes += typeWidthInBytes(Traits::WordType);
+    PreservedRegsSizeBytes += typeWidthInBytes(WordType);
     _link_bp();
   }
 
@@ -1001,7 +949,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
   uint32_t SpillAreaPaddingBytes = 0;
   uint32_t LocalsSlotsPaddingBytes = 0;
-  alignStackSpillAreas(Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes,
+  alignStackSpillAreas(X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes,
                        SpillAreaAlignmentBytes, GlobalsSize,
                        LocalsSlotsAlignmentBytes, &SpillAreaPaddingBytes,
                        &LocalsSlotsPaddingBytes);
@@ -1014,14 +962,12 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // This is done by a movp[sd] and an fld[sd].  Ensure there is enough scratch
   // space on the stack for this.
   const Type ReturnType = Func->getReturnType();
-  if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-    if (isScalarFloatingType(ReturnType)) {
-      // Avoid misaligned double-precision load/store.
-      RequiredStackAlignment = std::max<size_t>(
-          RequiredStackAlignment, Traits::X86_STACK_ALIGNMENT_BYTES);
-      SpillAreaSizeBytes =
-          std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
-    }
+  if (isScalarFloatingType(ReturnType)) {
+    // Avoid misaligned double-precision load/store.
+    RequiredStackAlignment =
+        std::max<size_t>(RequiredStackAlignment, X86_STACK_ALIGNMENT_BYTES);
+    SpillAreaSizeBytes =
+        std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
   }
 
   RequiredStackAlignment =
@@ -1042,8 +988,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // Note that StackOffset does not include spill area. It's the offset from the
   // base stack pointer (epb), whether we set it or not, to the the first stack
   // arg (if any). StackSize, on the other hand, does include the spill area.
-  const uint32_t StackOffset =
-      Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
+  const uint32_t StackOffset = X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
   uint32_t StackSize = Utils::applyAlignment(StackOffset + SpillAreaSizeBytes,
                                              RequiredStackAlignment);
   StackSize = Utils::applyAlignment(StackSize + maxOutArgsSizeBytes(),
@@ -1066,9 +1011,9 @@ void TargetX8632::addProlog(CfgNode *Node) {
 
   // If the required alignment is greater than the stack pointer's guaranteed
   // alignment, align the stack pointer accordingly.
-  if (RequiredStackAlignment > Traits::X86_STACK_ALIGNMENT_BYTES) {
+  if (RequiredStackAlignment > X86_STACK_ALIGNMENT_BYTES) {
     assert(IsEbpBasedFrame);
-    _and(getPhysicalRegister(getStackReg(), Traits::WordType),
+    _and(getPhysicalRegister(getStackReg(), WordType),
          Ctx->getConstantInt32(-RequiredStackAlignment));
   }
 
@@ -1085,7 +1030,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // those that were register-allocated. Args are pushed right to left, so
   // Arg[0] is closest to the stack/frame pointer.
   RegNumT FrameOrStackReg = IsEbpBasedFrame ? getFrameReg() : getStackReg();
-  Variable *FramePtr = getPhysicalRegister(FrameOrStackReg, Traits::WordType);
+  Variable *FramePtr = getPhysicalRegister(FrameOrStackReg, WordType);
   size_t BasicFrameOffset = StackOffset;
   if (!IsEbpBasedFrame)
     BasicFrameOffset += SpillAreaSizeBytes;
@@ -1098,22 +1043,16 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Variable *Arg = Args[i];
     // Skip arguments passed in registers.
     if (isVectorType(Arg->getType())) {
-      if (Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs))
+      if (RegX8632::getRegisterForXmmArgNum(
+              RegX8632::getArgIndex(i, NumXmmArgs))
               .hasValue()) {
         ++NumXmmArgs;
         continue;
       }
-    } else if (isScalarFloatingType(Arg->getType())) {
-      if (Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs))
-              .hasValue()) {
-        ++NumXmmArgs;
-        continue;
-      }
-    } else {
+    } else if (!isScalarFloatingType(Arg->getType())) {
       assert(isScalarIntegerType(Arg->getType()));
-      if (Traits::getRegisterForGprArgNum(Traits::WordType,
-                                          Traits::getArgIndex(i, NumGPRArgs))
+      if (RegX8632::getRegisterForGprArgNum(
+              WordType, RegX8632::getArgIndex(i, NumGPRArgs))
               .hasValue()) {
         ++NumGPRArgs;
         continue;
@@ -1159,7 +1098,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
         GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes -
         maxOutArgsSizeBytes();
     Str << " in-args = " << InArgsSizeBytes << " bytes\n"
-        << " return address = " << Traits::X86_RET_IP_SIZE_BYTES << " bytes\n"
+        << " return address = " << X86_RET_IP_SIZE_BYTES << " bytes\n"
         << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
         << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
         << " globals spill area = " << GlobalsSize << " bytes\n"
@@ -1203,7 +1142,7 @@ void TargetX8632::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
   }
   Type Ty = Arg->getType();
   if (isVectorType(Ty)) {
-    InArgsSizeBytes = Traits::applyStackAlignment(InArgsSizeBytes);
+    InArgsSizeBytes = applyStackAlignment(InArgsSizeBytes);
   }
   Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
@@ -1257,7 +1196,7 @@ void TargetX8632::addEpilog(CfgNode *Node) {
     const auto RegNum = RegNumT::fromInt(i);
     if (RegNum == getFrameReg() && IsEbpBasedFrame)
       continue;
-    const RegNumT Canonical = Traits::getBaseReg(RegNum);
+    const RegNumT Canonical = RegX8632::getBaseReg(RegNum);
     if (CalleeSaves[i] && RegsUsed[i]) {
       Popped[Canonical] = true;
     }
@@ -1266,12 +1205,12 @@ void TargetX8632::addEpilog(CfgNode *Node) {
     if (!Popped[i])
       continue;
     const auto RegNum = RegNumT::fromInt(i);
-    assert(RegNum == Traits::getBaseReg(RegNum));
+    assert(RegNum == RegX8632::getBaseReg(RegNum));
     _pop_reg(RegNum);
   }
 }
 
-Type TargetX8632::stackSlotType() { return Traits::WordType; }
+Type TargetX8632::stackSlotType() { return WordType; }
 
 Operand *TargetX8632::loOperand(Operand *Operand) {
   assert(Operand->getType() == IceType_i64 ||
@@ -1337,7 +1276,7 @@ Operand *TargetX8632::hiOperand(Operand *Operand) {
 
 SmallBitVector TargetX8632::getRegisterSet(RegSetMask Include,
                                            RegSetMask Exclude) const {
-  return Traits::getRegisterSet(getFlags(), Include, Exclude);
+  return RegX8632::getRegisterSet(getFlags(), Include, Exclude);
 }
 
 void TargetX8632::lowerAlloca(const InstAlloca *Instr) {
@@ -1346,8 +1285,8 @@ void TargetX8632::lowerAlloca(const InstAlloca *Instr) {
   // alloca. All the alloca code ensures that the stack alignment is preserved
   // after the alloca. The stack alignment restriction can be relaxed in some
   // cases.
-  RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
-                                            Traits::X86_STACK_ALIGNMENT_BYTES);
+  RequiredStackAlignment =
+      std::max<size_t>(RequiredStackAlignment, X86_STACK_ALIGNMENT_BYTES);
 
   // For default align=0, set it to the real value 1, to avoid any
   // bit-manipulation problems below.
@@ -1355,11 +1294,11 @@ void TargetX8632::lowerAlloca(const InstAlloca *Instr) {
 
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(AlignmentParam));
-  assert(llvm::isPowerOf2_32(Traits::X86_STACK_ALIGNMENT_BYTES));
+  assert(llvm::isPowerOf2_32(X86_STACK_ALIGNMENT_BYTES));
 
   const uint32_t Alignment =
-      std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
-  const bool OverAligned = Alignment > Traits::X86_STACK_ALIGNMENT_BYTES;
+      std::max(AlignmentParam, X86_STACK_ALIGNMENT_BYTES);
+  const bool OverAligned = Alignment > X86_STACK_ALIGNMENT_BYTES;
   const bool OptM1 = Func->getOptLevel() == Opt_m1;
   const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
@@ -1368,7 +1307,7 @@ void TargetX8632::lowerAlloca(const InstAlloca *Instr) {
   if (UseFramePointer)
     setHasFramePointer();
 
-  Variable *esp = getPhysicalRegister(getStackReg(), Traits::WordType);
+  Variable *esp = getPhysicalRegister(getStackReg(), WordType);
   if (OverAligned) {
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
@@ -1430,8 +1369,8 @@ void TargetX8632::lowerArguments() {
     Variable *RegisterArg = nullptr;
     RegNumT RegNum;
     if (isVectorType(Ty)) {
-      RegNum =
-          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs));
+      RegNum = RegX8632::getRegisterForXmmArgNum(
+          RegX8632::getArgIndex(i, NumXmmArgs));
       if (RegNum.hasNoValue()) {
         XmmSlotsRemain = false;
         continue;
@@ -1439,20 +1378,10 @@ void TargetX8632::lowerArguments() {
       ++NumXmmArgs;
       RegisterArg = Func->makeVariable(Ty);
     } else if (isScalarFloatingType(Ty)) {
-      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-        continue;
-      }
-      RegNum =
-          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs));
-      if (RegNum.hasNoValue()) {
-        XmmSlotsRemain = false;
-        continue;
-      }
-      ++NumXmmArgs;
-      RegisterArg = Func->makeVariable(Ty);
+      continue;
     } else if (isScalarIntegerType(Ty)) {
-      RegNum = Traits::getRegisterForGprArgNum(
-          Ty, Traits::getArgIndex(i, NumGprArgs));
+      RegNum = RegX8632::getRegisterForGprArgNum(
+          Ty, RegX8632::getArgIndex(i, NumGprArgs));
       if (RegNum.hasNoValue()) {
         GprSlotsRemain = false;
         continue;
@@ -1559,7 +1488,7 @@ bool TargetX8632::optimizeScalarMul(Variable *Dest, Operand *Src0,
   constexpr uint32_t MaxOpsForOptimizedMul = 3;
   if (CountOps > MaxOpsForOptimizedMul)
     return false;
-  Variable *T = makeReg(Traits::WordType);
+  Variable *T = makeReg(WordType);
   if (typeWidthInBytes(Src0->getType()) < typeWidthInBytes(T->getType())) {
     Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
     _movzx(T, Src0RM);
@@ -1724,7 +1653,7 @@ void TargetX8632::lowerShift64(InstArithmetic::OpKind Op, Operand *Src0Lo,
     //   t1:ecx = c.lo & 0xff
     //   t2 = b.lo
     //   t3 = b.hi
-    T_1 = copyToReg8(Src1Lo, Traits::RegisterSet::Reg_cl);
+    T_1 = copyToReg8(Src1Lo, RegX8632::Reg_cl);
     _mov(T_2, Src0Lo);
     _mov(T_3, Src0Hi);
     switch (Op) {
@@ -1898,8 +1827,8 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
       break;
     case InstArithmetic::Mul: {
       Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
-      Variable *T_4Lo = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      Variable *T_4Hi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      Variable *T_4Lo = makeReg(IceType_i32, RegX8632::Reg_eax);
+      Variable *T_4Hi = makeReg(IceType_i32, RegX8632::Reg_edx);
       // gcc does the following:
       // a=b*c ==>
       //   t1 = b.hi; t1 *=(imul) c.lo
@@ -1914,7 +1843,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
       Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Mem);
       _mov(T_1, Src0Hi);
       _imul(T_1, Src1Lo);
-      _mov(T_3, Src0Lo, Traits::RegisterSet::Reg_eax);
+      _mov(T_3, Src0Lo, RegX8632::Reg_eax);
       _mul(T_4Lo, T_3, Src1Lo);
       // The mul instruction produces two dest variables, edx:eax. We create a
       // fake definition of edx to account for this.
@@ -2151,7 +2080,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     // The 8-bit version of imul only allows the form "imul r/m8" where T must
     // be in al.
     if (isByteSizedArithType(Ty)) {
-      _mov(T, Src0, Traits::RegisterSet::Reg_al);
+      _mov(T, Src0, RegX8632::Reg_al);
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       _imul(T, Src0 == Src1 ? T : Src1);
       _mov(Dest, T);
@@ -2172,7 +2101,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(T, Src0);
     if (!llvm::isa<ConstantInteger32>(Src1) &&
         !llvm::isa<ConstantInteger64>(Src1))
-      Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
+      Src1 = copyToReg8(Src1, RegX8632::Reg_cl);
     _shl(T, Src1);
     _mov(Dest, T);
     break;
@@ -2180,7 +2109,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(T, Src0);
     if (!llvm::isa<ConstantInteger32>(Src1) &&
         !llvm::isa<ConstantInteger64>(Src1))
-      Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
+      Src1 = copyToReg8(Src1, RegX8632::Reg_cl);
     _shr(T, Src1);
     _mov(Dest, T);
     break;
@@ -2188,7 +2117,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(T, Src0);
     if (!llvm::isa<ConstantInteger32>(Src1) &&
         !llvm::isa<ConstantInteger64>(Src1))
-      Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
+      Src1 = copyToReg8(Src1, RegX8632::Reg_cl);
     _sar(T, Src1);
     _mov(Dest, T);
     break;
@@ -2201,21 +2130,17 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     switch (Ty) {
     default:
       llvm::report_fatal_error("Bad type for udiv");
-    case IceType_i64:
-      Eax = Traits::getRaxOrDie();
-      Edx = Traits::getRdxOrDie();
-      break;
     case IceType_i32:
-      Eax = Traits::RegisterSet::Reg_eax;
-      Edx = Traits::RegisterSet::Reg_edx;
+      Eax = RegX8632::Reg_eax;
+      Edx = RegX8632::Reg_edx;
       break;
     case IceType_i16:
-      Eax = Traits::RegisterSet::Reg_ax;
-      Edx = Traits::RegisterSet::Reg_dx;
+      Eax = RegX8632::Reg_ax;
+      Edx = RegX8632::Reg_dx;
       break;
     case IceType_i8:
-      Eax = Traits::RegisterSet::Reg_al;
-      Edx = Traits::RegisterSet::Reg_ah;
+      Eax = RegX8632::Reg_al;
+      Edx = RegX8632::Reg_ah;
       break;
     }
     T_edx = makeReg(Ty, Edx);
@@ -2243,7 +2168,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
           //   add t,src
           //   sar t,log
           //   dest=t
-          uint32_t TypeWidth = Traits::X86_CHAR_BIT * typeWidthInBytes(Ty);
+          uint32_t TypeWidth = X86_CHAR_BIT * typeWidthInBytes(Ty);
           _mov(T, Src0);
           // If for some reason we are dividing by 1, just treat it like an
           // assignment.
@@ -2264,21 +2189,17 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     switch (Ty) {
     default:
       llvm::report_fatal_error("Bad type for sdiv");
-    case IceType_i64:
-      T_edx = makeReg(Ty, Traits::getRdxOrDie());
-      _mov(T, Src0, Traits::getRaxOrDie());
-      break;
     case IceType_i32:
-      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_edx);
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      T_edx = makeReg(Ty, RegX8632::Reg_edx);
+      _mov(T, Src0, RegX8632::Reg_eax);
       break;
     case IceType_i16:
-      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_dx);
-      _mov(T, Src0, Traits::RegisterSet::Reg_ax);
+      T_edx = makeReg(Ty, RegX8632::Reg_dx);
+      _mov(T, Src0, RegX8632::Reg_ax);
       break;
     case IceType_i8:
-      T_edx = makeReg(IceType_i16, Traits::RegisterSet::Reg_ax);
-      _mov(T, Src0, Traits::RegisterSet::Reg_al);
+      T_edx = makeReg(IceType_i16, RegX8632::Reg_ax);
+      _mov(T, Src0, RegX8632::Reg_al);
       break;
     }
     _cbwdq(T_edx, T);
@@ -2293,21 +2214,17 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     switch (Ty) {
     default:
       llvm::report_fatal_error("Bad type for urem");
-    case IceType_i64:
-      Eax = Traits::getRaxOrDie();
-      Edx = Traits::getRdxOrDie();
-      break;
     case IceType_i32:
-      Eax = Traits::RegisterSet::Reg_eax;
-      Edx = Traits::RegisterSet::Reg_edx;
+      Eax = RegX8632::Reg_eax;
+      Edx = RegX8632::Reg_edx;
       break;
     case IceType_i16:
-      Eax = Traits::RegisterSet::Reg_ax;
-      Edx = Traits::RegisterSet::Reg_dx;
+      Eax = RegX8632::Reg_ax;
+      Edx = RegX8632::Reg_dx;
       break;
     case IceType_i8:
-      Eax = Traits::RegisterSet::Reg_al;
-      Edx = Traits::RegisterSet::Reg_ah;
+      Eax = RegX8632::Reg_al;
+      Edx = RegX8632::Reg_ah;
       break;
     }
     T_edx = makeReg(Ty, Edx);
@@ -2345,7 +2262,7 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
           //   sub t,src
           //   neg t
           //   dest=t
-          uint32_t TypeWidth = Traits::X86_CHAR_BIT * typeWidthInBytes(Ty);
+          uint32_t TypeWidth = X86_CHAR_BIT * typeWidthInBytes(Ty);
           // If for some reason we are dividing by 1, just assign 0.
           if (LogDiv == 0) {
             _mov(Dest, Ctx->getConstantZero(Ty));
@@ -2371,21 +2288,17 @@ void TargetX8632::lowerArithmetic(const InstArithmetic *Instr) {
     switch (Ty) {
     default:
       llvm::report_fatal_error("Bad type for srem");
-    case IceType_i64:
-      Eax = Traits::getRaxOrDie();
-      Edx = Traits::getRdxOrDie();
-      break;
     case IceType_i32:
-      Eax = Traits::RegisterSet::Reg_eax;
-      Edx = Traits::RegisterSet::Reg_edx;
+      Eax = RegX8632::Reg_eax;
+      Edx = RegX8632::Reg_edx;
       break;
     case IceType_i16:
-      Eax = Traits::RegisterSet::Reg_ax;
-      Edx = Traits::RegisterSet::Reg_dx;
+      Eax = RegX8632::Reg_ax;
+      Edx = RegX8632::Reg_dx;
       break;
     case IceType_i8:
-      Eax = Traits::RegisterSet::Reg_al;
-      Edx = Traits::RegisterSet::Reg_ah;
+      Eax = RegX8632::Reg_al;
+      Edx = RegX8632::Reg_ah;
       break;
     }
     T_edx = makeReg(Ty, Edx);
@@ -2496,11 +2409,11 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // This is compatible with the Microsoft x86-32 'cdecl' calling convention,
   // which doesn't have a 16-byte stack alignment requirement.
 
-  RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
-                                            Traits::X86_STACK_ALIGNMENT_BYTES);
+  RequiredStackAlignment =
+      std::max<size_t>(RequiredStackAlignment, X86_STACK_ALIGNMENT_BYTES);
 
   constexpr SizeT MaxOperands =
-      constexprMax(Traits::X86_MAX_XMM_ARGS, Traits::X86_MAX_GPR_ARGS);
+      constexprMax(RegX8632::X86_MAX_XMM_ARGS, RegX8632::X86_MAX_GPR_ARGS);
   using OperandList = llvm::SmallVector<Operand *, MaxOperands>;
 
   OperandList XmmArgs;
@@ -2517,20 +2430,14 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     const Type Ty = Arg->getType();
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
     assert(typeWidthInBytes(Ty) >= 4);
-    if (isVectorType(Ty) &&
-        Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, XmmArgs.size()))
-            .hasValue()) {
-      XmmArgs.push_back(Arg);
-      XmmArgIndices.push_back(i);
-    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               Traits::getRegisterForXmmArgNum(
-                   Traits::getArgIndex(i, XmmArgs.size()))
-                   .hasValue()) {
+    if (isVectorType(Ty) && RegX8632::getRegisterForXmmArgNum(
+                                RegX8632::getArgIndex(i, XmmArgs.size()))
+                                .hasValue()) {
       XmmArgs.push_back(Arg);
       XmmArgIndices.push_back(i);
     } else if (isScalarIntegerType(Ty) &&
-               Traits::getRegisterForGprArgNum(
-                   Ty, Traits::getArgIndex(i, GprArgs.size()))
+               RegX8632::getRegisterForGprArgNum(
+                   Ty, RegX8632::getArgIndex(i, GprArgs.size()))
                    .hasValue()) {
       GprArgs.emplace_back(Ty, Arg);
       GprArgIndices.push_back(i);
@@ -2538,10 +2445,9 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       // Place on stack.
       StackArgs.push_back(Arg);
       if (isVectorType(Arg->getType())) {
-        ParameterAreaSizeBytes =
-            Traits::applyStackAlignment(ParameterAreaSizeBytes);
+        ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
       }
-      Variable *esp = getPhysicalRegister(getStackReg(), Traits::WordType);
+      Variable *esp = getPhysicalRegister(getStackReg(), WordType);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
       StackArgLocations.push_back(X86OperandMem::create(Func, Ty, esp, Loc));
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
@@ -2550,16 +2456,14 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // Ensure there is enough space for the fstp/movs for floating returns.
   Variable *Dest = Instr->getDest();
   const Type DestTy = Dest ? Dest->getType() : IceType_void;
-  if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-    if (isScalarFloatingType(DestTy)) {
-      ParameterAreaSizeBytes =
-          std::max(static_cast<size_t>(ParameterAreaSizeBytes),
-                   typeWidthInBytesOnStack(DestTy));
-    }
+  if (isScalarFloatingType(DestTy)) {
+    ParameterAreaSizeBytes =
+        std::max(static_cast<size_t>(ParameterAreaSizeBytes),
+                 typeWidthInBytesOnStack(DestTy));
   }
   // Adjust the parameter area so that the stack is aligned. It is assumed that
   // the stack is already aligned at the start of the calling sequence.
-  ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
+  ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
   assert(ParameterAreaSizeBytes <= maxOutArgsSizeBytes());
   // Copy arguments that are passed on the stack to the appropriate stack
   // locations.  We make sure legalize() is called on each argument at this
@@ -2571,8 +2475,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // Copy arguments to be passed in registers to the appropriate registers.
   for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
     XmmArgs[i] = legalizeToReg(legalize(XmmArgs[i]),
-                               Traits::getRegisterForXmmArgNum(
-                                   Traits::getArgIndex(XmmArgIndices[i], i)));
+                               RegX8632::getRegisterForXmmArgNum(
+                                   RegX8632::getArgIndex(XmmArgIndices[i], i)));
   }
   // Materialize moves for arguments passed in GPRs.
   for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
@@ -2580,8 +2484,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     Operand *Arg =
         legalize(GprArgs[i].second, Legal_Default | Legal_Rematerializable);
     GprArgs[i].second = legalizeToReg(
-        Arg, Traits::getRegisterForGprArgNum(
-                 Arg->getType(), Traits::getArgIndex(GprArgIndices[i], i)));
+        Arg, RegX8632::getRegisterForGprArgNum(
+                 Arg->getType(), RegX8632::getArgIndex(GprArgIndices[i], i)));
     assert(SignatureTy == IceType_i64 || SignatureTy == IceType_i32);
     assert(SignatureTy == Arg->getType());
     (void)SignatureTy;
@@ -2610,19 +2514,17 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       llvm::report_fatal_error("Invalid Call dest type");
       break;
     case IceType_i32:
-      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_eax);
+      ReturnReg = makeReg(DestTy, RegX8632::Reg_eax);
       break;
     case IceType_i64:
-      ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      ReturnReg = makeReg(IceType_i32, RegX8632::Reg_eax);
+      ReturnRegHi = makeReg(IceType_i32, RegX8632::Reg_edx);
       break;
     case IceType_f32:
     case IceType_f64:
-      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-        // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
-        // the fstp instruction.
-        break;
-      }
+      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
+      // the fstp instruction.
+      break;
     // Fallthrough intended.
     case IceType_v4i1:
     case IceType_v8i1:
@@ -2631,7 +2533,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     case IceType_v8i16:
     case IceType_v4i32:
     case IceType_v4f32:
-      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_xmm0);
+      ReturnReg = makeReg(DestTy, RegX8632::Reg_xmm0);
       break;
     }
   }
@@ -2646,8 +2548,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // Mark the call as killing all the caller-save registers.
   Context.insert<InstFakeKill>(NewCall);
   // Handle x86-32 floating point returns.
-  if (Dest != nullptr && isScalarFloatingType(DestTy) &&
-      !Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+  if (Dest != nullptr && isScalarFloatingType(DestTy)) {
     // Special treatment for an FP function which returns its result in st(0).
     // If Dest ends up being a physical xmm register, the fstp emit code will
     // route st(0) through the space reserved in the function argument area
@@ -2672,13 +2573,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     Tmp = makeReg(DestTy);
     _movp(Tmp, ReturnReg);
     _movp(Dest, Tmp);
-  } else if (isScalarFloatingType(DestTy)) {
-    if (Traits::X86_PASS_SCALAR_FP_IN_XMM) {
-      assert(ReturnReg && "FP type requires a return register");
-      _mov(Tmp, ReturnReg);
-      _mov(Dest, Tmp);
-    }
-  } else {
+  } else if (!isScalarFloatingType(DestTy)) {
     assert(isScalarIntegerType(DestTy));
     assert(ReturnReg && "Integer type requires a return register");
     if (DestTy == IceType_i64) {
@@ -2728,8 +2623,7 @@ void TargetX8632::lowerCast(const InstCast *Instr) {
       } else {
         /// width = width(elty) - 1; dest = (src << width) >> width
         SizeT ShiftAmount =
-            Traits::X86_CHAR_BIT * typeWidthInBytes(typeElementType(DestTy)) -
-            1;
+            X86_CHAR_BIT * typeWidthInBytes(typeElementType(DestTy)) - 1;
         Constant *ShiftConstant = Ctx->getConstantInt8(ShiftAmount);
         Variable *T = makeReg(DestTy);
         _movp(T, Src0RM);
@@ -2764,7 +2658,7 @@ void TargetX8632::lowerCast(const InstCast *Instr) {
       // shl t1, dst_bitwidth - 1
       // sar t1, dst_bitwidth - 1
       // dst = t1
-      size_t DestBits = Traits::X86_CHAR_BIT * typeWidthInBytes(DestTy);
+      size_t DestBits = X86_CHAR_BIT * typeWidthInBytes(DestTy);
       Constant *ShiftAmount = Ctx->getConstantInt32(DestBits - 1);
       Variable *T = makeReg(DestTy);
       if (typeWidthInBytes(DestTy) <= typeWidthInBytes(Src0RM->getType())) {
@@ -3102,7 +2996,7 @@ void TargetX8632::lowerExtractElement(const InstExtractElement *Instr) {
   unsigned Index = ElementIndex->getValue();
   Type Ty = SourceVectNotLegalized->getType();
   Type ElementTy = typeElementType(Ty);
-  Type InVectorElementTy = Traits::getInVectorElementType(Ty);
+  Type InVectorElementTy = InstX86Base::getInVectorElementType(Ty);
 
   // TODO(wala): Determine the best lowering sequences for each type.
   bool CanUsePextr = Ty == IceType_v8i16 || Ty == IceType_v8i1 ||
@@ -3217,11 +3111,11 @@ void TargetX8632::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
   //   ucomiss b, c       /* but swap b,c order if SwapOperands==true */
   //   setcc a, C1
   InstFcmp::FCond Condition = Fcmp->getCondition();
-  assert(static_cast<size_t>(Condition) < Traits::TableFcmpSize);
-  if (Traits::TableFcmp[Condition].SwapScalarOperands)
+  assert(static_cast<size_t>(Condition) < TableFcmpSize);
+  if (TableFcmp[Condition].SwapScalarOperands)
     std::swap(Src0, Src1);
-  const bool HasC1 = (Traits::TableFcmp[Condition].C1 != CondX86::Br_None);
-  const bool HasC2 = (Traits::TableFcmp[Condition].C2 != CondX86::Br_None);
+  const bool HasC1 = (TableFcmp[Condition].C1 != CondX86::Br_None);
+  const bool HasC2 = (TableFcmp[Condition].C2 != CondX86::Br_None);
   if (HasC1) {
     Src0 = legalize(Src0);
     Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -3229,20 +3123,20 @@ void TargetX8632::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
     _mov(T, Src0);
     _ucomiss(T, Src1RM);
     if (!HasC2) {
-      assert(Traits::TableFcmp[Condition].Default);
-      setccOrConsumer(Traits::TableFcmp[Condition].C1, Dest, Consumer);
+      assert(TableFcmp[Condition].Default);
+      setccOrConsumer(TableFcmp[Condition].C1, Dest, Consumer);
       return;
     }
   }
-  int32_t IntDefault = Traits::TableFcmp[Condition].Default;
+  int32_t IntDefault = TableFcmp[Condition].Default;
   if (Consumer == nullptr) {
     Constant *Default = Ctx->getConstantInt(Dest->getType(), IntDefault);
     _mov(Dest, Default);
     if (HasC1) {
       InstX86Label *Label = InstX86Label::create(Func, this);
-      _br(Traits::TableFcmp[Condition].C1, Label);
+      _br(TableFcmp[Condition].C1, Label);
       if (HasC2) {
-        _br(Traits::TableFcmp[Condition].C2, Label);
+        _br(TableFcmp[Condition].C2, Label);
       }
       Constant *NonDefault = Ctx->getConstantInt(Dest->getType(), !IntDefault);
       _redefined(_mov(Dest, NonDefault));
@@ -3256,9 +3150,9 @@ void TargetX8632::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
     if (IntDefault != 0)
       std::swap(TrueSucc, FalseSucc);
     if (HasC1) {
-      _br(Traits::TableFcmp[Condition].C1, FalseSucc);
+      _br(TableFcmp[Condition].C1, FalseSucc);
       if (HasC2) {
-        _br(Traits::TableFcmp[Condition].C2, FalseSucc);
+        _br(TableFcmp[Condition].C2, FalseSucc);
       }
       _br(TrueSucc);
       return;
@@ -3275,9 +3169,9 @@ void TargetX8632::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
     lowerMove(SelectDest, SrcF, false);
     if (HasC1) {
       InstX86Label *Label = InstX86Label::create(Func, this);
-      _br(Traits::TableFcmp[Condition].C1, Label);
+      _br(TableFcmp[Condition].C1, Label);
       if (HasC2) {
-        _br(Traits::TableFcmp[Condition].C2, Label);
+        _br(TableFcmp[Condition].C2, Label);
       }
       static constexpr bool IsRedefinition = true;
       lowerMove(SelectDest, SrcT, IsRedefinition);
@@ -3297,9 +3191,9 @@ void TargetX8632::lowerFcmpVector(const InstFcmp *Fcmp) {
     llvm::report_fatal_error("Expected vector compare");
 
   InstFcmp::FCond Condition = Fcmp->getCondition();
-  assert(static_cast<size_t>(Condition) < Traits::TableFcmpSize);
+  assert(static_cast<size_t>(Condition) < TableFcmpSize);
 
-  if (Traits::TableFcmp[Condition].SwapVectorOperands)
+  if (TableFcmp[Condition].SwapVectorOperands)
     std::swap(Src0, Src1);
 
   Variable *T = nullptr;
@@ -3317,7 +3211,7 @@ void TargetX8632::lowerFcmpVector(const InstFcmp *Fcmp) {
 
     switch (Condition) {
     default: {
-      const CmppsCond Predicate = Traits::TableFcmp[Condition].Predicate;
+      const CmppsCond Predicate = TableFcmp[Condition].Predicate;
       assert(Predicate != CondX86::Cmpps_Invalid);
       T = makeReg(Src0RM->getType());
       _movp(T, Src0RM);
@@ -3392,8 +3286,7 @@ void TargetX8632::lowerIcmpAndConsumer(const InstIcmp *Icmp,
   }
   Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
   _cmp(Src0RM, Src1);
-  setccOrConsumer(Traits::getIcmp32Mapping(Icmp->getCondition()), Dest,
-                  Consumer);
+  setccOrConsumer(getIcmp32Mapping(Icmp->getCondition()), Dest, Consumer);
 }
 
 void TargetX8632::lowerIcmpVector(const InstIcmp *Icmp) {
@@ -3517,7 +3410,7 @@ void TargetX8632::lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer) {
   Operand *Src1 = legalize(Icmp->getSrc(1));
   Variable *Dest = Icmp->getDest();
   InstIcmp::ICond Condition = Icmp->getCondition();
-  assert(static_cast<size_t>(Condition) < Traits::TableIcmp64Size);
+  assert(static_cast<size_t>(Condition) < TableIcmp64Size);
   Operand *Src0LoRM = nullptr;
   Operand *Src0HiRM = nullptr;
   // Legalize the portions of Src0 that are going to be needed.
@@ -3609,12 +3502,12 @@ void TargetX8632::lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer) {
     InstX86Label *LabelTrue = InstX86Label::create(Func, this);
     _mov(Dest, One);
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Condition].C1 != CondX86::Br_None)
-      _br(Traits::TableIcmp64[Condition].C1, LabelTrue);
-    if (Traits::TableIcmp64[Condition].C2 != CondX86::Br_None)
-      _br(Traits::TableIcmp64[Condition].C2, LabelFalse);
+    if (TableIcmp64[Condition].C1 != CondX86::Br_None)
+      _br(TableIcmp64[Condition].C1, LabelTrue);
+    if (TableIcmp64[Condition].C2 != CondX86::Br_None)
+      _br(TableIcmp64[Condition].C2, LabelFalse);
     _cmp(Src0LoRM, Src1LoRI);
-    _br(Traits::TableIcmp64[Condition].C3, LabelTrue);
+    _br(TableIcmp64[Condition].C3, LabelTrue);
     Context.insert(LabelFalse);
     _redefined(_mov(Dest, Zero));
     Context.insert(LabelTrue);
@@ -3622,13 +3515,12 @@ void TargetX8632::lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer) {
   }
   if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Condition].C1 != CondX86::Br_None)
-      _br(Traits::TableIcmp64[Condition].C1, Br->getTargetTrue());
-    if (Traits::TableIcmp64[Condition].C2 != CondX86::Br_None)
-      _br(Traits::TableIcmp64[Condition].C2, Br->getTargetFalse());
+    if (TableIcmp64[Condition].C1 != CondX86::Br_None)
+      _br(TableIcmp64[Condition].C1, Br->getTargetTrue());
+    if (TableIcmp64[Condition].C2 != CondX86::Br_None)
+      _br(TableIcmp64[Condition].C2, Br->getTargetFalse());
     _cmp(Src0LoRM, Src1LoRI);
-    _br(Traits::TableIcmp64[Condition].C3, Br->getTargetTrue(),
-        Br->getTargetFalse());
+    _br(TableIcmp64[Condition].C3, Br->getTargetTrue(), Br->getTargetFalse());
     return;
   }
   if (auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
@@ -3639,12 +3531,12 @@ void TargetX8632::lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer) {
     InstX86Label *LabelTrue = InstX86Label::create(Func, this);
     lowerMove(SelectDest, SrcT, false);
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Condition].C1 != CondX86::Br_None)
-      _br(Traits::TableIcmp64[Condition].C1, LabelTrue);
-    if (Traits::TableIcmp64[Condition].C2 != CondX86::Br_None)
-      _br(Traits::TableIcmp64[Condition].C2, LabelFalse);
+    if (TableIcmp64[Condition].C1 != CondX86::Br_None)
+      _br(TableIcmp64[Condition].C1, LabelTrue);
+    if (TableIcmp64[Condition].C2 != CondX86::Br_None)
+      _br(TableIcmp64[Condition].C2, LabelFalse);
     _cmp(Src0LoRM, Src1LoRI);
-    _br(Traits::TableIcmp64[Condition].C3, LabelTrue);
+    _br(TableIcmp64[Condition].C3, LabelTrue);
     Context.insert(LabelFalse);
     static constexpr bool IsRedefinition = true;
     lowerMove(SelectDest, SrcF, IsRedefinition);
@@ -3752,7 +3644,7 @@ void TargetX8632::lowerInsertElement(const InstInsertElement *Instr) {
 
   Type Ty = SourceVectNotLegalized->getType();
   Type ElementTy = typeElementType(Ty);
-  Type InVectorElementTy = Traits::getInVectorElementType(Ty);
+  Type InVectorElementTy = InstX86Base::getInVectorElementType(Ty);
 
   if (ElementTy == IceType_i1) {
     // Expand the element to the appropriate size for it to be inserted in the
@@ -4158,7 +4050,7 @@ void TargetX8632::lowerIntrinsic(const InstIntrinsic *Instr) {
   }
   case Intrinsics::Stacksave: {
     Variable *esp =
-        Func->getTarget()->getPhysicalRegister(getStackReg(), Traits::WordType);
+        Func->getTarget()->getPhysicalRegister(getStackReg(), WordType);
     Variable *Dest = Instr->getDest();
     _mov(Dest, esp);
     return;
@@ -4411,10 +4303,10 @@ void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
   if (Ty == IceType_i64) {
     // Reserve the pre-colored registers first, before adding any more
     // infinite-weight variables from formMemoryOperand's legalization.
-    Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
-    Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-    Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
-    Variable *T_ebx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ebx);
+    Variable *T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
+    Variable *T_eax = makeReg(IceType_i32, RegX8632::Reg_eax);
+    Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
+    Variable *T_ebx = makeReg(IceType_i32, RegX8632::Reg_ebx);
     _mov(T_eax, loOperand(Expected));
     _mov(T_edx, hiOperand(Expected));
     _mov(T_ebx, loOperand(Desired));
@@ -4432,17 +4324,14 @@ void TargetX8632::lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr,
   switch (Ty) {
   default:
     llvm::report_fatal_error("Bad type for cmpxchg");
-  case IceType_i64:
-    Eax = Traits::getRaxOrDie();
-    break;
   case IceType_i32:
-    Eax = Traits::RegisterSet::Reg_eax;
+    Eax = RegX8632::Reg_eax;
     break;
   case IceType_i16:
-    Eax = Traits::RegisterSet::Reg_ax;
+    Eax = RegX8632::Reg_ax;
     break;
   case IceType_i8:
-    Eax = Traits::RegisterSet::Reg_al;
+    Eax = RegX8632::Reg_al;
     break;
   }
   Variable *T_eax = makeReg(Ty, Eax);
@@ -4641,13 +4530,13 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
   Val = legalize(Val);
   Type Ty = Val->getType();
   if (Ty == IceType_i64) {
-    Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
-    Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+    Variable *T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
+    Variable *T_eax = makeReg(IceType_i32, RegX8632::Reg_eax);
     X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
     _mov(T_eax, loOperand(Addr));
     _mov(T_edx, hiOperand(Addr));
-    Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
-    Variable *T_ebx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ebx);
+    Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
+    Variable *T_ebx = makeReg(IceType_i32, RegX8632::Reg_ebx);
     InstX86Label *Label = InstX86Label::create(Func, this);
     const bool IsXchg8b = Op_Lo == nullptr && Op_Hi == nullptr;
     if (!IsXchg8b) {
@@ -4695,17 +4584,14 @@ void TargetX8632::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo, LowerBinOp Op_Hi,
   switch (Ty) {
   default:
     llvm::report_fatal_error("Bad type for atomicRMW");
-  case IceType_i64:
-    Eax = Traits::getRaxOrDie();
-    break;
   case IceType_i32:
-    Eax = Traits::RegisterSet::Reg_eax;
+    Eax = RegX8632::Reg_eax;
     break;
   case IceType_i16:
-    Eax = Traits::RegisterSet::Reg_ax;
+    Eax = RegX8632::Reg_ax;
     break;
   case IceType_i8:
-    Eax = Traits::RegisterSet::Reg_al;
+    Eax = RegX8632::Reg_al;
     break;
   }
   Variable *T_eax = makeReg(Ty, Eax);
@@ -4882,7 +4768,7 @@ void TargetX8632::lowerMemcpy(Operand *Dest, Operand *Src, Operand *Count) {
   const uint32_t CountValue = IsCountConst ? CountConst->getValue() : 0;
 
   if (shouldOptimizeMemIntrins() && IsCountConst &&
-      CountValue <= BytesPerStorep * Traits::MEMCPY_UNROLL_LIMIT) {
+      CountValue <= BytesPerStorep * MEMCPY_UNROLL_LIMIT) {
     // Unlikely, but nothing to do if it does happen
     if (CountValue == 0)
       return;
@@ -4934,7 +4820,7 @@ void TargetX8632::lowerMemmove(Operand *Dest, Operand *Src, Operand *Count) {
   const uint32_t CountValue = IsCountConst ? CountConst->getValue() : 0;
 
   if (shouldOptimizeMemIntrins() && IsCountConst &&
-      CountValue <= BytesPerStorep * Traits::MEMMOVE_UNROLL_LIMIT) {
+      CountValue <= BytesPerStorep * MEMMOVE_UNROLL_LIMIT) {
     // Unlikely, but nothing to do if it does happen
     if (CountValue == 0)
       return;
@@ -4942,8 +4828,7 @@ void TargetX8632::lowerMemmove(Operand *Dest, Operand *Src, Operand *Count) {
     Variable *SrcBase = legalizeToReg(Src);
     Variable *DestBase = legalizeToReg(Dest);
 
-    std::tuple<Type, Constant *, Variable *>
-        Moves[Traits::MEMMOVE_UNROLL_LIMIT];
+    std::tuple<Type, Constant *, Variable *> Moves[MEMMOVE_UNROLL_LIMIT];
     Constant *Offset;
     Variable *Reg;
 
@@ -4958,7 +4843,7 @@ void TargetX8632::lowerMemmove(Operand *Dest, Operand *Src, Operand *Count) {
     int32_t OffsetAmt = (CountValue & ~(TyWidth - 1)) - TyWidth;
     size_t N = 0;
     while (RemainingBytes >= TyWidth) {
-      assert(N <= Traits::MEMMOVE_UNROLL_LIMIT);
+      assert(N <= MEMMOVE_UNROLL_LIMIT);
       Offset = Ctx->getConstantInt32(OffsetAmt);
       Reg = makeReg(Ty);
       typedLoad(Ty, Reg, SrcBase, Offset);
@@ -4970,7 +4855,7 @@ void TargetX8632::lowerMemmove(Operand *Dest, Operand *Src, Operand *Count) {
     if (RemainingBytes != 0) {
       // Lower the remaining bytes. Adjust to larger types in order to make
       // use of overlaps in the copies.
-      assert(N <= Traits::MEMMOVE_UNROLL_LIMIT);
+      assert(N <= MEMMOVE_UNROLL_LIMIT);
       Ty = firstTypeThatFitsSize(RemainingBytes);
       Offset = Ctx->getConstantInt32(CountValue - typeWidthInBytes(Ty));
       Reg = makeReg(Ty);
@@ -5048,13 +4933,13 @@ void TargetX8632::lowerMemset(Operand *Dest, Operand *Val, Operand *Count) {
     // on the memory unit as the access to the same memory are far apart.
     Type Ty = IceType_void;
     if (ValValue == 0 && CountValue >= BytesPerStoreq &&
-        CountValue <= BytesPerStorep * Traits::MEMSET_UNROLL_LIMIT) {
+        CountValue <= BytesPerStorep * MEMSET_UNROLL_LIMIT) {
       // When the value is zero it can be loaded into a vector register
       // cheaply using the xor trick.
       Base = legalizeToReg(Dest);
       VecReg = makeVectorOfZeros(IceType_v16i8);
       Ty = largestTypeInSize(CountValue);
-    } else if (CountValue <= BytesPerStorei32 * Traits::MEMSET_UNROLL_LIMIT) {
+    } else if (CountValue <= BytesPerStorei32 * MEMSET_UNROLL_LIMIT) {
       // When the value is non-zero or the count is small we can't use vector
       // instructions so are limited to 32-bit stores.
       Base = legalizeToReg(Dest);
@@ -6508,7 +6393,7 @@ void TargetX8632::lowerSelectVector(const InstSelect *Instr) {
     if (SrcTy == IceType_v4i1 || SrcTy == IceType_v4i32 ||
         SrcTy == IceType_v4f32) {
       Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
-      Variable *xmm0 = makeReg(IceType_v4i32, Traits::RegisterSet::Reg_xmm0);
+      Variable *xmm0 = makeReg(IceType_v4i32, RegX8632::Reg_xmm0);
       _movp(xmm0, ConditionRM);
       _psll(xmm0, Ctx->getConstantInt8(31));
       _movp(T, SrcFRM);
@@ -6518,7 +6403,7 @@ void TargetX8632::lowerSelectVector(const InstSelect *Instr) {
       assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
       Type SignExtTy =
           Condition->getType() == IceType_v8i1 ? IceType_v8i16 : IceType_v16i8;
-      Variable *xmm0 = makeReg(SignExtTy, Traits::RegisterSet::Reg_xmm0);
+      Variable *xmm0 = makeReg(SignExtTy, RegX8632::Reg_xmm0);
       lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
       _movp(T, SrcFRM);
       _pblendvb(T, SrcTRM, xmm0);
@@ -6526,7 +6411,7 @@ void TargetX8632::lowerSelectVector(const InstSelect *Instr) {
     }
     return;
   }
-  // Lower select without Traits::SSE4.1:
+  // Lower select without SSE4.1:
   // a=d?b:c ==>
   //   if elementtype(d) != i1:
   //      d=sext(d);
@@ -7192,7 +7077,7 @@ void TargetX8632::genTargetHelperCallFor(Inst *Instr) {
   } else {
     return;
   }
-  StackArgumentsSize = Traits::applyStackAlignment(StackArgumentsSize);
+  StackArgumentsSize = applyStackAlignment(StackArgumentsSize);
   updateMaxOutArgsSizeBytes(StackArgumentsSize);
 }
 
@@ -7207,24 +7092,18 @@ TargetX8632::getCallStackArgumentsSizeBytes(const CfgVector<Type> &ArgTypes,
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
     assert(typeWidthInBytes(Ty) >= 4);
     if (isVectorType(Ty) &&
-        Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, XmmArgCount))
+        RegX8632::getRegisterForXmmArgNum(RegX8632::getArgIndex(i, XmmArgCount))
             .hasValue()) {
       ++XmmArgCount;
-    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               Traits::getRegisterForXmmArgNum(
-                   Traits::getArgIndex(i, XmmArgCount))
-                   .hasValue()) {
-      ++XmmArgCount;
     } else if (isScalarIntegerType(Ty) &&
-               Traits::getRegisterForGprArgNum(
-                   Ty, Traits::getArgIndex(i, GprArgCount))
+               RegX8632::getRegisterForGprArgNum(
+                   Ty, RegX8632::getArgIndex(i, GprArgCount))
                    .hasValue()) {
       // The 64 bit ABI allows some integers to be passed in GPRs.
       ++GprArgCount;
     } else {
       if (isVectorType(Ty)) {
-        OutArgumentsSizeBytes =
-            Traits::applyStackAlignment(OutArgumentsSizeBytes);
+        OutArgumentsSizeBytes = applyStackAlignment(OutArgumentsSizeBytes);
       }
       OutArgumentsSizeBytes += typeWidthInBytesOnStack(Ty);
     }
@@ -7321,8 +7200,7 @@ Variable *TargetX8632::makeVectorOfHighOrderBits(Type Ty, RegNumT RegNum) {
          Ty == IceType_v16i8);
   if (Ty == IceType_v4f32 || Ty == IceType_v4i32 || Ty == IceType_v8i16) {
     Variable *Reg = makeVectorOfOnes(Ty, RegNum);
-    SizeT Shift =
-        typeWidthInBytes(typeElementType(Ty)) * Traits::X86_CHAR_BIT - 1;
+    SizeT Shift = typeWidthInBytes(typeElementType(Ty)) * X86_CHAR_BIT - 1;
     _psll(Reg, Ctx->getConstantInt8(Shift));
     return Reg;
   } else {
@@ -7750,6 +7628,40 @@ void TargetX8632::emitJumpTable(const Cfg *,
   Str << "\n";
 }
 
+const TargetX8632::TableFcmpType TargetX8632::TableFcmp[] = {
+#define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
+  {dflt, swapS, CondX86::C1, CondX86::C2, swapV, CondX86::pred},
+    FCMPX8632_TABLE
+#undef X
+};
+
+const size_t TargetX8632::TableFcmpSize = llvm::array_lengthof(TableFcmp);
+
+const TargetX8632::TableIcmp32Type TargetX8632::TableIcmp32[] = {
+#define X(val, C_32, C1_64, C2_64, C3_64) {CondX86::C_32},
+    ICMPX8632_TABLE
+#undef X
+};
+
+const size_t TargetX8632::TableIcmp32Size = llvm::array_lengthof(TableIcmp32);
+
+const TargetX8632::TableIcmp64Type TargetX8632::TableIcmp64[] = {
+#define X(val, C_32, C1_64, C2_64, C3_64)                                      \
+  {CondX86::C1_64, CondX86::C2_64, CondX86::C3_64},
+    ICMPX8632_TABLE
+#undef X
+};
+
+const size_t TargetX8632::TableIcmp64Size = llvm::array_lengthof(TableIcmp64);
+
+std::array<SmallBitVector, RCX86_NUM> TargetX8632::TypeToRegisterSet = {{}};
+
+std::array<SmallBitVector, RCX86_NUM> TargetX8632::TypeToRegisterSetUnfiltered =
+    {{}};
+
+std::array<SmallBitVector, RegisterSet::Reg_NUM> TargetX8632::RegisterAliases =
+    {{}};
+
 template <typename T>
 void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   if (!BuildDefs::dump())
@@ -7866,69 +7778,6 @@ void TargetDataX8632::lowerGlobals(const VariableDeclarationList &Vars,
 }
 
 //------------------------------------------------------------------------------
-//      ______   ______     ______     __     ______   ______
-//     /\__  _\ /\  == \   /\  __ \   /\ \   /\__  _\ /\  ___\
-//     \/_/\ \/ \ \  __<   \ \  __ \  \ \ \  \/_/\ \/ \ \___  \
-//        \ \_\  \ \_\ \_\  \ \_\ \_\  \ \_\    \ \_\  \/\_____\
-//         \/_/   \/_/ /_/   \/_/\/_/   \/_/     \/_/   \/_____/
-//
-//------------------------------------------------------------------------------
-const TargetX8632Traits::TableFcmpType TargetX8632Traits::TableFcmp[] = {
-#define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
-  {dflt, swapS, CondX86::C1, CondX86::C2, swapV, CondX86::pred},
-    FCMPX8632_TABLE
-#undef X
-};
-
-const size_t TargetX8632Traits::TableFcmpSize = llvm::array_lengthof(TableFcmp);
-
-const TargetX8632Traits::TableIcmp32Type TargetX8632Traits::TableIcmp32[] = {
-#define X(val, C_32, C1_64, C2_64, C3_64) {CondX86::C_32},
-    ICMPX8632_TABLE
-#undef X
-};
-
-const size_t TargetX8632Traits::TableIcmp32Size =
-    llvm::array_lengthof(TableIcmp32);
-
-const TargetX8632Traits::TableIcmp64Type TargetX8632Traits::TableIcmp64[] = {
-#define X(val, C_32, C1_64, C2_64, C3_64)                                      \
-  {CondX86::C1_64, CondX86::C2_64, CondX86::C3_64},
-    ICMPX8632_TABLE
-#undef X
-};
-
-const size_t TargetX8632Traits::TableIcmp64Size =
-    llvm::array_lengthof(TableIcmp64);
-
-const TargetX8632Traits::TableTypeX8632AttributesType
-    TargetX8632Traits::TableTypeX8632Attributes[] = {
-#define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
-  {IceType_##elty},
-        ICETYPEX86_TABLE
-#undef X
-};
-
-const size_t TargetX8632Traits::TableTypeX8632AttributesSize =
-    llvm::array_lengthof(TableTypeX8632Attributes);
-
-#if defined(_WIN32)
-// Windows 32-bit only guarantees 4 byte stack alignment
-const uint32_t TargetX8632Traits::X86_STACK_ALIGNMENT_BYTES = 4;
-#else
-const uint32_t TargetX8632Traits::X86_STACK_ALIGNMENT_BYTES = 16;
-#endif
-const char *TargetX8632Traits::TargetName = "X8632";
-
-std::array<SmallBitVector, RCX86_NUM> TargetX8632::TypeToRegisterSet = {{}};
-
-std::array<SmallBitVector, RCX86_NUM> TargetX8632::TypeToRegisterSetUnfiltered =
-    {{}};
-
-std::array<SmallBitVector, RegisterSet::Reg_NUM> TargetX8632::RegisterAliases =
-    {{}};
-
-//------------------------------------------------------------------------------
 //     __      ______  __     __  ______  ______  __  __   __  ______
 //    /\ \    /\  __ \/\ \  _ \ \/\  ___\/\  == \/\ \/\ "-.\ \/\  ___\
 //    \ \ \___\ \ \/\ \ \ \/ ".\ \ \  __\\ \  __<\ \ \ \ \-.  \ \ \__ \
@@ -7937,17 +7786,17 @@ std::array<SmallBitVector, RegisterSet::Reg_NUM> TargetX8632::RegisterAliases =
 //
 //------------------------------------------------------------------------------
 void TargetX8632::_add_sp(Operand *Adjustment) {
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
   _add(esp, Adjustment);
 }
 
 void TargetX8632::_mov_sp(Operand *NewValue) {
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
   _redefined(_mov(esp, NewValue));
 }
 
 void TargetX8632::_sub_sp(Operand *Adjustment) {
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
   _sub(esp, Adjustment);
   // Add a fake use of the stack pointer, to prevent the stack pointer
   // adustment from being dead-code eliminated in a function that doesn't
@@ -7956,8 +7805,8 @@ void TargetX8632::_sub_sp(Operand *Adjustment) {
 }
 
 void TargetX8632::_link_bp() {
-  Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *ebp = getPhysicalRegister(RegX8632::Reg_ebp);
+  Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
   _push(ebp);
   _mov(ebp, esp);
   // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
@@ -7965,8 +7814,8 @@ void TargetX8632::_link_bp() {
 }
 
 void TargetX8632::_unlink_bp() {
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-  Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
+  Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
+  Variable *ebp = getPhysicalRegister(RegX8632::Reg_ebp);
   // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
   // use of esp before the assignment of esp=ebp keeps previous esp
   // adjustments from being dead-code eliminated.
@@ -7976,11 +7825,11 @@ void TargetX8632::_unlink_bp() {
 }
 
 void TargetX8632::_push_reg(RegNumT RegNum) {
-  _push(getPhysicalRegister(RegNum, Traits::WordType));
+  _push(getPhysicalRegister(RegNum, WordType));
 }
 
 void TargetX8632::_pop_reg(RegNumT RegNum) {
-  _pop(getPhysicalRegister(RegNum, Traits::WordType));
+  _pop(getPhysicalRegister(RegNum, WordType));
 }
 
 /// Lower an indirect jump adding sandboxing when needed.
@@ -7999,22 +7848,20 @@ Inst *TargetX8632::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
 Variable *TargetX8632::moveReturnValueToRegister(Operand *Value,
                                                  Type ReturnType) {
   if (isVectorType(ReturnType)) {
-    return legalizeToReg(Value, Traits::RegisterSet::Reg_xmm0);
+    return legalizeToReg(Value, RegX8632::Reg_xmm0);
   } else if (isScalarFloatingType(ReturnType)) {
     _fld(Value);
     return nullptr;
   } else {
     assert(ReturnType == IceType_i32 || ReturnType == IceType_i64);
     if (ReturnType == IceType_i64) {
-      Variable *eax =
-          legalizeToReg(loOperand(Value), Traits::RegisterSet::Reg_eax);
-      Variable *edx =
-          legalizeToReg(hiOperand(Value), Traits::RegisterSet::Reg_edx);
+      Variable *eax = legalizeToReg(loOperand(Value), RegX8632::Reg_eax);
+      Variable *edx = legalizeToReg(hiOperand(Value), RegX8632::Reg_edx);
       Context.insert<InstFakeUse>(edx);
       return eax;
     } else {
       Variable *Reg = nullptr;
-      _mov(Reg, Value, Traits::RegisterSet::Reg_eax);
+      _mov(Reg, Value, RegX8632::Reg_eax);
       return Reg;
     }
   }
@@ -8027,9 +7874,9 @@ void TargetX8632::emitStackProbe(size_t StackSizeBytes) {
     // stack amount specified in EAX, so we save ESP in ECX, and restore them
     // both after the call.
 
-    Variable *EAX = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-    Variable *ESP = makeReg(IceType_i32, Traits::RegisterSet::Reg_esp);
-    Variable *ECX = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
+    Variable *EAX = makeReg(IceType_i32, RegX8632::Reg_eax);
+    Variable *ESP = makeReg(IceType_i32, RegX8632::Reg_esp);
+    Variable *ECX = makeReg(IceType_i32, RegX8632::Reg_ecx);
 
     _push_reg(ECX->getRegNum());
     _mov(ECX, ESP);

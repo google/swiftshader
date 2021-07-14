@@ -50,7 +50,7 @@ AsmAddress::AsmAddress(const Variable *Var, const TargetX8664 *Target) {
       BaseRegNum = Target->getFrameOrStackReg();
     }
   }
-  SetBase(Traits::getEncodedGPR(BaseRegNum), Offset, AssemblerFixup::NoFixup);
+  SetBase(RegX8664::getEncodedGPR(BaseRegNum), Offset, AssemblerFixup::NoFixup);
 }
 
 AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
@@ -85,13 +85,13 @@ AsmAddress::AsmAddress(const X86OperandMem *Mem, Ice::Assembler *Asm,
 
   // Now convert to the various possible forms.
   if (Mem->getBase() && Mem->getIndex()) {
-    SetBaseIndex(Traits::getEncodedGPR(Mem->getBase()->getRegNum()),
-                 Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+    SetBaseIndex(RegX8664::getEncodedGPR(Mem->getBase()->getRegNum()),
+                 RegX8664::getEncodedGPR(Mem->getIndex()->getRegNum()),
                  ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else if (Mem->getBase()) {
-    SetBase(Traits::getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
+    SetBase(RegX8664::getEncodedGPR(Mem->getBase()->getRegNum()), Disp, Fixup);
   } else if (Mem->getIndex()) {
-    SetIndex(Traits::getEncodedGPR(Mem->getIndex()->getRegNum()),
+    SetIndex(RegX8664::getEncodedGPR(Mem->getIndex()->getRegNum()),
              ScaleFactor(Mem->getShift()), Disp, Fixup);
   } else if (Fixup == nullptr) {
     SetAbsolute(Disp);
@@ -121,8 +121,8 @@ void AssemblerX8664::alignFunction() {
   }
 }
 
-typename AssemblerX8664::Label *
-AssemblerX8664::getOrCreateLabel(SizeT Number, LabelVector &Labels) {
+AssemblerX8664::Label *AssemblerX8664::getOrCreateLabel(SizeT Number,
+                                                        LabelVector &Labels) {
   Label *L = nullptr;
   if (Number == Labels.size()) {
     L = new (this->allocate<Label>()) Label();
@@ -145,13 +145,12 @@ Ice::Label *AssemblerX8664::getCfgNodeLabel(SizeT NodeNumber) {
   return CfgNodeLabels[NodeNumber];
 }
 
-typename AssemblerX8664::Label *
+AssemblerX8664::Label *
 AssemblerX8664::getOrCreateCfgNodeLabel(SizeT NodeNumber) {
   return getOrCreateLabel(NodeNumber, CfgNodeLabels);
 }
 
-typename AssemblerX8664::Label *
-AssemblerX8664::getOrCreateLocalLabel(SizeT Number) {
+AssemblerX8664::Label *AssemblerX8664::getOrCreateLocalLabel(SizeT Number) {
   return getOrCreateLabel(Number, LocalLabels);
 }
 
@@ -3167,7 +3166,7 @@ void AssemblerX8664::iaca_start() {
   emitUint8(0x0B);
 
   // mov $111, ebx
-  constexpr GPRRegister dst = Traits::GPRRegister::Encoded_Reg_ebx;
+  constexpr GPRRegister dst = GPRRegister::Encoded_Reg_ebx;
   constexpr Type Ty = IceType_i32;
   emitRexB(Ty, dst);
   emitUint8(0xB8 + gprEncoding(dst));
@@ -3182,7 +3181,7 @@ void AssemblerX8664::iaca_end() {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
 
   // mov $222, ebx
-  constexpr GPRRegister dst = Traits::GPRRegister::Encoded_Reg_ebx;
+  constexpr GPRRegister dst = GPRRegister::Encoded_Reg_ebx;
   constexpr Type Ty = IceType_i32;
   emitRexB(Ty, dst);
   emitUint8(0xB8 + gprEncoding(dst));
