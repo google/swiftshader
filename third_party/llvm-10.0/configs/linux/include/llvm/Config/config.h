@@ -4,6 +4,9 @@
 /* Exported configuration */
 #include "llvm/Config/llvm-config.h"
 
+/* For detecting __GLIBC__ usage */
+#include <features.h>
+
 /* Bug report URL. */
 #define BUG_REPORT_URL "https://bugs.llvm.org/"
 
@@ -126,6 +129,12 @@
 
 /* Define to 1 if you have the `mallinfo' function. */
 #define HAVE_MALLINFO 1
+
+/* Some projects using SwiftShader bypass cmake (eg Chromium via gn) */
+/* so we need to check glibc version for the new API to be safe */
+#if defined(__GLIBC__) && __GLIBC_MINOR__ >= 33
+#define HAVE_MALLINFO2 1
+#endif
 
 /* Define to 1 if you have the <malloc/malloc.h> header file. */
 /* #undef HAVE_MALLOC_MALLOC_H */

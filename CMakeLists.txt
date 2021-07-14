@@ -105,6 +105,12 @@ endif()
 # Host libraries
 ###########################################################
 
+include(CheckSymbolExists)
+if(LINUX)
+    check_symbol_exists(mallinfo malloc.h HAVE_MALLINFO)
+    check_symbol_exists(mallinfo2 malloc.h HAVE_MALLINFO2)
+endif()
+
 find_library(X11 X11)
 find_library(XCB xcb)
 if(SWIFTSHADER_BUILD_WSI_WAYLAND)
