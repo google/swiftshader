@@ -173,15 +173,18 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 
 		// For explicit-lod instructions the LOD can be different per SIMD lane. SamplerCore currently assumes
 		// a single LOD per four elements, so we sample the image again for each LOD separately.
-		if(samplerFunction.method == Lod || samplerFunction.method == Grad)  // TODO(b/133868964): Also handle divergent Bias and Fetch with Lod.
+		// TODO(b/133868964) Pass down 4 component lodOrBias, dsx, and dsy to sampleTexture
+		if(samplerFunction.method == Lod || samplerFunction.method == Grad)
 		{
+			// Only perform per-lane sampling if LOD diverges or we're doing Grad sampling.
+			Bool perLaneSampling = samplerFunction.method == Grad || lodOrBias.x != lodOrBias.y ||
+			                       lodOrBias.x != lodOrBias.z || lodOrBias.x != lodOrBias.w;
 			auto lod = Pointer<Float>(&lodOrBias);
-
-			For(Int i = 0, i < SIMD::Width, i++)
+			Int i = 0;
+			Do
 			{
 				SIMD::Float dPdx;
 				SIMD::Float dPdy;
-
 				dPdx.x = Pointer<Float>(&dsx.x)[i];
 				dPdx.y = Pointer<Float>(&dsx.y)[i];
 				dPdx.z = Pointer<Float>(&dsx.z)[i];
@@ -192,12 +195,26 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 
 				Vector4f sample = s.sampleTexture(texture, uvwa, dRef, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
 
-				Pointer<Float> rgba = out;
-				rgba[0 * SIMD::Width + i] = Pointer<Float>(&sample.x)[i];
-				rgba[1 * SIMD::Width + i] = Pointer<Float>(&sample.y)[i];
-				rgba[2 * SIMD::Width + i] = Pointer<Float>(&sample.z)[i];
-				rgba[3 * SIMD::Width + i] = Pointer<Float>(&sample.w)[i];
+				If(perLaneSampling)
+				{
+					Pointer<Float> rgba = out;
+					rgba[0 * SIMD::Width + i] = Pointer<Float>(&sample.x)[i];
+					rgba[1 * SIMD::Width + i] = Pointer<Float>(&sample.y)[i];
+					rgba[2 * SIMD::Width + i] = Pointer<Float>(&sample.z)[i];
+					rgba[3 * SIMD::Width + i] = Pointer<Float>(&sample.w)[i];
+					i++;
+				}
+				Else
+				{
+					Pointer<SIMD::Float> rgba = out;
+					rgba[0] = sample.x;
+					rgba[1] = sample.y;
+					rgba[2] = sample.z;
+					rgba[3] = sample.w;
+					i = SIMD::Width;
+				}
 			}
+			Until(i == SIMD::Width);
 		}
 		else
 		{
