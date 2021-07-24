@@ -198,10 +198,6 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 						Short4 mask = CmpGT(xxxx, xLeft[i]) & CmpGT(xRight[i], xxxx);
 						cMask[q] = SignMask(PackSigned(mask, mask)) & 0x0000000F;
 					}
-					else
-					{
-						cMask[q] = 0;
-					}
 				}
 
 				quad(cBuffer, zBuffer, sBuffer, cMask, x, y);

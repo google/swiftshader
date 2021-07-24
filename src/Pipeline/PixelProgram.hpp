@@ -24,20 +24,17 @@ class PixelProgram : public PixelRoutine
 public:
 	PixelProgram(
 	    const PixelProcessor::State &state,
-	    vk::PipelineLayout const *pipelineLayout,
-	    SpirvShader const *spirvShader,
-	    const vk::DescriptorSet::Bindings &descriptorSets)
-	    : PixelRoutine(state, pipelineLayout, spirvShader, descriptorSets)
-	{
-	}
+	    const vk::PipelineLayout *pipelineLayout,
+	    const SpirvShader *spirvShader,
+	    const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~PixelProgram() {}
 
 protected:
-	virtual void setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], int sampleId);
-	virtual void applyShader(Int cMask[4], Int sMask[4], Int zMask[4], int sampleId);
-	virtual Bool alphaTest(Int cMask[4], int sampleId);
-	virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], int sampleId);
+	virtual void setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], const SampleSet &samples);
+	virtual void executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples);
+	virtual Bool alphaTest(Int cMask[4], const SampleSet &samples);
+	virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], const SampleSet &samples);
 
 private:
 	// Color outputs
@@ -46,9 +43,8 @@ private:
 	// Raster operations
 	void clampColor(Vector4f oC[RENDERTARGETS]);
 
-	Int4 maskAny(Int cMask[4]) const;
-	Int4 maskAny(Int cMask[4], Int sMask[4], Int zMask[4]) const;
-	Int4 maskAny(Int cMask, Int sMask, Int zMask) const;
+	static Int4 maskAny(Int cMask[4], const SampleSet &samples);
+	static Int4 maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples);
 };
 
 }  // namespace sw

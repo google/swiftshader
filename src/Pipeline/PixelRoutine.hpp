@@ -17,6 +17,8 @@
 
 #include "Device/QuadRasterizer.hpp"
 
+#include <vector>
+
 namespace sw {
 
 class PixelShader;
@@ -33,6 +35,8 @@ public:
 	virtual ~PixelRoutine();
 
 protected:
+	using SampleSet = std::vector<int>;
+
 	Float4 z[4];  // Multisampled z
 	Float4 w;     // Used as is
 	Float4 rhw;   // Reciprocal w
@@ -45,15 +49,15 @@ protected:
 	// Depth output
 	Float4 oDepth;
 
-	virtual void setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], int sampleId) = 0;
-	virtual void applyShader(Int cMask[4], Int sMask[4], Int zMask[4], int sampleId) = 0;
-	virtual Bool alphaTest(Int cMask[4], int sampleId) = 0;
-	virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], int sampleId) = 0;
+	virtual void setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], const SampleSet &samples) = 0;
+	virtual void executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples) = 0;
+	virtual Bool alphaTest(Int cMask[4], const SampleSet &samples) = 0;
+	virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], const SampleSet &samples) = 0;
 
 	void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) override;
 
 	void alphaTest(Int &aMask, const Short4 &alpha);
-	void alphaToCoverage(Int cMask[4], const Float4 &alpha, int sampleId);
+	void alphaToCoverage(Int cMask[4], const Float4 &alpha, const SampleSet &samples);
 
 	// Raster operations
 	void alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s &current, const Int &x);
@@ -102,6 +106,8 @@ private:
 	const bool shaderContainsSampleQualifier;
 	const bool perSampleShading;
 	const int invocationCount;
+
+	SampleSet getSampleSet(int invocation) const;
 };
 
 }  // namespace sw
