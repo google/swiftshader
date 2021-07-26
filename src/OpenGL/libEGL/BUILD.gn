@@ -32,9 +32,6 @@ config("swiftshader_libEGL_private_config") {
       "-Wno-sign-compare",
       "-Wno-unused-function",
     ]
-    if (!is_clang) {
-      cflags += [ "-Wno-unused-but-set-variable" ]
-    }
 
     if (is_mac) {
       cflags += [ "-fvisibility=protected" ]

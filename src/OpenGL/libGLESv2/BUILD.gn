@@ -41,9 +41,6 @@ config("swiftshader_libGLESv2_private_config") {
     }
   } else {
     cflags = [ "-Wno-sign-compare" ]
-    if (!is_clang) {
-      cflags += [ "-Wno-unused-but-set-variable" ]
-    }
 
     defines += [
       "__STDC_CONSTANT_MACROS",

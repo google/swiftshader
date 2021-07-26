@@ -1174,7 +1174,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     list(APPEND LLVM_COMPILE_OPTIONS
         "-Wno-noexcept-type"           # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type
         "-Wno-maybe-uninitialized"     # ‘X’ may be used uninitialized in this function
-        "-Wno-unused-but-set-variable" # variable ‘X’ set but not used
     )
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8)
         list(APPEND LLVM_COMPILE_OPTIONS
