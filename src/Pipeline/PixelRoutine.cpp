@@ -102,10 +102,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 			sMask[q] = cMask[q];
 		}
 
-		for(unsigned int q : samples)
-		{
-			stencilTest(sBuffer, q, x, sMask[q], cMask[q]);
-		}
+		stencilTest(sBuffer, x, sMask, samples);
 
 		Float4 f;
 		Float4 rhwCentroid;
@@ -149,7 +146,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 			}
 		}
 
-		If(depthPass || Bool(!earlyFragmentTests))
+		If(depthPass || !earlyFragmentTests)
 		{
 			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16);
 
@@ -313,70 +310,64 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 					}
 				}
 
-				If(depthPass || Bool(earlyFragmentTests))
+				If(depthPass || earlyFragmentTests)
 				{
-					for(unsigned int q : samples)
-					{
-						writeDepth(zBuffer, q, x, z[q], zMask[q]);
-
-						if(state.occlusionEnabled)
-						{
-							occlusion += *Pointer<UInt>(constants + OFFSET(Constants, occlusionCount) + 4 * (zMask[q] & sMask[q]));
-						}
-					}
+					writeDepth(zBuffer, x, zMask, samples);
 
 					rasterOperation(cBuffer, x, sMask, zMask, cMask, samples);
+
+					occlusionSampleCount(zMask, sMask, samples);
 				}
 			}
 		}
 
-		for(unsigned int q : samples)
-		{
-			writeStencil(sBuffer, q, x, sMask[q], zMask[q], cMask[q]);
-		}
+		writeStencil(sBuffer, x, sMask, zMask, cMask, samples);
 	}
 }
 
-void PixelRoutine::stencilTest(const Pointer<Byte> &sBuffer, int q, const Int &x, Int &sMask, const Int &cMask)
+void PixelRoutine::stencilTest(const Pointer<Byte> &sBuffer, const Int &x, Int sMask[4], const SampleSet &samples)
 {
 	if(!state.stencilActive)
 	{
 		return;
 	}
 
-	// (StencilRef & StencilMask) CompFunc (StencilBufferValue & StencilMask)
-
-	Pointer<Byte> buffer = sBuffer + x;
-
-	if(q > 0)
+	for(unsigned int q : samples)
 	{
-		buffer += q * *Pointer<Int>(data + OFFSET(DrawData, stencilSliceB));
+		// (StencilRef & StencilMask) CompFunc (StencilBufferValue & StencilMask)
+
+		Pointer<Byte> buffer = sBuffer + x;
+
+		if(q > 0)
+		{
+			buffer += q * *Pointer<Int>(data + OFFSET(DrawData, stencilSliceB));
+		}
+
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB));
+		Byte8 value = *Pointer<Byte8>(buffer) & Byte8(-1, -1, 0, 0, 0, 0, 0, 0);
+		value = value | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
+		Byte8 valueBack = value;
+
+		if(state.frontStencil.compareMask != 0xff)
+		{
+			value &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].testMaskQ));
+		}
+
+		stencilTest(value, state.frontStencil.compareOp, false);
+
+		if(state.backStencil.compareMask != 0xff)
+		{
+			valueBack &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].testMaskQ));
+		}
+
+		stencilTest(valueBack, state.backStencil.compareOp, true);
+
+		value &= *Pointer<Byte8>(primitive + OFFSET(Primitive, clockwiseMask));
+		valueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive, invClockwiseMask));
+		value |= valueBack;
+
+		sMask[q] &= SignMask(value);
 	}
-
-	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB));
-	Byte8 value = *Pointer<Byte8>(buffer) & Byte8(-1, -1, 0, 0, 0, 0, 0, 0);
-	value = value | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
-	Byte8 valueBack = value;
-
-	if(state.frontStencil.compareMask != 0xff)
-	{
-		value &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].testMaskQ));
-	}
-
-	stencilTest(value, state.frontStencil.compareOp, false);
-
-	if(state.backStencil.compareMask != 0xff)
-	{
-		valueBack &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].testMaskQ));
-	}
-
-	stencilTest(valueBack, state.backStencil.compareOp, true);
-
-	value &= *Pointer<Byte8>(primitive + OFFSET(Primitive, clockwiseMask));
-	valueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive, invClockwiseMask));
-	value |= valueBack;
-
-	sMask = SignMask(value) & cMask;
 }
 
 void PixelRoutine::stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, bool isBack)
@@ -735,24 +726,43 @@ void PixelRoutine::writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, con
 	*Pointer<Int>(buffer + pitch) = Extract(As<Int2>(Z), 1);
 }
 
-void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)
+void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, const Int &x, const Int zMask[4], const SampleSet &samples)
 {
 	if(!state.depthWriteEnable)
 	{
 		return;
 	}
 
-	if(state.depthFormat == VK_FORMAT_D16_UNORM)
+	for(unsigned int q : samples)
 	{
-		writeDepth16(zBuffer, q, x, z, zMask);
-	}
-	else
-	{
-		writeDepth32F(zBuffer, q, x, z, zMask);
+		if(state.depthFormat == VK_FORMAT_D16_UNORM)
+		{
+			writeDepth16(zBuffer, q, x, z[q], zMask[q]);
+		}
+		else if(state.depthFormat == VK_FORMAT_D32_SFLOAT ||
+		        state.depthFormat == VK_FORMAT_D32_SFLOAT_S8_UINT)
+		{
+			writeDepth32F(zBuffer, q, x, z[q], zMask[q]);
+		}
+		else
+			UNSUPPORTED("Depth format: %d", int(state.depthFormat));
 	}
 }
 
-void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, int q, const Int &x, const Int &sMask, const Int &zMask, const Int &cMask)
+void PixelRoutine::occlusionSampleCount(const Int zMask[4], const Int sMask[4], const SampleSet &samples)
+{
+	if(!state.occlusionEnabled)
+	{
+		return;
+	}
+
+	for(unsigned int q : samples)
+	{
+		occlusion += *Pointer<UInt>(constants + OFFSET(Constants, occlusionCount) + 4 * (zMask[q] & sMask[q]));
+	}
+}
+
+void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, const Int &x, const Int sMask[4], const Int zMask[4], const Int cMask[4], const SampleSet &samples)
 {
 	if(!state.stencilActive)
 	{
@@ -772,49 +782,52 @@ void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, int q, const Int &x, con
 		return;
 	}
 
-	Pointer<Byte> buffer = sBuffer + x;
-
-	if(q > 0)
+	for(unsigned int q : samples)
 	{
-		buffer += q * *Pointer<Int>(data + OFFSET(DrawData, stencilSliceB));
+		Pointer<Byte> buffer = sBuffer + x;
+
+		if(q > 0)
+		{
+			buffer += q * *Pointer<Int>(data + OFFSET(DrawData, stencilSliceB));
+		}
+
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB));
+		Byte8 bufferValue = *Pointer<Byte8>(buffer) & Byte8(-1, -1, 0, 0, 0, 0, 0, 0);
+		bufferValue = bufferValue | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
+		Byte8 newValue;
+		stencilOperation(newValue, bufferValue, state.frontStencil, false, zMask[q], sMask[q]);
+
+		if((state.frontStencil.writeMask & 0xFF) != 0xFF)  // Assume 8-bit stencil buffer
+		{
+			Byte8 maskedValue = bufferValue;
+			newValue &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].writeMaskQ));
+			maskedValue &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].invWriteMaskQ));
+			newValue |= maskedValue;
+		}
+
+		Byte8 newValueBack;
+
+		stencilOperation(newValueBack, bufferValue, state.backStencil, true, zMask[q], sMask[q]);
+
+		if((state.backStencil.writeMask & 0xFF) != 0xFF)  // Assume 8-bit stencil buffer
+		{
+			Byte8 maskedValue = bufferValue;
+			newValueBack &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].writeMaskQ));
+			maskedValue &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].invWriteMaskQ));
+			newValueBack |= maskedValue;
+		}
+
+		newValue &= *Pointer<Byte8>(primitive + OFFSET(Primitive, clockwiseMask));
+		newValueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive, invClockwiseMask));
+		newValue |= newValueBack;
+
+		newValue &= *Pointer<Byte8>(constants + OFFSET(Constants, maskB4Q) + 8 * cMask[q]);
+		bufferValue &= *Pointer<Byte8>(constants + OFFSET(Constants, invMaskB4Q) + 8 * cMask[q]);
+		newValue |= bufferValue;
+
+		*Pointer<Short>(buffer) = Extract(As<Short4>(newValue), 0);
+		*Pointer<Short>(buffer + pitch) = Extract(As<Short4>(newValue), 1);
 	}
-
-	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB));
-	Byte8 bufferValue = *Pointer<Byte8>(buffer) & Byte8(-1, -1, 0, 0, 0, 0, 0, 0);
-	bufferValue = bufferValue | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
-	Byte8 newValue;
-	stencilOperation(newValue, bufferValue, state.frontStencil, false, zMask, sMask);
-
-	if((state.frontStencil.writeMask & 0xFF) != 0xFF)  // Assume 8-bit stencil buffer
-	{
-		Byte8 maskedValue = bufferValue;
-		newValue &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].writeMaskQ));
-		maskedValue &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].invWriteMaskQ));
-		newValue |= maskedValue;
-	}
-
-	Byte8 newValueBack;
-
-	stencilOperation(newValueBack, bufferValue, state.backStencil, true, zMask, sMask);
-
-	if((state.backStencil.writeMask & 0xFF) != 0xFF)  // Assume 8-bit stencil buffer
-	{
-		Byte8 maskedValue = bufferValue;
-		newValueBack &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].writeMaskQ));
-		maskedValue &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].invWriteMaskQ));
-		newValueBack |= maskedValue;
-	}
-
-	newValue &= *Pointer<Byte8>(primitive + OFFSET(Primitive, clockwiseMask));
-	newValueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive, invClockwiseMask));
-	newValue |= newValueBack;
-
-	newValue &= *Pointer<Byte8>(constants + OFFSET(Constants, maskB4Q) + 8 * cMask);
-	bufferValue &= *Pointer<Byte8>(constants + OFFSET(Constants, invMaskB4Q) + 8 * cMask);
-	newValue |= bufferValue;
-
-	*Pointer<Short>(buffer) = Extract(As<Short4>(newValue), 0);
-	*Pointer<Short>(buffer + pitch) = Extract(As<Short4>(newValue), 1);
 }
 
 void PixelRoutine::stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, const PixelProcessor::States::StencilOpState &ops, bool isBack, const Int &zMask, const Int &sMask)
