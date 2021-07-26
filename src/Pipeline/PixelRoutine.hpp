@@ -46,9 +46,6 @@ protected:
 	SpirvRoutine routine;
 	const vk::DescriptorSet::Bindings &descriptorSets;
 
-	// Depth output
-	Float4 oDepth;
-
 	virtual void setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], const SampleSet &samples) = 0;
 	virtual void executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples) = 0;
 	virtual Bool alphaTest(Int cMask[4], const SampleSet &samples) = 0;
