@@ -2273,7 +2273,6 @@ namespace glsl
 		if(type.isStruct() || type.isInterfaceBlock())
 		{
 			const TFieldList& fields = type.getStruct() ? type.getStruct()->fields() : type.getInterfaceBlock()->fields();
-			int elements = 0;
 
 			for(const auto &field : fields)
 			{
@@ -2282,7 +2281,6 @@ namespace glsl
 				if(fieldType.totalRegisterCount() <= registers)
 				{
 					registers -= fieldType.totalRegisterCount();
-					elements += fieldType.getObjectSize();
 				}
 				else   // Register within this field
 				{

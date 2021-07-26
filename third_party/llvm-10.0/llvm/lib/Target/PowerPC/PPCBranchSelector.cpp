@@ -289,7 +289,6 @@ bool PPCBSel::runOnMachineFunction(MachineFunction &Fn) {
   //     b MBB
   //
   bool MadeChange = true;
-  bool EverMadeChange = false;
   while (MadeChange) {
     // Iteratively expand branches until we reach a fixed point.
     MadeChange = false;
@@ -379,8 +378,6 @@ bool PPCBSel::runOnMachineFunction(MachineFunction &Fn) {
       // padding-based contributions to the block sizes.
       modifyAdjustment(Fn);
     }
-
-    EverMadeChange |= MadeChange;
   }
 
   BlockSizes.clear();
