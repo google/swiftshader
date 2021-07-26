@@ -154,8 +154,26 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 	state.multiSampleMask = pipelineState.getMultiSampleMask();
 	state.enableMultiSampling = (state.multiSampleCount > 1) &&
 	                            !(pipelineState.isDrawLine(true) && (pipelineState.getLineRasterizationMode() == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
-	state.sampleShadingEnabled = pipelineState.hasSampleShadingEnabled();
-	state.minSampleShading = pipelineState.getMinSampleShading();
+
+	// SampleId and SamplePosition require per-sample fragment shader invocations, so the Vulkan spec
+	// requires turning on sample shading if either of them is present in the shader:
+	// "If a fragment shader entry point's interface includes an input variable decorated with SampleId,
+	//  Sample Shading is considered enabled with a minSampleShading value of 1.0."
+	// "If a fragment shader entry point's interface includes an input variable decorated with SamplePosition,
+	//  Sample Shading is considered enabled with a minSampleShading value of 1.0."
+	bool shaderContainsSampleDecoration = fragmentShader && (fragmentShader->hasBuiltinInput(spv::BuiltInSampleId) ||
+	                                                         fragmentShader->hasBuiltinInput(spv::BuiltInSamplePosition));
+
+	if(shaderContainsSampleDecoration)
+	{
+		state.sampleShadingEnabled = true;
+		state.minSampleShading = 1.0f;
+	}
+	else
+	{
+		state.sampleShadingEnabled = pipelineState.hasSampleShadingEnabled();
+		state.minSampleShading = pipelineState.getMinSampleShading();
+	}
 
 	if(state.enableMultiSampling && fragmentShader)
 	{

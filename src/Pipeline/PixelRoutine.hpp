@@ -96,6 +96,12 @@ private:
 
 	Int4 depthBoundsTest32F(const Pointer<Byte> &zBuffer, int q, const Int &x);
 	Int4 depthBoundsTest16(const Pointer<Byte> &zBuffer, int q, const Int &x);
+
+	// Derived state parameters
+	const bool shaderContainsInterpolation;  // TODO(b/194714095)
+	const bool shaderContainsSampleQualifier;
+	const bool perSampleShading;
+	const int invocationCount;
 };
 
 }  // namespace sw

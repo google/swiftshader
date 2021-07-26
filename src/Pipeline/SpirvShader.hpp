@@ -580,6 +580,9 @@ public:
 		bool DepthGreater : 1;
 		bool DepthLess : 1;
 		bool DepthUnchanged : 1;
+
+		// TODO(b/177839655): These are not SPIR-V execution modes.
+		// Move to an Analysis structure.
 		bool ContainsKill : 1;
 		bool ContainsControlBarriers : 1;
 		bool NeedsCentroid : 1;

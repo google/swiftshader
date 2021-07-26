@@ -32,6 +32,11 @@ PixelRoutine::PixelRoutine(
     : QuadRasterizer(state, spirvShader)
     , routine(pipelineLayout)
     , descriptorSets(descriptorSets)
+    , shaderContainsInterpolation(spirvShader && spirvShader->getUsedCapabilities().InterpolationFunction)
+    , shaderContainsSampleQualifier(spirvShader && spirvShader->getModes().ContainsSampleQualifier)
+    , perSampleShading((state.sampleShadingEnabled && (state.minSampleShading * state.multiSampleCount > 1.0f)) ||
+                       shaderContainsSampleQualifier || shaderContainsInterpolation)  // TODO(b/194714095)
+    , invocationCount(perSampleShading ? state.multiSampleCount : 1)
 {
 	if(spirvShader)
 	{
@@ -63,34 +68,9 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 	Int sMask[4];  // Stencil mask
 	Float4 unclampedZ[4];
 
-	bool sampleShadingEnabled = state.sampleShadingEnabled;
-	float minSampleShading = state.minSampleShading;
-	if(spirvShader)
+	for(int invocation = 0; invocation < invocationCount; invocation++)
 	{
-		// SampleId and SamplePosition built-ins require the sampleRateShading feature, so the Vulkan spec
-		// requires turning on per sample shading if either of them is present in the shader.
-
-		// "If a fragment shader entry point's interface includes an input variable decorated with SampleId,
-		//  Sample Shading is considered enabled with a minSampleShading value of 1.0."
-
-		// "If a fragment shader entry point's interface includes an input variable decorated with SamplePosition,
-		//  Sample Shading is considered enabled with a minSampleShading value of 1.0."
-		if(spirvShader->hasBuiltinInput(spv::BuiltInSampleId) || spirvShader->hasBuiltinInput(spv::BuiltInSamplePosition))
-		{
-			sampleShadingEnabled = true;
-			minSampleShading = 1.0f;
-		}
-	}
-
-	bool shaderContainsInterpolation = spirvShader && spirvShader->getUsedCapabilities().InterpolationFunction;
-	bool shaderContainsSampleQualifier = spirvShader && spirvShader->getModes().ContainsSampleQualifier;
-	bool perSampleShading = (sampleShadingEnabled && (minSampleShading > 0.0f)) ||
-	                        shaderContainsInterpolation || shaderContainsSampleQualifier;
-	unsigned int numSampleRenders = perSampleShading ? state.multiSampleCount : 1;
-
-	for(unsigned int i = 0; i < numSampleRenders; ++i)
-	{
-		int sampleId = perSampleShading ? i : -1;
+		int sampleId = perSampleShading ? invocation : -1;
 		unsigned int sampleLoopInit = perSampleShading ? sampleId : 0;
 		unsigned int sampleLoopEnd = perSampleShading ? sampleId + 1 : state.multiSampleCount;
 
@@ -155,7 +135,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 			Float4 XXXX = Float4(0.0f);
 			Float4 YYYY = Float4(0.0f);
 
-			if(state.centroid || shaderContainsInterpolation)
+			if(state.centroid || shaderContainsInterpolation)  // TODO(b/194714095)
 			{
 				Float4 WWWW(1.0e-9f);
 
@@ -179,7 +159,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 				w = interpolate(xxxx, Dw, rhw, primitive + OFFSET(Primitive, w), false, false);
 				rhw = reciprocal(w, false, false, true);
 
-				if(state.centroid || shaderContainsInterpolation)
+				if(state.centroid || shaderContainsInterpolation)  // TODO(b/194714095)
 				{
 					rhwCentroid = reciprocal(SpirvRoutine::interpolateAtXY(XXXX, YYYY, rhwCentroid, primitive + OFFSET(Primitive, w), false, false));
 				}
@@ -187,7 +167,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 			if(spirvShader)
 			{
-				if(shaderContainsInterpolation)
+				if(shaderContainsInterpolation)  // TODO(b/194714095)
 				{
 					routine.interpolationData.primitive = primitive;
 
