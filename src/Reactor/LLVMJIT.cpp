@@ -701,6 +701,9 @@ public:
 	    size_t count,
 	    const rr::Config &config)
 	    : name(name)
+#if LLVM_VERSION_MAJOR >= 13
+	    , session(std::move(*llvm::orc::SelfExecutorProcessControl::Create()))
+#endif
 	    , objectLayer(session, []() {
 		    static MemoryMapper memoryMapper;
 		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
