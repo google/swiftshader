@@ -1586,6 +1586,7 @@ OutOfBoundsBehavior SpirvShader::EmitState::getOutOfBoundsBehavior(spv::StorageC
 		}
 		// Fall through to default case.
 	default:
+		// TODO(b/192310780): StorageClassFunction out-of-bounds accesses are undefined behavior.
 		// TODO(b/137183137): Optimize if the pointer resulted from OpInBoundsAccessChain.
 		// TODO(b/131224163): Optimize cases statically known to be within bounds.
 		return OutOfBoundsBehavior::UndefinedValue;
