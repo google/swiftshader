@@ -13,9 +13,6 @@ dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pu
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_0.137_191_1.samples_4
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_1.128_128_1.samples_4
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_1.137_191_1.samples_4
-dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_greater
-dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_less
-dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_not_equal
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16b16a16_snorm
@@ -27,4 +24,3 @@ dEQP-VK.texture.explicit_lod.2d.sizes.57x35_linear_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.57x35_linear_linear_mipmap_nearest_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.57x35_nearest_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.57x35_nearest_linear_mipmap_nearest_repeat
-dEQP-VK.texture.subgroup_lod.texelfetch
