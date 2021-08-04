@@ -57,7 +57,7 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 	// Determine if we can skip the LOD computation. This is the case when the mipmap has only one level, except for LOD query,
 	// where we have to return the computed value. Anisotropic filtering requires computing the anisotropy factor even for a single mipmap level.
 	bool singleMipLevel = (state.minLod == state.maxLod);
-	bool requiresLodComputation = (function == Query) || (function == Fetch) || (state.textureFilter == FILTER_ANISOTROPIC);
+	bool requiresLodComputation = (function == Query) || (state.textureFilter == FILTER_ANISOTROPIC);
 	bool skipLodComputation = singleMipLevel && !requiresLodComputation;
 
 	if(skipLodComputation)

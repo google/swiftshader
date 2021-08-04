@@ -93,12 +93,21 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 				samplerState.maxLod = 0.0f;
 			}
 		}
-		else
+		else  // Fetch
 		{
+			ASSERT(samplerMethod == Fetch);
+
 			// OpImageFetch does not take a sampler descriptor, but for VK_EXT_image_robustness
 			// requires replacing invalid texels with zero.
 			// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 			samplerState.border = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+
+			// If there's a single mip level we can skip LOD computation.
+			if(imageViewState.singleMipLevel)
+			{
+				samplerState.minLod = 0.0f;
+				samplerState.maxLod = 0.0f;
+			}
 		}
 
 		return emitSamplerRoutine(instruction, samplerState);
