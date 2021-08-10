@@ -1040,6 +1040,12 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
     ],
+
+    sanitize: {
+        // HWASan slows down LLVM JIT compilation more than usual.
+        // b/193198227
+        hwaddress: false,
+    },
 }
 
 cc_library_static {
