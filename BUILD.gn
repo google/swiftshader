@@ -17,6 +17,7 @@ import("src/Reactor/reactor.gni")
 config("swiftshader_config") {
   cflags = []
   defines = []
+  asmflags = []
 
   if (!is_debug) {
     defines += [ "ANGLE_DISABLE_TRACE" ]
@@ -49,6 +50,22 @@ config("swiftshader_config") {
 
     if (!is_debug) {
       cflags += [ "-Os" ]
+    }
+  }
+
+  if (build_with_chromium) {
+    if (is_clang) {
+      if (current_cpu == "arm64") {
+        import("//build/config/arm.gni")
+
+        if (arm_control_flow_integrity == "standard") {
+          cflags += [ "-mbranch-protection=standard" ]
+          asmflags += [ "-mbranch-protection=standard" ]
+        } else {
+          assert(arm_control_flow_integrity == "none",
+                 "Invalid branch protection option!")
+        }
+      }
     }
   }
 }

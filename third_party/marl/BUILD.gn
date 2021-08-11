@@ -43,9 +43,7 @@ swiftshader_source_set("Marl_headers") {
     "include/marl/waitgroup.h",
   ]
 
-  public_configs = [
-    ":marl_config",
-  ]
+  public_configs = [ ":marl_config" ]
 }
 
 swiftshader_source_set("Marl") {
@@ -58,23 +56,46 @@ swiftshader_source_set("Marl") {
   ]
 
   if (!is_win) {
-    sources += [
-      "src/osfiber_aarch64.c",
-      "src/osfiber_arm.c",
-      "src/osfiber_asm_aarch64.S",
-      "src/osfiber_asm_arm.S",
-      "src/osfiber_asm_mips64.S",
-      "src/osfiber_asm_ppc64.S",
-      "src/osfiber_asm_x64.S",
-      "src/osfiber_asm_x86.S",
-      "src/osfiber_mips64.c",
-      "src/osfiber_ppc64.c",
-      "src/osfiber_x64.c",
-      "src/osfiber_x86.c",
-    ]
+    if (current_cpu == "arm64") {
+      sources += [
+        "src/osfiber_aarch64.c",
+        "src/osfiber_asm_aarch64.h",
+        "src/osfiber_asm_aarch64.S",
+      ]
+    } else if (current_cpu == "arm") {
+      sources += [
+        "src/osfiber_arm.c",
+        "src/osfiber_asm_arm.h",
+        "src/osfiber_asm_arm.S",
+      ]
+    } else if (current_cpu == "mips64") {
+      sources += [
+        "src/osfiber_mips64.c",
+        "src/osfiber_asm_mips64.h",
+        "src/osfiber_asm_mips64.S",
+      ]
+    } else if (current_cpu == "ppc64") {
+      sources += [
+        "src/osfiber_ppc64.c",
+        "src/osfiber_asm_ppc64.h",
+        "src/osfiber_asm_ppc64.S",
+      ]
+    } else if (current_cpu == "x64") {
+      sources += [
+        "src/osfiber_x64.c",
+        "src/osfiber_asm_x64.h",
+        "src/osfiber_asm_x64.S",
+      ]
+    } else if (current_cpu == "x86") {
+      sources += [
+        "src/osfiber_x86.c",
+        "src/osfiber_asm_x86.h",
+        "src/osfiber_asm_x86.S",
+      ]
+    } else {
+      assert(false, "Unhandled value for current-cpu=" + current_cpu)
+    }
   }
 
-  public_deps = [
-    ":Marl_headers",
-  ]
+  public_deps = [ ":Marl_headers" ]
 }
