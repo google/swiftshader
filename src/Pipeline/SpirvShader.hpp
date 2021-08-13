@@ -573,7 +573,7 @@ public:
 
 	~SpirvShader();
 
-	struct Modes
+	struct ExecutionModes
 	{
 		bool EarlyFragmentTests : 1;
 		bool DepthReplacing : 1;
@@ -581,22 +581,28 @@ public:
 		bool DepthLess : 1;
 		bool DepthUnchanged : 1;
 
-		// TODO(b/177839655): These are not SPIR-V execution modes.
-		// Move to an Analysis structure.
-		bool ContainsKill : 1;
-		bool ContainsControlBarriers : 1;
-		bool NeedsCentroid : 1;
-		bool ContainsSampleQualifier : 1;
-
 		// Compute workgroup dimensions
 		int WorkgroupSizeX = 1;
 		int WorkgroupSizeY = 1;
 		int WorkgroupSizeZ = 1;
 	};
 
-	Modes const &getModes() const
+	const ExecutionModes &getExecutionModes() const
 	{
-		return modes;
+		return executionModes;
+	}
+
+	struct Analysis
+	{
+		bool ContainsKill : 1;
+		bool ContainsControlBarriers : 1;
+		bool NeedsCentroid : 1;
+		bool ContainsSampleQualifier : 1;
+	};
+
+	const Analysis &getAnalysis() const
+	{
+		return analysis;
 	}
 
 	struct Capabilities
@@ -630,7 +636,7 @@ public:
 		bool StencilExportEXT : 1;
 	};
 
-	Capabilities const &getUsedCapabilities() const
+	const Capabilities &getUsedCapabilities() const
 	{
 		return capabilities;
 	}
@@ -830,7 +836,8 @@ public:
 
 private:
 	const uint32_t codeSerialID;
-	Modes modes = {};
+	ExecutionModes executionModes = {};
+	Analysis analysis = {};
 	Capabilities capabilities = {};
 	HandleMap<Type> types;
 	HandleMap<Object> defs;

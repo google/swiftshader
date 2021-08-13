@@ -214,10 +214,10 @@ void ComputeProgram::run(
     uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
     uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
-	auto &modes = shader->getModes();
+	auto &executionModes = shader->getExecutionModes();
 
 	auto invocationsPerSubgroup = SIMD::Width;
-	auto invocationsPerWorkgroup = modes.WorkgroupSizeX * modes.WorkgroupSizeY * modes.WorkgroupSizeZ;
+	auto invocationsPerWorkgroup = executionModes.WorkgroupSizeX * executionModes.WorkgroupSizeY * executionModes.WorkgroupSizeZ;
 	auto subgroupsPerWorkgroup = (invocationsPerWorkgroup + invocationsPerSubgroup - 1) / invocationsPerSubgroup;
 
 	Data data;
@@ -227,9 +227,9 @@ void ComputeProgram::run(
 	data.numWorkgroups[Y] = groupCountY;
 	data.numWorkgroups[Z] = groupCountZ;
 	data.numWorkgroups[3] = 0;
-	data.workgroupSize[X] = modes.WorkgroupSizeX;
-	data.workgroupSize[Y] = modes.WorkgroupSizeY;
-	data.workgroupSize[Z] = modes.WorkgroupSizeZ;
+	data.workgroupSize[X] = executionModes.WorkgroupSizeX;
+	data.workgroupSize[Y] = executionModes.WorkgroupSizeY;
+	data.workgroupSize[Z] = executionModes.WorkgroupSizeZ;
 	data.workgroupSize[3] = 0;
 	data.invocationsPerSubgroup = invocationsPerSubgroup;
 	data.invocationsPerWorkgroup = invocationsPerWorkgroup;
@@ -266,7 +266,7 @@ void ComputeProgram::run(
 				using Coroutine = std::unique_ptr<rr::Stream<SpirvShader::YieldResult>>;
 				std::queue<Coroutine> coroutines;
 
-				if(modes.ContainsControlBarriers)
+				if(shader->getAnalysis().ContainsControlBarriers)
 				{
 					// Make a function call per subgroup so each subgroup
 					// can yield, bringing all subgroups to the barrier

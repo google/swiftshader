@@ -33,7 +33,7 @@ PixelRoutine::PixelRoutine(
     , routine(pipelineLayout)
     , descriptorSets(descriptorSets)
     , shaderContainsInterpolation(spirvShader && spirvShader->getUsedCapabilities().InterpolationFunction)
-    , shaderContainsSampleQualifier(spirvShader && spirvShader->getModes().ContainsSampleQualifier)
+    , shaderContainsSampleQualifier(spirvShader && spirvShader->getAnalysis().ContainsSampleQualifier)
     , perSampleShading((state.sampleShadingEnabled && (state.minSampleShading * state.multiSampleCount > 1.0f)) ||
                        shaderContainsSampleQualifier || shaderContainsInterpolation)  // TODO(b/194714095)
     , invocationCount(perSampleShading ? state.multiSampleCount : 1)
@@ -81,7 +81,7 @@ PixelRoutine::SampleSet PixelRoutine::getSampleSet(int invocation) const
 
 void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y)
 {
-	const bool earlyFragmentTests = !spirvShader || spirvShader->getModes().EarlyFragmentTests;
+	const bool earlyFragmentTests = !spirvShader || spirvShader->getExecutionModes().EarlyFragmentTests;
 
 	Int zMask[4];  // Depth mask
 	Int sMask[4];  // Stencil mask
@@ -295,7 +295,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 			Bool alphaPass = alphaTest(cMask, samples);
 
-			if((spirvShader && spirvShader->getModes().ContainsKill) || state.alphaToCoverage)
+			if((spirvShader && spirvShader->getAnalysis().ContainsKill) || state.alphaToCoverage)
 			{
 				for(unsigned int q : samples)
 				{

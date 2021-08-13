@@ -118,7 +118,7 @@ SpirvShader::SpirvShader(
 					descriptorDecorations[targetId].InputAttachmentIndex = value;
 					break;
 				case spv::DecorationSample:
-					modes.ContainsSampleQualifier = true;
+					analysis.ContainsSampleQualifier = true;
 					break;
 				default:
 					// Only handling descriptor decorations here.
@@ -127,7 +127,7 @@ SpirvShader::SpirvShader(
 
 				if(decoration == spv::DecorationCentroid)
 				{
-					modes.NeedsCentroid = true;
+					analysis.NeedsCentroid = true;
 				}
 			}
 			break;
@@ -147,7 +147,7 @@ SpirvShader::SpirvShader(
 
 				if(decoration == spv::DecorationCentroid)
 				{
-					modes.NeedsCentroid = true;
+					analysis.NeedsCentroid = true;
 				}
 			}
 			break;
@@ -234,7 +234,7 @@ SpirvShader::SpirvShader(
 
 				if(opcode == spv::OpKill)
 				{
-					modes.ContainsKill = true;
+					analysis.ContainsKill = true;
 				}
 			}
 			break;
@@ -376,9 +376,9 @@ SpirvShader::SpirvShader(
 					// The object decorated with WorkgroupSize must be declared
 					// as a three-component vector of 32-bit integers.
 					ASSERT(getType(object).componentCount == 3);
-					modes.WorkgroupSizeX = object.constantValue[0];
-					modes.WorkgroupSizeY = object.constantValue[1];
-					modes.WorkgroupSizeZ = object.constantValue[2];
+					executionModes.WorkgroupSizeX = object.constantValue[0];
+					executionModes.WorkgroupSizeY = object.constantValue[1];
+					executionModes.WorkgroupSizeZ = object.constantValue[2];
 				}
 			}
 			break;
@@ -739,7 +739,7 @@ SpirvShader::SpirvShader(
 			break;
 
 		case spv::OpControlBarrier:
-			modes.ContainsControlBarriers = true;
+			analysis.ContainsControlBarriers = true;
 			break;
 
 		case spv::OpExtension:
@@ -943,27 +943,27 @@ void SpirvShader::ProcessExecutionMode(InsnIterator insn)
 	switch(mode)
 	{
 	case spv::ExecutionModeEarlyFragmentTests:
-		modes.EarlyFragmentTests = true;
+		executionModes.EarlyFragmentTests = true;
 		break;
 	case spv::ExecutionModeDepthReplacing:
-		modes.DepthReplacing = true;
+		executionModes.DepthReplacing = true;
 		break;
 	case spv::ExecutionModeDepthGreater:
 		// TODO(b/177915067): Can be used to optimize depth test, currently unused.
-		modes.DepthGreater = true;
+		executionModes.DepthGreater = true;
 		break;
 	case spv::ExecutionModeDepthLess:
 		// TODO(b/177915067): Can be used to optimize depth test, currently unused.
-		modes.DepthLess = true;
+		executionModes.DepthLess = true;
 		break;
 	case spv::ExecutionModeDepthUnchanged:
 		// TODO(b/177915067): Can be used to optimize depth test, currently unused.
-		modes.DepthUnchanged = true;
+		executionModes.DepthUnchanged = true;
 		break;
 	case spv::ExecutionModeLocalSize:
-		modes.WorkgroupSizeX = insn.word(3);
-		modes.WorkgroupSizeY = insn.word(4);
-		modes.WorkgroupSizeZ = insn.word(5);
+		executionModes.WorkgroupSizeX = insn.word(3);
+		executionModes.WorkgroupSizeY = insn.word(4);
+		executionModes.WorkgroupSizeZ = insn.word(5);
 		break;
 	case spv::ExecutionModeOriginUpperLeft:
 		// This is always the case for a Vulkan shader. Do nothing.

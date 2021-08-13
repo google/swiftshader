@@ -220,7 +220,7 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 
 	clampColor(c);
 
-	if(spirvShader->getModes().ContainsKill)
+	if(spirvShader->getAnalysis().ContainsKill)
 	{
 		for(unsigned int q : samples)
 		{

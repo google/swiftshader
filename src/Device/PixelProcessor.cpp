@@ -142,7 +142,7 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 
 	state.occlusionEnabled = occlusionEnabled;
 
-	bool fragmentContainsKill = (fragmentShader && fragmentShader->getModes().ContainsKill);
+	bool fragmentContainsKill = (fragmentShader && fragmentShader->getAnalysis().ContainsKill);
 	for(int i = 0; i < RENDERTARGETS; i++)
 	{
 		state.colorWriteMask |= pipelineState.colorWriteActive(i, attachments) << (4 * i);
@@ -177,7 +177,7 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 
 	if(state.enableMultiSampling && fragmentShader)
 	{
-		state.centroid = fragmentShader->getModes().NeedsCentroid;
+		state.centroid = fragmentShader->getAnalysis().NeedsCentroid;
 	}
 
 	state.frontFace = pipelineState.getFrontFace();
