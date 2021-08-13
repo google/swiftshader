@@ -188,13 +188,19 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 	UInt4 zero(0);
 	if(robustBufferAccess)
 	{
-		// TODO(b/141124876): Optimize for wide-vector gather operations.
+		// Prevent integer overflow on the addition below.
+		offsets = Min(offsets, UInt4(robustnessSize));
+
+		// "vertex input attributes are considered out of bounds if the offset of the attribute
+		//  in the bound vertex buffer range plus the size of the attribute is greater than ..."
 		UInt4 limits = offsets + UInt4(format.bytes());
+
 		Pointer<Byte> zeroSource = As<Pointer<Byte>>(&zero);
-		source0 = IfThenElse(limits.x <= robustnessSize, source0, zeroSource);
-		source1 = IfThenElse(limits.y <= robustnessSize, source1, zeroSource);
-		source2 = IfThenElse(limits.z <= robustnessSize, source2, zeroSource);
-		source3 = IfThenElse(limits.w <= robustnessSize, source3, zeroSource);
+		// TODO(b/141124876): Optimize for wide-vector gather operations.
+		source0 = IfThenElse(limits.x > robustnessSize, zeroSource, source0);
+		source1 = IfThenElse(limits.y > robustnessSize, zeroSource, source1);
+		source2 = IfThenElse(limits.z > robustnessSize, zeroSource, source2);
+		source3 = IfThenElse(limits.w > robustnessSize, zeroSource, source3);
 	}
 
 	int componentCount = format.componentCount();
