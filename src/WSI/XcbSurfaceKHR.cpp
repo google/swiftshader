@@ -96,7 +96,7 @@ VkExtent2D getWindowSize(xcb_connection_t *connection, xcb_window_t window)
 	{
 		free(error);
 	}
-	else
+	else if(geom)
 	{
 		windowExtent.width = static_cast<uint32_t>(geom->width);
 		windowExtent.height = static_cast<uint32_t>(geom->height);
