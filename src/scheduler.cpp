@@ -234,6 +234,9 @@ Scheduler::Fiber::Fiber(Allocator::unique_ptr<OSFiber>&& impl, uint32_t id)
   MARL_ASSERT(worker != nullptr, "No Scheduler::Worker bound");
 }
 
+// TODO(chromium:1211047): Testing the static thread_local Worker::current for
+// null causes a MemorySantizer false positive.
+CLANG_NO_SANITIZE_MEMORY
 Scheduler::Fiber* Scheduler::Fiber::current() {
   auto worker = Worker::getCurrent();
   return worker != nullptr ? worker->getCurrentFiber() : nullptr;

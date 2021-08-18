@@ -18,6 +18,8 @@
 
 #include "marl/export.h"
 
+//You can find an explanation of this code here: https://github.com/google/marl/issues/199
+
 MARL_EXPORT
 void marl_fiber_trampoline(void (*target)(void*), void* arg) {
   target(arg);

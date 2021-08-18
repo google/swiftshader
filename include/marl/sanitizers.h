@@ -78,4 +78,13 @@
 #define THREAD_SANITIZER_ONLY(x)
 #endif  // THREAD_SANITIZER_ENABLED
 
+// The CLANG_NO_SANITIZE_MEMORY macro suppresses MemorySanitizer checks for
+// use-of-uninitialized-data. It can be used to decorate functions with known
+// false positives.
+#ifdef __clang__
+#define CLANG_NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
+#else
+#define CLANG_NO_SANITIZE_MEMORY
+#endif
+
 #endif  // marl_sanitizers_h

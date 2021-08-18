@@ -17,6 +17,48 @@
 #define MARL_BUILD_ASM 1
 #include "osfiber_asm_aarch64.h"
 
+
+#if defined(__ARM_FEATURE_PAC_DEFAULT) && __ARM_FEATURE_PAC_DEFAULT
+// ENABLE_PAUTH must be defined to 1 since this value will be used in
+// bitwise-shift later!
+#define ENABLE_PAUTH 1
+
+#if ((__ARM_FEATURE_PAC_DEFAULT & ((1 << 0) | (1 << 1))) == 0)
+#error Pointer authentication defines no valid key!
+#endif
+#else
+#define ENABLE_PAUTH 0
+#endif
+
+#if defined(__ARM_FEATURE_BTI_DEFAULT) && (__ARM_FEATURE_BTI_DEFAULT == 1)
+// ENABLE_BTI must be defined to 1 since this value will be used in
+// bitwise-shift later!
+#define ENABLE_BTI 1
+#else
+#define ENABLE_BTI 0
+#endif
+
+// Although Pointer Authentication and Branch Target Instructions are
+// technically seperate features they work together, i.e. the paciasp and
+// pacibsp instructions serve as BTI landing pads. Therefore PA-instructions are
+// enabled when PA _or_ BTI is enabled!
+#if ENABLE_PAUTH || ENABLE_BTI
+// See section "Pointer Authentication" of
+// https://developer.arm.com/documentation/101028/0012/5--Feature-test-macros
+// for details how to interpret __ARM_FEATURE_PAC_DEFAULT
+#if (__ARM_FEATURE_PAC_DEFAULT & (1 << 0))
+#define PAUTH_SIGN_SP paciasp
+#define PAUTH_AUTH_SP autiasp
+#else
+#define PAUTH_SIGN_SP pacibsp
+#define PAUTH_AUTH_SP autibsp
+#endif
+#else
+#define PAUTH_SIGN_SP
+#define PAUTH_AUTH_SP
+#endif
+
+
 // void marl_fiber_swap(marl_fiber_context* from, const marl_fiber_context* to)
 // x0: from
 // x1: to
@@ -27,6 +69,8 @@ MARL_ASM_SYMBOL(marl_fiber_swap):
 
     // Save context 'from'
     // TODO: pairs of str can be combined with stp.
+
+    PAUTH_SIGN_SP
 
     // Store special purpose registers
     str x16, [x0, #MARL_REG_r16]
@@ -99,6 +143,24 @@ MARL_ASM_SYMBOL(marl_fiber_swap):
     ldr x2,  [x7, #MARL_REG_SP]
     mov sp, x2
 
+    PAUTH_AUTH_SP
+
     ret
+
+#if ENABLE_PAUTH || ENABLE_BTI
+// see
+// https://github.com/ARM-software/abi-aa/blob/main/aaelf64/aaelf64.rst#program-property
+.pushsection .note.gnu.property, "a";
+    .balign 8
+    .long 4
+    .long 0x10
+    .long 0x5
+    .asciz "GNU"
+    .long 0xc0000000 /* GNU_PROPERTY_AARCH64_FEATURE_1_AND */
+    .long 4
+    .long ((ENABLE_PAUTH)<<1) | ((ENABLE_BTI)<<0) /* PAuth and BTI */
+    .long 0
+.popsection
+#endif
 
 #endif // defined(__aarch64__)

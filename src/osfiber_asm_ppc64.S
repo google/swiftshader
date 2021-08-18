@@ -23,8 +23,20 @@
 .text
 .global marl_fiber_swap
 .align 4
+#if !defined(_CALL_ELF) || (_CALL_ELF != 2)
+.global .marl_fiber_swap
+.pushsection ".opd","aw"
+marl_fiber_swap:
+.quad .marl_fiber_swap
+.quad .TOC.@tocbase
+.quad 0
+.popsection
+.type .marl_fiber_swap,@function
+.marl_fiber_swap:
+#else
 .type marl_fiber_swap @function
 marl_fiber_swap:
+#endif
 
     // Store non-volatile registers
     std 1, MARL_REG_R1(3)
