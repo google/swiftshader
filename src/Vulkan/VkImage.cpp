@@ -807,7 +807,7 @@ int Image::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 		return extentInBlocks.width * usedFormat.bytesPerBlock();
 	}
 
-	return usedFormat.pitchB(mipLevelExtent.width, borderSize());
+	return usedFormat.pitchB(mipLevelExtent.width, borderSize(), deviceMemory && deviceMemory->hasExternalMemory());
 }
 
 int Image::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
@@ -824,7 +824,7 @@ int Image::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) cons
 		return extentInBlocks.height * extentInBlocks.width * usedFormat.bytesPerBlock();
 	}
 
-	return usedFormat.sliceB(mipLevelExtent.width, mipLevelExtent.height, borderSize());
+	return usedFormat.sliceB(mipLevelExtent.width, mipLevelExtent.height, borderSize(), deviceMemory && deviceMemory->hasExternalMemory());
 }
 
 Format Image::getFormat(VkImageAspectFlagBits aspect) const
