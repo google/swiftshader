@@ -91,9 +91,11 @@ bool writeBMP(const Color<uint8_t>* texels,
   defer(fclose(file));
 
   bool ok = true;
-  auto put4 = [&](uint32_t val) { ok = ok && fwrite(&val, 1, 4, file) == 4; };
-  auto put2 = [&](uint16_t val) { ok = ok && fwrite(&val, 1, 2, file) == 2; };
   auto put1 = [&](uint8_t val) { ok = ok && fwrite(&val, 1, 1, file) == 1; };
+  auto put2 = [&](uint16_t val) { put1(static_cast<uint8_t>(val));
+				  put1(static_cast<uint8_t>(val >> 8)); };
+  auto put4 = [&](uint32_t val) { put2(static_cast<uint16_t>(val));
+				  put2(static_cast<uint16_t>(val >> 16)); };
 
   const uint32_t padding = -(3 * width) & 3U;   // in bytes
   const uint32_t stride = 3 * width + padding;  // in bytes
@@ -102,8 +104,8 @@ bool writeBMP(const Color<uint8_t>* texels,
   // Bitmap file header
   put1('B');  // header field
   put1('M');
-  put4(offset + stride * height * 3);  // size in bytes
-  put4(0);                             // reserved
+  put4(offset + stride * height);  // size in bytes
+  put4(0);                         // reserved
   put4(offset);
 
   // BITMAPINFOHEADER

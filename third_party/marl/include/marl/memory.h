@@ -131,18 +131,18 @@ class Allocator {
   inline void destroy(T* object);
 
   // make_unique() returns a new object allocated from the allocator wrapped
-  // in a unique_ptr that respects the alignemnt of the type.
+  // in a unique_ptr that respects the alignment of the type.
   template <typename T, typename... ARGS>
   inline unique_ptr<T> make_unique(ARGS&&... args);
 
   // make_unique_n() returns an array of n new objects allocated from the
-  // allocator wrapped in a unique_ptr that respects the alignemnt of the
+  // allocator wrapped in a unique_ptr that respects the alignment of the
   // type.
   template <typename T, typename... ARGS>
   inline unique_ptr<T> make_unique_n(size_t n, ARGS&&... args);
 
   // make_shared() returns a new object allocated from the allocator
-  // wrapped in a std::shared_ptr that respects the alignemnt of the type.
+  // wrapped in a std::shared_ptr that respects the alignment of the type.
   template <typename T, typename... ARGS>
   inline std::shared_ptr<T> make_shared(ARGS&&... args);
 

@@ -123,11 +123,6 @@ struct marl_fiber_context {
   uintptr_t vmx[12 * 2];
 };
 
-// Only the ELFv2 ABI is supported for now.
-#if !defined(_CALL_ELF) || (_CALL_ELF != 2)
-#error "Only the ppc64 ELFv2 ABI is supported."
-#endif
-
 #ifdef __cplusplus
 #include <cstddef>
 static_assert(offsetof(marl_fiber_context, r1) == MARL_REG_R1,
