@@ -3206,7 +3206,7 @@ std::shared_ptr<Routine> Function<Return(Arguments...)>::operator()(const char *
 	vsnprintf(fullName, 1024, name, vararg);
 	va_end(vararg);
 
-	auto routine = core->acquireRoutine(fullName, Config::Edit::None);
+	auto routine = core->acquireRoutine(fullName, nullptr);
 	core.reset(nullptr);
 
 	return routine;
@@ -3222,7 +3222,7 @@ std::shared_ptr<Routine> Function<Return(Arguments...)>::operator()(const Config
 	vsnprintf(fullName, 1024, name, vararg);
 	va_end(vararg);
 
-	auto routine = core->acquireRoutine(fullName, cfg);
+	auto routine = core->acquireRoutine(fullName, &cfg);
 	core.reset(nullptr);
 
 	return routine;

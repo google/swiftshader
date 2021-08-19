@@ -569,7 +569,7 @@ Config Nucleus::getDefaultConfig()
 	return ::defaultConfig();
 }
 
-std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
+std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit *cfgEdit /* = nullptr */)
 {
 	if(jit->builder->GetInsertBlock()->empty() || !jit->builder->GetInsertBlock()->back().isTerminator())
 	{
@@ -591,7 +591,11 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 		// ::jit is thread-local, so when this is executed on a separate thread (see JIT_IN_SEPARATE_THREAD)
 		// it needs to only use the jit variable passed in as an argument.
 
-		auto cfg = cfgEdit.apply(jit->config);
+		Config cfg = jit->config;
+		if(cfgEdit)
+		{
+			cfg = cfgEdit->apply(jit->config);
+		}
 
 #ifdef ENABLE_RR_DEBUG_INFO
 		if(jit->debugInfo != nullptr)
@@ -4374,7 +4378,7 @@ void Nucleus::yield(Value *val)
 	jit->builder->SetInsertPoint(resumeBlock);
 }
 
-std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
+std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit *cfgEdit /* = nullptr */)
 {
 	bool isCoroutine = jit->coroutine.id != nullptr;
 	if(isCoroutine)
@@ -4431,7 +4435,11 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	}
 #endif  // defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 
-	auto cfg = cfgEdit.apply(jit->config);
+	Config cfg = jit->config;
+	if(cfgEdit)
+	{
+		cfg = cfgEdit->apply(jit->config);
+	}
 	jit->optimize(cfg);
 
 	if(false)
