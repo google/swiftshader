@@ -13,9 +13,9 @@
 // limitations under the License.
 
 #define MAJOR_VERSION 4
-#define MINOR_VERSION 1
-#define BUILD_VERSION 0
-#define BUILD_REVISION 7
+#define MINOR_VERSION 6
+#define BUILD_VERSION 6
+#define BUILD_REVISION 6
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)

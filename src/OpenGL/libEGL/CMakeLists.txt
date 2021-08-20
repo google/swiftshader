@@ -51,11 +51,13 @@ elseif(APPLE)
     )
 endif()
 
-add_library(libEGL SHARED
+# This library has been deprecated and will be removed.
+# See https://issuetracker.google.com/147516027 for details.
+add_library(libEGL_deprecated SHARED
     ${LIBEGL_SRC_FILES}
 )
 
-set_target_properties(libEGL PROPERTIES
+set_target_properties(libEGL_deprecated PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
     PREFIX ""
@@ -63,13 +65,13 @@ set_target_properties(libEGL PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
-target_include_directories(libEGL
+target_include_directories(libEGL_deprecated
     PRIVATE
         ".."
         "../.."
 )
 
-target_compile_definitions(libEGL
+target_compile_definitions(libEGL_deprecated
     PRIVATE
         "EGL_EGLEXT_PROTOTYPES"
         "EGLAPI="
@@ -77,17 +79,17 @@ target_compile_definitions(libEGL
         $<$<CONFIG:Debug>:"DEBUGGER_WAIT_DIALOG">
 )
 
-target_compile_options(libEGL
+target_compile_options(libEGL_deprecated
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 
-target_link_options(libEGL
+target_link_options(libEGL_deprecated
     PUBLIC
         ${SWIFTSHADER_LINK_FLAGS}
 )
 
-target_link_libraries(libEGL
+target_link_libraries(libEGL_deprecated
     PRIVATE
         libGLESCommon
         gl_swiftshader_core
@@ -96,15 +98,15 @@ target_link_libraries(libEGL
 
 if(LINUX)
     if(X11)
-        set_property(TARGET libEGL APPEND PROPERTY COMPILE_DEFINITIONS "USE_X11=1")
+        set_property(TARGET libEGL_deprecated APPEND PROPERTY COMPILE_DEFINITIONS "USE_X11=1")
     endif()
 endif()
 
 if (ANDROID)
-    set_target_properties(libEGL PROPERTIES SUFFIX "_swiftshader.so")
+    set_target_properties(libEGL_deprecated PROPERTIES SUFFIX "_swiftshader.so")
 endif ()
 
-set_shared_library_export_map(libEGL ${CMAKE_CURRENT_SOURCE_DIR})
+set_shared_library_export_map(libEGL_deprecated ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(LIB_PREFIX "lib64")
@@ -113,14 +115,14 @@ else()
 endif()
 
 add_custom_command(
-    TARGET libEGL
+    TARGET libEGL_deprecated
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libEGL>/translator
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> $<TARGET_FILE_DIR:libEGL>/translator/${LIB_PREFIX}EGL_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libEGL_deprecated>/translator
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL_deprecated> $<TARGET_FILE_DIR:libEGL_deprecated>/translator/${LIB_PREFIX}EGL_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL_deprecated> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
 
     # Copy to ${CMAKE_BINARY_DIR}/bin so the library sits next to the PVR samples.
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:libEGL>
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL_deprecated> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:libEGL_deprecated>
 )

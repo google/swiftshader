@@ -73,11 +73,13 @@ if(WIN32)
     )
 endif()
 
-add_library(libGLESv2 SHARED
+# This library has been deprecated and will be removed.
+# See https://issuetracker.google.com/147516027 for details.
+add_library(libGLESv2_deprecated SHARED
     ${LIBGLESV2_SRC_FILES}
 )
 
-set_target_properties(libGLESv2 PROPERTIES
+set_target_properties(libGLESv2_deprecated PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
     PREFIX ""
@@ -85,13 +87,13 @@ set_target_properties(libGLESv2 PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
-target_include_directories(libGLESv2
+target_include_directories(libGLESv2_deprecated
     PRIVATE
         ".."
         "../.."
 )
 
-target_compile_definitions(libGLESv2
+target_compile_definitions(libGLESv2_deprecated
     PRIVATE
         "GL_GLEXT_PROTOTYPES"
         "GL_API="
@@ -100,17 +102,17 @@ target_compile_definitions(libGLESv2
         "NO_SANITIZE_FUNCTION="
 )
 
-target_compile_options(libGLESv2
+target_compile_options(libGLESv2_deprecated
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 
-target_link_options(libGLESv2
+target_link_options(libGLESv2_deprecated
     PUBLIC
         ${SWIFTSHADER_LINK_FLAGS}
 )
 
-target_link_libraries(libGLESv2
+target_link_libraries(libGLESv2_deprecated
     PRIVATE
         libGLESCommon
         gl_swiftshader_core
@@ -119,10 +121,10 @@ target_link_libraries(libGLESv2
 )
 
 if (ANDROID)
-    set_target_properties(libGLESv2 PROPERTIES SUFFIX "_swiftshader.so")
+    set_target_properties(libGLESv2_deprecated PROPERTIES SUFFIX "_swiftshader.so")
 endif ()
 
-set_shared_library_export_map(libGLESv2 ${CMAKE_CURRENT_SOURCE_DIR})
+set_shared_library_export_map(libGLESv2_deprecated ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(LIB_PREFIX "lib64")
@@ -131,14 +133,14 @@ else()
 endif()
 
 add_custom_command(
-    TARGET libGLESv2
+    TARGET libGLESv2_deprecated
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLESv2>/translator
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> $<TARGET_FILE_DIR:libGLESv2>/translator/${LIB_PREFIX}GLES_V2_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLESv2_deprecated>/translator
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2_deprecated> $<TARGET_FILE_DIR:libGLESv2_deprecated>/translator/${LIB_PREFIX}GLES_V2_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2_deprecated> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
 
     # Copy to ${CMAKE_BINARY_DIR}/bin so the library sits next to the PVR samples.
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:libGLESv2>
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2_deprecated> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:libGLESv2_deprecated>
 )

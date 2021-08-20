@@ -64,7 +64,7 @@ swiftshader_shared_library("swiftshader_libEGL") {
 
   if (is_win) {
     sources += [
-      "libEGL.def",
+      "libEGL_deprecated.def",
       "libEGL.rc",
     ]
   }
@@ -80,15 +80,15 @@ swiftshader_shared_library("swiftshader_libEGL") {
     ldflags = [
       "-Wl,-install_name,@rpath/libswiftshader_libEGL.dylib",
       "-Wl,-exported_symbols_list," +
-          rebase_path("libEGL.exports", root_build_dir),
+          rebase_path("libEGL_deprecated.exports", root_build_dir),
     ]
   } else if (is_linux || is_chromeos) {
     if (use_x11) {
       sources += [ "../../Main/libX11.cpp" ]
     }
-    inputs = [ "libEGL.lds" ]
+    inputs = [ "libEGL_deprecated.lds" ]
     ldflags =
-        [ "-Wl,--version-script=" + rebase_path("libEGL.lds", root_build_dir) ]
+        [ "-Wl,--version-script=" + rebase_path("libEGL_deprecated.lds", root_build_dir) ]
   }
 
   configs = [ ":swiftshader_libEGL_private_config" ]

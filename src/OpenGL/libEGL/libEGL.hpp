@@ -94,26 +94,26 @@ private:
 		{
 			#if defined(_WIN32)
 				#if defined(__LP64__)
-					const char *libEGL_lib[] = {"libswiftshader_libEGL.dll", "libEGL.dll", "lib64EGL_translator.dll"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dll", "libEGL.dll", "lib64EGL_translator.dll", "libEGL_deprecated.dll"};
 				#else
-					const char *libEGL_lib[] = {"libswiftshader_libEGL.dll", "libEGL.dll", "libEGL_translator.dll"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dll", "libEGL.dll", "libEGL_translator.dll", "libEGL_deprecated.dll"};
 				#endif
 			#elif defined(__ANDROID__)
 				const char *libEGL_lib[] = {"libEGL_swiftshader.so", "libEGL_swiftshader.so"};
 			#elif defined(__linux__)
 				#if defined(__LP64__)
-					const char *libEGL_lib[] = {"lib64EGL_translator.so", "libEGL.so.1", "libEGL.so"};
+					const char *libEGL_lib[] = {"lib64EGL_translator.so", "libEGL.so.1", "libEGL.so", "libEGL_deprecated.so.1", "libEGL_deprecated.so"};
 				#else
-					const char *libEGL_lib[] = {"libEGL_translator.so", "libEGL.so.1", "libEGL.so"};
+					const char *libEGL_lib[] = {"libEGL_translator.so", "libEGL.so.1", "libEGL.so", "libEGL_deprecated.so.1", "libEGL_deprecated.so"};
 				#endif
 			#elif defined(__APPLE__)
 				#if defined(__LP64__)
-					const char *libEGL_lib[] = {"libswiftshader_libEGL.dylib", "lib64EGL_translator.dylib", "libEGL.so", "libEGL.dylib"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dylib", "lib64EGL_translator.dylib", "libEGL.so", "libEGL.dylib", "libEGL_deprecated.dylib"};
 				#else
-					const char *libEGL_lib[] = {"libswiftshader_libEGL.dylib", "libEGL_translator.dylib", "libEGL.so", "libEGL.dylib"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dylib", "libEGL_translator.dylib", "libEGL.so", "libEGL_deprecated.dylib"};
 				#endif
 			#elif defined(__Fuchsia__)
-				const char *libEGL_lib[] = {"libswiftshader_libEGL.so", "libEGL.so"};
+				const char *libEGL_lib[] = {"libswiftshader_libEGL.so", "libEGL.so", "libEGL_deprecated.so"};
 			#else
 				#error "libEGL::loadExports unimplemented for this platform"
 			#endif

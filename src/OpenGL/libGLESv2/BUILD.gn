@@ -119,7 +119,7 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
 
   if (is_win) {
     sources += [
-      "libGLESv2.def",
+      "libGLESv2_deprecated.def",
       "libGLESv2.rc",
     ]
   }
@@ -128,12 +128,12 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
     ldflags = [
       "-Wl,-install_name,@rpath/libswiftshader_libGLESv2.dylib",
       "-Wl,-exported_symbols_list," +
-          rebase_path("libGLESv2.exports", root_build_dir),
+          rebase_path("libGLESv2_deprecated.exports", root_build_dir),
     ]
   } else if (is_linux || is_chromeos) {
-    inputs = [ "libGLESv2.lds" ]
+    inputs = [ "libGLESv2_deprecated.lds" ]
     ldflags = [ "-Wl,--version-script=" +
-                rebase_path("libGLESv2.lds", root_build_dir) ]
+                rebase_path("libGLESv2_deprecated.lds", root_build_dir) ]
   }
 
   configs = [ ":swiftshader_libGLESv2_private_config" ]

@@ -7,7 +7,7 @@ Introduction
 
 SwiftShader is a high-performance CPU-based implementation of the Vulkan graphics API<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
 
-> NOTE: SwiftShader's OpenGL ES frontend is no longer supported, and will eventually be removed. Read more about our recommendation to use [ANGLE on top of SwiftShader Vulkan here](ANGLE.md) (aka. "SwANGLE").
+> NOTE: SwiftShader's OpenGL ES implementation is no longer supported, and will be removed. Read more about our recommendation to use [ANGLE on top of SwiftShader Vulkan here](docs/ANGLE.md) (aka. "SwANGLE").
 
 Building
 --------
@@ -74,7 +74,7 @@ Some tests will automatically be run against the change. Notably, [presubmit.sh]
 Testing
 -------
 
-SwiftShader's OpenGL ES implementation can be tested using the [dEQP](https://github.com/KhronosGroup/VK-GL-CTS) test suite.
+SwiftShader's Vulkan implementation can be tested using the [dEQP](https://github.com/KhronosGroup/VK-GL-CTS) test suite.
 
 See [docs/dEQP.md](docs/dEQP.md) for details.
 

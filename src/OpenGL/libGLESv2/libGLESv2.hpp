@@ -280,26 +280,26 @@ private:
 		{
 			#if defined(_WIN32)
 				#if defined(__LP64__)
-					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dll", "libGLESv2.dll", "lib64GLES_V2_translator.dll"};
+					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dll", "libGLESv2.dll", "lib64GLES_V2_translator.dll", "libGLESv2_deprecated.dll"};
 				#else
-					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dll", "libGLESv2.dll", "libGLES_V2_translator.dll"};
+					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dll", "libGLESv2.dll", "libGLES_V2_translator.dll", "libGLESv2_deprecated.dll"};
 				#endif
 			#elif defined(__ANDROID__)
 				const char *libGLESv2_lib[] = {"libGLESv2_swiftshader.so", "libGLESv2_swiftshader.so"};
 			#elif defined(__linux__)
 				#if defined(__LP64__)
-					const char *libGLESv2_lib[] = {"lib64GLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so"};
+					const char *libGLESv2_lib[] = {"lib64GLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so", "libGLESv2_deprecated.so.2", "libGLESv2_deprecated.so"};
 				#else
-					const char *libGLESv2_lib[] = {"libGLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so"};
+					const char *libGLESv2_lib[] = {"libGLES_V2_translator.so", "libGLESv2.so.2", "libGLESv2.so", "libGLESv2_deprecated.so.2", "libGLESv2_deprecated.so"};
 				#endif
 			#elif defined(__APPLE__)
 				#if defined(__LP64__)
-					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dylib", "lib64GLES_V2_translator.dylib", "libGLESv2.dylib"};
+					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dylib", "lib64GLES_V2_translator.dylib", "libGLESv2.dylib", "libGLESv2_deprecated.dylib"};
 				#else
-					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dylib", "libGLES_V2_translator.dylib", "libGLESv2.dylib"};
+					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dylib", "libGLES_V2_translator.dylib", "libGLESv2.dylib", "libGLESv2_deprecated.dylib"};
 				#endif
 			#elif defined(__Fuchsia__)
-				const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.so", "libGLESv2.so"};
+				const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.so", "libGLESv2.so", "libGLESv2_deprecated.so"};
 			#else
 				#error "libGLESv2::loadExports unimplemented for this platform"
 			#endif

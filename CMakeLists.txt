@@ -436,7 +436,7 @@ else()
         if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
             list(APPEND SWIFTSHADER_COMPILE_OPTIONS
                 "-Wdeprecated-copy"  # implicit copy constructor for 'X' is deprecated because of user-declared copy assignment operator.
-            )  
+            )
         endif()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
@@ -977,8 +977,8 @@ if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     endforeach()
 
     foreach(pvr_target ${PVR_GLES_TARGET})
-        add_dependencies(${pvr_target} libGLESv2)
-        add_dependencies(${pvr_target} libEGL)
+        add_dependencies(${pvr_target} libGLESv2_deprecated)
+        add_dependencies(${pvr_target} libEGL_deprecated)
     endforeach()
 
     foreach(pvr_target ${PVR_VULKAN_TARGET_GOOD} ${PVR_GLES_TARGET_GOOD})

@@ -58,8 +58,8 @@ target_link_options(gles-unittests
 
 target_link_libraries(gles-unittests
     PRIVATE
-        libEGL
-        libGLESv2
+        libEGL_deprecated
+        libGLESv2_deprecated
         gtest
         gmock
         ${ROOT_PROJECT_LINK_LIBRARIES}

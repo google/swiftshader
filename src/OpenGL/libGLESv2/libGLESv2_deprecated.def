@@ -1,4 +1,4 @@
-LIBRARY libGLESv2
+LIBRARY libGLESv2_deprecated
 EXPORTS
     glActiveTexture                 @1
     glAttachShader                  @2
