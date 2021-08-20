@@ -29,137 +29,6 @@
 
 namespace rr {
 
-bool CPUID::MMX = detectMMX();
-bool CPUID::CMOV = detectCMOV();
-bool CPUID::SSE = detectSSE();
-bool CPUID::SSE2 = detectSSE2();
-bool CPUID::SSE3 = detectSSE3();
-bool CPUID::SSSE3 = detectSSSE3();
-bool CPUID::SSE4_1 = detectSSE4_1();
-
-bool CPUID::enableMMX = true;
-bool CPUID::enableCMOV = true;
-bool CPUID::enableSSE = true;
-bool CPUID::enableSSE2 = true;
-bool CPUID::enableSSE3 = true;
-bool CPUID::enableSSSE3 = true;
-bool CPUID::enableSSE4_1 = true;
-
-void CPUID::setEnableMMX(bool enable)
-{
-	enableMMX = enable;
-
-	if(!enableMMX)
-	{
-		enableSSE = false;
-		enableSSE2 = false;
-		enableSSE3 = false;
-		enableSSSE3 = false;
-		enableSSE4_1 = false;
-	}
-}
-
-void CPUID::setEnableCMOV(bool enable)
-{
-	enableCMOV = enable;
-
-	if(!CMOV)
-	{
-		enableSSE = false;
-		enableSSE2 = false;
-		enableSSE3 = false;
-		enableSSSE3 = false;
-		enableSSE4_1 = false;
-	}
-}
-
-void CPUID::setEnableSSE(bool enable)
-{
-	enableSSE = enable;
-
-	if(enableSSE)
-	{
-		enableMMX = true;
-		enableCMOV = true;
-	}
-	else
-	{
-		enableSSE2 = false;
-		enableSSE3 = false;
-		enableSSSE3 = false;
-		enableSSE4_1 = false;
-	}
-}
-
-void CPUID::setEnableSSE2(bool enable)
-{
-	enableSSE2 = enable;
-
-	if(enableSSE2)
-	{
-		enableMMX = true;
-		enableCMOV = true;
-		enableSSE = true;
-	}
-	else
-	{
-		enableSSE3 = false;
-		enableSSSE3 = false;
-		enableSSE4_1 = false;
-	}
-}
-
-void CPUID::setEnableSSE3(bool enable)
-{
-	enableSSE3 = enable;
-
-	if(enableSSE3)
-	{
-		enableMMX = true;
-		enableCMOV = true;
-		enableSSE = true;
-		enableSSE2 = true;
-	}
-	else
-	{
-		enableSSSE3 = false;
-		enableSSE4_1 = false;
-	}
-}
-
-void CPUID::setEnableSSSE3(bool enable)
-{
-	enableSSSE3 = enable;
-
-	if(enableSSSE3)
-	{
-		enableMMX = true;
-		enableCMOV = true;
-		enableSSE = true;
-		enableSSE2 = true;
-		enableSSE3 = true;
-	}
-	else
-	{
-		enableSSE4_1 = false;
-	}
-}
-
-void CPUID::setEnableSSE4_1(bool enable)
-{
-	enableSSE4_1 = enable;
-
-	if(enableSSE4_1)
-	{
-		enableMMX = true;
-		enableCMOV = true;
-		enableSSE = true;
-		enableSSE2 = true;
-		enableSSE3 = true;
-		enableSSSE3 = true;
-	}
-}
-
 static void cpuid(int registers[4], int info)
 {
 #if defined(__i386__) || defined(__x86_64__)
@@ -178,53 +47,53 @@ static void cpuid(int registers[4], int info)
 #endif
 }
 
-bool CPUID::detectMMX()
+bool CPUID::supportsMMX()
 {
 	int registers[4];
 	cpuid(registers, 1);
-	return MMX = (registers[3] & 0x00800000) != 0;
+	return (registers[3] & 0x00800000) != 0;
 }
 
-bool CPUID::detectCMOV()
+bool CPUID::supportsCMOV()
 {
 	int registers[4];
 	cpuid(registers, 1);
-	return CMOV = (registers[3] & 0x00008000) != 0;
+	return (registers[3] & 0x00008000) != 0;
 }
 
-bool CPUID::detectSSE()
+bool CPUID::supportsSSE()
 {
 	int registers[4];
 	cpuid(registers, 1);
-	return SSE = (registers[3] & 0x02000000) != 0;
+	return (registers[3] & 0x02000000) != 0;
 }
 
-bool CPUID::detectSSE2()
+bool CPUID::supportsSSE2()
 {
 	int registers[4];
 	cpuid(registers, 1);
-	return SSE2 = (registers[3] & 0x04000000) != 0;
+	return (registers[3] & 0x04000000) != 0;
 }
 
-bool CPUID::detectSSE3()
+bool CPUID::supportsSSE3()
 {
 	int registers[4];
 	cpuid(registers, 1);
-	return SSE3 = (registers[2] & 0x00000001) != 0;
+	return (registers[2] & 0x00000001) != 0;
 }
 
-bool CPUID::detectSSSE3()
+bool CPUID::supportsSSSE3()
 {
 	int registers[4];
 	cpuid(registers, 1);
-	return SSSE3 = (registers[2] & 0x00000200) != 0;
+	return (registers[2] & 0x00000200) != 0;
 }
 
-bool CPUID::detectSSE4_1()
+bool CPUID::supportsSSE4_1()
 {
 	int registers[4];
 	cpuid(registers, 1);
-	return SSE4_1 = (registers[2] & 0x00080000) != 0;
+	return (registers[2] & 0x00080000) != 0;
 }
 
 }  // namespace rr

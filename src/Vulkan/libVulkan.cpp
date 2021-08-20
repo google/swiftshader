@@ -132,15 +132,6 @@ void setReactorDefaultConfig()
 	rr::Nucleus::adjustDefaultConfig(cfg);
 }
 
-void setCPUDefaults()
-{
-	sw::CPUID::setEnableSSE4_1(true);
-	sw::CPUID::setEnableSSSE3(true);
-	sw::CPUID::setEnableSSE3(true);
-	sw::CPUID::setEnableSSE2(true);
-	sw::CPUID::setEnableSSE(true);
-}
-
 std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 {
 	struct Scheduler
@@ -176,7 +167,6 @@ void initializeLibrary()
 		logBuildVersionInformation();
 #endif  // __ANDROID__ && ENABLE_BUILD_VERSION_OUTPUT
 		setReactorDefaultConfig();
-		setCPUDefaults();
 		return true;
 	}();
 	(void)doOnce;
