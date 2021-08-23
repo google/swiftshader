@@ -119,7 +119,7 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
 
   if (is_win) {
     sources += [
-      "libGLESv2_deprecated.def",
+      "libGLESv2.def",
       "libGLESv2.rc",
     ]
   }

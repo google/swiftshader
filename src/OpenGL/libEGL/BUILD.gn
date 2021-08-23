@@ -64,7 +64,7 @@ swiftshader_shared_library("swiftshader_libEGL") {
 
   if (is_win) {
     sources += [
-      "libEGL_deprecated.def",
+      "libEGL.def",
       "libEGL.rc",
     ]
   }
