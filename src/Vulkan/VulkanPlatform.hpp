@@ -52,18 +52,4 @@ public:
 #include <vulkan/vk_google_filtering_precision.h>
 #include <vulkan/vulkan_core.h>
 
-namespace vk {
-// Here we define constants that used to be in the Vulkan headers, but are not part of the spec.
-// See: https://github.com/KhronosGroup/Vulkan-Docs/issues/1230
-
-// When updating the Vulkan Headers we use, go through each constant below and make sure they are valid.
-// Once that's done, update SwiftShaderVulkanHeaderVersion.
-constexpr int SwiftShaderVulkanHeaderVersion = 178;
-static_assert(SwiftShaderVulkanHeaderVersion == VK_HEADER_VERSION, "Please validate/update constants below upon upgrading Vulkan headers");
-
-constexpr auto VK_PIPELINE_BIND_POINT_RANGE_SIZE = (VK_PIPELINE_BIND_POINT_COMPUTE - VK_PIPELINE_BIND_POINT_GRAPHICS + 1);
-constexpr auto VK_IMAGE_VIEW_TYPE_END_RANGE = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
-
-}  // namespace vk
-
 #endif  // VULKAN_PLATFORM

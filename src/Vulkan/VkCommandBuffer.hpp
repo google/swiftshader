@@ -152,7 +152,10 @@ public:
 		sw::CountedEvent *events = nullptr;
 		RenderPass *renderPass = nullptr;
 		Framebuffer *renderPassFramebuffer = nullptr;
-		std::array<PipelineState, vk::VK_PIPELINE_BIND_POINT_RANGE_SIZE> pipelineState;
+
+		// VK_PIPELINE_BIND_POINT_GRAPHICS = 0
+		// VK_PIPELINE_BIND_POINT_COMPUTE = 1
+		std::array<PipelineState, 2> pipelineState;
 
 		vk::DynamicState dynamicState;
 
