@@ -44,7 +44,11 @@
 #include "VkStringify.hpp"
 #include "VkTimelineSemaphore.hpp"
 
+#include "Reactor/Nucleus.hpp"
+#include "System/CPUID.hpp"
 #include "System/Debug.hpp"
+#include "WSI/HeadlessSurfaceKHR.hpp"
+#include "WSI/VkSwapchainKHR.hpp"
 
 #if defined(VK_USE_PLATFORM_METAL_EXT) || defined(VK_USE_PLATFORM_MACOS_MVK)
 #	include "WSI/MetalSurface.hpp"
@@ -74,7 +78,10 @@
 #	include "WSI/Win32SurfaceKHR.hpp"
 #endif
 
-#include "WSI/HeadlessSurfaceKHR.hpp"
+#include "marl/mutex.h"
+#include "marl/scheduler.h"
+#include "marl/thread.h"
+#include "marl/tsa.h"
 
 #ifdef __ANDROID__
 #	include "commit.h"
@@ -86,17 +93,6 @@
 #		include "VkDeviceMemoryExternalAndroid.hpp"
 #	endif
 #endif
-
-#include "WSI/VkSwapchainKHR.hpp"
-
-#include "Reactor/Nucleus.hpp"
-
-#include "marl/mutex.h"
-#include "marl/scheduler.h"
-#include "marl/thread.h"
-#include "marl/tsa.h"
-
-#include "System/CPUID.hpp"
 
 #include <algorithm>
 #include <cinttypes>

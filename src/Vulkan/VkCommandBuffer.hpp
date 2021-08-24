@@ -178,7 +178,7 @@ public:
 	class Command
 	{
 	public:
-		virtual void play(ExecutionState &executionState) = 0;
+		virtual void execute(ExecutionState &executionState) = 0;
 		virtual std::string description() = 0;
 		virtual ~Command() {}
 	};

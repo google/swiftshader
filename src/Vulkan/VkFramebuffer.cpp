@@ -69,20 +69,47 @@ void Framebuffer::destroy(const VkAllocationCallbacks *pAllocator)
 	vk::deallocate(attachments, pAllocator);
 }
 
-void Framebuffer::clear(const RenderPass *renderPass, uint32_t clearValueCount, const VkClearValue *pClearValues, const VkRect2D &renderArea)
+void Framebuffer::executeLoadOp(const RenderPass *renderPass, uint32_t clearValueCount, const VkClearValue *pClearValues, const VkRect2D &renderArea)
 {
+	// This gets called at the start of a renderpass. Logically the `loadOp` gets executed at the
+	// subpass where an attachment is first used, but since we don't discard contents between subpasses,
+	// we can execute it sooner. Only clear operations have an effect.
+
 	ASSERT(attachmentCount == renderPass->getAttachmentCount());
 
 	const uint32_t count = std::min(clearValueCount, attachmentCount);
 	for(uint32_t i = 0; i < count; i++)
 	{
 		const VkAttachmentDescription attachment = renderPass->getAttachment(i);
-
 		VkImageAspectFlags aspectMask = Format(attachment.format).getAspects();
-		if(attachment.loadOp != VK_ATTACHMENT_LOAD_OP_CLEAR)
+
+		switch(attachment.loadOp)
+		{
+		case VK_ATTACHMENT_LOAD_OP_CLEAR:
+			// Keep the color aspect for clearing.
+			break;
+		case VK_ATTACHMENT_LOAD_OP_LOAD:
+		case VK_ATTACHMENT_LOAD_OP_DONT_CARE:
+			// Don't clear the attachment's color aspect.
 			aspectMask &= VK_IMAGE_ASPECT_STENCIL_BIT;
-		if(attachment.stencilLoadOp != VK_ATTACHMENT_LOAD_OP_CLEAR)
+			break;
+		default:
+			UNSUPPORTED("attachment.loadOp %d", attachment.loadOp);
+		}
+
+		switch(attachment.stencilLoadOp)
+		{
+		case VK_ATTACHMENT_LOAD_OP_CLEAR:
+			// Keep the stencil aspect for clearing.
+			break;
+		case VK_ATTACHMENT_LOAD_OP_LOAD:
+		case VK_ATTACHMENT_LOAD_OP_DONT_CARE:
+			// Don't clear the attachment's stencil aspect.
 			aspectMask &= ~VK_IMAGE_ASPECT_STENCIL_BIT;
+			break;
+		default:
+			UNSUPPORTED("attachment.stencilLoadOp %d", attachment.stencilLoadOp);
+		}
 
 		if(!aspectMask || !renderPass->isAttachmentUsed(i))
 		{

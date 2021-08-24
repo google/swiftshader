@@ -28,7 +28,7 @@ public:
 	Framebuffer(const VkFramebufferCreateInfo *pCreateInfo, void *mem);
 	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	void clear(const RenderPass *renderPass, uint32_t clearValueCount, const VkClearValue *pClearValues, const VkRect2D &renderArea);
+	void executeLoadOp(const RenderPass *renderPass, uint32_t clearValueCount, const VkClearValue *pClearValues, const VkRect2D &renderArea);
 	void clearAttachment(const RenderPass *renderPass, uint32_t subpassIndex, const VkClearAttachment &attachment, const VkClearRect &rect);
 
 	static size_t ComputeRequiredAllocationSize(const VkFramebufferCreateInfo *pCreateInfo);
