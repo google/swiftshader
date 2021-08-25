@@ -90,6 +90,7 @@ void Framebuffer::executeLoadOp(const RenderPass *renderPass, uint32_t clearValu
 			break;
 		case VK_ATTACHMENT_LOAD_OP_LOAD:
 		case VK_ATTACHMENT_LOAD_OP_DONT_CARE:
+		case VK_ATTACHMENT_LOAD_OP_NONE_EXT:
 			// Don't clear the attachment's color or depth aspect.
 			break;
 		default:
@@ -103,6 +104,7 @@ void Framebuffer::executeLoadOp(const RenderPass *renderPass, uint32_t clearValu
 			break;
 		case VK_ATTACHMENT_LOAD_OP_LOAD:
 		case VK_ATTACHMENT_LOAD_OP_DONT_CARE:
+		case VK_ATTACHMENT_LOAD_OP_NONE_EXT:
 			// Don't clear the attachment's stencil aspect.
 			break;
 		default:
