@@ -81,17 +81,16 @@ void Framebuffer::executeLoadOp(const RenderPass *renderPass, uint32_t clearValu
 	for(uint32_t i = 0; i < count; i++)
 	{
 		const VkAttachmentDescription attachment = renderPass->getAttachment(i);
-		VkImageAspectFlags aspectMask = Format(attachment.format).getAspects();
+		VkImageAspectFlags clearMask = 0;
 
 		switch(attachment.loadOp)
 		{
 		case VK_ATTACHMENT_LOAD_OP_CLEAR:
-			// Keep the color aspect for clearing.
+			clearMask |= VK_IMAGE_ASPECT_COLOR_BIT | VK_IMAGE_ASPECT_DEPTH_BIT;
 			break;
 		case VK_ATTACHMENT_LOAD_OP_LOAD:
 		case VK_ATTACHMENT_LOAD_OP_DONT_CARE:
-			// Don't clear the attachment's color aspect.
-			aspectMask &= VK_IMAGE_ASPECT_STENCIL_BIT;
+			// Don't clear the attachment's color or depth aspect.
 			break;
 		default:
 			UNSUPPORTED("attachment.loadOp %d", attachment.loadOp);
@@ -100,30 +99,32 @@ void Framebuffer::executeLoadOp(const RenderPass *renderPass, uint32_t clearValu
 		switch(attachment.stencilLoadOp)
 		{
 		case VK_ATTACHMENT_LOAD_OP_CLEAR:
-			// Keep the stencil aspect for clearing.
+			clearMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			break;
 		case VK_ATTACHMENT_LOAD_OP_LOAD:
 		case VK_ATTACHMENT_LOAD_OP_DONT_CARE:
 			// Don't clear the attachment's stencil aspect.
-			aspectMask &= ~VK_IMAGE_ASPECT_STENCIL_BIT;
 			break;
 		default:
 			UNSUPPORTED("attachment.stencilLoadOp %d", attachment.stencilLoadOp);
 		}
 
-		if(!aspectMask || !renderPass->isAttachmentUsed(i))
+		// Image::clear() demands that we only specify existing aspects.
+		clearMask &= Format(attachment.format).getAspects();
+
+		if(!clearMask || !renderPass->isAttachmentUsed(i))
 		{
 			continue;
 		}
 
 		if(renderPass->isMultiView())
 		{
-			attachments[i]->clearWithLayerMask(pClearValues[i], aspectMask, renderArea,
+			attachments[i]->clearWithLayerMask(pClearValues[i], clearMask, renderArea,
 			                                   renderPass->getAttachmentViewMask(i));
 		}
 		else
 		{
-			attachments[i]->clear(pClearValues[i], aspectMask, renderArea);
+			attachments[i]->clear(pClearValues[i], clearMask, renderArea);
 		}
 	}
 }
@@ -173,6 +174,8 @@ void Framebuffer::clearAttachment(const RenderPass *renderPass, uint32_t subpass
 			}
 		}
 	}
+	else
+		UNSUPPORTED("attachment.aspectMask %X", attachment.aspectMask);
 }
 
 void Framebuffer::setAttachment(ImageView *imageView, uint32_t index)
