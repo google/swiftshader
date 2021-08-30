@@ -165,7 +165,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retT
 
 // Wrapper for calls on C functions with Ice types
 template<typename Return, typename... CArgs, typename... RArgs>
-Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(CArgs...), RArgs &&...args)
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(CArgs...), RArgs &&... args)
 {
 	static_assert(sizeof...(CArgs) == sizeof...(RArgs), "Expected number of args don't match");
 
@@ -309,7 +309,7 @@ private:
 #endif
 	}
 
-	static bool detectARM()
+	constexpr static bool detectARM()
 	{
 #if defined(__arm__) || defined(__aarch64__)
 		return true;
@@ -334,10 +334,10 @@ private:
 	}
 };
 
-const bool CPUID::ARM = CPUID::detectARM();
+constexpr bool CPUID::ARM = CPUID::detectARM();
 const bool CPUID::SSE4_1 = CPUID::detectSSE4_1();
-const bool emulateIntrinsics = false;
-const bool emulateMismatchedBitCast = CPUID::ARM;
+constexpr bool emulateIntrinsics = false;
+constexpr bool emulateMismatchedBitCast = CPUID::ARM;
 
 constexpr bool subzeroDumpEnabled = false;
 constexpr bool subzeroEmitTextAsm = false;
