@@ -492,7 +492,7 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits()
 		sw::RENDERTARGETS,                                // maxFragmentOutputAttachments
 		1,                                                // maxFragmentDualSrcAttachments
 		28,                                               // maxFragmentCombinedOutputResources
-		16384,                                            // maxComputeSharedMemorySize
+		32768,                                            // maxComputeSharedMemorySize
 		{ 65535, 65535, 65535 },                          // maxComputeWorkGroupCount[3]
 		256,                                              // maxComputeWorkGroupInvocations
 		{ 256, 256, 64 },                                 // maxComputeWorkGroupSize[3]
