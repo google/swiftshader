@@ -3292,8 +3292,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 		{
 		case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR:
 			{
-				// Explicitly ignored, since VK_KHR_image_format_list is not supported
-				ASSERT(!hasDeviceExtension(VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME));
+				// Per the Vulkan spec on VkImageFormatListcreateInfo:
+				//     "If the pNext chain of VkImageCreateInfo includes a
+				//      VkImageFormatListCreateInfo structure, then that
+				//      structure contains a list of all formats that can be
+				//      used when creating views of this image"
+				// This limitation does not affect SwiftShader's behavior and
+				// the Vulkan Validation Layers can detect Views created with a
+				// format which is not included in that list.
 			}
 			break;
 		case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO:
