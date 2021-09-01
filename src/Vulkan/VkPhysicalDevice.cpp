@@ -898,7 +898,7 @@ static void getDriverProperties(T *properties)
 	properties->conformanceVersion = { 1, 1, 3, 3 };
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceDriverPropertiesKHR *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDeviceDriverProperties *properties) const
 {
 	getDriverProperties(properties);
 }
