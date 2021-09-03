@@ -57,7 +57,6 @@ public:
 	// Internal implementation class for external memory. Platform-specific.
 	class ExternalBase;
 
-	bool hasExternalMemory() const { return external; }
 	bool hasExternalImageProperties() const;
 	int externalImageRowPitchBytes(VkImageAspectFlagBits aspect) const;
 	VkDeviceSize externalImageMemoryOffset(VkImageAspectFlagBits aspect) const;
