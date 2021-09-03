@@ -24,14 +24,14 @@ class OpaqueFdExternalMemory : public vk::DeviceMemory::ExternalBase
 public:
 	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
 
-	static bool SupportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
+	static bool SupportsAllocateInfo(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
 	{
-		OpaqueFdAllocateInfo info(pAllocateInfo);
+		OpaqueFdAllocateInfo info(extendedAllocationInfo);
 		return info.importFd || info.exportFd;
 	}
 
-	explicit OpaqueFdExternalMemory(const VkMemoryAllocateInfo *pAllocateInfo)
-	    : allocateInfo(pAllocateInfo)
+	explicit OpaqueFdExternalMemory(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
+	    : allocateInfo(extendedAllocationInfo)
 	{
 	}
 

@@ -35,61 +35,40 @@ public:
 
 		AllocateInfo() = default;
 
-		// Parse the VkMemoryAllocateInfo->pNext chain to initialize a AllocateInfo.
-		AllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
+		// Used the parsed allocation info to initialize a AllocateInfo.
+		AllocateInfo(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
 		{
-			const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pAllocateInfo->pNext);
-			while(extInfo)
+			if(extendedAllocationInfo.importMemoryZirconHandleInfo)
 			{
-				switch(extInfo->sType)
+				if(extendedAllocationInfo.importMemoryZirconHandleInfo->handleType != VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA)
 				{
-				case VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
-					{
-						const auto *importInfo = reinterpret_cast<const VkImportMemoryZirconHandleInfoFUCHSIA *>(extInfo);
-
-						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
-						{
-							UNSUPPORTED("importInfo->handleType");
-						}
-						importHandle = true;
-						handle = importInfo->handle;
-					}
-					break;
-				case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
-					{
-						const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(extInfo);
-
-						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
-						{
-							UNSUPPORTED("exportInfo->handleTypes");
-						}
-						exportHandle = true;
-					}
-					break;
-				case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
-					// This can safely be ignored, as the Vulkan spec mentions:
-					// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
-					//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
-					break;
-
-				default:
-					WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+					UNSUPPORTED("extendedAllocationInfo.importMemoryZirconHandleInfo->handleType");
 				}
-				extInfo = extInfo->pNext;
+				importHandle = true;
+				handle = extendedAllocationInfo.importMemoryZirconHandleInfo->handle;
+			}
+
+			if(extendedAllocationInfo.exportMemoryAllocateInfo)
+			{
+				if(extendedAllocationInfo.exportMemoryAllocateInfo->handleTypes != VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO)
+				{
+					UNSUPPORTED("extendedAllocationInfo.exportMemoryAllocateInfo->handleTypes");
+				}
+				exportHandle = true;
 			}
 		}
 	};
 
 	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
 
-	static bool supportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
+	static bool supportsAllocateInfo(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
 	{
-		AllocateInfo info(pAllocateInfo);
+		AllocateInfo info(extendedAllocationInfo);
 		return info.importHandle || info.exportHandle;
 	}
 
-	explicit VmoExternalMemory(const VkMemoryAllocateInfo *pAllocateInfo)
-	    : allocateInfo(pAllocateInfo)
+	explicit VmoExternalMemory(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
+	    : allocateInfo(extendedAllocationInfo)
 	{
 	}
 

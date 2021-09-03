@@ -25,9 +25,26 @@ class Device;
 class DeviceMemory : public Object<DeviceMemory, VkDeviceMemory>
 {
 public:
-	DeviceMemory(const VkMemoryAllocateInfo *pCreateInfo, void *mem, Device *pDevice);
+	struct ExtendedAllocationInfo
+	{
+		const VkExportMemoryAllocateInfo *exportMemoryAllocateInfo = nullptr;
+		const VkImportMemoryHostPointerInfoEXT *importMemoryHostPointerInfo = nullptr;
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
+		const VkImportMemoryFdInfoKHR *importMemoryFdInfo = nullptr;
+#endif
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+		const VkImportAndroidHardwareBufferInfoANDROID *importAndroidHardwareBufferInfo = nullptr;
+		const VkMemoryDedicatedAllocateInfo *dedicatedAllocateInfo = nullptr;
+#endif
+#if VK_USE_PLATFORM_FUCHSIA
+		const VkImportMemoryZirconHandleInfoFUCHSIA importMemoryZirconHandleInfo = nullptr;
+#endif
+	};
+
+	DeviceMemory(const VkMemoryAllocateInfo *pCreateInfo, void *mem, const DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, Device *pDevice);
 
 	static size_t ComputeRequiredAllocationSize(const VkMemoryAllocateInfo *pCreateInfo);
+	static VkResult ParseAllocationInfo(const VkMemoryAllocateInfo *pAllocateInfo, DeviceMemory::ExtendedAllocationInfo *extendedAllocationInfo);
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	VkResult exportFd(int *pFd) const;
