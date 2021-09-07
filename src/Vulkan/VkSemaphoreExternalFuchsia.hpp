@@ -21,8 +21,7 @@
 
 // An external semaphore implementation for the Zircon kernel using a simple
 // Zircon event handle. This matches
-// VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA
-// which is not official yet but used by Fuchsia at the moment.
+// VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA
 
 namespace vk {
 

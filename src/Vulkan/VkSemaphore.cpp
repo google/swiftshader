@@ -87,7 +87,7 @@ static const VkExternalSemaphoreHandleTypeFlags kSupportedTypes =
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT |
 #endif
 #if VK_USE_PLATFORM_FUCHSIA
-    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA |
+    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA |
 #endif
     0;
 
@@ -341,11 +341,11 @@ VkResult BinarySemaphore::importHandle(zx_handle_t handle, bool temporaryImport)
 
 VkResult BinarySemaphore::exportHandle(zx_handle_t *pHandle)
 {
-	if((exportableHandleTypes & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA) == 0)
+	if((exportableHandleTypes & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA) == 0)
 	{
 		TRACE("Cannot export semaphore as Zircon handle (exportableHandleType = 0x%X, want 0x%X)",
 		      exportableHandleTypes,
-		      VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA);
+		      VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA);
 
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}

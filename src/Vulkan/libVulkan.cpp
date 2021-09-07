@@ -1065,7 +1065,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 					break;
 #endif
 #if VK_USE_PLATFORM_FUCHSIA
-				case VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA:
+				case VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA:
 					break;
 #endif
 				default:
@@ -1090,10 +1090,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 			}
 			break;
 #if VK_USE_PLATFORM_FUCHSIA
-		case VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
+		case VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
 			{
 				auto *importInfo = reinterpret_cast<const VkImportMemoryZirconHandleInfoFUCHSIA *>(allocationInfo);
-				if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
+				if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 				{
 					UNSUPPORTED("importInfo->handleType %u", importInfo->handleType);
 					return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -1179,7 +1179,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryZirconHandleFUCHSIA(VkDevice device, c
 	TRACE("(VkDevice device = %p, const VkMemoryGetZirconHandleInfoFUCHSIA* pGetHandleInfo = %p, zx_handle_t* pHandle = %p",
 	      device, pGetHandleInfo, pHandle);
 
-	if(pGetHandleInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
+	if(pGetHandleInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 	{
 		UNSUPPORTED("pGetHandleInfo->handleType %u", pGetHandleInfo->handleType);
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -1192,7 +1192,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryZirconHandlePropertiesFUCHSIA(VkDevice
 	TRACE("(VkDevice device = %p, VkExternalMemoryHandleTypeFlagBits handleType = %x, zx_handle_t handle = %d, VkMemoryZirconHandlePropertiesFUCHSIA* pMemoryZirconHandleProperties = %p)",
 	      device, handleType, handle, pMemoryZirconHandleProperties);
 
-	if(handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
+	if(handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 	{
 		UNSUPPORTED("handleType %u", handleType);
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -1516,7 +1516,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreZirconHandleFUCHSIA(
 	TRACE("(VkDevice device = %p, const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo = %p)",
 	      device, pImportSemaphoreZirconHandleInfo);
 
-	if(pImportSemaphoreZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
+	if(pImportSemaphoreZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
 		UNSUPPORTED("pImportSemaphoreZirconHandleInfo->handleType %d", int(pImportSemaphoreZirconHandleInfo->handleType));
 	}
@@ -1534,7 +1534,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
 	TRACE("(VkDevice device = %p, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo = %p, zx_handle_t* pZirconHandle = %p)",
 	      device, static_cast<const void *>(pGetZirconHandleInfo), static_cast<void *>(pZirconHandle));
 
-	if(pGetZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
+	if(pGetZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
 		UNSUPPORTED("pGetZirconHandleInfo->handleType %d", int(pGetZirconHandleInfo->handleType));
 	}

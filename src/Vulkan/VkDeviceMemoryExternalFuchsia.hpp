@@ -43,11 +43,11 @@ public:
 			{
 				switch(extInfo->sType)
 				{
-				case VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
+				case VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
 					{
 						const auto *importInfo = reinterpret_cast<const VkImportMemoryZirconHandleInfoFUCHSIA *>(extInfo);
 
-						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
+						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 						{
 							UNSUPPORTED("importInfo->handleType");
 						}
@@ -59,7 +59,7 @@ public:
 					{
 						const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(extInfo);
 
-						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
+						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 						{
 							UNSUPPORTED("exportInfo->handleTypes");
 						}
@@ -80,7 +80,7 @@ public:
 		}
 	};
 
-	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
+	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
 
 	static bool supportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
 	{
