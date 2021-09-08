@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "VkDeviceMemory.hpp"
 #include "VkStringify.hpp"
 
 #include "System/Debug.hpp"
@@ -21,12 +22,12 @@
 
 namespace zircon {
 
-class VmoExternalMemory : public vk::DeviceMemory::ExternalBase
+class VmoExternalMemory : public vk::DeviceMemory, public vk::ObjectBase<VmoExternalMemory, VkDeviceMemory>
 {
 public:
-	// Helper struct to parse the VkMemoryAllocateInfo.pNext chain and
-	// extract relevant information related to the handle type supported
-	// by this DeviceMemory::ExternalBase subclass.
+	// Helper struct which reads the parsed allocation info and
+	// extracts relevant information related to the handle type
+	// supported by this DeviceMemory subclass.
 	struct AllocateInfo
 	{
 		bool importHandle = false;
@@ -35,7 +36,7 @@ public:
 
 		AllocateInfo() = default;
 
-		// Used the parsed allocation info to initialize a AllocateInfo.
+		// Use the parsed allocation info to initialize a AllocateInfo.
 		AllocateInfo(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
 		{
 			if(extendedAllocationInfo.importMemoryZirconHandleInfo)
@@ -67,8 +68,9 @@ public:
 		return info.importHandle || info.exportHandle;
 	}
 
-	explicit VmoExternalMemory(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
-	    : allocateInfo(extendedAllocationInfo)
+	explicit VmoExternalMemory(const VkMemoryAllocateInfo *pCreateInfo, void *mem, const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, vk::Device *pDevice)
+	    : vk::DeviceMemory(pCreateInfo, pDevice)
+	    , allocateInfo(extendedAllocationInfo)
 	{
 	}
 

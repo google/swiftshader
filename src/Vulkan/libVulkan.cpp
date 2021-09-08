@@ -1025,21 +1025,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 	TRACE("(VkDevice device = %p, const VkMemoryAllocateInfo* pAllocateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkDeviceMemory* pMemory = %p)",
 	      device, pAllocateInfo, pAllocator, pMemory);
 
-	vk::DeviceMemory::ExtendedAllocationInfo extendedAllocationInfo = {};
-	VkResult result = vk::DeviceMemory::ParseAllocationInfo(pAllocateInfo, &extendedAllocationInfo);
-	if(result != VK_SUCCESS)
-	{
-		return result;
-	}
+	VkResult result = vk::DeviceMemory::Allocate(pAllocator, pAllocateInfo, pMemory, vk::Cast(device));
 
-	result = vk::DeviceMemory::Create(pAllocator, pAllocateInfo, pMemory, extendedAllocationInfo, vk::Cast(device));
-	if(result != VK_SUCCESS)
-	{
-		return result;
-	}
-
-	// Make sure the memory allocation is done now so that OOM errors can be checked now
-	result = vk::Cast(*pMemory)->allocate();
 	if(result != VK_SUCCESS)
 	{
 		vk::destroy(*pMemory, pAllocator);

@@ -191,8 +191,9 @@ AHardwareBufferExternalMemory::AllocateInfo::AllocateInfo(const vk::DeviceMemory
 	}
 }
 
-AHardwareBufferExternalMemory::AHardwareBufferExternalMemory(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
-    : allocateInfo(extendedAllocationInfo)
+AHardwareBufferExternalMemory::AHardwareBufferExternalMemory(const VkMemoryAllocateInfo *pCreateInfo, void *mem, const DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, vk::Device *pDevice)
+    : vk::DeviceMemory(pCreateInfo, pDevice)
+    , allocateInfo(extendedAllocationInfo)
 {
 }
 
@@ -332,6 +333,11 @@ VkResult AHardwareBufferExternalMemory::unlockAndroidHardwareBuffer()
 
 VkResult AHardwareBufferExternalMemory::exportAndroidHardwareBuffer(AHardwareBuffer **pAhb) const
 {
+	if(getFlagBit() != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
+	{
+		return VK_ERROR_OUT_OF_HOST_MEMORY;
+	}
+
 	// Each call to vkGetMemoryAndroidHardwareBufferANDROID *must* return an Android hardware buffer with a new reference
 	// acquired in addition to the reference held by the VkDeviceMemory. To avoid leaking resources, the application *must*
 	// release the reference by calling AHardwareBuffer_release when it is no longer needed.
