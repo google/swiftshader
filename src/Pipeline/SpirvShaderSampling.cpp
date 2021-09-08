@@ -209,8 +209,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstructionSig
 		   samplerFunction.method == Bias || samplerFunction.method == Fetch)
 		{
 			// Only perform per-lane sampling if LOD diverges or we're doing Grad sampling.
-			Bool perLaneSampling = samplerFunction.method == Grad || lodOrBias.x != lodOrBias.y ||
-			                       lodOrBias.x != lodOrBias.z || lodOrBias.x != lodOrBias.w;
+			Bool perLaneSampling = (samplerFunction.method == Grad) || Divergent(As<SIMD::Int>(lodOrBias));
 			auto lod = Pointer<Float>(&lodOrBias);
 			Int i = 0;
 			Do
