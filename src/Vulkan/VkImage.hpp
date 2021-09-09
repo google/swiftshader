@@ -135,7 +135,7 @@ private:
 	int borderSize() const;
 	bool requiresPreprocessing() const;
 	void decompress(const VkImageSubresource &subresource);
-	bool updateCube(const VkImageSubresource &subresource);
+	void updateCube(const VkImageSubresource &subresource);
 	void decodeETC2(const VkImageSubresource &subresource);
 	void decodeBC(const VkImageSubresource &subresource);
 	void decodeASTC(const VkImageSubresource &subresource);
