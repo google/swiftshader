@@ -734,7 +734,7 @@ VkExtent2D Image::bufferExtentInBlocks(const VkExtent2D &extent, const VkBufferI
 int Image::borderSize() const
 {
 	// We won't add a border to compressed cube textures, we'll add it when we decompress the texture
-	return (isCube() && !format.isCompressed()) ? 1 : 0;
+	return (isCubeCompatible() && !format.isCompressed()) ? 1 : 0;
 }
 
 VkDeviceSize Image::texelOffsetBytesInStorage(const VkOffset3D &offset, const VkImageSubresource &subresource) const
@@ -832,9 +832,13 @@ Format Image::getFormat(VkImageAspectFlagBits aspect) const
 	return format.getAspectFormat(aspect);
 }
 
-bool Image::isCube() const
+bool Image::isCubeCompatible() const
 {
-	return (flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) && (imageType == VK_IMAGE_TYPE_2D);
+	bool cubeCompatible = (flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+	ASSERT(!cubeCompatible || (imageType == VK_IMAGE_TYPE_2D));  // VUID-VkImageCreateInfo-flags-00949
+	ASSERT(!cubeCompatible || (arrayLayers >= 6));               // VUID-VkImageCreateInfo-imageType-00954
+
+	return cubeCompatible;
 }
 
 uint8_t *Image::end() const
@@ -1089,7 +1093,7 @@ void Image::clear(const VkClearValue &clearValue, const vk::Format &viewFormat, 
 
 bool Image::requiresPreprocessing() const
 {
-	return (isCube() && (arrayLayers >= 6)) || decompressedImage;
+	return isCubeCompatible() || decompressedImage;
 }
 
 void Image::contentsChanged(const VkImageSubresourceRange &subresourceRange, ContentsChangedContext contentsChangedContext)
@@ -1299,7 +1303,7 @@ void Image::decompress(const VkImageSubresource &subresource)
 
 bool Image::updateCube(const VkImageSubresource &subres)
 {
-	if(isCube() && (arrayLayers >= 6))
+	if(isCubeCompatible())
 	{
 		VkImageSubresource subresource = subres;
 

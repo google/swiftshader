@@ -160,11 +160,11 @@ bool ImageView::imageTypesMatch(VkImageType imageType) const
 		       ((imageType == VK_IMAGE_TYPE_3D) &&
 		        (imageArrayLayers == 1));
 	case VK_IMAGE_VIEW_TYPE_CUBE:
-		return image->isCube() &&
+		return image->isCubeCompatible() &&
 		       (imageArrayLayers >= subresourceRange.layerCount) &&
 		       (subresourceRange.layerCount == 6);
 	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-		return image->isCube() &&
+		return image->isCubeCompatible() &&
 		       (imageArrayLayers >= subresourceRange.layerCount) &&
 		       (subresourceRange.layerCount >= 6);
 	case VK_IMAGE_VIEW_TYPE_3D:
