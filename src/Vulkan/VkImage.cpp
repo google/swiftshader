@@ -1192,21 +1192,19 @@ void Image::prepareForSampling(const VkImageSubresourceRange &subresourceRange)
 			    subresource.arrayLayer <= lastLayer;
 			    subresource.arrayLayer++)
 			{
-				updateCube(subresource);
-
-				// updateCube() updates all layers of all cubemaps at once, so remove entries to avoid duplicating effort
-				VkImageSubresource cleanSubresource = subresource;
-				for(cleanSubresource.arrayLayer = 0; cleanSubresource.arrayLayer < arrayLayers - 5;)
+				auto it = dirtySubresources.find(subresource);
+				if(it != dirtySubresources.end())
 				{
-					// Delete one cube's worth of dirty subregions
-					for(uint32_t i = 0; i < 6; i++, cleanSubresource.arrayLayer++)
+					// Since cube faces affect each other's borders, we update all 6 layers.
+
+					subresource.arrayLayer -= subresource.arrayLayer % 6;  // Round down to a multiple of 6.
+
+					if(subresource.arrayLayer + 5 <= lastLayer)
 					{
-						auto it = dirtySubresources.find(cleanSubresource);
-						if(it != dirtySubresources.end())
-						{
-							dirtySubresources.erase(it);
-						}
+						device->getBlitter()->updateBorders(decompressedImage ? decompressedImage : this, subresource);
 					}
+
+					subresource.arrayLayer += 5;  // Together with the loop increment, advances to the next cube.
 				}
 			}
 		}
@@ -1297,18 +1295,6 @@ void Image::decompress(const VkImageSubresource &subresource)
 	default:
 		UNSUPPORTED("Compressed format %d", (VkFormat)format);
 		break;
-	}
-}
-
-void Image::updateCube(const VkImageSubresource &subres)
-{
-	VkImageSubresource subresource = subres;
-
-	// Update the borders of all the groups of 6 layers that can be part of a cubemaps but don't
-	// touch leftover layers that cannot be part of cubemaps.
-	for(subresource.arrayLayer = 0; subresource.arrayLayer < arrayLayers - 5; subresource.arrayLayer += 6)
-	{
-		device->getBlitter()->updateBorders(decompressedImage ? decompressedImage : this, subresource);
 	}
 }
 
