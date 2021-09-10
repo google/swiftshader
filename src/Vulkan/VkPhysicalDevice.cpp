@@ -1060,6 +1060,42 @@ bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatur
 	return true;
 }
 
+template<typename T>
+bool PhysicalDevice::hasExtendedFeatures(const T *requestedFeature) const
+{
+	VkPhysicalDeviceFeatures2 features;
+	features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	T supportedFeature;
+	supportedFeature.sType = requestedFeature->sType;
+	supportedFeature.pNext = nullptr;
+	features.pNext = &supportedFeature;
+
+	getFeatures2(&features);
+	size_t offsetToFirstBool32 = sizeof(VkBaseOutStructure);
+	size_t numFeatures = (sizeof(T) - offsetToFirstBool32) / sizeof(VkBool32);
+	const VkBool32 *requestedFeatureBools = reinterpret_cast<const VkBool32 *>(
+	    reinterpret_cast<const uint8_t *>(requestedFeature) + offsetToFirstBool32);
+	const VkBool32 *supportedFeatureBools = reinterpret_cast<const VkBool32 *>(
+	    reinterpret_cast<const uint8_t *>(&supportedFeature) + offsetToFirstBool32);
+
+	for(size_t i = 0; i < numFeatures; i++)
+	{
+		if((requestedFeatureBools[i] != VK_FALSE) && (supportedFeatureBools[i] == VK_FALSE))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+#define InstantiateHasExtendedFeatures(Type) template bool PhysicalDevice::hasExtendedFeatures<Type>(const Type *requestedFeature) const
+InstantiateHasExtendedFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT);
+InstantiateHasExtendedFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT);
+InstantiateHasExtendedFeatures(VkPhysicalDeviceVulkan11Features);
+InstantiateHasExtendedFeatures(VkPhysicalDeviceVulkan12Features);
+InstantiateHasExtendedFeatures(VkPhysicalDeviceDepthClipEnableFeaturesEXT);
+#undef InstantiateHasExtendedFeatures
+
 void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFormatProperties)
 {
 	pFormatProperties->linearTilingFeatures = 0;   // Unsupported format

@@ -37,6 +37,8 @@ public:
 	const VkPhysicalDeviceFeatures &getFeatures() const;
 	void getFeatures2(VkPhysicalDeviceFeatures2 *features) const;
 	bool hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatures) const;
+	template<typename T>
+	bool hasExtendedFeatures(const T *requestedFeature) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
