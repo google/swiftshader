@@ -73,6 +73,7 @@ private:
 	void stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, bool isBack);
 	void stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, const PixelProcessor::States::StencilOpState &ops, bool isBack, const Int &zMask, const Int &sMask);
 	void stencilOperation(Byte8 &output, const Byte8 &bufferValue, VkStencilOp operation, bool isBack);
+	Float4 clampDepth(const Float4 &z);
 	Bool depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask);
 	void depthBoundsTest(const Pointer<Byte> &zBuffer, int q, const Int &x, Int &zMask, Int &cMask);
 

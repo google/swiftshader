@@ -245,11 +245,6 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 		for(unsigned int q : samples)
 		{
 			z[q] = routine.getVariable(it->second.Id)[it->second.FirstComponent];
-
-			if(state.depthClamp)
-			{
-				z[q] = Min(Max(z[q], Float4(state.minDepthClamp)), Float4(state.maxDepthClamp));
-			}
 		}
 	}
 }

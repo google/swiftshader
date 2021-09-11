@@ -128,10 +128,6 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				}
 
 				unclampedZ[q] = z[q];
-				if(state.depthClamp)
-				{
-					z[q] = Min(Max(z[q], Float4(state.minDepthClamp)), Float4(state.maxDepthClamp));
-				}
 			}
 		}
 
@@ -141,6 +137,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 		{
 			for(unsigned int q : samples)
 			{
+				z[q] = clampDepth(z[q]);
 				depthPass = depthPass || depthTest(zBuffer, q, x, z[q], sMask[q], zMask[q], cMask[q]);
 				depthBoundsTest(zBuffer, q, x, zMask[q], cMask[q]);
 			}
@@ -310,6 +307,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				{
 					for(unsigned int q : samples)
 					{
+						z[q] = clampDepth(z[q]);
 						depthPass = depthPass || depthTest(zBuffer, q, x, z[q], sMask[q], zMask[q], cMask[q]);
 						depthBoundsTest(zBuffer, q, x, zMask[q], cMask[q]);
 					}
@@ -571,6 +569,16 @@ Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x
 	}
 
 	return zMask != 0;
+}
+
+Float4 PixelRoutine::clampDepth(const Float4 &z)
+{
+	if(!state.depthClamp)
+	{
+		return z;
+	}
+
+	return Min(Max(z, Float4(state.minDepthClamp)), Float4(state.maxDepthClamp));
 }
 
 Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask)
