@@ -1768,7 +1768,7 @@ void CommandBuffer::ExecutionState::bindAttachments(Attachments *attachments)
 		auto attachmentReference = subpass.pColorAttachments[i];
 		if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
 		{
-			attachments->renderTarget[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
+			attachments->colorBuffer[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
 		}
 	}
 

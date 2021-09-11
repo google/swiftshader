@@ -380,15 +380,15 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	{
 		const vk::Attachments attachments = pipeline->getAttachments();
 
-		for(int index = 0; index < RENDERTARGETS; index++)
+		for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
 		{
-			draw->renderTarget[index] = attachments.renderTarget[index];
+			draw->colorBuffer[index] = attachments.colorBuffer[index];
 
-			if(draw->renderTarget[index])
+			if(draw->colorBuffer[index])
 			{
-				data->colorBuffer[index] = (unsigned int *)attachments.renderTarget[index]->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, data->viewID);
-				data->colorPitchB[index] = attachments.renderTarget[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-				data->colorSliceB[index] = attachments.renderTarget[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+				data->colorBuffer[index] = (unsigned int *)attachments.colorBuffer[index]->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, data->viewID);
+				data->colorPitchB[index] = attachments.colorBuffer[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+				data->colorSliceB[index] = attachments.colorBuffer[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			}
 		}
 
@@ -466,11 +466,11 @@ void DrawCall::teardown()
 	setupRoutine = {};
 	pixelRoutine = {};
 
-	for(auto *rt : renderTarget)
+	for(auto *target : colorBuffer)
 	{
-		if(rt)
+		if(target)
 		{
-			rt->contentsChanged();
+			target->contentsChanged();
 		}
 	}
 

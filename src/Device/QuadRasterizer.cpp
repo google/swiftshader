@@ -69,13 +69,13 @@ void QuadRasterizer::generate()
 
 void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 {
-	Pointer<Byte> cBuffer[RENDERTARGETS];
+	Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS];
 	Pointer<Byte> zBuffer;
 	Pointer<Byte> sBuffer;
 
 	Int clusterCountLog2 = 31 - Ctlz(UInt(clusterCount), false);
 
-	for(int index = 0; index < RENDERTARGETS; index++)
+	for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
 	{
 		if(state.colorWriteActive(index))
 		{
@@ -204,7 +204,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 			}
 		}
 
-		for(int index = 0; index < RENDERTARGETS; index++)
+		for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
 		{
 			if(state.colorWriteActive(index))
 			{

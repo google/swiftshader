@@ -206,7 +206,7 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 		spirvShader->clearPhis(&routine);
 	}
 
-	for(int i = 0; i < RENDERTARGETS; i++)
+	for(int i = 0; i < MAX_COLOR_BUFFERS; i++)
 	{
 		c[i].x = routine.outputs[i * 4];
 		c[i].y = routine.outputs[i * 4 + 1];
@@ -274,14 +274,14 @@ Bool PixelProgram::alphaTest(Int cMask[4], const SampleSet &samples)
 
 void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], const SampleSet &samples)
 {
-	for(int index = 0; index < RENDERTARGETS; index++)
+	for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
 	{
 		if(!state.colorWriteActive(index))
 		{
 			continue;
 		}
 
-		auto format = state.targetFormat[index];
+		auto format = state.colorFormat[index];
 		switch(format)
 		{
 		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
@@ -356,16 +356,16 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 	}
 }
 
-void PixelProgram::clampColor(Vector4f oC[RENDERTARGETS])
+void PixelProgram::clampColor(Vector4f oC[MAX_COLOR_BUFFERS])
 {
-	for(int index = 0; index < RENDERTARGETS; index++)
+	for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
 	{
 		if(!state.colorWriteActive(index) && !(index == 0 && state.alphaToCoverage))
 		{
 			continue;
 		}
 
-		switch(state.targetFormat[index])
+		switch(state.colorFormat[index])
 		{
 		case VK_FORMAT_UNDEFINED:
 			break;
@@ -423,7 +423,7 @@ void PixelProgram::clampColor(Vector4f oC[RENDERTARGETS])
 		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 			break;
 		default:
-			UNSUPPORTED("VkFormat: %d", int(state.targetFormat[index]));
+			UNSUPPORTED("VkFormat: %d", int(state.colorFormat[index]));
 		}
 	}
 }

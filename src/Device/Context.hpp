@@ -51,12 +51,12 @@ private:
 
 struct Attachments
 {
-	ImageView *renderTarget[sw::RENDERTARGETS] = {};
+	ImageView *colorBuffer[sw::MAX_COLOR_BUFFERS] = {};
 	ImageView *depthBuffer = nullptr;
 	ImageView *stencilBuffer = nullptr;
 
 	bool isColorClamped(int index) const;
-	VkFormat renderTargetInternalFormat(int index) const;
+	VkFormat colorFormat(int index) const;
 };
 
 struct Inputs
@@ -239,7 +239,7 @@ private:
 
 	float lineWidth = 0.0f;
 
-	int colorWriteMask[sw::RENDERTARGETS] = {};  // RGBA
+	int colorWriteMask[sw::MAX_COLOR_BUFFERS] = {};  // RGBA
 	unsigned int multiSampleMask = 0;
 	int sampleCount = 0;
 	bool alphaToCoverage = false;
@@ -252,7 +252,7 @@ private:
 	VkViewport viewport = {};
 	sw::float4 blendConstants = {};
 
-	BlendState blendState[sw::RENDERTARGETS] = {};
+	BlendState blendState[sw::MAX_COLOR_BUFFERS] = {};
 };
 
 }  // namespace vk

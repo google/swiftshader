@@ -95,9 +95,9 @@ struct DrawData
 	float depthBiasClamp;
 	bool depthClipEnable;
 
-	unsigned int *colorBuffer[RENDERTARGETS];
-	int colorPitchB[RENDERTARGETS];
-	int colorSliceB[RENDERTARGETS];
+	unsigned int *colorBuffer[MAX_COLOR_BUFFERS];
+	int colorPitchB[MAX_COLOR_BUFFERS];
+	int colorSliceB[MAX_COLOR_BUFFERS];
 	float *depthBuffer;
 	int depthPitchB;
 	int depthSliceB;
@@ -170,7 +170,7 @@ struct DrawCall
 	SetupProcessor::State setupState;
 
 	vk::Device *device;
-	vk::ImageView *renderTarget[RENDERTARGETS];
+	vk::ImageView *colorBuffer[MAX_COLOR_BUFFERS];
 	vk::ImageView *depthBuffer;
 	vk::ImageView *stencilBuffer;
 	vk::DescriptorSet::Array descriptorSetObjects;

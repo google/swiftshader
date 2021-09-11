@@ -81,10 +81,10 @@ public:
 		bool occlusionEnabled;
 		bool perspective;
 
-		vk::BlendState blendState[RENDERTARGETS];
+		vk::BlendState blendState[MAX_COLOR_BUFFERS];
 
 		unsigned int colorWriteMask;
-		vk::Format targetFormat[RENDERTARGETS];
+		vk::Format colorFormat[MAX_COLOR_BUFFERS];
 		unsigned int multiSampleCount;
 		unsigned int multiSampleMask;
 		bool enableMultiSampling;
