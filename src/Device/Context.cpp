@@ -160,6 +160,18 @@ VkFormat Attachments::colorFormat(int index) const
 	}
 }
 
+VkFormat Attachments::depthFormat() const
+{
+	if(depthBuffer)
+	{
+		return depthBuffer->getFormat();
+	}
+	else
+	{
+		return VK_FORMAT_UNDEFINED;
+	}
+}
+
 Inputs::Inputs(const VkPipelineVertexInputStateCreateInfo *vertexInputState)
 {
 	if(vertexInputState->flags != 0)
@@ -467,7 +479,7 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			minDepthBounds = depthStencilState->minDepthBounds;
 			maxDepthBounds = depthStencilState->maxDepthBounds;
 
-			depthBufferEnable = (depthStencilState->depthTestEnable != VK_FALSE);
+			depthTestEnable = (depthStencilState->depthTestEnable != VK_FALSE);
 			depthWriteEnable = (depthStencilState->depthWriteEnable != VK_FALSE);
 			depthCompareMode = depthStencilState->depthCompareOp;
 
@@ -582,14 +594,13 @@ bool GraphicsState::isDrawTriangle(bool polygonModeAware) const
 
 bool GraphicsState::depthWriteActive(const Attachments &attachments) const
 {
-	if(!depthBufferActive(attachments)) return false;
-
-	return depthWriteEnable;
+	// "Depth writes are always disabled when depthTestEnable is VK_FALSE."
+	return depthTestActive(attachments) && depthWriteEnable;
 }
 
-bool GraphicsState::depthBufferActive(const Attachments &attachments) const
+bool GraphicsState::depthTestActive(const Attachments &attachments) const
 {
-	return attachments.depthBuffer && depthBufferEnable;
+	return attachments.depthBuffer && depthTestEnable;
 }
 
 bool GraphicsState::stencilActive(const Attachments &attachments) const
@@ -597,9 +608,9 @@ bool GraphicsState::stencilActive(const Attachments &attachments) const
 	return attachments.stencilBuffer && stencilEnable;
 }
 
-bool GraphicsState::depthBoundsTestActive() const
+bool GraphicsState::depthBoundsTestActive(const Attachments &attachments) const
 {
-	return depthBoundsTestEnable;
+	return attachments.depthBuffer && depthBoundsTestEnable;
 }
 
 const GraphicsState GraphicsState::combineStates(const DynamicState &dynamicState) const

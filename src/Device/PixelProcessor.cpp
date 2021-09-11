@@ -110,11 +110,15 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 		state.backStencil = pipelineState.getBackStencil();
 	}
 
-	if(pipelineState.depthBufferActive(attachments))
+	state.depthFormat = attachments.depthFormat();
+	state.depthBoundsTestActive = pipelineState.depthBoundsTestActive(attachments);
+	state.minDepthBounds = pipelineState.getMinDepthBounds();
+	state.maxDepthBounds = pipelineState.getMaxDepthBounds();
+
+	if(pipelineState.depthTestActive(attachments))
 	{
 		state.depthTestActive = true;
 		state.depthCompareMode = pipelineState.getDepthCompareMode();
-		state.depthFormat = attachments.depthBuffer->getFormat();
 
 		state.depthBias = (pipelineState.getConstantDepthBias() != 0.0f) || (pipelineState.getSlopeDepthBias() != 0.0f);
 
@@ -135,10 +139,6 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 			state.maxDepthClamp = 1.0f;
 		}
 	}
-
-	state.depthBoundsTestActive = pipelineState.depthBoundsTestActive();
-	state.minDepthBounds = pipelineState.getMinDepthBounds();
-	state.maxDepthBounds = pipelineState.getMaxDepthBounds();
 
 	state.occlusionEnabled = occlusionEnabled;
 

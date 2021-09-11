@@ -68,7 +68,7 @@ SetupProcessor::State SetupProcessor::update(const vk::GraphicsState &pipelineSt
 	state.applyConstantDepthBias = pipelineState.isDrawTriangle(false) && (pipelineState.getConstantDepthBias() != 0.0f);
 	state.applySlopeDepthBias = pipelineState.isDrawTriangle(false) && (pipelineState.getSlopeDepthBias() != 0.0f);
 	state.applyDepthBiasClamp = pipelineState.isDrawTriangle(false) && (pipelineState.getDepthBiasClamp() != 0.0f);
-	state.interpolateZ = pipelineState.depthBufferActive(attachments) || vPosZW;
+	state.interpolateZ = pipelineState.depthTestActive(attachments) || vPosZW;
 	state.interpolateW = fragmentShader != nullptr;
 	state.frontFace = pipelineState.getFrontFace();
 	state.cullMode = pipelineState.getCullMode();

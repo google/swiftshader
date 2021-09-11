@@ -580,13 +580,16 @@ Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, 
 		return true;
 	}
 
-	if(state.depthFormat == VK_FORMAT_D16_UNORM)
+	switch(state.depthFormat)
 	{
+	case VK_FORMAT_D16_UNORM:
 		return depthTest16(zBuffer, q, x, z, sMask, zMask, cMask);
-	}
-	else
-	{
+	case VK_FORMAT_D32_SFLOAT:
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
 		return depthTest32F(zBuffer, q, x, z, sMask, zMask, cMask);
+	default:
+		UNSUPPORTED("Depth format: %d", int(state.depthFormat));
+		return false;
 	}
 }
 
@@ -627,18 +630,33 @@ Int4 PixelRoutine::depthBoundsTest32F(const Pointer<Byte> &zBuffer, int q, const
 
 void PixelRoutine::depthBoundsTest(const Pointer<Byte> &zBuffer, int q, const Int &x, Int &zMask, Int &cMask)
 {
-	if(state.depthBoundsTestActive)
+	if(!state.depthBoundsTestActive)
 	{
-		Int4 zTest = (state.depthFormat == VK_FORMAT_D16_UNORM) ? depthBoundsTest16(zBuffer, q, x) : depthBoundsTest32F(zBuffer, q, x);
+		return;
+	}
 
-		if(!state.depthTestActive)
-		{
-			cMask &= zMask & SignMask(zTest);
-		}
-		else
-		{
-			zMask &= cMask & SignMask(zTest);
-		}
+	Int4 zTest;
+	switch(state.depthFormat)
+	{
+	case VK_FORMAT_D16_UNORM:
+		zTest = depthBoundsTest16(zBuffer, q, x);
+		break;
+	case VK_FORMAT_D32_SFLOAT:
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
+		zTest = depthBoundsTest32F(zBuffer, q, x);
+		break;
+	default:
+		UNSUPPORTED("Depth format: %d", int(state.depthFormat));
+		break;
+	}
+
+	if(!state.depthTestActive)
+	{
+		cMask &= zMask & SignMask(zTest);
+	}
+	else
+	{
+		zMask &= cMask & SignMask(zTest);
 	}
 }
 
@@ -723,17 +741,19 @@ void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, const Int &x, const Int zM
 
 	for(unsigned int q : samples)
 	{
-		if(state.depthFormat == VK_FORMAT_D16_UNORM)
+		switch(state.depthFormat)
 		{
+		case VK_FORMAT_D16_UNORM:
 			writeDepth16(zBuffer, q, x, z[q], zMask[q]);
-		}
-		else if(state.depthFormat == VK_FORMAT_D32_SFLOAT ||
-		        state.depthFormat == VK_FORMAT_D32_SFLOAT_S8_UINT)
-		{
+			break;
+		case VK_FORMAT_D32_SFLOAT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			writeDepth32F(zBuffer, q, x, z[q], zMask[q]);
-		}
-		else
+			break;
+		default:
 			UNSUPPORTED("Depth format: %d", int(state.depthFormat));
+			break;
+		}
 	}
 }
 
