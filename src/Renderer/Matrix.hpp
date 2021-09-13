@@ -36,8 +36,6 @@ namespace sw
 		       float m41, float m42, float m43, float m44);
 		Matrix(const Vector &v1, const Vector &v2, const Vector &v3);   // Column vectors
 
-		Matrix &operator=(const Matrix &N) = default;
-
 		// Row major order
 		float m[4][4];
 
