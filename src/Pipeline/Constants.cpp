@@ -252,6 +252,10 @@ Constants::Constants()
 	for(int i = 0; i < 16; i++)
 	{
 		mask5551Q[i] = word4((i & 0x1 ? 0x001F : 0) | (i & 0x2 ? 0x03E0 : 0) | (i & 0x4 ? 0x7C00 : 0) | (i & 8 ? 0x8000 : 0));
+		maskr5g5b5a1Q[i] = word4((i & 0x1 ? 0x003E : 0) | (i & 0x2 ? 0x07C0 : 0) | (i & 0x4 ? 0xF800 : 0) | (i & 8 ? 0x0001 : 0));
+		maskb5g5r5a1Q[i] = word4((i & 0x1 ? 0xF800 : 0) | (i & 0x2 ? 0x07C0 : 0) | (i & 0x4 ? 0x003E : 0) | (i & 8 ? 0x0001 : 0));
+		mask4rgbaQ[i] = word4((i & 0x1 ? 0x00F0 : 0) | (i & 0x2 ? 0x0F00 : 0) | (i & 0x4 ? 0xF000 : 0) | (i & 8 ? 0x000F : 0));
+		mask4bgraQ[i] = word4((i & 0x1 ? 0xF000 : 0) | (i & 0x2 ? 0x0F00 : 0) | (i & 0x4 ? 0x00F0 : 0) | (i & 8 ? 0x000F : 0));
 	}
 
 	for(int i = 0; i < 4; i++)
