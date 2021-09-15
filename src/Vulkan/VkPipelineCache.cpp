@@ -23,13 +23,15 @@ PipelineCache::SpirvShaderKey::SpirvShaderKey(const VkShaderStageFlagBits pipeli
                                               const sw::SpirvBinary &insns,
                                               const vk::RenderPass *renderPass,
                                               const uint32_t subpassIndex,
-                                              const vk::SpecializationInfo &specializationInfo)
+                                              const vk::SpecializationInfo &specializationInfo,
+                                              bool optimize)
     : pipelineStage(pipelineStage)
     , entryPointName(entryPointName)
     , insns(insns)
     , renderPass(renderPass)
     , subpassIndex(subpassIndex)
     , specializationInfo(specializationInfo)
+    , optimize(optimize)
 {
 }
 
@@ -70,6 +72,11 @@ bool PipelineCache::SpirvShaderKey::operator<(const SpirvShaderKey &other) const
 	if(cmp != 0)
 	{
 		return cmp < 0;
+	}
+
+	if(optimize != other.optimize)
+	{
+		return !optimize && other.optimize;
 	}
 
 	return (specializationInfo < other.specializationInfo);

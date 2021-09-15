@@ -60,7 +60,8 @@ public:
 		               const sw::SpirvBinary &insns,
 		               const vk::RenderPass *renderPass,
 		               const uint32_t subpassIndex,
-		               const vk::SpecializationInfo &specializationInfo);
+		               const vk::SpecializationInfo &specializationInfo,
+		               bool optimize);
 
 		bool operator<(const SpirvShaderKey &other) const;
 
@@ -70,6 +71,7 @@ public:
 		const vk::RenderPass *getRenderPass() const { return renderPass; }
 		uint32_t getSubpassIndex() const { return subpassIndex; }
 		const VkSpecializationInfo *getSpecializationInfo() const { return specializationInfo.get(); }
+		bool getOptimization() const { return optimize; }
 
 	private:
 		const VkShaderStageFlagBits pipelineStage;
@@ -78,6 +80,7 @@ public:
 		const vk::RenderPass *renderPass;
 		const uint32_t subpassIndex;
 		const vk::SpecializationInfo specializationInfo;
+		const bool optimize;
 	};
 
 	// getOrOptimizeSpirv() queries the cache for a shader with the given key.

@@ -105,16 +105,9 @@ sw::SpirvBinary preprocessSpirv(
 	return optimized;
 }
 
-sw::SpirvBinary optimizeSpirv(
-    const vk::PipelineCache::SpirvShaderKey &key,
-    const std::shared_ptr<vk::dbg::Context> &dbgctx)
+sw::SpirvBinary optimizeSpirv(const vk::PipelineCache::SpirvShaderKey &key)
 {
-	// Do not optimize the shader if we have a debugger context.
-	// Optimization passes are likely to damage debug information, and reorder
-	// instructions.
-	const bool optimize = !dbgctx;
-
-	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo(), optimize);
+	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo(), key.getOptimization());
 	ASSERT(code.size() > 0);
 
 	return code;
@@ -241,24 +234,29 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 			UNSUPPORTED("pStage->flags %d", int(pStage->flags));
 		}
 
+		auto dbgctx = device->getDebuggerContext();
+		// Do not optimize the shader if we have a debugger context.
+		// Optimization passes are likely to damage debug information, and reorder
+		// instructions.
+		const bool optimize = !dbgctx;
+
 		const ShaderModule *module = vk::Cast(pStage->module);
 		const PipelineCache::SpirvShaderKey key(pStage->stage, pStage->pName, module->getCode(),
 		                                        vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass,
-		                                        pStage->pSpecializationInfo);
+		                                        pStage->pSpecializationInfo, optimize);
 		auto pipelineStage = key.getPipelineStage();
-		auto dbgctx = device->getDebuggerContext();
 
 		sw::SpirvBinary spirv;
 
 		if(pPipelineCache)
 		{
 			spirv = pPipelineCache->getOrOptimizeSpirv(key, [&] {
-				return optimizeSpirv(key, dbgctx);
+				return optimizeSpirv(key);
 			});
 		}
 		else
 		{
-			spirv = optimizeSpirv(key, dbgctx);
+			spirv = optimizeSpirv(key);
 		}
 
 		auto shader = createShader(key, module, spirv, robustBufferAccess, dbgctx);
@@ -291,21 +289,26 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, co
 	ASSERT(shader.get() == nullptr);
 	ASSERT(program.get() == nullptr);
 
-	const PipelineCache::SpirvShaderKey shaderKey(
-	    stage.stage, stage.pName, module->getCode(), nullptr, 0, stage.pSpecializationInfo);
 	auto dbgctx = device->getDebuggerContext();
+	// Do not optimize the shader if we have a debugger context.
+	// Optimization passes are likely to damage debug information, and reorder
+	// instructions.
+	const bool optimize = !dbgctx;
+
+	const PipelineCache::SpirvShaderKey shaderKey(
+	    stage.stage, stage.pName, module->getCode(), nullptr, 0, stage.pSpecializationInfo, optimize);
 
 	sw::SpirvBinary spirv;
 
 	if(pPipelineCache)
 	{
 		spirv = pPipelineCache->getOrOptimizeSpirv(shaderKey, [&] {
-			return optimizeSpirv(shaderKey, dbgctx);
+			return optimizeSpirv(shaderKey);
 		});
 	}
 	else
 	{
-		spirv = optimizeSpirv(shaderKey, dbgctx);
+		spirv = optimizeSpirv(shaderKey);
 	}
 
 	shader = createShader(shaderKey, module, spirv, robustBufferAccess, dbgctx);
