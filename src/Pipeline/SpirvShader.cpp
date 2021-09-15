@@ -29,7 +29,7 @@ SpirvShader::SpirvShader(
     uint32_t codeSerialID,
     VkShaderStageFlagBits pipelineStage,
     const char *entryPointName,
-    InsnStore const &insns,
+    SpirvBinary const &insns,
     const vk::RenderPass *renderPass,
     uint32_t subpassIndex,
     bool robustBufferAccess,

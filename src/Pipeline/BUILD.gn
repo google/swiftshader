@@ -23,6 +23,7 @@ swiftshader_source_set("Pipeline_headers") {
     "SamplerCore.hpp",
     "SetupRoutine.hpp",
     "ShaderCore.hpp",
+    "SpirvBinary.hpp",
     "SpirvShader.hpp",
     "SpirvShaderDebug.hpp",
     "VertexProgram.hpp",

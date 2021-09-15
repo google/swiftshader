@@ -16,6 +16,7 @@
 #define VK_SHADER_MODULE_HPP_
 
 #include "VkObject.hpp"
+#include "Pipeline/SpirvBinary.hpp"
 
 #include <atomic>
 #include <vector>
@@ -35,7 +36,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkShaderModuleCreateInfo *pCreateInfo);
 	// TODO: reconsider boundary of ShaderModule class; try to avoid 'expose the
 	// guts' operations, and this copy.
-	std::vector<uint32_t> getCode() const { return std::vector<uint32_t>{ code, code + wordCount }; }
+	sw::SpirvBinary getCode() const { return sw::SpirvBinary(code, wordCount); }
 
 	uint32_t getSerialID() const { return serialID; }
 	static uint32_t nextSerialID() { return serialCounter++; }

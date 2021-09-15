@@ -17,6 +17,7 @@
 
 #include "SamplerCore.hpp"
 #include "ShaderCore.hpp"
+#include "SpirvBinary.hpp"
 #include "SpirvID.hpp"
 #include "Device/Config.hpp"
 #include "Device/Sampler.hpp"
@@ -152,8 +153,7 @@ private:
 class SpirvShader
 {
 public:
-	using InsnStore = std::vector<uint32_t>;
-	InsnStore insns;
+	SpirvBinary insns;
 
 	using ImageSampler = void(void *texture, void *uvsIn, void *texelOut, void *constants);
 
@@ -173,7 +173,7 @@ public:
 
 		InsnIterator() = default;
 
-		explicit InsnIterator(InsnStore::const_iterator iter)
+		explicit InsnIterator(SpirvBinary::const_iterator iter)
 		    : iter{ iter }
 		{
 		}
@@ -282,7 +282,7 @@ public:
 		}
 
 	private:
-		InsnStore::const_iterator iter;
+		SpirvBinary::const_iterator iter;
 	};
 
 	/* range-based-for interface */
@@ -565,7 +565,7 @@ public:
 	SpirvShader(uint32_t codeSerialID,
 	            VkShaderStageFlagBits stage,
 	            const char *entryPointName,
-	            InsnStore const &insns,
+	            SpirvBinary const &insns,
 	            const vk::RenderPass *renderPass,
 	            uint32_t subpassIndex,
 	            bool robustBufferAccess,

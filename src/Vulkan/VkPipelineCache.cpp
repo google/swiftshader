@@ -13,13 +13,14 @@
 // limitations under the License.
 
 #include "VkPipelineCache.hpp"
+
 #include <cstring>
 
 namespace vk {
 
 PipelineCache::SpirvShaderKey::SpirvShaderKey(const VkShaderStageFlagBits pipelineStage,
                                               const std::string &entryPointName,
-                                              const std::vector<uint32_t> &insns,
+                                              const sw::SpirvBinary &insns,
                                               const vk::RenderPass *renderPass,
                                               const uint32_t subpassIndex,
                                               const vk::SpecializationInfo &specializationInfo)

@@ -33,8 +33,8 @@
 namespace {
 
 // preprocessSpirv applies and freezes specializations into constants, and inlines all functions.
-std::vector<uint32_t> preprocessSpirv(
-    std::vector<uint32_t> const &code,
+sw::SpirvBinary preprocessSpirv(
+    sw::SpirvBinary const &code,
     VkSpecializationInfo const *specializationInfo,
     bool optimize)
 {
@@ -57,14 +57,17 @@ std::vector<uint32_t> preprocessSpirv(
 	if(specializationInfo)
 	{
 		std::unordered_map<uint32_t, std::vector<uint32_t>> specializations;
-		for(auto i = 0u; i < specializationInfo->mapEntryCount; ++i)
+		const uint8_t *specializationData = static_cast<const uint8_t *>(specializationInfo->pData);
+
+		for(uint32_t i = 0; i < specializationInfo->mapEntryCount; i++)
 		{
-			auto const &e = specializationInfo->pMapEntries[i];
-			auto value_ptr =
-			    static_cast<uint32_t const *>(specializationInfo->pData) + e.offset / sizeof(uint32_t);
-			specializations.emplace(e.constantID,
-			                        std::vector<uint32_t>{ value_ptr, value_ptr + e.size / sizeof(uint32_t) });
+			const VkSpecializationMapEntry &entry = specializationInfo->pMapEntries[i];
+			const uint8_t *value_ptr = specializationData + entry.offset;
+			std::vector<uint32_t> value(reinterpret_cast<const uint32_t *>(value_ptr),
+			                            reinterpret_cast<const uint32_t *>(value_ptr + entry.size));
+			specializations.emplace(entry.constantID, std::move(value));
 		}
+
 		opt.RegisterPass(spvtools::CreateSetSpecConstantDefaultValuePass(specializations));
 	}
 
@@ -85,7 +88,7 @@ std::vector<uint32_t> preprocessSpirv(
 	optimizerOptions.set_validator_options(validatorOptions);
 #endif
 
-	std::vector<uint32_t> optimized;
+	sw::SpirvBinary optimized;
 	opt.Run(code.data(), code.size(), &optimized, optimizerOptions);
 
 	if(false)

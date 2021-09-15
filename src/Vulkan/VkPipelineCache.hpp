@@ -17,6 +17,7 @@
 
 #include "VkObject.hpp"
 #include "VkSpecializationInfo.hpp"
+#include "Pipeline/SpirvBinary.hpp"
 
 #include "marl/mutex.h"
 #include "marl/tsa.h"
@@ -56,7 +57,7 @@ public:
 	{
 		SpirvShaderKey(const VkShaderStageFlagBits pipelineStage,
 		               const std::string &entryPointName,
-		               const std::vector<uint32_t> &insns,
+		               const sw::SpirvBinary &insns,
 		               const vk::RenderPass *renderPass,
 		               const uint32_t subpassIndex,
 		               const vk::SpecializationInfo &specializationInfo);
@@ -65,7 +66,7 @@ public:
 
 		const VkShaderStageFlagBits &getPipelineStage() const { return pipelineStage; }
 		const std::string &getEntryPointName() const { return entryPointName; }
-		const std::vector<uint32_t> &getInsns() const { return insns; }
+		const sw::SpirvBinary &getInsns() const { return insns; }
 		const vk::RenderPass *getRenderPass() const { return renderPass; }
 		uint32_t getSubpassIndex() const { return subpassIndex; }
 		const VkSpecializationInfo *getSpecializationInfo() const { return specializationInfo.get(); }
@@ -73,7 +74,7 @@ public:
 	private:
 		const VkShaderStageFlagBits pipelineStage;
 		const std::string entryPointName;
-		const std::vector<uint32_t> insns;
+		const sw::SpirvBinary insns;
 		const vk::RenderPass *renderPass;
 		const uint32_t subpassIndex;
 		const vk::SpecializationInfo specializationInfo;
