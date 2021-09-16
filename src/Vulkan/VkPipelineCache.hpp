@@ -80,13 +80,13 @@ public:
 		const vk::SpecializationInfo specializationInfo;
 	};
 
-	// getOrCreateShader() queries the cache for a shader with the given key.
+	// getOrOptimizeSpirv() queries the cache for a shader with the given key.
 	// If one is found, it is returned, otherwise create() is called, the
-	// returned shader is added to the cache, and it is returned.
+	// returned SPIR-V binary is added to the cache, and it is returned.
 	// Function must be a function of the signature:
-	//     std::shared_ptr<sw::SpirvShader>()
+	//     sw::ShaderBinary()
 	template<typename Function>
-	inline std::shared_ptr<sw::SpirvShader> getOrCreateShader(const PipelineCache::SpirvShaderKey &key, Function &&create);
+	inline sw::SpirvBinary getOrOptimizeSpirv(const PipelineCache::SpirvShaderKey &key, Function &&create);
 
 	struct ComputeProgramKey
 	{
@@ -122,7 +122,7 @@ private:
 	uint8_t *data = nullptr;
 
 	marl::mutex spirvShadersMutex;
-	std::map<SpirvShaderKey, std::shared_ptr<sw::SpirvShader>> spirvShaders GUARDED_BY(spirvShadersMutex);
+	std::map<SpirvShaderKey, sw::SpirvBinary> spirvShaders GUARDED_BY(spirvShadersMutex);
 
 	marl::mutex computeProgramsMutex;
 	std::map<ComputeProgramKey, std::shared_ptr<sw::ComputeProgram>> computePrograms GUARDED_BY(computeProgramsMutex);
@@ -139,23 +139,31 @@ std::shared_ptr<sw::ComputeProgram> PipelineCache::getOrCreateComputeProgram(con
 	marl::lock lock(computeProgramsMutex);
 
 	auto it = computePrograms.find(key);
-	if(it != computePrograms.end()) { return it->second; }
+	if(it != computePrograms.end())
+	{
+		return it->second;
+	}
 
 	auto created = create();
 	computePrograms.emplace(key, created);
+
 	return created;
 }
 
 template<typename Function>
-std::shared_ptr<sw::SpirvShader> PipelineCache::getOrCreateShader(const PipelineCache::SpirvShaderKey &key, Function &&create)
+sw::SpirvBinary PipelineCache::getOrOptimizeSpirv(const PipelineCache::SpirvShaderKey &key, Function &&create)
 {
 	marl::lock lock(spirvShadersMutex);
 
 	auto it = spirvShaders.find(key);
-	if(it != spirvShaders.end()) { return it->second; }
+	if(it != spirvShaders.end())
+	{
+		return it->second;
+	}
 
 	auto created = create();
 	spirvShaders.emplace(key, created);
+
 	return created;
 }
 
