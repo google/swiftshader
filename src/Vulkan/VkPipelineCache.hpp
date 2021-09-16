@@ -55,30 +55,18 @@ public:
 
 	struct SpirvShaderKey
 	{
-		SpirvShaderKey(const VkShaderStageFlagBits pipelineStage,
-		               const std::string &entryPointName,
-		               const sw::SpirvBinary &insns,
-		               const vk::RenderPass *renderPass,
-		               const uint32_t subpassIndex,
+		SpirvShaderKey(const sw::SpirvBinary &insns,
 		               const vk::SpecializationInfo &specializationInfo,
 		               bool optimize);
 
 		bool operator<(const SpirvShaderKey &other) const;
 
-		const VkShaderStageFlagBits &getPipelineStage() const { return pipelineStage; }
-		const std::string &getEntryPointName() const { return entryPointName; }
 		const sw::SpirvBinary &getInsns() const { return insns; }
-		const vk::RenderPass *getRenderPass() const { return renderPass; }
-		uint32_t getSubpassIndex() const { return subpassIndex; }
 		const VkSpecializationInfo *getSpecializationInfo() const { return specializationInfo.get(); }
 		bool getOptimization() const { return optimize; }
 
 	private:
-		const VkShaderStageFlagBits pipelineStage;
-		const std::string entryPointName;
 		const sw::SpirvBinary insns;
-		const vk::RenderPass *renderPass;
-		const uint32_t subpassIndex;
 		const vk::SpecializationInfo specializationInfo;
 		const bool optimize;
 	};
