@@ -46,7 +46,7 @@ class ComputeProgram : public Coroutine<SpirvShader::YieldResult(
                            int32_t subgroupCount)>
 {
 public:
-	ComputeProgram(vk::Device *device, SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
+	ComputeProgram(vk::Device *device, std::shared_ptr<SpirvShader> spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~ComputeProgram();
 
@@ -81,8 +81,8 @@ protected:
 	};
 
 	vk::Device *const device;
-	SpirvShader const *const shader;
-	vk::PipelineLayout const *const pipelineLayout;
+	const std::shared_ptr<SpirvShader> shader;
+	const vk::PipelineLayout *const pipelineLayout;  // Reference held by vk::Pipeline
 	const vk::DescriptorSet::Bindings &descriptorSets;
 };
 

@@ -90,22 +90,13 @@ public:
 
 	struct ComputeProgramKey
 	{
-		ComputeProgramKey(const sw::SpirvShader *shader, const vk::PipelineLayout *layout)
-		    : shader(shader)
-		    , layout(layout)
-		{}
+		ComputeProgramKey(uint64_t shaderIdentifier, uint32_t pipelineLayoutIdentifier);
 
-		bool operator<(const ComputeProgramKey &other) const
-		{
-			return std::tie(shader, layout) < std::tie(other.shader, other.layout);
-		}
-
-		const sw::SpirvShader *getShader() const { return shader; }
-		const vk::PipelineLayout *getLayout() const { return layout; }
+		bool operator<(const ComputeProgramKey &other) const;
 
 	private:
-		const sw::SpirvShader *shader;
-		const vk::PipelineLayout *layout;
+		const uint64_t shaderIdentifier;
+		const uint32_t pipelineLayoutIdentifier;
 	};
 
 	// getOrCreateComputeProgram() queries the cache for a compute program with

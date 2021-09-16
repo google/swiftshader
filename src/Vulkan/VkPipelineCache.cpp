@@ -75,6 +75,16 @@ bool PipelineCache::SpirvShaderKey::operator<(const SpirvShaderKey &other) const
 	return (specializationInfo < other.specializationInfo);
 }
 
+PipelineCache::ComputeProgramKey::ComputeProgramKey(uint64_t shaderIdentifier, uint32_t pipelineLayoutIdentifier)
+    : shaderIdentifier(shaderIdentifier)
+    , pipelineLayoutIdentifier(pipelineLayoutIdentifier)
+{}
+
+bool PipelineCache::ComputeProgramKey::operator<(const ComputeProgramKey &other) const
+{
+	return std::tie(shaderIdentifier, pipelineLayoutIdentifier) < std::tie(other.shaderIdentifier, other.pipelineLayoutIdentifier);
+}
+
 PipelineCache::PipelineCache(const VkPipelineCacheCreateInfo *pCreateInfo, void *mem)
     : dataSize(ComputeRequiredAllocationSize(pCreateInfo))
     , data(reinterpret_cast<uint8_t *>(mem))
