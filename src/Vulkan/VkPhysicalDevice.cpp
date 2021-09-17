@@ -170,6 +170,7 @@ template<typename T>
 static void getPhysicalDeviceProvokingVertexFeaturesEXT(T *features)
 {
 	features->provokingVertexLast = VK_TRUE;
+	features->transformFeedbackPreservesProvokingVertex = VK_FALSE;
 }
 
 template<typename T>
