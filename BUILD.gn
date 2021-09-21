@@ -15,7 +15,7 @@
 import("src/Reactor/reactor.gni")
 
 config("swiftshader_config") {
-  cflags = []
+  cflags = [ "-Wno-shadow" ]
   defines = []
   asmflags = []
 
@@ -81,6 +81,7 @@ source_set("vertex_routine_fuzzer") {
   }
   include_dirs = [ "src/" ]
   deps = [ "src/OpenGL/libGLESv2:swiftshader_libGLESv2_static" ]
+  configs += [ ":swiftshader_config" ]
 }
 
 group("swiftshader") {
