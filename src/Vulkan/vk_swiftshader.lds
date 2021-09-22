@@ -4,7 +4,7 @@ global:
 	vk_icdGetInstanceProcAddr;
 	vk_icdNegotiateLoaderICDInterfaceVersion;
 
-	# Optional Vulkan API entry functions
+	# Vulkan 1.0 API entry functions
 	vkCreateInstance;
 	vkDestroyInstance;
 	vkEnumeratePhysicalDevices;
@@ -142,112 +142,107 @@ global:
 	vkCmdNextSubpass;
 	vkCmdEndRenderPass;
 	vkCmdExecuteCommands;
+	vkDestroySurfaceKHR;
+	vkGetPhysicalDeviceSurfaceSupportKHR;
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+	vkGetPhysicalDeviceSurfaceFormatsKHR;
+
+	# VK_KHR_get_surface_capabilities2
+	#vkGetPhysicalDeviceSurfaceCapabilities2KHR;
+	#vkGetPhysicalDeviceSurfaceFormats2KHR;
+
+	# VK_KHR_surface
+	vkGetPhysicalDeviceSurfacePresentModesKHR;
+	vkCreateSwapchainKHR;
+	vkDestroySwapchainKHR;
+	vkGetSwapchainImagesKHR;
+	vkAcquireNextImageKHR;
+	vkQueuePresentKHR;
+
+	# VK_KHR_display
+	#vkGetPhysicalDeviceDisplayPropertiesKHR;
+	#vkGetPhysicalDeviceDisplayPlanePropertiesKHR;
+	#vkGetDisplayPlaneSupportedDisplaysKHR;
+	#vkGetDisplayModePropertiesKHR;
+	#vkCreateDisplayModeKHR;
+	#vkGetDisplayPlaneCapabilitiesKHR;
+	#vkCreateDisplayPlaneSurfaceKHR;
+
+	# VK_KHR_display_swapchain
+	#vkCreateSharedSwapchainsKHR;
+
+	# VK_KHR_Xcb_surface
+	vkCreateXcbSurfaceKHR;
+	vkGetPhysicalDeviceXcbPresentationSupportKHR;
+
+	# VK_KHR_xlib_surface
+	vkCreateXlibSurfaceKHR;
+	vkGetPhysicalDeviceXlibPresentationSupportKHR;
+
+	# VK_KHR_wayland_surface
+	vkCreateWaylandSurfaceKHR;
+	vkGetPhysicalDeviceWaylandPresentationSupportKHR;
+
+	# VK_EXT_directfb_surface
+	vkCreateDirectFBSurfaceEXT;
+	vkGetPhysicalDeviceDirectFBPresentationSupportEXT;
+
+	# Vulkan 1.1 API entry functions
 	vkEnumerateInstanceVersion;
+	vkEnumeratePhysicalDeviceGroups;
+	vkGetPhysicalDeviceFeatures2;
+	vkGetPhysicalDeviceProperties2;
+	vkGetPhysicalDeviceFormatProperties2;
+	vkGetPhysicalDeviceQueueFamilyProperties2;
+	vkGetPhysicalDeviceMemoryProperties2;
+	vkGetPhysicalDeviceSparseImageFormatProperties2;
+	vkGetPhysicalDeviceExternalBufferProperties;
+	vkGetPhysicalDeviceExternalSemaphoreProperties;
+	vkGetPhysicalDeviceExternalFenceProperties;
 	vkBindBufferMemory2;
 	vkBindImageMemory2;
 	vkGetDeviceGroupPeerMemoryFeatures;
 	vkCmdSetDeviceMask;
 	vkCmdDispatchBase;
-	vkEnumeratePhysicalDeviceGroups;
 	vkGetImageMemoryRequirements2;
 	vkGetBufferMemoryRequirements2;
-	vkGetImageSparseMemoryRequirements2;
-	vkGetPhysicalDeviceFeatures2;
-	vkGetPhysicalDeviceProperties2;
-	vkGetPhysicalDeviceFormatProperties2;
-	vkGetPhysicalDeviceImageFormatProperties2;
-	vkGetPhysicalDeviceQueueFamilyProperties2;
-	vkGetPhysicalDeviceMemoryProperties2;
-	vkGetPhysicalDeviceSparseImageFormatProperties2;
 	vkTrimCommandPool;
 	vkGetDeviceQueue2;
 	vkCreateSamplerYcbcrConversion;
 	vkDestroySamplerYcbcrConversion;
+	vkGetDescriptorSetLayoutSupport;
+	vkGetDeviceGroupPresentCapabilitiesKHR;
+	vkGetDeviceGroupSurfacePresentModesKHR;
+	vkGetPhysicalDevicePresentRectanglesKHR;
+	vkAcquireNextImage2KHR;
 	vkCreateDescriptorUpdateTemplate;
 	vkDestroyDescriptorUpdateTemplate;
 	vkUpdateDescriptorSetWithTemplate;
-	vkGetPhysicalDeviceExternalBufferProperties;
-	vkGetPhysicalDeviceExternalFenceProperties;
-	vkGetPhysicalDeviceExternalSemaphoreProperties;
-	vkGetDescriptorSetLayoutSupport;
-	# VK_KHR_bind_memory2;
-	vkBindBufferMemory2KHR;
-	vkBindImageMemory2KHR;
-	# VK_KHR_descriptor_update_template;
-	vkCreateDescriptorUpdateTemplateKHR;
-	vkDestroyDescriptorUpdateTemplateKHR;
-	vkUpdateDescriptorSetWithTemplateKHR;
-	# VK_KHR_device_group;
-	vkGetDeviceGroupPeerMemoryFeaturesKHR;
-	vkCmdSetDeviceMaskKHR;
-	vkCmdDispatchBaseKHR;
-	# VK_KHR_device_group_creation;
-	vkEnumeratePhysicalDeviceGroupsKHR;
-	# VK_KHR_external_fence_capabilities;
-	vkGetPhysicalDeviceExternalFencePropertiesKHR;
-	# VK_KHR_external_memory_capabilities;
-	vkGetPhysicalDeviceExternalBufferPropertiesKHR;
-	# VK_KHR_external_semaphore_capabilities;
-	vkGetPhysicalDeviceExternalSemaphorePropertiesKHR;
-	# VK_KHR_get_memory_requirements2;
-	vkGetImageMemoryRequirements2KHR;
-	vkGetBufferMemoryRequirements2KHR;
-	vkGetImageSparseMemoryRequirements2KHR;
-	# VK_KHR_get_physical_device_properties2;
-	vkGetPhysicalDeviceFeatures2KHR;
-	vkGetPhysicalDeviceProperties2KHR;
-	vkGetPhysicalDeviceFormatProperties2KHR;
-	vkGetPhysicalDeviceImageFormatProperties2KHR;
-	vkGetPhysicalDeviceQueueFamilyProperties2KHR;
-	vkGetPhysicalDeviceMemoryProperties2KHR;
-	vkGetPhysicalDeviceSparseImageFormatProperties2KHR;
-	# VK_EXT_debug_utils;
-	vkCmdBeginDebugUtilsLabelEXT;
-	vkCmdEndDebugUtilsLabelEXT;
-	vkCmdInsertDebugUtilsLabelEXT;
-	vkCreateDebugUtilsMessengerEXT;
-	vkDestroyDebugUtilsMessengerEXT;
-	vkQueueBeginDebugUtilsLabelEXT;
-	vkQueueEndDebugUtilsLabelEXT;
-	vkQueueInsertDebugUtilsLabelEXT;
-	vkSetDebugUtilsObjectNameEXT;
-	vkSetDebugUtilsObjectTagEXT;
-	vkSubmitDebugUtilsMessageEXT;
-	# VK_KHR_maintenance1;
-	vkTrimCommandPoolKHR;
-	# VK_KHR_maintenance3;
-	vkGetDescriptorSetLayoutSupportKHR;
-	# VK_KHR_sampler_ycbcr_conversion;
-	vkCreateSamplerYcbcrConversionKHR;
-	vkDestroySamplerYcbcrConversionKHR;
-	# VK_KHR_surface;
-	vkDestroySurfaceKHR;
-	vkGetPhysicalDeviceSurfaceSupportKHR;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
-	vkGetPhysicalDeviceSurfaceFormatsKHR;
-	vkGetPhysicalDeviceSurfacePresentModesKHR;
-	# VK_EXT_host_query_reset
-	vkResetQueryPool;
-	# VK_EXT_headless_surface
-	vkCreateHeadlessSurfaceEXT;
-	# VK_KHR_timeline_semaphore
+
+	# VK_KHR_get_display_properties2
+	#vkGetPhysicalDeviceDisplayProperties2KHR;
+	#vkGetPhysicalDeviceDisplayPlaneProperties2KHR;
+	#vkGetDisplayModeProperties2KHR;
+	#vkGetDisplayPlaneCapabilities2KHR;
+
+	# Vulkan 1.2 API entry functions
+	vkGetImageSparseMemoryRequirements2;
+	vkGetPhysicalDeviceImageFormatProperties2;
+
+	vkCreateRenderPass2;
+	vkCmdBeginRenderPass2;
+	vkCmdNextSubpass2;
+	vkCmdEndRenderPass2;
+	vkCmdDrawIndirectCount;
+	vkCmdDrawIndexedIndirectCount;
 	vkGetSemaphoreCounterValue;
-	vkSignalSemaphore;
 	vkWaitSemaphores;
-	vkGetSemaphoreCounterValueKHR;
-	vkSignalSemaphoreKHR;
-	vkWaitSemaphoresKHR;
-	# VK_KHR_buffer_device_address
+	vkSignalSemaphore;
 	vkGetBufferDeviceAddress;
 	vkGetBufferOpaqueCaptureAddress;
 	vkGetDeviceMemoryOpaqueCaptureAddress;
-	# VK_KHR_draw_indirect_count
-	vkCmdDrawIndirectCount;
-	vkCmdDrawIndexedIndirectCount;
-	# Android HAL module info object
-	HMI;
+	vkResetQueryPool;
 
 local:
 	*;
 };
-
