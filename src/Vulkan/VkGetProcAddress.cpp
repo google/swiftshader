@@ -27,11 +27,13 @@
 
 namespace vk {
 
+// Functions that can be obtained through GetInstanceProcAddr without an instance
 #define MAKE_VULKAN_GLOBAL_ENTRY(aFunction)                           \
 	{                                                                 \
 #		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
 	}
 static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionPointers = {
+	MAKE_VULKAN_GLOBAL_ENTRY(vkGetInstanceProcAddr),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkCreateInstance),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkEnumerateInstanceExtensionProperties),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkEnumerateInstanceLayerProperties),
@@ -39,11 +41,13 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionP
 };
 #undef MAKE_VULKAN_GLOBAL_ENTRY
 
+// Functions that can be obtained through GetInstanceProcAddr with an instance object
 #define MAKE_VULKAN_INSTANCE_ENTRY(aFunction)                         \
 	{                                                                 \
 #		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
 	}
 static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctionPointers = {
+
 	MAKE_VULKAN_INSTANCE_ENTRY(vkDestroyInstance),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkEnumeratePhysicalDevices),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceFeatures),
@@ -151,12 +155,12 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 };
 #undef MAKE_VULKAN_INSTANCE_ENTRY
 
+// Functions that can be obtained through GetDeviceProcAddr with a device object
 #define MAKE_VULKAN_DEVICE_ENTRY(aFunction)                           \
 	{                                                                 \
 #		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
 	}
 static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionPointers = {
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetInstanceProcAddr),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceProcAddr),
 	MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDevice),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceQueue),
