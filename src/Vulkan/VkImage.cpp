@@ -908,7 +908,8 @@ VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLe
 
 VkDeviceSize Image::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
-	return getMipLevelExtent(aspect, mipLevel).depth * slicePitchBytes(aspect, mipLevel);
+	return static_cast<VkDeviceSize>(slicePitchBytes(aspect, mipLevel)) *
+	       getMipLevelExtent(aspect, mipLevel).depth;
 }
 
 VkDeviceSize Image::getMultiSampledLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
