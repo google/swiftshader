@@ -267,7 +267,7 @@ Bool PixelProgram::alphaTest(Int cMask[4], const SampleSet &samples)
 	return pass != 0x0;
 }
 
-void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], const SampleSet &samples)
+void PixelProgram::blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], const SampleSet &samples)
 {
 	for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
 	{

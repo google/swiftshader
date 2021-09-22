@@ -320,7 +320,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 						writeDepth(zBuffer, x, zMask, samples);
 					}
 
-					rasterOperation(cBuffer, x, sMask, zMask, cMask, samples);
+					blendColor(cBuffer, x, sMask, zMask, cMask, samples);
 
 					occlusionSampleCount(zMask, sMask, samples);
 				}

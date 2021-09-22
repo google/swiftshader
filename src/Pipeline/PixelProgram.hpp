@@ -34,7 +34,7 @@ protected:
 	virtual void setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], const SampleSet &samples);
 	virtual void executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples);
 	virtual Bool alphaTest(Int cMask[4], const SampleSet &samples);
-	virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], const SampleSet &samples);
+	virtual void blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], const SampleSet &samples);
 
 private:
 	// Color outputs
