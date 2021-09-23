@@ -18,7 +18,7 @@
 
 namespace vk {
 
-PipelineCache::SpirvShaderKey::SpirvShaderKey(const sw::SpirvBinary &insns,
+PipelineCache::SpirvBinaryKey::SpirvBinaryKey(const sw::SpirvBinary &insns,
                                               const vk::SpecializationInfo &specializationInfo,
                                               bool optimize)
     : insns(insns)
@@ -27,7 +27,7 @@ PipelineCache::SpirvShaderKey::SpirvShaderKey(const sw::SpirvBinary &insns,
 {
 }
 
-bool PipelineCache::SpirvShaderKey::operator<(const SpirvShaderKey &other) const
+bool PipelineCache::SpirvBinaryKey::operator<(const SpirvBinaryKey &other) const
 {
 	if(insns.size() != other.insns.size())
 	{

@@ -32,12 +32,13 @@
 
 namespace {
 
-// preprocessSpirv applies and freezes specializations into constants, and inlines all functions.
-sw::SpirvBinary preprocessSpirv(
-    sw::SpirvBinary const &code,
-    VkSpecializationInfo const *specializationInfo,
-    bool optimize)
+// optimizeSpirv() applies and freezes specializations into constants, and runs spirv-opt.
+sw::SpirvBinary optimizeSpirv(const vk::PipelineCache::SpirvBinaryKey &key)
 {
+	const sw::SpirvBinary &code = key.getInsns();
+	const VkSpecializationInfo *specializationInfo = key.getSpecializationInfo();
+	bool optimize = key.getOptimization();
+
 	spvtools::Optimizer opt{ vk::SPIRV_VERSION };
 
 	opt.SetMessageConsumer([](spv_message_level_t level, const char *source, const spv_position_t &position, const char *message) {
@@ -90,6 +91,7 @@ sw::SpirvBinary preprocessSpirv(
 
 	sw::SpirvBinary optimized;
 	opt.Run(code.data(), code.size(), &optimized, optimizerOptions);
+	ASSERT(optimized.size() > 0);
 
 	if(false)
 	{
@@ -103,14 +105,6 @@ sw::SpirvBinary preprocessSpirv(
 	}
 
 	return optimized;
-}
-
-sw::SpirvBinary optimizeSpirv(const vk::PipelineCache::SpirvShaderKey &key)
-{
-	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo(), key.getOptimization());
-	ASSERT(code.size() > 0);
-
-	return code;
 }
 
 std::shared_ptr<sw::ComputeProgram> createProgram(vk::Device *device, std::shared_ptr<sw::SpirvShader> shader, const vk::PipelineLayout *layout)
@@ -225,7 +219,7 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 		const bool optimize = !dbgctx;
 
 		const ShaderModule *module = vk::Cast(pStage->module);
-		const PipelineCache::SpirvShaderKey key(module->getCode(), pStage->pSpecializationInfo, optimize);
+		const PipelineCache::SpirvBinaryKey key(module->getCode(), pStage->pSpecializationInfo, optimize);
 
 		sw::SpirvBinary spirv;
 
@@ -282,7 +276,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, co
 	// instructions.
 	const bool optimize = !dbgctx;
 
-	const PipelineCache::SpirvShaderKey shaderKey(module->getCode(), stage.pSpecializationInfo, optimize);
+	const PipelineCache::SpirvBinaryKey shaderKey(module->getCode(), stage.pSpecializationInfo, optimize);
 
 	sw::SpirvBinary spirv;
 

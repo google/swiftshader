@@ -53,13 +53,13 @@ public:
 	VkResult getData(size_t *pDataSize, void *pData);
 	VkResult merge(uint32_t srcCacheCount, const VkPipelineCache *pSrcCaches);
 
-	struct SpirvShaderKey
+	struct SpirvBinaryKey
 	{
-		SpirvShaderKey(const sw::SpirvBinary &insns,
+		SpirvBinaryKey(const sw::SpirvBinary &insns,
 		               const vk::SpecializationInfo &specializationInfo,
 		               bool optimize);
 
-		bool operator<(const SpirvShaderKey &other) const;
+		bool operator<(const SpirvBinaryKey &other) const;
 
 		const sw::SpirvBinary &getInsns() const { return insns; }
 		const VkSpecializationInfo *getSpecializationInfo() const { return specializationInfo.get(); }
@@ -77,7 +77,7 @@ public:
 	// Function must be a function of the signature:
 	//     sw::ShaderBinary()
 	template<typename Function>
-	inline sw::SpirvBinary getOrOptimizeSpirv(const PipelineCache::SpirvShaderKey &key, Function &&create);
+	inline sw::SpirvBinary getOrOptimizeSpirv(const PipelineCache::SpirvBinaryKey &key, Function &&create);
 
 	struct ComputeProgramKey
 	{
@@ -113,7 +113,7 @@ private:
 	uint8_t *data = nullptr;
 
 	marl::mutex spirvShadersMutex;
-	std::map<SpirvShaderKey, sw::SpirvBinary> spirvShaders GUARDED_BY(spirvShadersMutex);
+	std::map<SpirvBinaryKey, sw::SpirvBinary> spirvShaders GUARDED_BY(spirvShadersMutex);
 
 	marl::mutex computeProgramsMutex;
 	std::map<ComputeProgramKey, std::shared_ptr<sw::ComputeProgram>> computePrograms GUARDED_BY(computeProgramsMutex);
@@ -142,7 +142,7 @@ std::shared_ptr<sw::ComputeProgram> PipelineCache::getOrCreateComputeProgram(con
 }
 
 template<typename Function>
-sw::SpirvBinary PipelineCache::getOrOptimizeSpirv(const PipelineCache::SpirvShaderKey &key, Function &&create)
+sw::SpirvBinary PipelineCache::getOrOptimizeSpirv(const PipelineCache::SpirvBinaryKey &key, Function &&create)
 {
 	marl::lock lock(spirvShadersMutex);
 
