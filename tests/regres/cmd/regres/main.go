@@ -1166,6 +1166,10 @@ func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error)
 	tempDir := filepath.Join(t.buildDir, "temp")
 	os.MkdirAll(tempDir, 0777)
 
+	// Path to SwiftShader's libvulkan.so.1, which can be loaded directly by
+	// dEQP without use of the Vulkan Loader.
+	swiftshaderLibvulkanPath := filepath.Join(t.buildDir, "Linux")
+
 	config := deqp.Config{
 		ExeEgl:    filepath.Join(d.path, "build", "modules", "egl", "deqp-egl"),
 		ExeGles2:  filepath.Join(d.path, "build", "modules", "gles2", "deqp-gles2"),
@@ -1174,7 +1178,7 @@ func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error)
 		TempDir:   tempDir,
 		TestLists: testLists,
 		Env: []string{
-			"LD_LIBRARY_PATH=" + t.buildDir + ":" + os.Getenv("LD_LIBRARY_PATH"),
+			"LD_LIBRARY_PATH=" + os.Getenv("LD_LIBRARY_PATH") + ":" + swiftshaderLibvulkanPath,
 			"VK_ICD_FILENAMES=" + swiftshaderICDJSON,
 			"DISPLAY=" + os.Getenv("DISPLAY"),
 			"LIBC_FATAL_STDERR_=1", // Put libc explosions into logs.
