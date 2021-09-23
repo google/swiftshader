@@ -15,9 +15,13 @@
 import("src/Reactor/reactor.gni")
 
 config("swiftshader_config") {
-  cflags = [ "-Wno-shadow" ]
+  cflags = []
   defines = []
   asmflags = []
+
+  if (is_clang) {
+    cflags += [ "-Wno-shadow" ]
+  }
 
   if (!is_debug) {
     defines += [ "ANGLE_DISABLE_TRACE" ]
