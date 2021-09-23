@@ -57,7 +57,6 @@ cc_defaults {
     gnu_extensions: false,
 
     cflags: [
-        "-msse2",
         "-Werror",
         "-Wwrite-strings",
     ],
@@ -68,6 +67,19 @@ cc_defaults {
         "-DVK_EXPORT= ",
     ],
     cpp_std: "c++17",
+
+    arch: {
+        x86: {
+            cflags: [
+                "-msse2",
+            ],
+        },
+        x86_64: {
+            cflags: [
+                "-msse2",
+            ],
+        },
+    },
 
     target: {
         host: {
