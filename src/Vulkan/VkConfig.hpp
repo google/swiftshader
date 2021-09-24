@@ -86,6 +86,12 @@ constexpr int SUBPIXEL_PRECISION_BITS = 4;
 constexpr float SUBPIXEL_PRECISION_FACTOR = static_cast<float>(1 << SUBPIXEL_PRECISION_BITS);
 constexpr int SUBPIXEL_PRECISION_MASK = 0xFFFFFFFF >> (32 - SUBPIXEL_PRECISION_BITS);
 
+constexpr VkDeviceSize MAX_MEMORY_ALLOCATION_SIZE = 0x40000000ull;  // 0x40000000 = 1 GiB
+
+// Memory offset calculations in 32-bit SIMD elements limit us to addressing at most 4 GiB.
+// Signed arithmetic further restricts it to 2 GiB.
+static_assert(MAX_MEMORY_ALLOCATION_SIZE <= 0x80000000ull, "maxMemoryAllocationSize must not exceed 2 GiB");
+
 }  // namespace vk
 
 #if defined(__linux__) && !defined(__ANDROID__)
@@ -97,11 +103,5 @@ constexpr int SUBPIXEL_PRECISION_MASK = 0xFFFFFFFF >> (32 - SUBPIXEL_PRECISION_B
 #if defined(__APPLE__)
 #	define SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD 1
 #endif
-
-constexpr VkDeviceSize MAX_MEMORY_ALLOCATION_SIZE = 0x40000000ull;  // 0x40000000 = 1 GiB
-
-// Memory offset calculations in 32-bit SIMD elements limit us to addressing at most 4 GiB.
-// Signed arithmetic further restricts it to 2 GiB.
-static_assert(MAX_MEMORY_ALLOCATION_SIZE <= 0x80000000ull, "maxMemoryAllocationSize must not exceed 2 GiB");
 
 #endif  // VK_CONFIG_HPP_
