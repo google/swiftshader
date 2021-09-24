@@ -52,4 +52,13 @@ std::string Stringify(VkStructureType value)
 #endif
 }
 
+std::string Stringify(VkFormat value)
+{
+#ifndef NDEBUG
+	return vkhpp::to_string(static_cast<vkhpp::Format>(value));
+#else
+	return std::to_string(static_cast<int>(value));
+#endif
+}
+
 }  // namespace vk

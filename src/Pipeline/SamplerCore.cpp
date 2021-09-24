@@ -159,6 +159,8 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 				break;
 			case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+			case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+			case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
 				c.x *= Float4(1.0f / 0xF000);
 				c.y *= Float4(1.0f / 0xF000);
 				c.z *= Float4(1.0f / 0xF000);
@@ -225,6 +227,8 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 			break;
 		case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+		case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+		case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
 			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF000);
 			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF000);
 			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF000);
@@ -1550,6 +1554,18 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 			c.z = (c.x) & Short4(0xF000u);
 			c.y = (c.x << 4) & Short4(0xF000u);
 			c.x = (c.x << 8) & Short4(0xF000u);
+			break;
+		case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+			c.w = (c.x) & Short4(0xF000u);
+			c.z = (c.x << 12) & Short4(0xF000u);
+			c.y = (c.x << 8) & Short4(0xF000u);
+			c.x = (c.x << 4) & Short4(0xF000u);
+			break;
+		case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+			c.w = (c.x) & Short4(0xF000u);
+			c.z = (c.x << 4) & Short4(0xF000u);
+			c.y = (c.x << 8) & Short4(0xF000u);
+			c.x = (c.x << 12) & Short4(0xF000u);
 			break;
 		case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
 			c.w = (c.x << 15) & Short4(0x8000u);

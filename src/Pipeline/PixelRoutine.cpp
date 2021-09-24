@@ -21,6 +21,7 @@
 #include "Device/Renderer.hpp"
 #include "System/Debug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
+#include "Vulkan/VkStringify.hpp"
 
 namespace sw {
 
@@ -1117,6 +1118,46 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 4);
 		pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 8);
 		break;
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+		buffer += 2 * x;
+		buffer2 = buffer + pitchB;
+		c01 = As<Short4>(Int2(*Pointer<Int>(buffer), *Pointer<Int>(buffer2)));
+
+		pixel.w = (c01 & Short4(0xF000u));
+		pixel.z = (c01 & Short4(0x0F00u)) << 4;
+		pixel.y = (c01 & Short4(0x00F0u)) << 8;
+		pixel.x = (c01 & Short4(0x000Fu)) << 12;
+
+		// Expand to 16 bit range
+		pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 4);
+		pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 8);
+		pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 4);
+		pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 8);
+		pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 4);
+		pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 8);
+		pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 4);
+		pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 8);
+		break;
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+		buffer += 2 * x;
+		buffer2 = buffer + pitchB;
+		c01 = As<Short4>(Int2(*Pointer<Int>(buffer), *Pointer<Int>(buffer2)));
+
+		pixel.w = (c01 & Short4(0xF000u));
+		pixel.x = (c01 & Short4(0x0F00u)) << 4;
+		pixel.y = (c01 & Short4(0x00F0u)) << 8;
+		pixel.z = (c01 & Short4(0x000Fu)) << 12;
+
+		// Expand to 16 bit range
+		pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 4);
+		pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 8);
+		pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 4);
+		pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 8);
+		pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 4);
+		pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 8);
+		pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 4);
+		pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 8);
+		break;
 	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
 		buffer += 2 * x;
 		buffer2 = buffer + pitchB;
@@ -1477,6 +1518,8 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
 		current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 4) + Short4(0x0800);
 		current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 4) + Short4(0x0800);
 		current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 4) + Short4(0x0800);
@@ -1521,6 +1564,26 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			current.y = As<UShort4>(current.y & Short4(0xF000)) >> 4;
 			current.x = As<UShort4>(current.x & Short4(0xF000)) >> 8;
 			current.w = As<UShort4>(current.w & Short4(0xF000u)) >> 12;
+
+			current.x = current.x | current.y | current.z | current.w;
+		}
+		break;
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+		{
+			current.w = As<UShort4>(current.w & Short4(0xF000));
+			current.x = As<UShort4>(current.x & Short4(0xF000)) >> 4;
+			current.y = As<UShort4>(current.y & Short4(0xF000)) >> 8;
+			current.z = As<UShort4>(current.z & Short4(0xF000u)) >> 12;
+
+			current.x = current.x | current.y | current.z | current.w;
+		}
+		break;
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+		{
+			current.w = As<UShort4>(current.w & Short4(0xF000));
+			current.z = As<UShort4>(current.z & Short4(0xF000)) >> 4;
+			current.y = As<UShort4>(current.y & Short4(0xF000)) >> 8;
+			current.x = As<UShort4>(current.x & Short4(0xF000u)) >> 12;
 
 			current.x = current.x | current.y | current.z | current.w;
 		}
@@ -1722,38 +1785,31 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	switch(state.colorFormat[index])
 	{
 	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-		{
-			buffer += 2 * x;
-			Int value = *Pointer<Int>(buffer);
-
-			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4rgbaQ[bgraWriteMask & 0xF][0]));
-
-			Int c01 = Extract(As<Int2>(current.x), 0);
-			Int mask01 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][0]) + xMask * 8);
-			if(bgraWriteMask != 0x0000000F)
-			{
-				mask01 &= channelMask;
-			}
-			*Pointer<Int>(buffer) = (c01 & mask01) | (value & ~mask01);
-
-			buffer += pitchB;
-			value = *Pointer<Int>(buffer);
-
-			Int c23 = Extract(As<Int2>(current.x), 1);
-			Int mask23 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][2]) + xMask * 8);
-			if(bgraWriteMask != 0x0000000F)
-			{
-				mask23 &= channelMask;
-			}
-			*Pointer<Int>(buffer) = (c23 & mask23) | (value & ~mask23);
-		}
-		break;
 	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
 		{
 			buffer += 2 * x;
 			Int value = *Pointer<Int>(buffer);
 
-			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4bgraQ[bgraWriteMask & 0xF][0]));
+			Int channelMask;
+			switch(state.colorFormat[index])
+			{
+			case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4rgbaQ[bgraWriteMask & 0xF][0]));
+				break;
+			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4bgraQ[bgraWriteMask & 0xF][0]));
+				break;
+			case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4argbQ[bgraWriteMask & 0xF][0]));
+				break;
+			case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4abgrQ[bgraWriteMask & 0xF][0]));
+				break;
+			default:
+				UNREACHABLE("Format: %s", vk::Stringify(state.colorFormat[index]).c_str());
+			}
 
 			Int c01 = Extract(As<Int2>(current.x), 0);
 			Int mask01 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][0]) + xMask * 8);

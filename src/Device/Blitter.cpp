@@ -472,6 +472,18 @@ Float4 Blitter::readFloat4(Pointer<Byte> element, const State &state)
 		c.z = Float(Int((*Pointer<UShort>(element) & UShort(0x00F0)) >> UShort(4)));
 		c.w = Float(Int(*Pointer<UShort>(element) & UShort(0x000F)));
 		break;
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+		c.w = Float(Int((*Pointer<UShort>(element) & UShort(0xF000)) >> UShort(12)));
+		c.z = Float(Int((*Pointer<UShort>(element) & UShort(0x0F00)) >> UShort(8)));
+		c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x00F0)) >> UShort(4)));
+		c.x = Float(Int(*Pointer<UShort>(element) & UShort(0x000F)));
+		break;
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+		c.w = Float(Int((*Pointer<UShort>(element) & UShort(0xF000)) >> UShort(12)));
+		c.x = Float(Int((*Pointer<UShort>(element) & UShort(0x0F00)) >> UShort(8)));
+		c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x00F0)) >> UShort(4)));
+		c.z = Float(Int(*Pointer<UShort>(element) & UShort(0x000F)));
+		break;
 	case VK_FORMAT_R5G6B5_UNORM_PACK16:
 		c.x = Float(Int((*Pointer<UShort>(element) & UShort(0xF800)) >> UShort(11)));
 		c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x07E0)) >> UShort(5)));
@@ -592,6 +604,52 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 			                              UShort((RoundInt(Float(c.x)) & Int(0xF)) << 4) |
 			                              UShort((RoundInt(Float(c.y)) & Int(0xF)) << 8) |
 			                              UShort((RoundInt(Float(c.z)) & Int(0xF)) << 12)) &
+			                             UShort(mask));
+		}
+		break;
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+		if(writeRGBA)
+		{
+			*Pointer<UShort>(element) = UShort(RoundInt(Float(c.z)) & Int(0xF)) |
+			                            UShort((RoundInt(Float(c.y)) & Int(0xF)) << 4) |
+			                            UShort((RoundInt(Float(c.x)) & Int(0xF)) << 8) |
+			                            UShort((RoundInt(Float(c.w)) & Int(0xF)) << 12);
+		}
+		else
+		{
+			unsigned short mask = (writeB ? 0x000F : 0x0000) |
+			                      (writeG ? 0x00F0 : 0x0000) |
+			                      (writeR ? 0x0F00 : 0x0000) |
+			                      (writeA ? 0xF000 : 0x0000);
+			unsigned short unmask = ~mask;
+			*Pointer<UShort>(element) = (*Pointer<UShort>(element) & UShort(unmask)) |
+			                            ((UShort(RoundInt(Float(c.w)) & Int(0xF)) |
+			                              UShort((RoundInt(Float(c.x)) & Int(0xF)) << 4) |
+			                              UShort((RoundInt(Float(c.y)) & Int(0xF)) << 8) |
+			                              UShort((RoundInt(Float(c.z)) & Int(0xF)) << 12)) &
+			                             UShort(mask));
+		}
+		break;
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+		if(writeRGBA)
+		{
+			*Pointer<UShort>(element) = UShort(RoundInt(Float(c.x)) & Int(0xF)) |
+			                            UShort((RoundInt(Float(c.y)) & Int(0xF)) << 4) |
+			                            UShort((RoundInt(Float(c.z)) & Int(0xF)) << 8) |
+			                            UShort((RoundInt(Float(c.w)) & Int(0xF)) << 12);
+		}
+		else
+		{
+			unsigned short mask = (writeR ? 0x000F : 0x0000) |
+			                      (writeG ? 0x00F0 : 0x0000) |
+			                      (writeB ? 0x0F00 : 0x0000) |
+			                      (writeA ? 0xF000 : 0x0000);
+			unsigned short unmask = ~mask;
+			*Pointer<UShort>(element) = (*Pointer<UShort>(element) & UShort(unmask)) |
+			                            ((UShort(RoundInt(Float(c.x)) & Int(0xF)) |
+			                              UShort((RoundInt(Float(c.y)) & Int(0xF)) << 4) |
+			                              UShort((RoundInt(Float(c.z)) & Int(0xF)) << 8) |
+			                              UShort((RoundInt(Float(c.w)) & Int(0xF)) << 12)) &
 			                             UShort(mask));
 		}
 		break;

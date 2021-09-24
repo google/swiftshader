@@ -332,6 +332,12 @@ static void getPhysicalDevicCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomB
 	features->customBorderColorWithoutFormat = VK_TRUE;
 }
 
+static void getPhysicalDevice4444FormatsFeaturesExt(VkPhysicalDevice4444FormatsFeaturesEXT *features)
+{
+	features->formatA4R4G4B4 = VK_TRUE;
+	features->formatA4B4G4R4 = VK_TRUE;
+}
+
 void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 {
 	features->features = getFeatures();
@@ -423,6 +429,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT:
 			getPhysicalDevicCustomBorderColorFeaturesExt(reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
+			getPhysicalDevice4444FormatsFeaturesExt(reinterpret_cast<struct VkPhysicalDevice4444FormatsFeaturesEXT *>(curExtension));
 			break;
 		default:
 			LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
@@ -1108,6 +1117,8 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 	// Formats which can be sampled *and* filtered
 	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
 	case VK_FORMAT_R5G6B5_UNORM_PACK16:
 	case VK_FORMAT_B5G6R5_UNORM_PACK16:
 	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
@@ -1318,6 +1329,8 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
 	case VK_FORMAT_B5G6R5_UNORM_PACK16:
 	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
 	case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
