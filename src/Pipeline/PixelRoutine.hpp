@@ -41,8 +41,6 @@ protected:
 	Float4 w;     // Used as is
 	Float4 rhw;   // Reciprocal w
 
-	uint32_t outputMasks[MAX_COLOR_BUFFERS];  // TODO(b/162348737): Determine whether unwritten output should be left untouched
-
 	SpirvRoutine routine;
 	const vk::DescriptorSet::Bindings &descriptorSets;
 

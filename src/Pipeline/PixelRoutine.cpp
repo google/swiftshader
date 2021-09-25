@@ -50,11 +50,6 @@ PixelRoutine::PixelRoutine(
 			routine.inputs[i] = Float4(0.0f);
 		}
 	}
-
-	for(int i = 0; i < MAX_COLOR_BUFFERS; i++)
-	{
-		outputMasks[i] = 0xF;
-	}
 }
 
 PixelRoutine::~PixelRoutine()
@@ -1505,7 +1500,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	}
 
-	int rgbaWriteMask = state.colorWriteActive(index) & outputMasks[index];
+	int rgbaWriteMask = state.colorWriteActive(index);
 	int bgraWriteMask = (rgbaWriteMask & 0x0000000A) | (rgbaWriteMask & 0x00000001) << 2 | (rgbaWriteMask & 0x00000004) >> 2;
 
 	switch(state.colorFormat[index])
@@ -2534,7 +2529,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		UNSUPPORTED("VkFormat: %d", int(state.colorFormat[index]));
 	}
 
-	int rgbaWriteMask = state.colorWriteActive(index) & outputMasks[index];
+	int rgbaWriteMask = state.colorWriteActive(index);
 	int bgraWriteMask = (rgbaWriteMask & 0x0000000A) | (rgbaWriteMask & 0x00000001) << 2 | (rgbaWriteMask & 0x00000004) >> 2;
 
 	Int xMask;  // Combination of all masks
