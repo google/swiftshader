@@ -78,6 +78,7 @@ Preparing the server
 * Search for `../candy-build/deqp-wgl` and replace that by `<path to deqp>/build`
 * Just above, add an option to CommandLine: `--deqp-gl-context-type=egl`
 * Just below, modify the BinaryPath from 'Debug' to 'Release' if you did a Release build at step 17
+* Remove `--deqp-watchdog=enable` to avoid timeouts during debugging.
 
 Testing OpenGL ES
 -----------------
@@ -134,7 +135,7 @@ dEQP contains more tests than what is expected to pass by a conformant implement
 Linux
 -----
 
-The Linux process is similar to Windows. However it doesn't use Release or Debug variants and it uses shared object files instead of DLLs.
+The Linux process is similar to Windows. However it doesn't use Release or Debug variants, paths use forward slashes, and it uses shared object files instead of DLLs.
 
 1. Install the latest [Python 3](https://www.python.org/downloads/)
 2. Install GCC and Make. In a terminal, run:
@@ -219,15 +220,16 @@ Preparing the server
 
 16. Edit `<path to cherry>/cherry/data.go`
 * Search for ".exe" and remove all instances.
-* Search for `../candy-build/deqp-wgl/execserver/Release` and replace that by `<path to deqp>/build/execserver/`
+* Search for `../candy-build/deqp-wgl/execserver/Release` and replace that by `<path to deqp>/build/execserver/execserver`
 * Just above, add an option to CommandLine: `--deqp-gl-context-type=egl`
 * Just below, remove 'Debug/' from the BinaryPath.
-* Just one more line below, replace `../candy-build/deqp-wgl/` with `<path to deqp>/build`.
+* Just one more line below, replace `../candy-build/deqp-wgl/` with `<path to deqp>/build/modules/${TestPackageDir}`.
+* Remove `--deqp-watchdog=enable` to avoid timeouts during debugging.
 
 Testing OpenGL ES
 -----------------
 
-17. a) Assuming you setup the LD_LIBRARY_PATH environment variable prior to running CMake in the dEQP build directory, you're all set.
+17. a) Assuming you setup the `LD_LIBRARY_PATH` environment variable prior to running CMake in the dEQP build directory, you're all set.
 
 Testing Vulkan
 --------------
