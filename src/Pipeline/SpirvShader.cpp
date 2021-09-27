@@ -76,14 +76,16 @@ SpirvShader::SpirvShader(
 		{
 		case spv::OpEntryPoint:
 			{
-				executionModel = spv::ExecutionModel(insn.word(1));
-				auto id = Function::ID(insn.word(2));
-				auto name = insn.string(3);
-				auto stage = executionModelToStage(executionModel);
+				spv::ExecutionModel executionModel = spv::ExecutionModel(insn.word(1));
+				Function::ID entryPoint = Function::ID(insn.word(2));
+				const char *name = insn.string(3);
+				VkShaderStageFlagBits stage = executionModelToStage(executionModel);
+
 				if(stage == pipelineStage && strcmp(name, entryPointName) == 0)
 				{
-					ASSERT_MSG(entryPoint == 0, "Duplicate entry point with name '%s' and stage %d", name, int(stage));
-					entryPoint = id;
+					ASSERT_MSG(this->entryPoint == 0, "Duplicate entry point with name '%s' and stage %d", name, int(stage));
+					this->entryPoint = entryPoint;
+					this->executionModel = executionModel;
 
 					auto interfaceIdsOffset = 3 + insn.stringSizeInWords(3);
 					for(uint32_t i = interfaceIdsOffset; i < insn.wordCount(); i++)

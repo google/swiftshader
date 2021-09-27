@@ -836,6 +836,11 @@ public:
 
 private:
 	const uint32_t codeSerialID;
+	const bool robustBufferAccess;
+
+	Function::ID entryPoint;
+	spv::ExecutionModel executionModel = spv::ExecutionModelMax;  // Invalid prior to OpEntryPoint parsing.
+
 	ExecutionModes executionModes = {};
 	Analysis analysis = {};
 	Capabilities capabilities = {};
@@ -845,11 +850,7 @@ private:
 	std::unordered_map<StringID, String> strings;
 	HandleMap<Extension> extensionsByID;
 	std::unordered_set<uint32_t> extensionsImported;
-	Function::ID entryPoint;
 	mutable bool imageWriteEmitted = false;
-
-	const bool robustBufferAccess = true;
-	spv::ExecutionModel executionModel = spv::ExecutionModelMax;  // Invalid prior to OpEntryPoint parsing.
 
 	// DeclareType creates a Type for the given OpTypeX instruction, storing
 	// it into the types map. It is called from the analysis pass (constructor).
@@ -969,7 +970,7 @@ private:
 		    , multiSampleCount(multiSampleCount)
 		    , executionModel(executionModel)
 		{
-			ASSERT(executionModelToStage(executionModel) != VkShaderStageFlagBits(0));  // Must parse OpEntryPoint before emitting.
+			ASSERT(executionModel != spv::ExecutionModelMax);  // Must parse OpEntryPoint before emitting.
 		}
 
 		// Returns the mask describing the active lanes as updated by dynamic
@@ -1063,9 +1064,9 @@ private:
 		std::unordered_map<Object::ID, Intermediate> intermediates;
 		std::unordered_map<Object::ID, SIMD::Pointer> pointers;
 
-		const bool robustBufferAccess = true;  // Emit robustBufferAccess safe code.
-		const unsigned int multiSampleCount = 0;
-		const spv::ExecutionModel executionModel = spv::ExecutionModelMax;
+		const bool robustBufferAccess;  // Emit robustBufferAccess safe code.
+		const unsigned int multiSampleCount;
+		const spv::ExecutionModel executionModel;
 	};
 
 	// EmitResult is an enumerator of result values from the Emit functions.
