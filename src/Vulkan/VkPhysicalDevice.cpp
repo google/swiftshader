@@ -1663,7 +1663,7 @@ const VkPhysicalDeviceMemoryProperties &PhysicalDevice::GetMemoryProperties()
 		1,  // memoryHeapCount
 		{
 		    {
-		        1ull << 31,                      // size, FIXME(sugoi): This should be configurable based on available RAM
+		        vk::PHYSICAL_DEVICE_HEAP_SIZE,   // size
 		        VK_MEMORY_HEAP_DEVICE_LOCAL_BIT  // flags
 		    },
 		}
