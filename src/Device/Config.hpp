@@ -18,7 +18,7 @@
 namespace sw {
 
 constexpr int OUTLINE_RESOLUTION = 8192;  // Maximum vertical resolution of the render target
-constexpr int MIPMAP_LEVELS = 14;
+constexpr int MIPMAP_LEVELS = 15;
 constexpr int MAX_CLIP_DISTANCES = 8;
 constexpr int MAX_CULL_DISTANCES = 8;
 constexpr int MIN_TEXEL_OFFSET = -8;

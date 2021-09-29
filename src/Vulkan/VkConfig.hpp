@@ -44,10 +44,10 @@ constexpr VkDeviceSize MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT = 256;
 
 constexpr uint32_t MEMORY_TYPE_GENERIC_BIT = 0x1;  // Generic system memory.
 
-constexpr uint32_t MAX_IMAGE_LEVELS_1D = 14;
-constexpr uint32_t MAX_IMAGE_LEVELS_2D = 14;
+constexpr uint32_t MAX_IMAGE_LEVELS_1D = 15;
+constexpr uint32_t MAX_IMAGE_LEVELS_2D = 15;
 constexpr uint32_t MAX_IMAGE_LEVELS_3D = 12;
-constexpr uint32_t MAX_IMAGE_LEVELS_CUBE = 14;
+constexpr uint32_t MAX_IMAGE_LEVELS_CUBE = 15;
 constexpr uint32_t MAX_IMAGE_ARRAY_LAYERS = 2048;
 constexpr float MAX_SAMPLER_LOD_BIAS = 15.0;
 
