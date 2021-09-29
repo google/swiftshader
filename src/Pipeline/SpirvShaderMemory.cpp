@@ -186,7 +186,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 			// Note: the module may contain descriptor set references that are not suitable for this implementation -- using a set index higher than the number
 			// of descriptor set binding points we support. As long as the selected entrypoint doesn't actually touch the out of range binding points, this
 			// is valid. In this case make the value nullptr to make it easier to diagnose an attempt to dereference it.
-			if(d.DescriptorSet < vk::MAX_BOUND_DESCRIPTOR_SETS)
+			if(static_cast<uint32_t>(d.DescriptorSet) < vk::MAX_BOUND_DESCRIPTOR_SETS)
 			{
 				state->createPointer(resultId, SIMD::Pointer(routine->descriptorSets[d.DescriptorSet], size));
 			}
@@ -385,7 +385,7 @@ SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, Int arrayIndex, EmitS
 	case Object::Kind::DescriptorSet:
 		{
 			const auto &d = descriptorDecorations.at(id);
-			ASSERT(d.DescriptorSet >= 0 && d.DescriptorSet < vk::MAX_BOUND_DESCRIPTOR_SETS);
+			ASSERT(d.DescriptorSet >= 0 && static_cast<uint32_t>(d.DescriptorSet) < vk::MAX_BOUND_DESCRIPTOR_SETS);
 			ASSERT(d.Binding >= 0);
 			ASSERT(routine->pipelineLayout->getDescriptorCount(d.DescriptorSet, d.Binding) != 0);  // "If descriptorCount is zero this binding entry is reserved and the resource must not be accessed from any stage via this binding within any pipeline using the set layout."
 

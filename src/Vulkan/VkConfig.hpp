@@ -16,7 +16,7 @@
 #define VK_CONFIG_HPP_
 
 #include "Version.hpp"
-
+#include "Device/Config.hpp"
 #include "Vulkan/VulkanPlatform.hpp"
 #include "spirv-tools/libspirv.h"
 
@@ -27,58 +27,46 @@ namespace vk {
 #define SWIFTSHADER_DEVICE_NAME "SwiftShader Device"  // Max length: VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
 #define SWIFTSHADER_UUID "SwiftShaderUUID"            // Max length: VK_UUID_SIZE (16)
 
-const spv_target_env SPIRV_VERSION = SPV_ENV_VULKAN_1_2;
+constexpr spv_target_env SPIRV_VERSION = SPV_ENV_VULKAN_1_2;
 
-enum
-{
-	API_VERSION = VK_API_VERSION_1_2,
-	DRIVER_VERSION = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION),
-	VENDOR_ID = 0x1AE0,  // Google, Inc.: https://pcisig.com/google-inc-1
-	DEVICE_ID = 0xC0DE,  // SwiftShader (placeholder)
-};
+constexpr uint32_t API_VERSION = VK_API_VERSION_1_2;
+constexpr uint32_t DRIVER_VERSION = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
+constexpr uint32_t VENDOR_ID = 0x1AE0;  // Google, Inc.: https://pcisig.com/google-inc-1
+constexpr uint32_t DEVICE_ID = 0xC0DE;  // SwiftShader (placeholder)
 
-enum
-{
-	// Alignment of all Vulkan objects, pools, device memory, images, buffers, descriptors.
-	REQUIRED_MEMORY_ALIGNMENT = 16,  // 16 bytes for 128-bit vector types.
+// Alignment of all Vulkan objects, pools, device memory, images, buffers, descriptors.
+constexpr VkDeviceSize REQUIRED_MEMORY_ALIGNMENT = 16;  // 16 bytes for 128-bit vector types.
 
-	MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT = 256,
-	MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 256,
-	MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT = 256,
+// Vulkan 1.2 requires buffer offset alignment to be at most 256.
+constexpr VkDeviceSize MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT = 256;
+constexpr VkDeviceSize MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 256;
+constexpr VkDeviceSize MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT = 256;
 
-	MEMORY_TYPE_GENERIC_BIT = 0x1,  // Generic system memory.
-};
+constexpr uint32_t MEMORY_TYPE_GENERIC_BIT = 0x1;  // Generic system memory.
 
-enum
-{
-	MAX_IMAGE_LEVELS_1D = 14,
-	MAX_IMAGE_LEVELS_2D = 14,
-	MAX_IMAGE_LEVELS_3D = 12,
-	MAX_IMAGE_LEVELS_CUBE = 14,
-	MAX_IMAGE_ARRAY_LAYERS = 2048,
-	MAX_SAMPLER_LOD_BIAS = 15,
-};
+constexpr uint32_t MAX_IMAGE_LEVELS_1D = 14;
+constexpr uint32_t MAX_IMAGE_LEVELS_2D = 14;
+constexpr uint32_t MAX_IMAGE_LEVELS_3D = 12;
+constexpr uint32_t MAX_IMAGE_LEVELS_CUBE = 14;
+constexpr uint32_t MAX_IMAGE_ARRAY_LAYERS = 2048;
+constexpr float MAX_SAMPLER_LOD_BIAS = 15.0;
 
-enum
-{
-	MAX_BOUND_DESCRIPTOR_SETS = 4,
-	MAX_VERTEX_INPUT_BINDINGS = 16,
-	MAX_PUSH_CONSTANT_SIZE = 128,
-};
+static_assert(MAX_IMAGE_LEVELS_1D <= sw::MIPMAP_LEVELS);
+static_assert(MAX_IMAGE_LEVELS_2D <= sw::MIPMAP_LEVELS);
+static_assert(MAX_IMAGE_LEVELS_3D <= sw::MIPMAP_LEVELS);
+static_assert(MAX_IMAGE_LEVELS_CUBE <= sw::MIPMAP_LEVELS);
 
-enum
-{
-	MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC = 8,
-	MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC = 4,
-	MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC =
-	    MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC +
-	    MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC,
-};
+constexpr uint32_t MAX_BOUND_DESCRIPTOR_SETS = 4;
+constexpr uint32_t MAX_VERTEX_INPUT_BINDINGS = 16;
+constexpr uint32_t MAX_PUSH_CONSTANT_SIZE = 128;
 
-enum
-{
-	MAX_POINT_SIZE = 1023,
-};
+constexpr uint32_t MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC = 8;
+constexpr uint32_t MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC = 4;
+constexpr uint32_t MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC =
+    MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC +
+    MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC;
+
+constexpr float MAX_POINT_SIZE = 1023.0;
 
 constexpr int MAX_SAMPLER_ALLOCATION_COUNT = 4000;
 
