@@ -73,7 +73,7 @@ size_t memoryPageSize()
 	return pageSize;
 }
 
-void *allocate(size_t bytes, size_t alignment)
+static void *allocate(size_t bytes, size_t alignment, bool clearToZero)
 {
 	ASSERT((alignment & (alignment - 1)) == 0);  // Power of 2 alignment.
 
@@ -83,8 +83,7 @@ void *allocate(size_t bytes, size_t alignment)
 
 	if(block)
 	{
-		// TODO(b/140991626): Never initialize the allocated memory.
-		if(!__has_feature(memory_sanitizer))
+		if(clearToZero)
 		{
 			memset(block, 0, size);
 		}
@@ -97,6 +96,24 @@ void *allocate(size_t bytes, size_t alignment)
 	}
 
 	return aligned;
+}
+
+// TODO(b/140991626): Rename to allocate().
+void *allocateUninitialized(size_t bytes, size_t alignment)
+{
+	return allocate(bytes, alignment, false);
+}
+
+void *allocateZero(size_t bytes, size_t alignment)
+{
+	return allocate(bytes, alignment, true);
+}
+
+// This funtion allocates memory that is zero-initialized for security reasons
+// only. In MemorySanitizer enabled builds it is left uninitialized.
+void *allocateZeroOrPoison(size_t bytes, size_t alignment)
+{
+	return allocate(bytes, alignment, !__has_feature(memory_sanitizer));
 }
 
 void deallocate(void *memory)
