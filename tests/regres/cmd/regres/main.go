@@ -26,6 +26,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
@@ -72,6 +73,8 @@ const (
 	fullTestListRelPath   = "tests/regres/full-tests.json"
 	ciTestListRelPath     = "tests/regres/ci-tests.json"
 	deqpConfigRelPath     = "tests/regres/deqp.json"
+	swsTestLists          = "tests/regres/testlists"
+	deqpTestLists         = "external/vulkancts/mustpass/master"
 )
 
 var (
@@ -708,10 +711,114 @@ func (r *regres) runDailyTest(dailyHash git.Hash, reactorBackend reactorBackend,
 	return withResults(test, testLists, results)
 }
 
+// copyFileIfDifferent copies src to dst if src doesn't exist or if there are differences
+// between the files.
+func copyFileIfDifferent(dst, src string) error {
+	srcFileInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	srcContents, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+
+	dstContents, err := os.ReadFile(dst)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	if !bytes.Equal(srcContents, dstContents) {
+		if err := os.WriteFile(dst, srcContents, srcFileInfo.Mode()); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// updatedEQPFiles copies the lists of tests in dEQP to the same lists in
+// SwiftShader, and sets the SHA in deqp.json to the latest dEQP revision
+func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
+	out := []string{}
+	// Use getOrBuildDEQP as it'll prevent us from copying data from a revision of dEQP that has build errors.
+	deqpBuild, err := r.getOrBuildDEQP(test)
+
+	if err != nil {
+		return nil, cause.Wrap(err, "Failed to retrieve dEQP build information")
+	}
+
+	log.Println("Copying deqp's vulkan testlist to checkout %s", test.commit)
+	deqpTestlistDir := path.Join(deqpBuild.path, deqpTestLists)
+	swsTestlistDir := path.Join(test.checkoutDir, swsTestLists)
+
+	deqpDefault := path.Join(deqpTestlistDir, "vk-default.txt")
+	swsDefault := path.Join(swsTestlistDir, "vk-master.txt")
+
+	if err := copyFileIfDifferent(swsDefault, deqpDefault); err != nil {
+		return nil, cause.Wrap(err, "Failed to copy '%s' to '%s'", deqpDefault, swsDefault)
+	}
+
+	out = append(out, swsDefault)
+
+	files, err := ioutil.ReadDir(path.Join(deqpTestlistDir, "vk-default"))
+	if err != nil {
+		return nil, cause.Wrap(err, "Could not read files from %s/vk-default/", deqpTestlistDir)
+	}
+
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+
+		swsFile := path.Join(swsTestlistDir, "vk-default", f.Name())
+		deqpFile := path.Join(deqpTestlistDir, "vk-default", f.Name())
+
+		if err := copyFileIfDifferent(swsFile, deqpFile); err != nil {
+			return nil, cause.Wrap(err, "Failed to copy '%s' to '%s'", deqpFile, swsFile)
+		}
+		out = append(out, swsFile)
+	}
+
+	// Update deqp.json
+	p := path.Join(test.checkoutDir, deqpConfigRelPath)
+	if !util.IsFile(p) {
+		return nil, fmt.Errorf("Failed to locate %s while trying to update the dEQP SHA", deqpConfigRelPath)
+	}
+	file, err := os.OpenFile(path.Join(test.checkoutDir, deqpConfigRelPath), os.O_RDWR, 0666)
+	if err != nil {
+		return nil, cause.Wrap(err, "Couldn't open dEQP config file")
+	}
+	defer file.Close()
+
+	cfg := struct {
+		Remote  string   `json:"remote"`
+		Branch  string   `json:"branch"`
+		SHA     string   `json:"sha"`
+		Patches []string `json:"patches"`
+	}{}
+	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
+		return nil, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
+	}
+
+	hash, err := git.FetchRefHash("refs/head/master", cfg.Remote)
+	if err != nil {
+		return nil, cause.Wrap(err, "Failed to fetch dEQP ref")
+	}
+
+	cfg.SHA = hash.String()
+	if err := json.NewEncoder(file).Encode(&cfg); err != nil {
+		return nil, cause.Wrap(err, "Failed to re-encode %s", deqpConfigRelPath)
+	}
+	out = append(out, p)
+
+	return out, nil
+}
+
 // postDailyResults posts the results of the daily full deqp run to gerrit as
 // a new change, or reusing an old, unsubmitted change.
-// This change contains the updated test lists, along with a summary of the
-// test results.
+// This change contains the updated test lists, an updated deqp.json that
+// points to the latest dEQP commit, and updated dEQP test files, along with a
+// summary of the test results.
 func (r *regres) postDailyResults(
 	client *gerrit.Client,
 	test *test,
@@ -725,6 +832,13 @@ func (r *regres) postDailyResults(
 	if err != nil {
 		return cause.Wrap(err, "Failed to write test lists by status")
 	}
+
+	newPaths, err := r.updateLocalDeqpFiles(test)
+	if err != nil {
+		return cause.Wrap(err, "Failed to update test lists from dEQP")
+	}
+
+	filePaths = append(filePaths, newPaths...)
 
 	// Stage all the updated test files.
 	for _, path := range filePaths {
