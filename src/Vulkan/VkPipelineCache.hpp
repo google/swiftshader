@@ -56,7 +56,7 @@ public:
 	struct SpirvBinaryKey
 	{
 		SpirvBinaryKey(const sw::SpirvBinary &insns,
-		               const vk::SpecializationInfo &specializationInfo,
+		               const VkSpecializationInfo *specializationInfo,
 		               bool optimize);
 
 		bool operator<(const SpirvBinaryKey &other) const;

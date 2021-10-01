@@ -12,88 +12,66 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VkPipelineCache.hpp"
+#include "VkSpecializationInfo.hpp"
+
+#include "System/Memory.hpp"
+
 #include <cstring>
 
 namespace vk {
 
 SpecializationInfo::SpecializationInfo(const VkSpecializationInfo *specializationInfo)
 {
-	if(specializationInfo)
+	if(specializationInfo && specializationInfo->mapEntryCount > 0)
 	{
-		auto *ptr = reinterpret_cast<VkSpecializationInfo *>(
-		    allocate(sizeof(VkSpecializationInfo), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
-		info = std::shared_ptr<VkSpecializationInfo>(ptr, Deleter());
+		info.mapEntryCount = specializationInfo->mapEntryCount;
+		size_t entriesSize = specializationInfo->mapEntryCount * sizeof(VkSpecializationMapEntry);
+		void *mapEntries = sw::allocateUninitialized(entriesSize);
+		memcpy(mapEntries, specializationInfo->pMapEntries, entriesSize);
+		info.pMapEntries = reinterpret_cast<VkSpecializationMapEntry *>(mapEntries);
 
-		info->mapEntryCount = specializationInfo->mapEntryCount;
-		info->pMapEntries = nullptr;
-		info->dataSize = specializationInfo->dataSize;
-		info->pData = nullptr;
-
-		if(specializationInfo->mapEntryCount > 0)
-		{
-			size_t entriesSize = specializationInfo->mapEntryCount * sizeof(VkSpecializationMapEntry);
-			VkSpecializationMapEntry *mapEntries = reinterpret_cast<VkSpecializationMapEntry *>(
-			    allocate(entriesSize, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
-			memcpy(mapEntries, specializationInfo->pMapEntries, entriesSize);
-			info->pMapEntries = mapEntries;
-		}
-
-		if(specializationInfo->dataSize > 0)
-		{
-			void *data = allocate(specializationInfo->dataSize, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY);
-			memcpy(data, specializationInfo->pData, specializationInfo->dataSize);
-			info->pData = data;
-		}
+		info.dataSize = specializationInfo->dataSize;
+		void *data = sw::allocateUninitialized(specializationInfo->dataSize);
+		memcpy(data, specializationInfo->pData, specializationInfo->dataSize);
+		info.pData = data;
 	}
 }
 
-void SpecializationInfo::Deleter::operator()(VkSpecializationInfo *info) const
+SpecializationInfo::SpecializationInfo(const SpecializationInfo &copy)
+    : SpecializationInfo(&copy.info)
 {
-	if(info)
-	{
-		deallocate(const_cast<VkSpecializationMapEntry *>(info->pMapEntries), DEVICE_MEMORY);
-		deallocate(const_cast<void *>(info->pData), DEVICE_MEMORY);
-		deallocate(info, DEVICE_MEMORY);
-	}
 }
 
-bool SpecializationInfo::operator<(const SpecializationInfo &specializationInfo) const
+SpecializationInfo::~SpecializationInfo()
 {
-	// Check that either both or neither keys have specialization info.
-	if((info.get() == nullptr) != (specializationInfo.info.get() == nullptr))
+	sw::deallocate(const_cast<VkSpecializationMapEntry *>(info.pMapEntries));
+	sw::deallocate(const_cast<void *>(info.pData));
+}
+
+bool SpecializationInfo::operator<(const SpecializationInfo &rhs) const
+{
+	if(info.mapEntryCount != rhs.info.mapEntryCount)
 	{
-		return info.get() == nullptr;
+		return info.mapEntryCount < rhs.info.mapEntryCount;
 	}
 
-	if(!info)
+	if(info.dataSize != rhs.info.dataSize)
 	{
-		ASSERT(!specializationInfo.info);
-		return false;
+		return info.dataSize < rhs.info.dataSize;
 	}
 
-	if(info->mapEntryCount != specializationInfo.info->mapEntryCount)
+	if(info.mapEntryCount > 0)
 	{
-		return info->mapEntryCount < specializationInfo.info->mapEntryCount;
-	}
-
-	if(info->dataSize != specializationInfo.info->dataSize)
-	{
-		return info->dataSize < specializationInfo.info->dataSize;
-	}
-
-	if(info->mapEntryCount > 0)
-	{
-		int cmp = memcmp(info->pMapEntries, specializationInfo.info->pMapEntries, info->mapEntryCount * sizeof(VkSpecializationMapEntry));
+		int cmp = memcmp(info.pMapEntries, rhs.info.pMapEntries, info.mapEntryCount * sizeof(VkSpecializationMapEntry));
 		if(cmp != 0)
 		{
 			return cmp < 0;
 		}
 	}
 
-	if(info->dataSize > 0)
+	if(info.dataSize > 0)
 	{
-		int cmp = memcmp(info->pData, specializationInfo.info->pData, info->dataSize);
+		int cmp = memcmp(info.pData, rhs.info.pData, info.dataSize);
 		if(cmp != 0)
 		{
 			return cmp < 0;

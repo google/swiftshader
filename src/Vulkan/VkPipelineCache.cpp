@@ -19,7 +19,7 @@
 namespace vk {
 
 PipelineCache::SpirvBinaryKey::SpirvBinaryKey(const sw::SpirvBinary &insns,
-                                              const vk::SpecializationInfo &specializationInfo,
+                                              const VkSpecializationInfo *specializationInfo,
                                               bool optimize)
     : insns(insns)
     , specializationInfo(specializationInfo)
