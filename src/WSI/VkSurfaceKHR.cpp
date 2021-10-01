@@ -41,21 +41,14 @@ namespace vk {
 
 VkResult PresentImage::allocateImage(VkDevice device, const VkImageCreateInfo &createInfo)
 {
-	VkImage *vkImagePtr = reinterpret_cast<VkImage *>(allocate(sizeof(VkImage), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
-	if(!vkImagePtr)
-	{
-		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-	}
-
-	VkResult status = vkCreateImage(device, &createInfo, nullptr, vkImagePtr);
+	VkImage image;
+	VkResult status = vkCreateImage(device, &createInfo, nullptr, &image);
 	if(status != VK_SUCCESS)
 	{
-		deallocate(vkImagePtr, DEVICE_MEMORY);
 		return status;
 	}
 
-	image = Cast(*vkImagePtr);
-	deallocate(vkImagePtr, DEVICE_MEMORY);
+	this->image = Cast(image);
 
 	return status;
 }
@@ -64,27 +57,18 @@ VkResult PresentImage::allocateAndBindImageMemory(VkDevice device, const VkMemor
 {
 	ASSERT(image);
 
-	VkDeviceMemory *vkDeviceMemoryPtr = reinterpret_cast<VkDeviceMemory *>(
-	    allocate(sizeof(VkDeviceMemory), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
-	if(!vkDeviceMemoryPtr)
-	{
-		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-	}
-
-	VkResult status = vkAllocateMemory(device, &allocateInfo, nullptr, vkDeviceMemoryPtr);
+	VkDeviceMemory deviceMemory;
+	VkResult status = vkAllocateMemory(device, &allocateInfo, nullptr, &deviceMemory);
 	if(status != VK_SUCCESS)
 	{
-		deallocate(vkDeviceMemoryPtr, DEVICE_MEMORY);
 		return status;
 	}
 
-	imageMemory = Cast(*vkDeviceMemoryPtr);
-	vkBindImageMemory(device, *image, *vkDeviceMemoryPtr, 0);
-
+	imageMemory = Cast(deviceMemory);
+	vkBindImageMemory(device, *image, deviceMemory, 0);
 	imageStatus = AVAILABLE;
-	deallocate(vkDeviceMemoryPtr, DEVICE_MEMORY);
 
-	return status;
+	return VK_SUCCESS;
 }
 
 void PresentImage::clear()
