@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# FIXME(b/157730274): Updating CMake is broken
+exit 0
+
 cd git/SwiftShader
 
 set -e # Fail on any error.
