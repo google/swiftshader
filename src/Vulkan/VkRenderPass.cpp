@@ -364,7 +364,7 @@ void RenderPass::init(const T *pCreateInfo, void **mem)
 
 void RenderPass::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(subpasses, pAllocator);  // attachments and dependencies are in the same allocation
+	vk::freeHostMemory(subpasses, pAllocator);  // attachments and dependencies are in the same allocation
 }
 
 size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo *pCreateInfo)

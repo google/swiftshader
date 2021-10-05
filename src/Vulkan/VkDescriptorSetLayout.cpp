@@ -90,7 +90,7 @@ DescriptorSetLayout::DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo *
 
 void DescriptorSetLayout::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(bindings, pAllocator);  // This allocation also contains pImmutableSamplers
+	vk::freeHostMemory(bindings, pAllocator);  // This allocation also contains pImmutableSamplers
 }
 
 size_t DescriptorSetLayout::ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo *pCreateInfo)

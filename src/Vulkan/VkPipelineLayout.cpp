@@ -62,14 +62,14 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
 
 void PipelineLayout::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(descriptorSets[0].bindings, pAllocator);  // pushConstantRanges are in the same allocation
+	vk::freeHostMemory(descriptorSets[0].bindings, pAllocator);  // pushConstantRanges are in the same allocation
 }
 
 bool PipelineLayout::release(const VkAllocationCallbacks *pAllocator)
 {
 	if(decRefCount() == 0)
 	{
-		vk::deallocate(descriptorSets[0].bindings, pAllocator);  // pushConstantRanges are in the same allocation
+		vk::freeHostMemory(descriptorSets[0].bindings, pAllocator);  // pushConstantRanges are in the same allocation
 		return true;
 	}
 	return false;

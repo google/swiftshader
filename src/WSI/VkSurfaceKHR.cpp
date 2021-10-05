@@ -39,7 +39,7 @@ static const VkPresentModeKHR presentModes[] = {
 
 namespace vk {
 
-VkResult PresentImage::allocateImage(VkDevice device, const VkImageCreateInfo &createInfo)
+VkResult PresentImage::createImage(VkDevice device, const VkImageCreateInfo &createInfo)
 {
 	VkImage image;
 	VkResult status = vkCreateImage(device, &createInfo, nullptr, &image);
@@ -71,7 +71,7 @@ VkResult PresentImage::allocateAndBindImageMemory(VkDevice device, const VkMemor
 	return VK_SUCCESS;
 }
 
-void PresentImage::clear()
+void PresentImage::release()
 {
 	if(imageMemory)
 	{

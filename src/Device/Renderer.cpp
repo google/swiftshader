@@ -148,13 +148,13 @@ DrawCall::DrawCall()
 {
 	// TODO(b/140991626): Use allocateZeroOrPoison() instead of allocateZero() to detect MemorySanitizer errors.
 	// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
-	data = (DrawData *)allocateZero(sizeof(DrawData));
+	data = (DrawData *)sw::allocateZero(sizeof(DrawData));
 	data->constants = &Constants::Get();
 }
 
 DrawCall::~DrawCall()
 {
-	deallocate(data);
+	sw::freeMemory(data);
 }
 
 Renderer::Renderer(vk::Device *device)
@@ -174,12 +174,12 @@ Renderer::~Renderer()
 void *Renderer::operator new(size_t size)
 {
 	ASSERT(size == sizeof(Renderer));  // This operator can't be called from a derived class
-	return vk::allocate(sizeof(Renderer), alignof(Renderer), vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_DEVICE);
+	return vk::allocateHostMemory(sizeof(Renderer), alignof(Renderer), vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_DEVICE);
 }
 
 void Renderer::operator delete(void *mem)
 {
-	vk::deallocate(mem, vk::NULL_ALLOCATION_CALLBACKS);
+	vk::freeHostMemory(mem, vk::NULL_ALLOCATION_CALLBACKS);
 }
 
 void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState &dynamicState, unsigned int count, int baseVertex,

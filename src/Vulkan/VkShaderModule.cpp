@@ -41,7 +41,7 @@ ShaderModule::ShaderModule(const VkShaderModuleCreateInfo *pCreateInfo, void *me
 
 void ShaderModule::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(code, pAllocator);
+	vk::freeHostMemory(code, pAllocator);
 }
 
 size_t ShaderModule::ComputeRequiredAllocationSize(const VkShaderModuleCreateInfo *pCreateInfo)

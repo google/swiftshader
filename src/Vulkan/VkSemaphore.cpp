@@ -224,7 +224,7 @@ template<class EXTERNAL>
 BinarySemaphore::External *BinarySemaphore::allocateExternal()
 {
 	auto *ext = reinterpret_cast<BinarySemaphore::External *>(
-	    vk::allocate(sizeof(EXTERNAL), alignof(EXTERNAL), allocator, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
+	    vk::allocateHostMemory(sizeof(EXTERNAL), alignof(EXTERNAL), allocator, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
 	new(ext) EXTERNAL();
 	return ext;
 }
@@ -232,7 +232,7 @@ BinarySemaphore::External *BinarySemaphore::allocateExternal()
 void BinarySemaphore::deallocateExternal(BinarySemaphore::External *ext)
 {
 	ext->~External();
-	vk::deallocate(ext, allocator);
+	vk::freeHostMemory(ext, allocator);
 }
 
 template<typename ALLOC_FUNC, typename IMPORT_FUNC>

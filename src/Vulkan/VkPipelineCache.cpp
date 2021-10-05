@@ -83,7 +83,7 @@ PipelineCache::~PipelineCache()
 
 void PipelineCache::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(data, pAllocator);
+	vk::freeHostMemory(data, pAllocator);
 }
 
 size_t PipelineCache::ComputeRequiredAllocationSize(const VkPipelineCacheCreateInfo *pCreateInfo)

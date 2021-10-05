@@ -17,7 +17,6 @@
 
 #include "VkConfig.hpp"
 #include "VkMemory.hpp"
-
 #include "System/Debug.hpp"
 
 #include <vulkan/vk_icd.h>
@@ -49,17 +48,17 @@ static VkResult Create(const VkAllocationCallbacks *pAllocator, const CreateInfo
 	void *memory = nullptr;
 	if(size)
 	{
-		memory = vk::allocate(size, REQUIRED_MEMORY_ALIGNMENT, pAllocator, T::GetAllocationScope());
+		memory = vk::allocateHostMemory(size, REQUIRED_MEMORY_ALIGNMENT, pAllocator, T::GetAllocationScope());
 		if(!memory)
 		{
 			return VK_ERROR_OUT_OF_HOST_MEMORY;
 		}
 	}
 
-	void *objectMemory = vk::allocate(sizeof(T), alignof(T), pAllocator, T::GetAllocationScope());
+	void *objectMemory = vk::allocateHostMemory(sizeof(T), alignof(T), pAllocator, T::GetAllocationScope());
 	if(!objectMemory)
 	{
-		vk::deallocate(memory, pAllocator);
+		vk::freeHostMemory(memory, pAllocator);
 		return VK_ERROR_OUT_OF_HOST_MEMORY;
 	}
 
@@ -67,7 +66,7 @@ static VkResult Create(const VkAllocationCallbacks *pAllocator, const CreateInfo
 
 	if(!object)
 	{
-		vk::deallocate(memory, pAllocator);
+		vk::freeHostMemory(memory, pAllocator);
 		return VK_ERROR_OUT_OF_HOST_MEMORY;
 	}
 

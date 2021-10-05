@@ -26,7 +26,7 @@ void *allocateUninitialized(size_t bytes, size_t alignment = 16);  // Never init
 void *allocateZero(size_t bytes, size_t alignment = 16);           // Always initialized to zero.
 void *allocateZeroOrPoison(size_t bytes, size_t alignment = 16);   // Initialized to zero, except in MemorySanitizer builds.
 
-void deallocate(void *memory);
+void freeMemory(void *memory);
 
 void clear(uint16_t *memory, uint16_t element, size_t count);
 void clear(uint32_t *memory, uint32_t element, size_t count);

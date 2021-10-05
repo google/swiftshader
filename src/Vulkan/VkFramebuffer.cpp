@@ -66,7 +66,7 @@ Framebuffer::Framebuffer(const VkFramebufferCreateInfo *pCreateInfo, void *mem)
 
 void Framebuffer::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(attachments, pAllocator);
+	vk::freeHostMemory(attachments, pAllocator);
 }
 
 void Framebuffer::executeLoadOp(const RenderPass *renderPass, uint32_t clearValueCount, const VkClearValue *pClearValues, const VkRect2D &renderArea)

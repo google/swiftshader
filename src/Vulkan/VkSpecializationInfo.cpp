@@ -44,8 +44,8 @@ SpecializationInfo::SpecializationInfo(const SpecializationInfo &copy)
 
 SpecializationInfo::~SpecializationInfo()
 {
-	sw::deallocate(const_cast<VkSpecializationMapEntry *>(info.pMapEntries));
-	sw::deallocate(const_cast<void *>(info.pData));
+	sw::freeMemory(const_cast<VkSpecializationMapEntry *>(info.pMapEntries));
+	sw::freeMemory(const_cast<void *>(info.pData));
 }
 
 bool SpecializationInfo::operator<(const SpecializationInfo &rhs) const

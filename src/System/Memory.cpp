@@ -116,7 +116,7 @@ void *allocateZeroOrPoison(size_t bytes, size_t alignment)
 	return allocate(bytes, alignment, !__has_feature(memory_sanitizer));
 }
 
-void deallocate(void *memory)
+void freeMemory(void *memory)
 {
 	if(memory)
 	{

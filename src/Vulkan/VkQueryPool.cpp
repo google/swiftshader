@@ -110,7 +110,7 @@ void QueryPool::destroy(const VkAllocationCallbacks *pAllocator)
 		pool[i].~Query();
 	}
 
-	vk::deallocate(pool, pAllocator);
+	vk::freeHostMemory(pool, pAllocator);
 }
 
 size_t QueryPool::ComputeRequiredAllocationSize(const VkQueryPoolCreateInfo *pCreateInfo)

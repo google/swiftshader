@@ -13,8 +13,10 @@
 // limitations under the License.
 
 #include "VkCommandPool.hpp"
+
 #include "VkCommandBuffer.hpp"
 #include "VkDestroy.hpp"
+
 #include <algorithm>
 #include <new>
 
@@ -43,8 +45,8 @@ VkResult CommandPool::allocateCommandBuffers(Device *device, VkCommandBufferLeve
 	for(uint32_t i = 0; i < commandBufferCount; i++)
 	{
 		// TODO(b/119409619): Allocate command buffers from the pool memory.
-		void *deviceMemory = vk::allocate(sizeof(DispatchableCommandBuffer), REQUIRED_MEMORY_ALIGNMENT,
-		                                  NULL_ALLOCATION_CALLBACKS, DispatchableCommandBuffer::GetAllocationScope());
+		void *deviceMemory = vk::allocateHostMemory(sizeof(DispatchableCommandBuffer), REQUIRED_MEMORY_ALIGNMENT,
+		                                            NULL_ALLOCATION_CALLBACKS, DispatchableCommandBuffer::GetAllocationScope());
 		ASSERT(deviceMemory);
 		DispatchableCommandBuffer *commandBuffer = new(deviceMemory) DispatchableCommandBuffer(device, level);
 		if(commandBuffer)

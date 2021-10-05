@@ -193,7 +193,7 @@ void Device::destroy(const VkAllocationCallbacks *pAllocator)
 		queues[i].~Queue();
 	}
 
-	vk::deallocate(queues, pAllocator);
+	vk::freeHostMemory(queues, pAllocator);
 }
 
 size_t Device::ComputeRequiredAllocationSize(const VkDeviceCreateInfo *pCreateInfo)

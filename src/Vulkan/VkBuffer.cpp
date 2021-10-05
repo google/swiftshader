@@ -48,7 +48,7 @@ Buffer::Buffer(const VkBufferCreateInfo *pCreateInfo, void *mem)
 
 void Buffer::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(queueFamilyIndices, pAllocator);
+	vk::freeHostMemory(queueFamilyIndices, pAllocator);
 }
 
 size_t Buffer::ComputeRequiredAllocationSize(const VkBufferCreateInfo *pCreateInfo)

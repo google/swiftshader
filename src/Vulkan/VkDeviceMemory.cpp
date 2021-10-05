@@ -18,6 +18,7 @@
 #include "VkConfig.hpp"
 #include "VkDevice.hpp"
 #include "VkImage.hpp"
+#include "VkMemory.hpp"
 #include "VkStringify.hpp"
 
 // Host-allocated memory and host-mapped foreign memory
@@ -387,7 +388,7 @@ VkResult DeviceMemory::allocate(size_t size, void **pBuffer)
 // Deallocate previously allocated memory at |buffer|.
 void DeviceMemory::deallocate(void *buffer, size_t size)
 {
-	vk::deallocateDeviceMemory(buffer);
+	vk::freeDeviceMemory(buffer);
 	buffer = nullptr;
 }
 
