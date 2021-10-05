@@ -452,14 +452,14 @@ VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferProperties(VkDev
 
 		VkImage Image;
 
-		result = vk::Image::Create(vk::DEVICE_MEMORY, &info, &Image, vk::Cast(device));
+		result = vk::Image::Create(vk::NULL_ALLOCATION_CALLBACKS, &info, &Image, vk::Cast(device));
 		if(result != VK_SUCCESS)
 		{
 			return result;
 		}
 
 		pProperties->allocationSize = vk::Cast(Image)->getMemoryRequirements().size;
-		vk::destroy(Image, vk::DEVICE_MEMORY);
+		vk::destroy(Image, vk::NULL_ALLOCATION_CALLBACKS);
 	}
 
 	return result;

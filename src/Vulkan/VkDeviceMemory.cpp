@@ -13,12 +13,12 @@
 // limitations under the License.
 
 #include "VkDeviceMemory.hpp"
+
 #include "VkBuffer.hpp"
+#include "VkConfig.hpp"
 #include "VkDevice.hpp"
 #include "VkImage.hpp"
 #include "VkStringify.hpp"
-
-#include "VkConfig.hpp"
 
 // Host-allocated memory and host-mapped foreign memory
 class ExternalMemoryHost : public vk::DeviceMemory, public vk::ObjectBase<ExternalMemoryHost, VkDeviceMemory>
@@ -374,7 +374,7 @@ bool DeviceMemory::checkExternalMemoryHandleType(
 // and sets |*pBuffer|.
 VkResult DeviceMemory::allocate(size_t size, void **pBuffer)
 {
-	buffer = vk::allocate(size, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY);
+	buffer = vk::allocateDeviceMemory(size, REQUIRED_MEMORY_ALIGNMENT);
 	if(!buffer)
 	{
 		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -387,7 +387,7 @@ VkResult DeviceMemory::allocate(size_t size, void **pBuffer)
 // Deallocate previously allocated memory at |buffer|.
 void DeviceMemory::deallocate(void *buffer, size_t size)
 {
-	vk::deallocate(buffer, DEVICE_MEMORY);
+	vk::deallocateDeviceMemory(buffer);
 	buffer = nullptr;
 }
 

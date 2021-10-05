@@ -62,7 +62,7 @@ VkSubmitInfo *DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubm
 	}
 
 	uint8_t *mem = static_cast<uint8_t *>(
-	    vk::allocate(totalSize, vk::REQUIRED_MEMORY_ALIGNMENT, vk::DEVICE_MEMORY, vk::Fence::GetAllocationScope()));
+	    vk::allocate(totalSize, vk::REQUIRED_MEMORY_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, vk::Fence::GetAllocationScope()));
 
 	auto submits = new(mem) VkSubmitInfo[submitCount];
 	memcpy(mem, pSubmits, submitSize);
@@ -303,7 +303,7 @@ void Queue::garbageCollect()
 	{
 		auto v = toDelete.tryTake();
 		if(!v.second) { break; }
-		vk::deallocate(v.first, DEVICE_MEMORY);
+		vk::deallocate(v.first, NULL_ALLOCATION_CALLBACKS);
 	}
 }
 

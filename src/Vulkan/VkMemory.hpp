@@ -19,14 +19,23 @@
 
 namespace vk {
 
-void *allocate(size_t count, size_t alignment, const VkAllocationCallbacks *pAllocator,
-               VkSystemAllocationScope allocationScope = VK_SYSTEM_ALLOCATION_SCOPE_OBJECT);
+// TODO(b/192449828): Pass VkDeviceDeviceMemoryReportCreateInfoEXT into these functions to
+// centralize device memory report callback usage.
+void *allocateDeviceMemory(size_t bytes, size_t alignment);
+void deallocateDeviceMemory(void *ptr);
+
+// TODO(b/201798871): Fix host allocation callback usage. Uses of this symbolic constant indicate
+// places where we should use an allocator instead of unaccounted memory allocations.
+constexpr VkAllocationCallbacks *NULL_ALLOCATION_CALLBACKS = nullptr;
+
+void *allocate(size_t bytes, size_t alignment, const VkAllocationCallbacks *pAllocator,
+               VkSystemAllocationScope allocationScope);
 void deallocate(void *ptr, const VkAllocationCallbacks *pAllocator);
 
 template<typename T>
-T *allocate(size_t count, const VkAllocationCallbacks *pAllocator)
+T *allocate(size_t bytes, const VkAllocationCallbacks *pAllocator)
 {
-	return static_cast<T *>(allocate(count, alignof(T), pAllocator, T::GetAllocationScope()));
+	return static_cast<T *>(allocate(bytes, alignof(T), pAllocator, T::GetAllocationScope()));
 }
 
 }  // namespace vk

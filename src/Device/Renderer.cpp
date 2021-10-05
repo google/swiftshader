@@ -174,12 +174,12 @@ Renderer::~Renderer()
 void *Renderer::operator new(size_t size)
 {
 	ASSERT(size == sizeof(Renderer));  // This operator can't be called from a derived class
-	return vk::allocate(sizeof(Renderer), alignof(Renderer), vk::DEVICE_MEMORY, VK_SYSTEM_ALLOCATION_SCOPE_DEVICE);
+	return vk::allocate(sizeof(Renderer), alignof(Renderer), vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_DEVICE);
 }
 
 void Renderer::operator delete(void *mem)
 {
-	vk::deallocate(mem, vk::DEVICE_MEMORY);
+	vk::deallocate(mem, vk::NULL_ALLOCATION_CALLBACKS);
 }
 
 void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState &dynamicState, unsigned int count, int baseVertex,

@@ -224,7 +224,7 @@ template<class EXTERNAL>
 BinarySemaphore::External *BinarySemaphore::allocateExternal()
 {
 	auto *ext = reinterpret_cast<BinarySemaphore::External *>(
-	    vk::allocate(sizeof(EXTERNAL), alignof(EXTERNAL), allocator));
+	    vk::allocate(sizeof(EXTERNAL), alignof(EXTERNAL), allocator, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
 	new(ext) EXTERNAL();
 	return ext;
 }
