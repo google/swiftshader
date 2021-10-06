@@ -146,9 +146,8 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 
 DrawCall::DrawCall()
 {
-	// TODO(b/140991626): Use allocateZeroOrPoison() instead of allocateZero() to detect MemorySanitizer errors.
 	// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
-	data = (DrawData *)sw::allocateZero(sizeof(DrawData));
+	data = (DrawData *)sw::allocateZeroOrPoison(sizeof(DrawData));
 	data->constants = &Constants::Get();
 }
 
