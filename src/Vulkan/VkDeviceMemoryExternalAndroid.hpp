@@ -53,14 +53,12 @@ public:
 	explicit AHardwareBufferExternalMemory(const VkMemoryAllocateInfo *pCreateInfo, void *mem, const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, vk::Device *pDevice);
 	~AHardwareBufferExternalMemory();
 
-	VkResult allocate(size_t size, void **pBuffer) override;
-	void deallocate(void *buffer, size_t size) override;
+	VkResult allocateBuffer() override;
+	void freeBuffer() override;
 
 	VkExternalMemoryHandleTypeFlagBits getFlagBit() const override { return typeFlagBit; }
 
 	virtual VkResult exportAndroidHardwareBuffer(AHardwareBuffer **pAhb) const override final;
-
-	void setDevicePtr(vk::Device *pDevice) override { device = pDevice; }
 
 	static VkFormat GetVkFormatFromAHBFormat(uint32_t ahbFormat);
 	static VkResult GetAndroidHardwareBufferFormatProperties(const AHardwareBuffer_Desc &ahbDesc, VkAndroidHardwareBufferFormatPropertiesANDROID *pFormat);

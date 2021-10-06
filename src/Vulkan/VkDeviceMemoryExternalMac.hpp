@@ -83,7 +83,7 @@ public:
 		}
 	}
 
-	VkResult allocate(size_t size, void **pBuffer) override
+	VkResult allocateBuffer() override
 	{
 		if(allocateInfo.importFd)
 		{
@@ -138,9 +138,9 @@ public:
 			}
 
 			// Ensure there is enough space.
-			if(fd >= 0 && size > 0)
+			if(fd >= 0 && allocationSize > 0)
 			{
-				if(::ftruncate(fd, size) < 0)
+				if(::ftruncate(fd, allocationSize) < 0)
 				{
 					TRACE("ftruncate() failed with: %s", strerror(errno));
 					close(fd);
@@ -157,20 +157,20 @@ public:
 			shm_fd_ = fd;
 		}
 
-		void *addr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED,
+		void *addr = ::mmap(nullptr, allocationSize, PROT_READ | PROT_WRITE, MAP_SHARED,
 		                    shm_fd_, 0);
 
 		if(addr == MAP_FAILED)
 		{
 			return VK_ERROR_MEMORY_MAP_FAILED;
 		}
-		*pBuffer = addr;
+		buffer = addr;
 		return VK_SUCCESS;
 	}
 
-	void deallocate(void *buffer, size_t size) override
+	void freeBuffer() override
 	{
-		::munmap(buffer, size);
+		::munmap(buffer, allocationSize);
 	}
 
 	VkExternalMemoryHandleTypeFlagBits getFlagBit() const override

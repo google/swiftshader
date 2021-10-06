@@ -61,17 +61,17 @@ public:
 	    , allocateInfo(extendedAllocationInfo)
 	{}
 
-	VkResult allocate(size_t size, void **pBuffer) override
+	VkResult allocateBuffer() override
 	{
 		if(allocateInfo.supported)
 		{
-			*pBuffer = allocateInfo.hostPointer;
+			buffer = allocateInfo.hostPointer;
 			return VK_SUCCESS;
 		}
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
 
-	void deallocate(void *buffer, size_t size) override
+	void freeBuffer() override
 	{}
 
 	VkExternalMemoryHandleTypeFlagBits getFlagBit() const override
@@ -194,21 +194,23 @@ VkResult DeviceMemory::Allocate(const VkAllocationCallbacks *pAllocator, const V
 }
 
 DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo *pAllocateInfo, Device *pDevice)
-    : size(pAllocateInfo->allocationSize)
+    : allocationSize(pAllocateInfo->allocationSize)
     , memoryTypeIndex(pAllocateInfo->memoryTypeIndex)
     , device(pDevice)
 {
-	ASSERT(size);
+	ASSERT(allocationSize);
 }
 
 void DeviceMemory::destroy(const VkAllocationCallbacks *pAllocator)
 {
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
-	device->emitDeviceMemoryReport(isImport() ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_UNIMPORT_EXT : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_FREE_EXT, getMemoryObjectId(), 0 /* size */, VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)(void *)VkDeviceMemory(*this));
+	VkDeviceMemoryReportEventTypeEXT eventType = isImport() ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_UNIMPORT_EXT : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_FREE_EXT;
+	device->emitDeviceMemoryReport(eventType, getMemoryObjectId(), 0 /* size */, VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)(void *)VkDeviceMemory(*this));
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
+
 	if(buffer)
 	{
-		deallocate(buffer, size);
+		freeBuffer();
 		buffer = nullptr;
 	}
 }
@@ -305,29 +307,33 @@ VkResult DeviceMemory::ParseAllocationInfo(const VkMemoryAllocateInfo *pAllocate
 
 VkResult DeviceMemory::allocate()
 {
-	if(size > MAX_MEMORY_ALLOCATION_SIZE)
+	if(allocationSize > MAX_MEMORY_ALLOCATION_SIZE)
 	{
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
-		device->emitDeviceMemoryReport(VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATION_FAILED_EXT, 0 /* memoryObjectId */, size, VK_OBJECT_TYPE_DEVICE_MEMORY, 0 /* objectHandle */);
+		device->emitDeviceMemoryReport(VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATION_FAILED_EXT, 0 /* memoryObjectId */, allocationSize, VK_OBJECT_TYPE_DEVICE_MEMORY, 0 /* objectHandle */);
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
+
 		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 	}
 
 	VkResult result = VK_SUCCESS;
 	if(!buffer)
 	{
-		result = allocate(size, &buffer);
+		result = allocateBuffer();
 	}
+
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
 	if(result == VK_SUCCESS)
 	{
-		device->emitDeviceMemoryReport(isImport() ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_IMPORT_EXT : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATE_EXT, getMemoryObjectId(), size, VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)(void *)VkDeviceMemory(*this));
+		VkDeviceMemoryReportEventTypeEXT eventType = isImport() ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_IMPORT_EXT : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATE_EXT;
+		device->emitDeviceMemoryReport(eventType, getMemoryObjectId(), allocationSize, VK_OBJECT_TYPE_DEVICE_MEMORY, (uint64_t)(void *)VkDeviceMemory(*this));
 	}
 	else
 	{
-		device->emitDeviceMemoryReport(VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATION_FAILED_EXT, 0 /* memoryObjectId */, size, VK_OBJECT_TYPE_DEVICE_MEMORY, 0 /* objectHandle */);
+		device->emitDeviceMemoryReport(VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATION_FAILED_EXT, 0 /* memoryObjectId */, allocationSize, VK_OBJECT_TYPE_DEVICE_MEMORY, 0 /* objectHandle */);
 	}
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
+
 	return result;
 }
 
@@ -340,7 +346,7 @@ VkResult DeviceMemory::map(VkDeviceSize pOffset, VkDeviceSize pSize, void **ppDa
 
 VkDeviceSize DeviceMemory::getCommittedMemoryInBytes() const
 {
-	return size;
+	return allocationSize;
 }
 
 void *DeviceMemory::getOffsetPointer(VkDeviceSize pOffset) const
@@ -371,22 +377,21 @@ bool DeviceMemory::checkExternalMemoryHandleType(
 	return (supportedHandleTypes & handle_type_bit) != 0;
 }
 
-// Allocate the memory according to |size|. On success return VK_SUCCESS
-// and sets |*pBuffer|.
-VkResult DeviceMemory::allocate(size_t size, void **pBuffer)
+// Allocate the memory according to `allocationSize`. On success return VK_SUCCESS
+// and sets `buffer`.
+VkResult DeviceMemory::allocateBuffer()
 {
-	buffer = vk::allocateDeviceMemory(size, REQUIRED_MEMORY_ALIGNMENT);
+	buffer = vk::allocateDeviceMemory(allocationSize, REQUIRED_MEMORY_ALIGNMENT);
 	if(!buffer)
 	{
 		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 	}
 
-	*pBuffer = buffer;
 	return VK_SUCCESS;
 }
 
-// Deallocate previously allocated memory at |buffer|.
-void DeviceMemory::deallocate(void *buffer, size_t size)
+// Free previously allocated memory at `buffer`.
+void DeviceMemory::freeBuffer()
 {
 	vk::freeDeviceMemory(buffer);
 	buffer = nullptr;

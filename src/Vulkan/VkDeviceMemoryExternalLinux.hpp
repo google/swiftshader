@@ -43,7 +43,7 @@ public:
 		memfd.close();
 	}
 
-	VkResult allocate(size_t size, void **pBuffer) override
+	VkResult allocateBuffer() override
 	{
 		if(allocateInfo.importFd)
 		{
@@ -59,24 +59,24 @@ public:
 			static int counter = 0;
 			char name[40];
 			snprintf(name, sizeof(name), "SwiftShader.Memory.%d", ++counter);
-			if(!memfd.allocate(name, size))
+			if(!memfd.allocate(name, allocationSize))
 			{
 				TRACE("memfd.allocate() returned %s", strerror(errno));
 				return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 			}
 		}
-		void *addr = memfd.mapReadWrite(0, size);
+		void *addr = memfd.mapReadWrite(0, allocationSize);
 		if(!addr)
 		{
 			return VK_ERROR_MEMORY_MAP_FAILED;
 		}
-		*pBuffer = addr;
+		buffer = addr;
 		return VK_SUCCESS;
 	}
 
-	void deallocate(void *buffer, size_t size) override
+	void freeBuffer() override
 	{
-		memfd.unmap(buffer, size);
+		memfd.unmap(buffer, allocationSize);
 	}
 
 	VkExternalMemoryHandleTypeFlagBits getFlagBit() const override
