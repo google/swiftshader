@@ -25,6 +25,7 @@ config("swiftshader_llvm_private_config") {
       "/wd4065",
       "/wd4141",
       "/wd4146",
+      "/wd4244",
       "/wd4245",
       "/wd4267",
       "/wd4310",
