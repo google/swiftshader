@@ -458,7 +458,7 @@ void Device::prepareForSampling(ImageView *imageView)
 	}
 }
 
-void Device::contentsChanged(ImageView *imageView)
+void Device::contentsChanged(ImageView *imageView, Image::ContentsChangedContext context)
 {
 	if(imageView != nullptr)
 	{
@@ -467,7 +467,7 @@ void Device::contentsChanged(ImageView *imageView)
 		auto it = imageViewSet.find(imageView);
 		if(it != imageViewSet.end())
 		{
-			imageView->contentsChanged();
+			imageView->contentsChanged(context);
 		}
 	}
 }

@@ -127,9 +127,7 @@ public:
 	bool hasDepthAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0; }
 	bool hasStencilAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) != 0; }
 
-	// This function is only called from the renderer, so use the USING_STORAGE flag,
-	// as it is required in order to write to an image from a shader
-	void contentsChanged() { image->contentsChanged(subresourceRange, Image::USING_STORAGE); }
+	void contentsChanged(Image::ContentsChangedContext context) { image->contentsChanged(subresourceRange, context); }
 
 	void prepareForSampling() { image->prepareForSampling(subresourceRange); }
 

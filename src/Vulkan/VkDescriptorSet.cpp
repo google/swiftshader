@@ -67,7 +67,7 @@ void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const Pipeline
 						}
 						else if((notificationType == CONTENTS_CHANGED) && (type == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE))
 						{
-							device->contentsChanged(memoryOwner);
+							device->contentsChanged(memoryOwner, Image::USING_STORAGE);
 						}
 					}
 					descriptorMemory += descriptorSize;

@@ -72,7 +72,7 @@ public:
 	void registerImageView(ImageView *imageView);
 	void unregisterImageView(ImageView *imageView);
 	void prepareForSampling(ImageView *imageView);
-	void contentsChanged(ImageView *imageView);
+	void contentsChanged(ImageView *imageView, Image::ContentsChangedContext context);
 
 	class SamplingRoutineCache
 	{

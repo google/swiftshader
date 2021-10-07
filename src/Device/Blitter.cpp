@@ -2005,7 +2005,7 @@ static void resolveDepth(const vk::ImageView *src, vk::ImageView *dst, const VkS
 		dest += pitch;
 	}
 
-	dst->contentsChanged();
+	dst->contentsChanged(vk::Image::DIRECT_MEMORY_ACCESS);
 }
 
 static void resolveStencil(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc)
@@ -2037,7 +2037,7 @@ static void resolveStencil(const vk::ImageView *src, vk::ImageView *dst, const V
 		dest += pitch;
 	}
 
-	dst->contentsChanged();
+	dst->contentsChanged(vk::Image::DIRECT_MEMORY_ACCESS);
 }
 
 void Blitter::resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc)
