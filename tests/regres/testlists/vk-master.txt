@@ -26,6 +26,7 @@ vk-default/query-pool.txt
 vk-default/rasterization.txt
 vk-default/ray-query.txt
 vk-default/ray-tracing-pipeline.txt
+vk-default/reconvergence.txt
 vk-default/renderpass.txt
 vk-default/renderpass2.txt
 vk-default/robustness.txt

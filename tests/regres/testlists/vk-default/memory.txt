@@ -2792,6 +2792,7 @@ dEQP-VK.memory.requirements.multiplane_image.sparse_optimal
 dEQP-VK.memory.requirements.multiplane_image.sparse_residency_optimal
 dEQP-VK.memory.requirements.multiplane_image.sparse_aliased_optimal
 dEQP-VK.memory.requirements.multiplane_image.sparse_residency_aliased_optimal
+dEQP-VK.memory.requirements.memory_property_flags.check_all
 dEQP-VK.memory.binding.regular.suballocated.buffer_33
 dEQP-VK.memory.binding.regular.suballocated.buffer_257
 dEQP-VK.memory.binding.regular.suballocated.buffer_4087

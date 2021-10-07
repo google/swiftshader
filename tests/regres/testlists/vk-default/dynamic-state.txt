@@ -4,6 +4,8 @@ dEQP-VK.dynamic_state.vp_state.viewport_array
 dEQP-VK.dynamic_state.rs_state.depth_bias
 dEQP-VK.dynamic_state.rs_state.depth_bias_clamp
 dEQP-VK.dynamic_state.rs_state.line_width
+dEQP-VK.dynamic_state.rs_state.nonzero_depth_bias_constant
+dEQP-VK.dynamic_state.rs_state.nonzero_depth_bias_clamp
 dEQP-VK.dynamic_state.cb_state.blend_constants
 dEQP-VK.dynamic_state.ds_state.depth_bounds_1
 dEQP-VK.dynamic_state.ds_state.depth_bounds_2
