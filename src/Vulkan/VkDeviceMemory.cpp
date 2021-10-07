@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkDeviceMemory.hpp"
+#include "VkDeviceMemoryExternalHost.hpp"
 
 #include "VkBuffer.hpp"
 #include "VkConfig.hpp"
@@ -20,68 +21,6 @@
 #include "VkImage.hpp"
 #include "VkMemory.hpp"
 #include "VkStringify.hpp"
-
-// Host-allocated memory and host-mapped foreign memory
-class ExternalMemoryHost : public vk::DeviceMemory, public vk::ObjectBase<ExternalMemoryHost, VkDeviceMemory>
-{
-public:
-	struct AllocateInfo
-	{
-		bool supported = false;
-		void *hostPointer = nullptr;
-
-		AllocateInfo() = default;
-
-		AllocateInfo(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
-		{
-			if(extendedAllocationInfo.importMemoryHostPointerInfo)
-			{
-				if((extendedAllocationInfo.importMemoryHostPointerInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT) &&
-				   (extendedAllocationInfo.importMemoryHostPointerInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT))
-				{
-					UNSUPPORTED("extendedAllocationInfo.importMemoryHostPointerInfo->handleType, %d",
-					            int(extendedAllocationInfo.importMemoryHostPointerInfo->handleType));
-				}
-				hostPointer = extendedAllocationInfo.importMemoryHostPointerInfo->pHostPointer;
-				supported = true;
-			}
-		}
-	};
-
-	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = (VkExternalMemoryHandleTypeFlagBits)(VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT | VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT);
-
-	static bool SupportsAllocateInfo(const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo)
-	{
-		AllocateInfo info(extendedAllocationInfo);
-		return info.supported;
-	}
-
-	explicit ExternalMemoryHost(const VkMemoryAllocateInfo *pCreateInfo, void *mem, const DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, vk::Device *pDevice)
-	    : vk::DeviceMemory(pCreateInfo, pDevice)
-	    , allocateInfo(extendedAllocationInfo)
-	{}
-
-	VkResult allocateBuffer() override
-	{
-		if(allocateInfo.supported)
-		{
-			buffer = allocateInfo.hostPointer;
-			return VK_SUCCESS;
-		}
-		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-	}
-
-	void freeBuffer() override
-	{}
-
-	VkExternalMemoryHandleTypeFlagBits getFlagBit() const override
-	{
-		return typeFlagBit;
-	}
-
-private:
-	AllocateInfo allocateInfo;
-};
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 

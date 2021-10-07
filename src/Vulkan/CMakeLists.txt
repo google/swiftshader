@@ -46,6 +46,8 @@ set(VULKAN_SRC_FILES
     VkDevice.hpp
     VkDeviceMemory.cpp
     VkDeviceMemory.hpp
+    VkDeviceMemoryExternalHost.cpp
+    VkDeviceMemoryExternalHost.hpp
     VkDeviceMemoryExternalLinux.hpp
     VkEvent.hpp
     VkFence.hpp
