@@ -21,8 +21,13 @@ namespace vk {
 
 void *allocateDeviceMemory(size_t bytes, size_t alignment)
 {
+	// TODO(b/140991626): Use allocateZeroOrPoison() instead of allocateZero() to detect MemorySanitizer errors.
+#if defined(SWIFTSHADER_ZERO_INITIALIZE_DEVICE_MEMORY)
+	return sw::allocateZero(bytes, alignment);
+#else
 	// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
 	return sw::allocateZeroOrPoison(bytes, alignment);
+#endif
 }
 
 void freeDeviceMemory(void *ptr)
@@ -32,14 +37,27 @@ void freeDeviceMemory(void *ptr)
 
 void *allocateHostMemory(size_t bytes, size_t alignment, const VkAllocationCallbacks *pAllocator, VkSystemAllocationScope allocationScope)
 {
-	// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
-	return pAllocator ? pAllocator->pfnAllocation(pAllocator->pUserData, bytes, alignment, allocationScope)
-	                  : sw::allocateZeroOrPoison(bytes, alignment);
+	if(pAllocator)
+	{
+		return pAllocator->pfnAllocation(pAllocator->pUserData, bytes, alignment, allocationScope);
+	}
+	else
+	{
+		// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
+		return sw::allocateZeroOrPoison(bytes, alignment);
+	}
 }
 
 void freeHostMemory(void *ptr, const VkAllocationCallbacks *pAllocator)
 {
-	pAllocator ? pAllocator->pfnFree(pAllocator->pUserData, ptr) : sw::freeMemory(ptr);
+	if(pAllocator)
+	{
+		pAllocator->pfnFree(pAllocator->pUserData, ptr);
+	}
+	else
+	{
+		sw::freeMemory(ptr);
+	}
 }
 
 }  // namespace vk
