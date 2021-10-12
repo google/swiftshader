@@ -62,6 +62,7 @@ config("swiftshader_llvm_private_config") {
   if (is_clang) {
     cflags += [
       "-Wno-attributes",
+      "-Wno-bitwise-instead-of-logical",
       "-Wno-deprecated-declarations",
       "-Wno-enum-compare",
       "-Wno-header-hygiene",
