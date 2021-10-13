@@ -59,7 +59,7 @@ public:
 	size_t getSizeInBytes(const VkImageSubresourceRange &subresourceRange) const;
 	void getSubresourceLayout(const VkImageSubresource *pSubresource, VkSubresourceLayout *pLayout) const;
 	void bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset);
-	void copyTo(Image *dstImage, const VkImageCopy &pRegion) const;
+	void copyTo(Image *dstImage, const VkImageCopy &region) const;
 	void copyTo(Buffer *dstBuffer, const VkBufferImageCopy &region);
 	void copyFrom(Buffer *srcBuffer, const VkBufferImageCopy &region);
 
@@ -120,6 +120,7 @@ public:
 
 private:
 	void copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsSource);
+	void copySingleAspectTo(Image *dstImage, const VkImageCopy &region) const;
 	VkDeviceSize getStorageSize(VkImageAspectFlags flags) const;
 	VkDeviceSize getMultiSampledLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	VkDeviceSize getLayerOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
