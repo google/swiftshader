@@ -7,7 +7,6 @@ dEQP-VK.graphicsfuzz.stable-quicksort-conditional-bitwise-or-clamp
 dEQP-VK.graphicsfuzz.stable-rects-vec4-clamp-conditional-min-mix
 dEQP-VK.graphicsfuzz.stable-triangle-clamp-conditional-mix
 dEQP-VK.graphicsfuzz.stable-triangle-nested-conditional-clamped-float
-dEQP-VK.image.sample_cubemap.write_face_0
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.component_0.128_128_1.samples_4
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.component_0.137_191_1.samples_4
 dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.component_1.128_128_1.samples_4
