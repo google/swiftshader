@@ -997,7 +997,9 @@ const Image *Image::getSampledImage(const vk::Format &imageViewFormat) const
 
 void Image::blitTo(Image *dstImage, const VkImageBlit &region, VkFilter filter) const
 {
-	device->getBlitter()->blit(this, dstImage, region, filter);
+	prepareForSampling({ region.srcSubresource.aspectMask, region.srcSubresource.mipLevel, 1,
+	                     region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount });
+	device->getBlitter()->blit(decompressedImage ? decompressedImage : this, dstImage, region, filter);
 }
 
 void Image::copyTo(uint8_t *dst, unsigned int dstPitch) const
