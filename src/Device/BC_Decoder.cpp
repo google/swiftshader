@@ -314,7 +314,7 @@ union Color
 		uint16_t r = 0;
 		uint16_t g = 0;
 		uint16_t b = 0;
-		const uint16_t a = halfFloat1;
+		uint16_t a = halfFloat1;
 
 		RGBA(uint16_t r, uint16_t g, uint16_t b)
 		    : r(r)
@@ -328,6 +328,7 @@ union Color
 			this->r = other.r;
 			this->g = other.g;
 			this->b = other.b;
+			this->a = halfFloat1;
 
 			return *this;
 		}
