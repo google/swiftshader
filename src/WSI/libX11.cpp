@@ -15,6 +15,7 @@
 #include "libX11.hpp"
 
 #include "System/SharedLibrary.hpp"
+#include <memory>
 
 namespace {
 
@@ -61,13 +62,13 @@ LibX11exports *LibX11::loadExports()
 {
 	static void *libX11 = nullptr;
 	static void *libXext = nullptr;
-	static LibX11exports *libX11exports = nullptr;
+	static std::unique_ptr<LibX11exports> libX11exports = nullptr;
 
 	if(!libX11)
 	{
 		if(getProcAddress(RTLD_DEFAULT, "XOpenDisplay"))  // Search the global scope for pre-loaded X11 library.
 		{
-			libX11exports = new LibX11exports(RTLD_DEFAULT, RTLD_DEFAULT);
+			libX11exports = std::make_unique<LibX11exports>(RTLD_DEFAULT, RTLD_DEFAULT);
 			libX11 = (void *)-1;  // No need to load it.
 		}
 		else
@@ -77,7 +78,7 @@ LibX11exports *LibX11::loadExports()
 			if(libX11)
 			{
 				libXext = loadLibrary("libXext.so");
-				libX11exports = new LibX11exports(libX11, libXext);
+				libX11exports = std::make_unique<LibX11exports>(libX11, libXext);
 			}
 			else
 			{
@@ -86,7 +87,7 @@ LibX11exports *LibX11::loadExports()
 		}
 	}
 
-	return libX11exports;
+	return libX11exports.get();
 }
 
 LibX11 libX11;
