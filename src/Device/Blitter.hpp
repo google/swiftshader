@@ -149,7 +149,7 @@ public:
 	void resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc);
 	void copy(const vk::Image *src, uint8_t *dst, unsigned int dstPitch);
 
-	void updateBorders(vk::Image *image, const VkImageSubresource &subresource);
+	void updateBorders(const vk::Image *image, const VkImageSubresource &subresource);
 
 private:
 	enum Edge
@@ -187,7 +187,7 @@ private:
 	CornerUpdateRoutineType generateCornerUpdate(const State &state);
 	void computeCubeCorner(Pointer<Byte> &layer, Int &x0, Int &x1, Int &y0, Int &y1, Int &pitchB, const State &state);
 
-	void copyCubeEdge(vk::Image *image,
+	void copyCubeEdge(const vk::Image *image,
 	                  const VkImageSubresource &dstSubresource, Edge dstEdge,
 	                  const VkImageSubresource &srcSubresource, Edge srcEdge);
 
