@@ -91,7 +91,7 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 
 	if(fragmentShader)
 	{
-		state.shaderID = fragmentShader->getSerialID();
+		state.shaderID = fragmentShader->getIdentifier();
 		state.pipelineLayoutIdentifier = pipelineState.getPipelineLayout()->identifier;
 	}
 	else

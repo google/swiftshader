@@ -18,10 +18,10 @@
 
 namespace vk {
 
-PipelineCache::SpirvBinaryKey::SpirvBinaryKey(const sw::SpirvBinary &insns,
+PipelineCache::SpirvBinaryKey::SpirvBinaryKey(const sw::SpirvBinary &spirv,
                                               const VkSpecializationInfo *specializationInfo,
                                               bool optimize)
-    : insns(insns)
+    : spirv(spirv)
     , specializationInfo(specializationInfo)
     , optimize(optimize)
 {
@@ -29,12 +29,12 @@ PipelineCache::SpirvBinaryKey::SpirvBinaryKey(const sw::SpirvBinary &insns,
 
 bool PipelineCache::SpirvBinaryKey::operator<(const SpirvBinaryKey &other) const
 {
-	if(insns.size() != other.insns.size())
+	if(spirv.size() != other.spirv.size())
 	{
-		return insns.size() < other.insns.size();
+		return spirv.size() < other.spirv.size();
 	}
 
-	int cmp = memcmp(insns.data(), other.insns.data(), insns.size() * sizeof(uint32_t));
+	int cmp = memcmp(spirv.data(), other.spirv.data(), spirv.size() * sizeof(uint32_t));
 	if(cmp != 0)
 	{
 		return cmp < 0;

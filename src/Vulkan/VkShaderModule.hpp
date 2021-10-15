@@ -18,8 +18,6 @@
 #include "VkObject.hpp"
 #include "Pipeline/SpirvBinary.hpp"
 
-#include <atomic>
-
 namespace vk {
 
 class ShaderModule : public Object<ShaderModule, VkShaderModule>
@@ -30,13 +28,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkShaderModuleCreateInfo *pCreateInfo);
 	const sw::SpirvBinary &getBinary() const { return binary; }
 
-	uint32_t getSerialID() const { return serialID; }
-	static uint32_t nextSerialID() { return serialCounter++; }
-
 private:
-	const uint32_t serialID;
-	static std::atomic<uint32_t> serialCounter;
-
 	sw::SpirvBinary binary;
 };
 

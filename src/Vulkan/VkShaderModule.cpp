@@ -20,11 +20,8 @@
 
 namespace vk {
 
-std::atomic<uint32_t> ShaderModule::serialCounter(1);  // Start at 1, 0 is invalid shader.
-
 ShaderModule::ShaderModule(const VkShaderModuleCreateInfo *pCreateInfo, void *mem)
-    : serialID(nextSerialID())
-    , binary(pCreateInfo->pCode, pCreateInfo->codeSize / sizeof(uint32_t))
+    : binary(pCreateInfo->pCode, pCreateInfo->codeSize / sizeof(uint32_t))
 {
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 	spvtools::SpirvTools spirvTools(SPIRV_VERSION);

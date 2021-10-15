@@ -40,6 +40,7 @@ swiftshader_source_set("Pipeline") {
     "SamplerCore.cpp",
     "SetupRoutine.cpp",
     "ShaderCore.cpp",
+    "SpirvBinary.cpp",
     "SpirvShader.cpp",
     "SpirvShaderArithmetic.cpp",
     "SpirvShaderControlFlow.cpp",

@@ -57,18 +57,18 @@ public:
 
 	struct SpirvBinaryKey
 	{
-		SpirvBinaryKey(const sw::SpirvBinary &insns,
+		SpirvBinaryKey(const sw::SpirvBinary &spirv,
 		               const VkSpecializationInfo *specializationInfo,
 		               bool optimize);
 
 		bool operator<(const SpirvBinaryKey &other) const;
 
-		const sw::SpirvBinary &getInsns() const { return insns; }
+		const sw::SpirvBinary &getBinary() const { return spirv; }
 		const VkSpecializationInfo *getSpecializationInfo() const { return specializationInfo.get(); }
 		bool getOptimization() const { return optimize; }
 
 	private:
-		const sw::SpirvBinary insns;
+		const sw::SpirvBinary spirv;
 		const vk::SpecializationInfo specializationInfo;
 		const bool optimize;
 	};

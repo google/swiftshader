@@ -26,7 +26,6 @@
 namespace sw {
 
 SpirvShader::SpirvShader(
-    uint32_t codeSerialID,
     VkShaderStageFlagBits pipelineStage,
     const char *entryPointName,
     SpirvBinary const &insns,
@@ -37,7 +36,6 @@ SpirvShader::SpirvShader(
     : insns{ insns }
     , inputs{ MAX_INTERFACE_COMPONENTS }
     , outputs{ MAX_INTERFACE_COMPONENTS }
-    , codeSerialID(codeSerialID)
     , robustBufferAccess(robustBufferAccess)
 {
 	ASSERT(insns.size() > 0);

@@ -33,6 +33,7 @@ set(PIPELINE_SRC_FILES
     ShaderCore.cpp
     ShaderCore.hpp
     SpirvBinary.hpp
+    SpirvBinary.cpp
     SpirvID.hpp
     SpirvShader.cpp
     SpirvShader.hpp
