@@ -55,7 +55,7 @@ Blitter::~Blitter()
 {
 }
 
-void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
+void Blitter::clear(const void *pixel, vk::Format format, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
 {
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
 	vk::Format dstFormat = viewFormat.getAspectFormat(aspect);
@@ -64,20 +64,16 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 		return;
 	}
 
-	float *pPixel = static_cast<float *>(pixel);
-	if(viewFormat.isUnsignedNormalized() || viewFormat.isSRGBformat())
+	VkClearColorValue clampedPixel;
+	if(viewFormat.isSignedNormalized() || viewFormat.isUnsignedNormalized() || viewFormat.isSRGBformat())
 	{
-		pPixel[0] = sw::clamp(pPixel[0], 0.0f, 1.0f);
-		pPixel[1] = sw::clamp(pPixel[1], 0.0f, 1.0f);
-		pPixel[2] = sw::clamp(pPixel[2], 0.0f, 1.0f);
-		pPixel[3] = sw::clamp(pPixel[3], 0.0f, 1.0f);
-	}
-	else if(viewFormat.isSignedNormalized())
-	{
-		pPixel[0] = sw::clamp(pPixel[0], -1.0f, 1.0f);
-		pPixel[1] = sw::clamp(pPixel[1], -1.0f, 1.0f);
-		pPixel[2] = sw::clamp(pPixel[2], -1.0f, 1.0f);
-		pPixel[3] = sw::clamp(pPixel[3], -1.0f, 1.0f);
+		const float minValue = viewFormat.isSignedNormalized() ? -1.0f : 0.0f;
+		memcpy(clampedPixel.float32, pixel, sizeof(VkClearColorValue));
+		clampedPixel.float32[0] = sw::clamp(clampedPixel.float32[0], minValue, 1.0f);
+		clampedPixel.float32[1] = sw::clamp(clampedPixel.float32[1], minValue, 1.0f);
+		clampedPixel.float32[2] = sw::clamp(clampedPixel.float32[2], minValue, 1.0f);
+		clampedPixel.float32[3] = sw::clamp(clampedPixel.float32[3], minValue, 1.0f);
+		pixel = clampedPixel.float32;
 	}
 
 	if(fastClear(pixel, format, dest, dstFormat, subresourceRange, renderArea))
@@ -162,7 +158,7 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 	dest->contentsChanged(subresourceRange);
 }
 
-bool Blitter::fastClear(void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
+bool Blitter::fastClear(const void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
 {
 	if(clearFormat != VK_FORMAT_R32G32B32A32_SFLOAT &&
 	   clearFormat != VK_FORMAT_D32_SFLOAT &&
@@ -189,7 +185,7 @@ bool Blitter::fastClear(void *clearValue, vk::Format clearFormat, vk::Image *des
 		uint32_t s;
 	};
 
-	ClearValue &c = *reinterpret_cast<ClearValue *>(clearValue);
+	const ClearValue &c = *reinterpret_cast<const ClearValue *>(clearValue);
 
 	uint32_t packed = 0;
 
@@ -1183,6 +1179,8 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 	bool writeA = state.writeAlpha;
 	bool writeRGBA = writeR && writeG && writeB && writeA;
 
+	ASSERT(state.sourceFormat.isUnsigned() == state.destFormat.isUnsigned());
+
 	switch(state.destFormat)
 	{
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
@@ -1471,8 +1469,7 @@ void Blitter::ApplyScaleAndClamp(Float4 &value, const State &state, bool preScal
 		                          state.destFormat.isUnsignedComponent(3) ? 0.0f : -scale.w));
 	}
 
-	// TODO(b/203068380): create proper functions to check for signedness
-	if(!state.sourceFormat.isUnsignedComponent(0) && state.destFormat.isUnsignedComponent(0))
+	if(!state.sourceFormat.isUnsigned() && state.destFormat.isUnsigned())
 	{
 		value = Max(value, Float4(0.0f));
 	}

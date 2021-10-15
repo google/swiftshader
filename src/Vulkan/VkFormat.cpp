@@ -256,6 +256,22 @@ Format Format::getAspectFormat(VkImageAspectFlags aspect) const
 	return format;
 }
 
+VkFormat Format::getClearFormat() const
+{
+	// Set the proper format for the clear value, as described here:
+	// https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#clears-values
+	if(isSignedUnnormalizedInteger())
+	{
+		return VK_FORMAT_R32G32B32A32_SINT;
+	}
+	else if(isUnsignedUnnormalizedInteger())
+	{
+		return VK_FORMAT_R32G32B32A32_UINT;
+	}
+
+	return VK_FORMAT_R32G32B32A32_SFLOAT;
+}
+
 bool Format::isStencil() const
 {
 	switch(format)
@@ -1309,6 +1325,12 @@ int Format::componentCount() const
 	}
 
 	return 1;
+}
+
+bool Format::isUnsigned() const
+{
+	// TODO(b/203068380): create a proper check for signedness
+	return isUnsignedComponent(0);
 }
 
 bool Format::isUnsignedComponent(int component) const

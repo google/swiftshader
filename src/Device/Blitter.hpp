@@ -102,7 +102,7 @@ class Blitter
 
 	struct BlitData
 	{
-		void *source;
+		const void *source;
 		void *dest;
 		int sPitchB;
 		int dPitchB;
@@ -142,7 +142,7 @@ public:
 	Blitter();
 	virtual ~Blitter();
 
-	void clear(void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea = nullptr);
+	void clear(const void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea = nullptr);
 
 	void blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
 	void resolve(const vk::Image *src, vk::Image *dst, VkImageResolve region);
@@ -160,7 +160,7 @@ private:
 		LEFT
 	};
 
-	bool fastClear(void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea);
+	bool fastClear(const void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea);
 	bool fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve region);
 
 	Float4 readFloat4(Pointer<Byte> element, const State &state);

@@ -1038,22 +1038,6 @@ void Image::resolveDepthStencilTo(const ImageView *src, ImageView *dst, const Vk
 	device->getBlitter()->resolveDepthStencil(src, dst, dsResolve);
 }
 
-VkFormat Image::getClearFormat() const
-{
-	// Set the proper format for the clear value, as described here:
-	// https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#clears-values
-	if(format.isSignedUnnormalizedInteger())
-	{
-		return VK_FORMAT_R32G32B32A32_SINT;
-	}
-	else if(format.isUnsignedUnnormalizedInteger())
-	{
-		return VK_FORMAT_R32G32B32A32_UINT;
-	}
-
-	return VK_FORMAT_R32G32B32A32_SFLOAT;
-}
-
 uint32_t Image::getLastLayerIndex(const VkImageSubresourceRange &subresourceRange) const
 {
 	return ((subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS) ? arrayLayers : (subresourceRange.baseArrayLayer + subresourceRange.layerCount)) - 1;
@@ -1064,16 +1048,16 @@ uint32_t Image::getLastMipLevel(const VkImageSubresourceRange &subresourceRange)
 	return ((subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS) ? mipLevels : (subresourceRange.baseMipLevel + subresourceRange.levelCount)) - 1;
 }
 
-void Image::clear(void *pixelData, VkFormat pixelFormat, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D &renderArea)
+void Image::clear(const void *pixelData, VkFormat pixelFormat, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
 {
-	device->getBlitter()->clear(pixelData, pixelFormat, this, viewFormat, subresourceRange, &renderArea);
+	device->getBlitter()->clear(pixelData, pixelFormat, this, viewFormat, subresourceRange, renderArea);
 }
 
 void Image::clear(const VkClearColorValue &color, const VkImageSubresourceRange &subresourceRange)
 {
 	ASSERT(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT);
 
-	device->getBlitter()->clear((void *)color.float32, getClearFormat(), this, format, subresourceRange);
+	clear(color.float32, format.getClearFormat(), format, subresourceRange, nullptr);
 }
 
 void Image::clear(const VkClearDepthStencilValue &color, const VkImageSubresourceRange &subresourceRange)
@@ -1085,14 +1069,14 @@ void Image::clear(const VkClearDepthStencilValue &color, const VkImageSubresourc
 	{
 		VkImageSubresourceRange depthSubresourceRange = subresourceRange;
 		depthSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-		device->getBlitter()->clear((void *)(&color.depth), VK_FORMAT_D32_SFLOAT, this, format, depthSubresourceRange);
+		clear(&color.depth, VK_FORMAT_D32_SFLOAT, format, depthSubresourceRange, nullptr);
 	}
 
 	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
 	{
 		VkImageSubresourceRange stencilSubresourceRange = subresourceRange;
 		stencilSubresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-		device->getBlitter()->clear((void *)(&color.stencil), VK_FORMAT_S8_UINT, this, format, stencilSubresourceRange);
+		clear(&color.stencil, VK_FORMAT_S8_UINT, format, stencilSubresourceRange, nullptr);
 	}
 }
 
@@ -1104,7 +1088,7 @@ void Image::clear(const VkClearValue &clearValue, const vk::Format &viewFormat, 
 
 	if(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
-		clear((void *)(clearValue.color.float32), getClearFormat(), viewFormat, subresourceRange, renderArea);
+		clear(clearValue.color.float32, viewFormat.getClearFormat(), viewFormat, subresourceRange, &renderArea);
 	}
 	else
 	{
@@ -1112,14 +1096,14 @@ void Image::clear(const VkClearValue &clearValue, const vk::Format &viewFormat, 
 		{
 			VkImageSubresourceRange depthSubresourceRange = subresourceRange;
 			depthSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-			clear((void *)(&clearValue.depthStencil.depth), VK_FORMAT_D32_SFLOAT, viewFormat, depthSubresourceRange, renderArea);
+			clear(&clearValue.depthStencil.depth, VK_FORMAT_D32_SFLOAT, viewFormat, depthSubresourceRange, &renderArea);
 		}
 
 		if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
 		{
 			VkImageSubresourceRange stencilSubresourceRange = subresourceRange;
 			stencilSubresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-			clear((void *)(&clearValue.depthStencil.stencil), VK_FORMAT_S8_UINT, viewFormat, stencilSubresourceRange, renderArea);
+			clear(&clearValue.depthStencil.stencil, VK_FORMAT_S8_UINT, viewFormat, stencilSubresourceRange, &renderArea);
 		}
 	}
 }
