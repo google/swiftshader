@@ -29,7 +29,8 @@ public:
 
 	inline uint32_t getIdentifier() const { return identifier; };
 
-	void inheritIdentifier(const SpirvBinary &binary);
+	// Assigns an identifier derived from the unoptimized SPIR-V binary, to avoid recompiles.
+	void mapOptimizedIdentifier(const SpirvBinary &unoptimized);
 
 private:
 	static std::atomic<uint32_t> serialCounter;

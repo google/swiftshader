@@ -28,9 +28,11 @@ SpirvBinary::SpirvBinary(const uint32_t *binary, uint32_t wordCount)
 {
 }
 
-void SpirvBinary::inheritIdentifier(const SpirvBinary &binary)
+void SpirvBinary::mapOptimizedIdentifier(const SpirvBinary &unoptimized)
 {
-	identifier = binary.identifier;
+	// The bitwise NOT accomplishes a 1-to-1 mapping of the identifiers,
+	// while avoiding clashes with previous or future serial IDs.
+	identifier = ~unoptimized.identifier;
 }
 
 }  // namespace sw

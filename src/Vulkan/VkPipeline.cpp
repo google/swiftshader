@@ -237,7 +237,7 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 			// so we should use a 1-to-1 mapping of the identifiers to avoid JIT routine recompiles.
 			if(!key.getSpecializationInfo())
 			{
-				spirv.inheritIdentifier(key.getBinary());
+				spirv.mapOptimizedIdentifier(key.getBinary());
 			}
 		}
 
@@ -297,7 +297,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, co
 		// so we should use a 1-to-1 mapping of the identifiers to avoid JIT routine recompiles.
 		if(!shaderKey.getSpecializationInfo())
 		{
-			spirv.inheritIdentifier(shaderKey.getBinary());
+			spirv.mapOptimizedIdentifier(shaderKey.getBinary());
 		}
 	}
 
