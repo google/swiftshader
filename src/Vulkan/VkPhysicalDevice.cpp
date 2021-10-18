@@ -332,10 +332,15 @@ static void getPhysicalDeviceDepthClipEnableFeaturesExt(T *features)
 	features->depthClipEnable = VK_TRUE;
 }
 
-static void getPhysicalDevicCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomBorderColorFeaturesEXT *features)
+static void getPhysicalDeviceCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomBorderColorFeaturesEXT *features)
 {
 	features->customBorderColors = VK_TRUE;
 	features->customBorderColorWithoutFormat = VK_TRUE;
+}
+
+static void getPhysicalDeviceBlendOperationAdvancedFeaturesExt(VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *features)
+{
+	features->advancedBlendCoherentOperations = VK_FALSE;
 }
 
 static void getPhysicalDevice4444FormatsFeaturesExt(VkPhysicalDevice4444FormatsFeaturesEXT *features)
@@ -437,7 +442,10 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			getPhysicalDeviceDepthClipEnableFeaturesExt(reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT:
-			getPhysicalDevicCustomBorderColorFeaturesExt(reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT *>(curExtension));
+			getPhysicalDeviceCustomBorderColorFeaturesExt(reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_FEATURES_EXT:
+			getPhysicalDeviceBlendOperationAdvancedFeaturesExt(reinterpret_cast<VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
 			getPhysicalDevice4444FormatsFeaturesExt(reinterpret_cast<struct VkPhysicalDevice4444FormatsFeaturesEXT *>(curExtension));
@@ -1034,6 +1042,18 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEX
 	properties->maxCustomBorderColorSamplers = MAX_SAMPLER_ALLOCATION_COUNT;
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *properties) const
+{
+	// Note: advancedBlendMaxColorAttachments could already support sw::MAX_COLOR_BUFFERS as is,
+	//       but using a value of 1 is enough for ANGLE to implement GL_KHR_blend_equation_advanced
+	properties->advancedBlendMaxColorAttachments = 1;
+	properties->advancedBlendIndependentBlend = VK_FALSE;
+	properties->advancedBlendNonPremultipliedSrcColor = VK_FALSE;
+	properties->advancedBlendNonPremultipliedDstColor = VK_FALSE;
+	properties->advancedBlendCorrelatedOverlap = VK_FALSE;
+	properties->advancedBlendAllOperations = VK_FALSE;
+}
+
 template<typename T>
 static void getSamplerFilterMinmaxProperties(T *properties)
 {
@@ -1121,6 +1141,7 @@ InstantiateHasExtendedFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT);
 InstantiateHasExtendedFeatures(VkPhysicalDeviceVulkan11Features);
 InstantiateHasExtendedFeatures(VkPhysicalDeviceVulkan12Features);
 InstantiateHasExtendedFeatures(VkPhysicalDeviceDepthClipEnableFeaturesEXT);
+InstantiateHasExtendedFeatures(VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT);
 #undef InstantiateHasExtendedFeatures
 
 void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFormatProperties)
