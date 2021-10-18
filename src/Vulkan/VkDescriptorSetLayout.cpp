@@ -176,12 +176,44 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 			{
 				SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(mem);
 				imageSamplerDescriptor->samplerId = bindings[i].immutableSamplers[j]->id;
+				imageSamplerDescriptor->memoryOwner = nullptr;
 				mem += descriptorSize;
 			}
 		}
 		else
 		{
-			mem += bindings[i].descriptorCount * descriptorSize;
+			switch(bindings[i].descriptorType)
+			{
+			case VK_DESCRIPTOR_TYPE_SAMPLER:
+			case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+			case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+			case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+				for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
+				{
+					SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(mem);
+					imageSamplerDescriptor->memoryOwner = nullptr;
+					mem += descriptorSize;
+				}
+				break;
+			case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+			case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+			case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+				for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
+				{
+					StorageImageDescriptor *storageImage = reinterpret_cast<StorageImageDescriptor *>(mem);
+					storageImage->memoryOwner = nullptr;
+					mem += descriptorSize;
+				}
+				break;
+			case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+			case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+			case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+			case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+				mem += bindings[i].descriptorCount * descriptorSize;
+				break;
+			default:
+				UNSUPPORTED("Unsupported Descriptor Type: %d", int(bindings[i].descriptorType));
+			}
 		}
 	}
 }
