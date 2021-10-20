@@ -1,4 +1,3 @@
-dEQP-VK.api.info.get_physical_device_properties2.properties
 dEQP-VK.dynamic_state.compute_transfer.single.compute.line_stipple_ext.after
 dEQP-VK.dynamic_state.compute_transfer.single.compute.line_stipple_ext.before
 dEQP-VK.dynamic_state.compute_transfer.single.transfer.line_stipple_ext.after
