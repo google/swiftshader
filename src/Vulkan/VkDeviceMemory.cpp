@@ -119,7 +119,7 @@ VkResult DeviceMemory::Allocate(const VkAllocationCallbacks *pAllocator, const V
 	}
 #endif
 #if VK_USE_PLATFORM_FUCHSIA
-	if(zircon::VmoExternalMemory::SupportsAllocateInfo(extendedAllocationInfo))
+	if(zircon::VmoExternalMemory::supportsAllocateInfo(extendedAllocationInfo))
 	{
 		return zircon::VmoExternalMemory::Create(pAllocator, pAllocateInfo, pMemory, extendedAllocationInfo, device);
 	}
@@ -201,7 +201,7 @@ VkResult DeviceMemory::ParseAllocationInfo(const VkMemoryAllocateInfo *pAllocate
 				break;
 #endif
 #if VK_USE_PLATFORM_FUCHSIA
-			case VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA:
+			case VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA:
 				break;
 #endif
 			default:
@@ -224,9 +224,9 @@ VkResult DeviceMemory::ParseAllocationInfo(const VkMemoryAllocateInfo *pAllocate
 			}
 			break;
 #if VK_USE_PLATFORM_FUCHSIA
-		case VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
+		case VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
 			extendedAllocationInfo->importMemoryZirconHandleInfo = reinterpret_cast<const VkImportMemoryZirconHandleInfoFUCHSIA *>(allocationInfo);
-			if(extendedAllocationInfo->importMemoryZirconHandleInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
+			if(extendedAllocationInfo->importMemoryZirconHandleInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 			{
 				UNSUPPORTED("extendedAllocationInfo->importMemoryZirconHandleInfo->handleType %u", extendedAllocationInfo->importMemoryZirconHandleInfo->handleType);
 				return VK_ERROR_INVALID_EXTERNAL_HANDLE;

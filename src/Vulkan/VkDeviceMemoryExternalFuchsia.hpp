@@ -41,7 +41,7 @@ public:
 		{
 			if(extendedAllocationInfo.importMemoryZirconHandleInfo)
 			{
-				if(extendedAllocationInfo.importMemoryZirconHandleInfo->handleType != VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA)
+				if(extendedAllocationInfo.importMemoryZirconHandleInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 				{
 					UNSUPPORTED("extendedAllocationInfo.importMemoryZirconHandleInfo->handleType");
 				}
@@ -51,7 +51,7 @@ public:
 
 			if(extendedAllocationInfo.exportMemoryAllocateInfo)
 			{
-				if(extendedAllocationInfo.exportMemoryAllocateInfo->handleTypes != VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO)
+				if(extendedAllocationInfo.exportMemoryAllocateInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 				{
 					UNSUPPORTED("extendedAllocationInfo.exportMemoryAllocateInfo->handleTypes");
 				}

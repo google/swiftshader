@@ -39,7 +39,7 @@ public:
 		const VkMemoryDedicatedAllocateInfo *dedicatedAllocateInfo = nullptr;
 #endif
 #if VK_USE_PLATFORM_FUCHSIA
-		const VkImportMemoryZirconHandleInfoFUCHSIA importMemoryZirconHandleInfo = nullptr;
+		const VkImportMemoryZirconHandleInfoFUCHSIA *importMemoryZirconHandleInfo = nullptr;
 #endif
 	};
 

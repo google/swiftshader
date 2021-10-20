@@ -1478,7 +1478,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreZirconHandleFUCHSIA(
 	bool temporaryImport = (pImportSemaphoreZirconHandleInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
 	auto *sem = vk::DynamicCast<vk::BinarySemaphore>(pImportSemaphoreZirconHandleInfo->semaphore);
 	ASSERT(sem != nullptr);
-	return sem->importHandle(pImportSemaphoreZirconHandleInfo->handle, temporaryImport);
+	return sem->importHandle(pImportSemaphoreZirconHandleInfo->zirconHandle, temporaryImport);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
