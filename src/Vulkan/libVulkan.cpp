@@ -97,6 +97,7 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
+#include <functional>
 #include <map>
 #include <string>
 
@@ -295,7 +296,7 @@ VK_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vk_icdInitializeConnectToServiceCallbac
 
 struct ExtensionProperties : public VkExtensionProperties
 {
-	bool isSupported = true;
+	std::function<bool()> isSupported = [] { return true; };
 };
 
 static const ExtensionProperties instanceExtensionProperties[] = {
@@ -310,10 +311,10 @@ static const ExtensionProperties instanceExtensionProperties[] = {
 	{ { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_SPEC_VERSION } },
 #endif
 #ifdef VK_USE_PLATFORM_XCB_KHR
-	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION }, vk::XcbSurfaceKHR::hasLibXCB() },
+	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION }, [] { return vk::XcbSurfaceKHR::hasLibXCB(); } },
 #endif
 #ifdef VK_USE_PLATFORM_XLIB_KHR
-	{ { VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION }, static_cast<bool>(libX11) },
+	{ { VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION }, [] { return static_cast<bool>(libX11); } },
 #endif
 #ifdef VK_USE_PLATFORM_WAYLAND_KHR
 	{ { VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME, VK_KHR_WAYLAND_SURFACE_SPEC_VERSION } },
@@ -450,7 +451,7 @@ static bool hasExtension(const char *extensionName, const ExtensionProperties *e
 	{
 		if(strcmp(extensionName, extensionProperties[i].extensionName) == 0)
 		{
-			return extensionProperties[i].isSupported;
+			return extensionProperties[i].isSupported();
 		}
 	}
 
