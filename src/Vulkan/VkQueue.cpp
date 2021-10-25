@@ -18,6 +18,7 @@
 #include "VkFence.hpp"
 #include "VkSemaphore.hpp"
 #include "VkStringify.hpp"
+#include "VkStructConversion.hpp"
 #include "VkTimelineSemaphore.hpp"
 #include "Device/Renderer.hpp"
 #include "WSI/VkSwapchainKHR.hpp"
@@ -30,139 +31,6 @@
 #include <cstring>
 
 namespace vk {
-
-Queue::SubmitInfo *Queue::DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubmits)
-{
-	size_t submitSize = sizeof(SubmitInfo) * submitCount;
-	size_t totalSize = submitSize;
-	for(uint32_t i = 0; i < submitCount; i++)
-	{
-		totalSize += pSubmits[i].waitSemaphoreCount * sizeof(VkSemaphore);
-		totalSize += pSubmits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags);
-		totalSize += pSubmits[i].signalSemaphoreCount * sizeof(VkSemaphore);
-		totalSize += pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer);
-
-		for(const auto *extension = reinterpret_cast<const VkBaseInStructure *>(pSubmits[i].pNext);
-		    extension != nullptr; extension = reinterpret_cast<const VkBaseInStructure *>(extension->pNext))
-		{
-			switch(extension->sType)
-			{
-			case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
-				{
-					const auto *tlsSubmitInfo = reinterpret_cast<const VkTimelineSemaphoreSubmitInfo *>(extension);
-					totalSize += tlsSubmitInfo->waitSemaphoreValueCount * sizeof(uint64_t);
-					totalSize += tlsSubmitInfo->signalSemaphoreValueCount * sizeof(uint64_t);
-				}
-				break;
-			case VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO:
-				// SwiftShader doesn't use device group submit info because it only supports a single physical device.
-				// However, this extension is core in Vulkan 1.1, so we must treat it as a valid structure type.
-				break;
-			case VK_STRUCTURE_TYPE_MAX_ENUM:
-				// dEQP tests that this value is ignored.
-				break;
-			default:
-				UNSUPPORTED("submitInfo[%d]->pNext sType: %s", i, vk::Stringify(extension->sType).c_str());
-				break;
-			}
-		}
-	}
-
-	uint8_t *mem = static_cast<uint8_t *>(
-	    vk::allocateHostMemory(totalSize, vk::REQUIRED_MEMORY_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, vk::Fence::GetAllocationScope()));
-
-	auto submits = new(mem) SubmitInfo[submitCount];
-	mem += submitSize;
-
-	for(uint32_t i = 0; i < submitCount; i++)
-	{
-		submits[i].commandBufferCount = pSubmits[i].commandBufferCount;
-		submits[i].signalSemaphoreCount = pSubmits[i].signalSemaphoreCount;
-		submits[i].waitSemaphoreCount = pSubmits[i].waitSemaphoreCount;
-
-		submits[i].pWaitSemaphores = nullptr;
-		submits[i].pWaitDstStageMask = nullptr;
-		submits[i].pSignalSemaphores = nullptr;
-		submits[i].pCommandBuffers = nullptr;
-
-		if(pSubmits[i].waitSemaphoreCount > 0)
-		{
-			size_t size = pSubmits[i].waitSemaphoreCount * sizeof(VkSemaphore);
-			submits[i].pWaitSemaphores = reinterpret_cast<const VkSemaphore *>(mem);
-			memcpy(mem, pSubmits[i].pWaitSemaphores, size);
-			mem += size;
-
-			size = pSubmits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags);
-			submits[i].pWaitDstStageMask = reinterpret_cast<const VkPipelineStageFlags *>(mem);
-			memcpy(mem, pSubmits[i].pWaitDstStageMask, size);
-			mem += size;
-		}
-
-		if(pSubmits[i].signalSemaphoreCount > 0)
-		{
-			size_t size = pSubmits[i].signalSemaphoreCount * sizeof(VkSemaphore);
-			submits[i].pSignalSemaphores = reinterpret_cast<const VkSemaphore *>(mem);
-			memcpy(mem, pSubmits[i].pSignalSemaphores, size);
-			mem += size;
-		}
-
-		if(pSubmits[i].commandBufferCount > 0)
-		{
-			size_t size = pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer);
-			submits[i].pCommandBuffers = reinterpret_cast<const VkCommandBuffer *>(mem);
-			memcpy(mem, pSubmits[i].pCommandBuffers, size);
-			mem += size;
-		}
-
-		submits[i].waitSemaphoreValueCount = 0;
-		submits[i].pWaitSemaphoreValues = nullptr;
-		submits[i].signalSemaphoreValueCount = 0;
-		submits[i].pSignalSemaphoreValues = nullptr;
-
-		for(const auto *extension = reinterpret_cast<const VkBaseInStructure *>(pSubmits[i].pNext);
-		    extension != nullptr; extension = reinterpret_cast<const VkBaseInStructure *>(extension->pNext))
-		{
-			switch(extension->sType)
-			{
-			case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
-				{
-					const VkTimelineSemaphoreSubmitInfo *tlsSubmitInfo = reinterpret_cast<const VkTimelineSemaphoreSubmitInfo *>(extension);
-
-					if(tlsSubmitInfo->waitSemaphoreValueCount > 0)
-					{
-						submits[i].waitSemaphoreValueCount = tlsSubmitInfo->waitSemaphoreValueCount;
-						size_t size = tlsSubmitInfo->waitSemaphoreValueCount * sizeof(uint64_t);
-						submits[i].pWaitSemaphoreValues = reinterpret_cast<uint64_t *>(mem);
-						memcpy(mem, tlsSubmitInfo->pWaitSemaphoreValues, size);
-						mem += size;
-					}
-
-					if(tlsSubmitInfo->signalSemaphoreValueCount > 0)
-					{
-						submits[i].signalSemaphoreValueCount = tlsSubmitInfo->signalSemaphoreValueCount;
-						size_t size = tlsSubmitInfo->signalSemaphoreValueCount * sizeof(uint64_t);
-						submits[i].pSignalSemaphoreValues = reinterpret_cast<uint64_t *>(mem);
-						memcpy(mem, tlsSubmitInfo->pSignalSemaphoreValues, size);
-						mem += size;
-					}
-				}
-				break;
-			case VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO:
-				// SwiftShader doesn't use device group submit info because it only supports a single physical device.
-				// However, this extension is core in Vulkan 1.1, so we must treat it as a valid structure type.
-				break;
-			case VK_STRUCTURE_TYPE_MAX_ENUM:
-				// dEQP tests that this value is ignored.
-				break;
-			default:
-				UNSUPPORTED("submitInfo[%d]->pNext sType: %s", i, vk::Stringify(extension->sType).c_str());
-				break;
-			}
-		}
-	}
-
-	return submits;
-}
 
 Queue::Queue(Device *device, marl::Scheduler *scheduler)
     : device(device)
@@ -182,13 +50,13 @@ Queue::~Queue()
 	garbageCollect();
 }
 
-VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo *pSubmits, Fence *fence)
+VkResult Queue::submit(uint32_t submitCount, SubmitInfo *pSubmits, Fence *fence)
 {
 	garbageCollect();
 
 	Task task;
 	task.submitCount = submitCount;
-	task.pSubmits = DeepCopySubmitInfo(submitCount, pSubmits);
+	task.pSubmits = pSubmits;
 	if(fence)
 	{
 		task.events = fence->getCountedEvent();
@@ -317,7 +185,7 @@ void Queue::garbageCollect()
 	{
 		auto v = toDelete.tryTake();
 		if(!v.second) { break; }
-		vk::freeHostMemory(v.first, NULL_ALLOCATION_CALLBACKS);
+		SubmitInfo::Release(v.first);
 	}
 }
 

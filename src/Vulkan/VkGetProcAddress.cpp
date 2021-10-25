@@ -448,6 +448,17 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	    {
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetPhysicalDeviceToolPropertiesEXT),
 	    } },
+	// VK_KHR_synchronization2
+	{
+	    VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdPipelineBarrier2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdResetEvent2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetEvent2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdWaitEvents2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdWriteTimestamp2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkQueueSubmit2KHR),
+	    } },
 #ifndef __ANDROID__
 	// VK_KHR_swapchain
 	{
