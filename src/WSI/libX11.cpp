@@ -15,17 +15,8 @@
 #include "libX11.hpp"
 
 #include "System/SharedLibrary.hpp"
+
 #include <memory>
-
-namespace {
-
-template<typename FPTR>
-void getFuncAddress(void *lib, const char *name, FPTR *out)
-{
-	*out = reinterpret_cast<FPTR>(getProcAddress(lib, name));
-}
-
-}  // anonymous namespace
 
 LibX11exports::LibX11exports(void *libX11, void *libXext)
 {

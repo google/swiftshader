@@ -41,6 +41,8 @@ swiftshader_source_set("WSI") {
       "XlibSurfaceKHR.hpp",
       "libX11.cpp",
       "libX11.hpp",
+      "libXCB.cpp",
+      "libXCB.hpp",
     ]
   }
 

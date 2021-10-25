@@ -28,6 +28,7 @@ namespace vk {
 class XcbSurfaceKHR : public SurfaceKHR, public ObjectBase<XcbSurfaceKHR, VkSurfaceKHR>
 {
 public:
+	static bool isSupported();
 	XcbSurfaceKHR(const VkXcbSurfaceCreateInfoKHR *pCreateInfo, void *mem);
 
 	void destroySurface(const VkAllocationCallbacks *pAllocator) override;
@@ -39,8 +40,6 @@ public:
 	virtual void attachImage(PresentImage *image) override;
 	virtual void detachImage(PresentImage *image) override;
 	VkResult present(PresentImage *image) override;
-
-	static bool hasLibXCB();
 
 private:
 	xcb_connection_t *connection;

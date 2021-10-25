@@ -19,10 +19,17 @@
 
 namespace vk {
 
+bool XlibSurfaceKHR::isSupported()
+{
+	return libX11.isPresent();
+}
+
 XlibSurfaceKHR::XlibSurfaceKHR(const VkXlibSurfaceCreateInfoKHR *pCreateInfo, void *mem)
     : pDisplay(pCreateInfo->dpy)
     , window(pCreateInfo->window)
 {
+	ASSERT(isSupported());
+
 	int screen = DefaultScreen(pDisplay);
 	gc = libX11->XDefaultGC(pDisplay, screen);
 

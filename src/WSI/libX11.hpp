@@ -52,9 +52,9 @@ struct LibX11exports
 class LibX11
 {
 public:
-	operator bool()
+	bool isPresent()
 	{
-		return loadExports();
+		return loadExports() != nullptr;
 	}
 
 	LibX11exports *operator->();

@@ -312,10 +312,10 @@ static const ExtensionProperties instanceExtensionProperties[] = {
 	{ { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_SPEC_VERSION } },
 #endif
 #ifdef VK_USE_PLATFORM_XCB_KHR
-	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION }, [] { return vk::XcbSurfaceKHR::hasLibXCB(); } },
+	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION }, [] { return vk::XcbSurfaceKHR::isSupported(); } },
 #endif
 #ifdef VK_USE_PLATFORM_XLIB_KHR
-	{ { VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION }, [] { return static_cast<bool>(libX11); } },
+	{ { VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION }, [] { return vk::XlibSurfaceKHR::isSupported(); } },
 #endif
 #ifdef VK_USE_PLATFORM_WAYLAND_KHR
 	{ { VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME, VK_KHR_WAYLAND_SURFACE_SPEC_VERSION } },

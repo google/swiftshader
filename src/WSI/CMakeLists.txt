@@ -45,6 +45,8 @@ elseif(LINUX)
         list(APPEND WSI_SRC_FILES
             XcbSurfaceKHR.cpp
             XcbSurfaceKHR.hpp
+            libXCB.cpp
+            libXCB.hpp
         )
     endif()
 

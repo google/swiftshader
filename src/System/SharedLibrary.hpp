@@ -133,4 +133,10 @@ inline void *getProcAddress(void *library, const char *name)
 }
 #endif
 
+template<typename FunctionPointer>
+inline void getFuncAddress(void *library, const char *functionName, FunctionPointer *out)
+{
+	*out = reinterpret_cast<FunctionPointer>(getProcAddress(library, functionName));
+}
+
 #endif  // SharedLibrary_hpp

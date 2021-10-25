@@ -28,6 +28,7 @@ namespace vk {
 class XlibSurfaceKHR : public SurfaceKHR, public ObjectBase<XlibSurfaceKHR, VkSurfaceKHR>
 {
 public:
+	static bool isSupported();
 	XlibSurfaceKHR(const VkXlibSurfaceCreateInfoKHR *pCreateInfo, void *mem);
 
 	void destroySurface(const VkAllocationCallbacks *pAllocator) override;
