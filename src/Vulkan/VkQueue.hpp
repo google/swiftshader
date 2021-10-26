@@ -61,10 +61,25 @@ public:
 	void insertDebugUtilsLabel(const VkDebugUtilsLabelEXT *pLabelInfo);
 
 private:
+	struct SubmitInfo
+	{
+		uint32_t waitSemaphoreCount;
+		const VkSemaphore *pWaitSemaphores;
+		const VkPipelineStageFlags *pWaitDstStageMask;
+		uint32_t commandBufferCount;
+		const VkCommandBuffer *pCommandBuffers;
+		uint32_t signalSemaphoreCount;
+		const VkSemaphore *pSignalSemaphores;
+		uint32_t waitSemaphoreValueCount;
+		const uint64_t *pWaitSemaphoreValues;
+		uint32_t signalSemaphoreValueCount;
+		const uint64_t *pSignalSemaphoreValues;
+	};
+
 	struct Task
 	{
 		uint32_t submitCount = 0;
-		VkSubmitInfo *pSubmits = nullptr;
+		SubmitInfo *pSubmits = nullptr;
 		std::shared_ptr<sw::CountedEvent> events;
 
 		enum Type
@@ -78,11 +93,12 @@ private:
 	void taskLoop(marl::Scheduler *scheduler);
 	void garbageCollect();
 	void submitQueue(const Task &task);
+	static SubmitInfo *DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubmits);
 
 	Device *device;
 	std::unique_ptr<sw::Renderer> renderer;
 	sw::Chan<Task> pending;
-	sw::Chan<VkSubmitInfo *> toDelete;
+	sw::Chan<SubmitInfo *> toDelete;
 	std::thread queueThread;
 };
 
