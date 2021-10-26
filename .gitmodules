@@ -25,3 +25,5 @@
 [submodule "third_party/git-hooks"]
 	path = third_party/git-hooks
 	url = https://swiftshader.googlesource.com/git-hooks
+[submodule "third_party/git-hooks/"]
+	branch = origin/master
