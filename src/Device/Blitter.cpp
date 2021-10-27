@@ -1832,7 +1832,7 @@ Blitter::CornerUpdateRoutineType Blitter::getCornerUpdateRoutine(const State &st
 	return cornerUpdateRoutine;
 }
 
-void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter)
+void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit2KHR region, VkFilter filter)
 {
 	ASSERT(src->getFormat() != VK_FORMAT_UNDEFINED);
 	ASSERT(dst->getFormat() != VK_FORMAT_UNDEFINED);
@@ -2047,7 +2047,7 @@ void Blitter::resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, 
 	}
 }
 
-void Blitter::resolve(const vk::Image *src, vk::Image *dst, VkImageResolve region)
+void Blitter::resolve(const vk::Image *src, vk::Image *dst, VkImageResolve2KHR region)
 {
 	// "The aspectMask member of srcSubresource and dstSubresource must only contain VK_IMAGE_ASPECT_COLOR_BIT"
 	ASSERT(region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT);
@@ -2066,7 +2066,9 @@ void Blitter::resolve(const vk::Image *src, vk::Image *dst, VkImageResolve regio
 	}
 
 	// Fall back to a generic blit which performs the resolve.
-	VkImageBlit blitRegion;
+	VkImageBlit2KHR blitRegion;
+	blitRegion.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2_KHR;
+	blitRegion.pNext = nullptr;
 
 	blitRegion.srcOffsets[0] = blitRegion.srcOffsets[1] = region.srcOffset;
 	blitRegion.srcOffsets[1].x += region.extent.width;
@@ -2089,7 +2091,7 @@ static inline uint32_t averageByte4(uint32_t x, uint32_t y)
 	return (x & y) + (((x ^ y) >> 1) & 0x7F7F7F7F) + ((x ^ y) & 0x01010101);
 }
 
-bool Blitter::fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve region)
+bool Blitter::fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve2KHR region)
 {
 	if(region.dstOffset != VkOffset3D{ 0, 0, 0 })
 	{

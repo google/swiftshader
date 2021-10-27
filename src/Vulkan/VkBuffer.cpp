@@ -116,7 +116,7 @@ void Buffer::copyTo(void *dstMemory, VkDeviceSize pSize, VkDeviceSize pOffset) c
 	memcpy(dstMemory, getOffsetPointer(pOffset), pSize);
 }
 
-void Buffer::copyTo(Buffer *dstBuffer, const VkBufferCopy &pRegion) const
+void Buffer::copyTo(Buffer *dstBuffer, const VkBufferCopy2KHR &pRegion) const
 {
 	copyTo(dstBuffer->getOffsetPointer(pRegion.dstOffset), pRegion.size, pRegion.srcOffset);
 }

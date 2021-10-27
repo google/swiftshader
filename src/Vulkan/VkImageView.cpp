@@ -226,7 +226,9 @@ void ImageView::resolve(ImageView *resolveAttachment, int layer)
 		UNIMPLEMENTED("b/148242443: levelCount != 1");  // FIXME(b/148242443)
 	}
 
-	VkImageResolve region;
+	VkImageResolve2KHR region;
+	region.sType = VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR;
+	region.pNext = nullptr;
 	region.srcSubresource = {
 		subresourceRange.aspectMask,
 		subresourceRange.baseMipLevel,
@@ -254,7 +256,9 @@ void ImageView::resolve(ImageView *resolveAttachment)
 		UNIMPLEMENTED("b/148242443: levelCount != 1");  // FIXME(b/148242443)
 	}
 
-	VkImageResolve region;
+	VkImageResolve2KHR region;
+	region.sType = VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR;
+	region.pNext = nullptr;
 	region.srcSubresource = {
 		subresourceRange.aspectMask,
 		subresourceRange.baseMipLevel,

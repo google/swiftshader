@@ -144,8 +144,8 @@ public:
 
 	void clear(const void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea = nullptr);
 
-	void blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
-	void resolve(const vk::Image *src, vk::Image *dst, VkImageResolve region);
+	void blit(const vk::Image *src, vk::Image *dst, VkImageBlit2KHR region, VkFilter filter);
+	void resolve(const vk::Image *src, vk::Image *dst, VkImageResolve2KHR region);
 	void resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc);
 	void copy(const vk::Image *src, uint8_t *dst, unsigned int dstPitch);
 
@@ -161,7 +161,7 @@ private:
 	};
 
 	bool fastClear(const void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea);
-	bool fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve region);
+	bool fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve2KHR region);
 
 	Float4 readFloat4(Pointer<Byte> element, const State &state);
 	void write(Float4 &color, Pointer<Byte> element, const State &state);

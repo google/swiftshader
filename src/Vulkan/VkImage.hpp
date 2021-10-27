@@ -59,13 +59,13 @@ public:
 	size_t getSizeInBytes(const VkImageSubresourceRange &subresourceRange) const;
 	void getSubresourceLayout(const VkImageSubresource *pSubresource, VkSubresourceLayout *pLayout) const;
 	void bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset);
-	void copyTo(Image *dstImage, const VkImageCopy &region) const;
-	void copyTo(Buffer *dstBuffer, const VkBufferImageCopy &region);
-	void copyFrom(Buffer *srcBuffer, const VkBufferImageCopy &region);
+	void copyTo(Image *dstImage, const VkImageCopy2KHR &region) const;
+	void copyTo(Buffer *dstBuffer, const VkBufferImageCopy2KHR &region);
+	void copyFrom(Buffer *srcBuffer, const VkBufferImageCopy2KHR &region);
 
-	void blitTo(Image *dstImage, const VkImageBlit &region, VkFilter filter) const;
+	void blitTo(Image *dstImage, const VkImageBlit2KHR &region, VkFilter filter) const;
 	void copyTo(uint8_t *dst, unsigned int dstPitch) const;
-	void resolveTo(Image *dstImage, const VkImageResolve &region) const;
+	void resolveTo(Image *dstImage, const VkImageResolve2KHR &region) const;
 	void resolveDepthStencilTo(const ImageView *src, ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &depthStencilResolve) const;
 	void clear(const VkClearValue &clearValue, const vk::Format &viewFormat, const VkRect2D &renderArea, const VkImageSubresourceRange &subresourceRange);
 	void clear(const VkClearColorValue &color, const VkImageSubresourceRange &subresourceRange);
@@ -119,8 +119,8 @@ public:
 	DeviceMemory *deviceMemory = nullptr;
 
 private:
-	void copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsSource);
-	void copySingleAspectTo(Image *dstImage, const VkImageCopy &region) const;
+	void copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool bufferIsSource);
+	void copySingleAspectTo(Image *dstImage, const VkImageCopy2KHR &region) const;
 	VkDeviceSize getStorageSize(VkImageAspectFlags flags) const;
 	VkDeviceSize getMultiSampledLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	VkDeviceSize getLayerOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
@@ -130,7 +130,7 @@ private:
 	VkDeviceSize getMemoryOffset(VkImageAspectFlagBits aspect) const;
 	VkExtent3D imageExtentInBlocks(const VkExtent3D &extent, VkImageAspectFlagBits aspect) const;
 	VkOffset3D imageOffsetInBlocks(const VkOffset3D &offset, VkImageAspectFlagBits aspect) const;
-	VkExtent2D bufferExtentInBlocks(const VkExtent2D &extent, const VkBufferImageCopy &region) const;
+	VkExtent2D bufferExtentInBlocks(const VkExtent2D &extent, const VkBufferImageCopy2KHR &region) const;
 	void clear(const void *pixelData, VkFormat pixelFormat, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea);
 	int borderSize() const;
 

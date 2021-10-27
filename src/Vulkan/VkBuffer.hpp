@@ -33,7 +33,7 @@ public:
 	void bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset);
 	void copyFrom(const void *srcMemory, VkDeviceSize size, VkDeviceSize offset);
 	void copyTo(void *dstMemory, VkDeviceSize size, VkDeviceSize offset) const;
-	void copyTo(Buffer *dstBuffer, const VkBufferCopy &pRegion) const;
+	void copyTo(Buffer *dstBuffer, const VkBufferCopy2KHR &pRegion) const;
 	void fill(VkDeviceSize dstOffset, VkDeviceSize fillSize, uint32_t data);
 	void update(VkDeviceSize dstOffset, VkDeviceSize dataSize, const void *pData);
 	void *getOffsetPointer(VkDeviceSize offset) const;

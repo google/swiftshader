@@ -354,7 +354,7 @@ void Image::getSubresourceLayout(const VkImageSubresource *pSubresource, VkSubre
 	pLayout->arrayPitch = getLayerSize(aspect);
 }
 
-void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
+void Image::copyTo(Image *dstImage, const VkImageCopy2KHR &region) const
 {
 	static constexpr VkImageAspectFlags CombinedDepthStencilAspects =
 	    VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
@@ -362,7 +362,7 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 	   (region.dstSubresource.aspectMask == CombinedDepthStencilAspects))
 	{
 		// Depth and stencil can be specified together, copy each separately
-		VkImageCopy singleAspectRegion = region;
+		VkImageCopy2KHR singleAspectRegion = region;
 		singleAspectRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 		singleAspectRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 		copySingleAspectTo(dstImage, singleAspectRegion);
@@ -375,7 +375,7 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 	copySingleAspectTo(dstImage, region);
 }
 
-void Image::copySingleAspectTo(Image *dstImage, const VkImageCopy &region) const
+void Image::copySingleAspectTo(Image *dstImage, const VkImageCopy2KHR &region) const
 {
 	// Image copy does not perform any conversion, it simply copies memory from
 	// an image to another image that has the same number of bytes per pixel.
@@ -545,7 +545,7 @@ void Image::copySingleAspectTo(Image *dstImage, const VkImageCopy &region) const
 	                            region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount });
 }
 
-void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsSource)
+void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool bufferIsSource)
 {
 	switch(region.imageSubresource.aspectMask)
 	{
@@ -676,12 +676,12 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsS
 	}
 }
 
-void Image::copyTo(Buffer *dstBuffer, const VkBufferImageCopy &region)
+void Image::copyTo(Buffer *dstBuffer, const VkBufferImageCopy2KHR &region)
 {
 	copy(dstBuffer, region, false);
 }
 
-void Image::copyFrom(Buffer *srcBuffer, const VkBufferImageCopy &region)
+void Image::copyFrom(Buffer *srcBuffer, const VkBufferImageCopy2KHR &region)
 {
 	copy(srcBuffer, region, true);
 }
@@ -728,7 +728,7 @@ VkOffset3D Image::imageOffsetInBlocks(const VkOffset3D &offset, VkImageAspectFla
 	return adjustedOffset;
 }
 
-VkExtent2D Image::bufferExtentInBlocks(const VkExtent2D &extent, const VkBufferImageCopy &region) const
+VkExtent2D Image::bufferExtentInBlocks(const VkExtent2D &extent, const VkBufferImageCopy2KHR &region) const
 {
 	VkExtent2D adjustedExtent = extent;
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
@@ -1016,7 +1016,7 @@ const Image *Image::getSampledImage(const vk::Format &imageViewFormat) const
 	return (decompressedImage && isImageViewCompressed) ? decompressedImage : this;
 }
 
-void Image::blitTo(Image *dstImage, const VkImageBlit &region, VkFilter filter) const
+void Image::blitTo(Image *dstImage, const VkImageBlit2KHR &region, VkFilter filter) const
 {
 	prepareForSampling({ region.srcSubresource.aspectMask, region.srcSubresource.mipLevel, 1,
 	                     region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount });
@@ -1028,7 +1028,7 @@ void Image::copyTo(uint8_t *dst, unsigned int dstPitch) const
 	device->getBlitter()->copy(this, dst, dstPitch);
 }
 
-void Image::resolveTo(Image *dstImage, const VkImageResolve &region) const
+void Image::resolveTo(Image *dstImage, const VkImageResolve2KHR &region) const
 {
 	device->getBlitter()->resolve(this, dstImage, region);
 }

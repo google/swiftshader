@@ -369,6 +369,17 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	        MAKE_VULKAN_DEVICE_ENTRY(vkBindBufferMemory2KHR),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkBindImageMemory2KHR),
 	    } },
+	// VK_KHR_copy_commands2
+	{
+	    VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdBlitImage2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyBuffer2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyBufferToImage2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyImage2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyImageToBuffer2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdResolveImage2KHR),
+	    } },
 	// VK_KHR_get_memory_requirements2
 	{
 	    VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
