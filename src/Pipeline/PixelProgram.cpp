@@ -208,7 +208,7 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 
 	for(int i = 0; i < MAX_COLOR_BUFFERS; i++)
 	{
-		c[i].x = routine.outputs[i * 4];
+		c[i].x = routine.outputs[i * 4 + 0];
 		c[i].y = routine.outputs[i * 4 + 1];
 		c[i].z = routine.outputs[i * 4 + 2];
 		c[i].w = routine.outputs[i * 4 + 3];
@@ -342,9 +342,8 @@ void PixelProgram::blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], In
 			for(unsigned int q : samples)
 			{
 				Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
-				Vector4f color = c[index];
 
-				alphaBlend(index, buffer, color, x);
+				Vector4f color = alphaBlend(index, buffer, c[index], x);
 				writeColor(index, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 			}
 			break;
@@ -354,8 +353,12 @@ void PixelProgram::blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], In
 	}
 }
 
-void PixelProgram::clampColor(Vector4f oC[MAX_COLOR_BUFFERS])
+void PixelProgram::clampColor(Vector4f color[MAX_COLOR_BUFFERS])
 {
+	// "If the color attachment is fixed-point, the components of the source and destination values and blend factors
+	//  are each clamped to [0,1] or [-1,1] respectively for an unsigned normalized or signed normalized color attachment
+	//  prior to evaluating the blend operations. If the color attachment is floating-point, no clamping occurs."
+
 	for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
 	{
 		if(!state.colorWriteActive(index) && !(index == 0 && state.alphaToCoverage))
@@ -388,14 +391,10 @@ void PixelProgram::clampColor(Vector4f oC[MAX_COLOR_BUFFERS])
 		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-			oC[index].x = Max(oC[index].x, Float4(0.0f));
-			oC[index].x = Min(oC[index].x, Float4(1.0f));
-			oC[index].y = Max(oC[index].y, Float4(0.0f));
-			oC[index].y = Min(oC[index].y, Float4(1.0f));
-			oC[index].z = Max(oC[index].z, Float4(0.0f));
-			oC[index].z = Min(oC[index].z, Float4(1.0f));
-			oC[index].w = Max(oC[index].w, Float4(0.0f));
-			oC[index].w = Min(oC[index].w, Float4(1.0f));
+			color[index].x = Min(Max(color[index].x, Float4(0.0f)), Float4(1.0f));
+			color[index].y = Min(Max(color[index].y, Float4(0.0f)), Float4(1.0f));
+			color[index].z = Min(Max(color[index].z, Float4(0.0f)), Float4(1.0f));
+			color[index].w = Min(Max(color[index].w, Float4(0.0f)), Float4(1.0f));
 			break;
 		case VK_FORMAT_R32_SFLOAT:
 		case VK_FORMAT_R32G32_SFLOAT:

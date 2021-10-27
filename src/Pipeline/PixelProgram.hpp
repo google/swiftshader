@@ -41,7 +41,7 @@ private:
 	Vector4f c[MAX_COLOR_BUFFERS];
 
 	// Raster operations
-	void clampColor(Vector4f oC[MAX_COLOR_BUFFERS]);
+	void clampColor(Vector4f color[MAX_COLOR_BUFFERS]);
 
 	static Int4 maskAny(Int cMask[4], const SampleSet &samples);
 	static Int4 maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples);
