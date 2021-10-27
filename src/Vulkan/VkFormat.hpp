@@ -62,6 +62,8 @@ public:
 
 	sw::float4 getScale() const;
 
+	sw::int4 bitsPerComponent() const;
+
 	bool supportsColorAttachmentBlend() const;
 
 	// Texture sampling utilities

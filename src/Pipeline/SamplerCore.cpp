@@ -197,6 +197,15 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 				c.z *= Float4(1.0f / 0xFF00u);
 				c.w *= Float4(1.0f / 0xFF00u);
 				break;
+			//TODO(b/205576016)
+			case VK_FORMAT_R16_UNORM:
+			case VK_FORMAT_R16G16_UNORM:
+			case VK_FORMAT_R16G16B16A16_UNORM:
+				c.x *= Float4(1.0f / 0xFFFF);
+				c.y *= Float4(1.0f / 0xFFFF);
+				c.z *= Float4(1.0f / 0xFFFF);
+				c.w *= Float4(1.0f / 0xFFFF);
+				break;
 			case VK_FORMAT_R16_SNORM:
 			case VK_FORMAT_R16G16_SNORM:
 			case VK_FORMAT_R16G16B16A16_SNORM:
@@ -2169,10 +2178,20 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 {
 	Vector4i border;
 
-	bool scaled = !hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable;
-	bool sign = !hasUnsignedTextureComponent(0);
-	float scale = scaled ? static_cast<float>(sign ? 0x7FFF : 0xFFFF) : 1.0f;
-	Int4 float_one = As<Int4>(Float4(scale));
+	const bool scaled = !hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable;
+	const sw::float4 scale = state.textureFormat.getScale();
+	const sw::int4 bits = state.textureFormat.bitsPerComponent();
+	const sw::int4 shift = sw::int4(std::max(16 - bits.x, 0), std::max(16 - bits.y, 0), std::max(16 - bits.z, 0), std::max(16 - bits.w, 0));
+	sw::float4 scaleComp = scaled ? sw::float4(static_cast<uint16_t>(scale.x) << shift.x, static_cast<uint16_t>(scale.y) << shift.y,
+	                                           static_cast<uint16_t>(scale.z) << shift.z, static_cast<uint16_t>(scale.w) << shift.w)
+	                              : sw::float4(1.0, 1.0, 1.0, 1.0);
+	// TODO(b/204709464): Unlike other formats, the fixed point presentation of the formats below are handled with bit extension.
+	// This special handling of such formats should be removed later.
+	const VkFormat format = static_cast<VkFormat>(state.textureFormat);
+	if(format == VK_FORMAT_A2B10G10R10_UNORM_PACK32 || format == VK_FORMAT_A2R10G10B10_UNORM_PACK32)
+		scaleComp = sw::float4(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
+	else if(format == VK_FORMAT_A2B10G10R10_SNORM_PACK32 || format == VK_FORMAT_A2R10G10B10_SNORM_PACK32)
+		scaleComp = sw::float4(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
 
 	switch(state.border)
 	{
@@ -2187,7 +2206,7 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 		border.x = Int4(0);
 		border.y = Int4(0);
 		border.z = Int4(0);
-		border.w = float_one;
+		border.w = Int4(bit_cast<int>(scaleComp.w));
 		break;
 	case VK_BORDER_COLOR_INT_OPAQUE_BLACK:
 		border.x = Int4(0);
@@ -2196,10 +2215,10 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 		border.w = Int4(1);
 		break;
 	case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
-		border.x = float_one;
-		border.y = float_one;
-		border.z = float_one;
-		border.w = float_one;
+		border.x = Int4(bit_cast<int>(scaleComp.x));
+		border.y = Int4(bit_cast<int>(scaleComp.y));
+		border.z = Int4(bit_cast<int>(scaleComp.z));
+		border.w = Int4(bit_cast<int>(scaleComp.w));
 		break;
 	case VK_BORDER_COLOR_INT_OPAQUE_WHITE:
 		border.x = Int4(1);
@@ -2210,10 +2229,10 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 	case VK_BORDER_COLOR_FLOAT_CUSTOM_EXT:
 		// This bit-casts from float to int in C++ code instead of Reactor code
 		// because Reactor does not guarantee preserving infinity (b/140302841).
-		border.x = Int4(bit_cast<int>(scale * state.customBorder.float32[0]));
-		border.y = Int4(bit_cast<int>(scale * state.customBorder.float32[1]));
-		border.z = Int4(bit_cast<int>(scale * state.customBorder.float32[2]));
-		border.w = Int4(bit_cast<int>(scale * state.customBorder.float32[3]));
+		border.x = Int4(bit_cast<int>(scaleComp.x * state.customBorder.float32[0]));
+		border.y = Int4(bit_cast<int>(scaleComp.y * state.customBorder.float32[1]));
+		border.z = Int4(bit_cast<int>(scaleComp.z * state.customBorder.float32[2]));
+		border.w = Int4(bit_cast<int>(scaleComp.w * state.customBorder.float32[3]));
 		break;
 	case VK_BORDER_COLOR_INT_CUSTOM_EXT:
 		border.x = Int4(state.customBorder.int32[0]);
