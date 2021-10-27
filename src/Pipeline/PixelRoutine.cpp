@@ -2258,6 +2258,25 @@ void PixelRoutine::blendFactorRGB(Vector4f &blendFactor, const Vector4f &sourceC
 	default:
 		UNSUPPORTED("VkBlendFactor: %d", int(colorBlendFactor));
 	}
+
+	// "If the color attachment is fixed-point, the components of the source and destination values and blend factors are each clamped
+	//  to [0,1] or [-1,1] respectively for an unsigned normalized or signed normalized color attachment prior to evaluating the blend
+	//  operations. If the color attachment is floating-point, no clamping occurs."
+	if(blendFactorCanExceedFormatRange(colorBlendFactor, format))
+	{
+		if(format.isUnsignedNormalized())
+		{
+			blendFactor.x = Min(Max(blendFactor.x, Float4(0.0f)), Float4(1.0f));
+			blendFactor.y = Min(Max(blendFactor.y, Float4(0.0f)), Float4(1.0f));
+			blendFactor.z = Min(Max(blendFactor.z, Float4(0.0f)), Float4(1.0f));
+		}
+		else if(format.isSignedNormalized())
+		{
+			blendFactor.x = Min(Max(blendFactor.x, Float4(-1.0f)), Float4(1.0f));
+			blendFactor.y = Min(Max(blendFactor.y, Float4(-1.0f)), Float4(1.0f));
+			blendFactor.z = Min(Max(blendFactor.z, Float4(-1.0f)), Float4(1.0f));
+		}
+	}
 }
 
 void PixelRoutine::blendFactorAlpha(Float4 &blendFactorAlpha, const Float4 &sourceAlpha, const Float4 &destAlpha, VkBlendFactor alphaBlendFactor, vk::Format format)
@@ -2307,6 +2326,58 @@ void PixelRoutine::blendFactorAlpha(Float4 &blendFactorAlpha, const Float4 &sour
 		break;
 	default:
 		UNSUPPORTED("VkBlendFactor: %d", int(alphaBlendFactor));
+	}
+
+	// "If the color attachment is fixed-point, the components of the source and destination values and blend factors are each clamped
+	//  to [0,1] or [-1,1] respectively for an unsigned normalized or signed normalized color attachment prior to evaluating the blend
+	//  operations. If the color attachment is floating-point, no clamping occurs."
+	if(blendFactorCanExceedFormatRange(alphaBlendFactor, format))
+	{
+		if(format.isUnsignedNormalized())
+		{
+			blendFactorAlpha = Min(Max(blendFactorAlpha, Float4(0.0f)), Float4(1.0f));
+		}
+		else if(format.isSignedNormalized())
+		{
+			blendFactorAlpha = Min(Max(blendFactorAlpha, Float4(-1.0f)), Float4(1.0f));
+		}
+	}
+}
+
+bool PixelRoutine::blendFactorCanExceedFormatRange(VkBlendFactor blendFactor, vk::Format format)
+{
+	switch(blendFactor)
+	{
+	case VK_BLEND_FACTOR_ZERO:
+	case VK_BLEND_FACTOR_ONE:
+		return false;
+	case VK_BLEND_FACTOR_SRC_COLOR:
+	case VK_BLEND_FACTOR_SRC_ALPHA:
+		// Source values have been clamped after fragment shader execution if the attachment format is normalized.
+		return false;
+	case VK_BLEND_FACTOR_DST_COLOR:
+	case VK_BLEND_FACTOR_DST_ALPHA:
+		// Dest values have a valid range due to being read from the attachment.
+		return false;
+	case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:
+	case VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA:
+	case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:
+	case VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA:
+		// For signed formats, negative values cause the result to exceed 1.0.
+		return format.isSignedNormalized();
+	case VK_BLEND_FACTOR_SRC_ALPHA_SATURATE:
+		// min(As, 1 - Ad)
+		return false;
+	case VK_BLEND_FACTOR_CONSTANT_COLOR:
+	case VK_BLEND_FACTOR_CONSTANT_ALPHA:
+	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
+	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA:
+		// TODO(b/204546345): Use pre-clamped blend constants.
+		return true;
+
+	default:
+		UNSUPPORTED("VkBlendFactor: %d", int(blendFactor));
+		return true;
 	}
 }
 
@@ -2511,17 +2582,31 @@ Vector4f PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const
 		UNSUPPORTED("VkBlendOp: %d", int(state.blendState[index].blendOperationAlpha));
 	}
 
-	if(format.isUnsignedComponent(0)) { blendedColor.x = Max(blendedColor.x, Float4(0.0f)); }
-	if(format.isUnsignedComponent(1)) { blendedColor.y = Max(blendedColor.y, Float4(0.0f)); }
-	if(format.isUnsignedComponent(2)) { blendedColor.z = Max(blendedColor.z, Float4(0.0f)); }
-	if(format.isUnsignedComponent(3)) { blendedColor.w = Max(blendedColor.w, Float4(0.0f)); }
-
 	return blendedColor;
 }
 
 void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4f &color, const Int &sMask, const Int &zMask, const Int &cMask)
 {
 	vk::Format format = state.colorFormat[index];
+	switch(format)
+	{
+	default:
+		// TODO(b/204560089): Omit clamp if redundant
+		if(format.isUnsignedNormalized())
+		{
+			color.x = Min(Max(color.x, Float4(0.0f)), Float4(1.0f));
+			color.y = Min(Max(color.y, Float4(0.0f)), Float4(1.0f));
+			color.z = Min(Max(color.z, Float4(0.0f)), Float4(1.0f));
+			color.w = Min(Max(color.w, Float4(0.0f)), Float4(1.0f));
+		}
+		else if(format.isSignedNormalized())
+		{
+			color.x = Min(Max(color.x, Float4(-1.0f)), Float4(1.0f));
+			color.y = Min(Max(color.y, Float4(-1.0f)), Float4(1.0f));
+			color.z = Min(Max(color.z, Float4(-1.0f)), Float4(1.0f));
+			color.w = Min(Max(color.w, Float4(-1.0f)), Float4(1.0f));
+		}
+	}
 
 	switch(format)
 	{
