@@ -338,6 +338,11 @@ static void getPhysicalDeviceDepthClipEnableFeaturesExt(T *features)
 	features->depthClipEnable = VK_TRUE;
 }
 
+static void getPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *features)
+{
+	features->shaderZeroInitializeWorkgroupMemory = VK_TRUE;
+}
+
 static void getPhysicalDeviceCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomBorderColorFeaturesEXT *features)
 {
 	features->customBorderColors = VK_TRUE;
@@ -470,6 +475,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT:
 			getPhysicalDeviceDepthClipEnableFeaturesExt(reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES:
+			getPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(reinterpret_cast<VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT:
 			getPhysicalDeviceCustomBorderColorFeaturesExt(reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT *>(curExtension));
@@ -1320,6 +1328,12 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceSubgroupSizeContr
 	       CheckFeature(requested, supported, computeFullSubgroups);
 }
 
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, shaderZeroInitializeWorkgroupMemory);
+}
 #undef CheckFeature
 
 void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFormatProperties)

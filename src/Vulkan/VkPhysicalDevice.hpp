@@ -47,6 +47,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceSubgroupSizeControlFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceInlineUniformBlockFeatures *features) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
