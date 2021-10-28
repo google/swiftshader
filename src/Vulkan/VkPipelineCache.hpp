@@ -73,6 +73,9 @@ public:
 		const bool optimize;
 	};
 
+	// contains() queries whether the cache contains a shader with the given key.
+	inline bool contains(const PipelineCache::SpirvBinaryKey &key);
+
 	// getOrOptimizeSpirv() queries the cache for a shader with the given key.
 	// If one is found, it is returned, otherwise create() is called, the
 	// returned SPIR-V binary is added to the cache, and it is returned.
@@ -141,6 +144,13 @@ std::shared_ptr<sw::ComputeProgram> PipelineCache::getOrCreateComputeProgram(con
 	computePrograms.emplace(key, created);
 
 	return created;
+}
+
+inline bool PipelineCache::contains(const PipelineCache::SpirvBinaryKey &key)
+{
+	marl::lock lock(spirvShadersMutex);
+
+	return spirvShaders.find(key) != spirvShaders.end();
 }
 
 template<typename Function>

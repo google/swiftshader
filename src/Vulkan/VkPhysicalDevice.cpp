@@ -180,6 +180,12 @@ static void getPhysicalDeviceHostQueryResetFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDevicePipelineCreationCacheControlFeatures(T *features)
+{
+	features->pipelineCreationCacheControl = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceImageRobustnessFeaturesEXT(T *features)
 {
 	features->robustImageAccess = VK_TRUE;
@@ -373,6 +379,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES:
 			getPhysicalDeviceHostQueryResetFeatures(reinterpret_cast<VkPhysicalDeviceHostQueryResetFeatures *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT:
+			getPhysicalDevicePipelineCreationCacheControlFeatures(reinterpret_cast<VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
 			getPhysicalDeviceImageRobustnessFeaturesEXT(reinterpret_cast<VkPhysicalDeviceImageRobustnessFeaturesEXT *>(curExtension));
