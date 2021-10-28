@@ -422,6 +422,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_SPEC_VERSION } },
 	// Other extensions
 	{ { VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_EXTENSION_NAME, VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_SPEC_VERSION } },
+	{ { VK_EXT_PIPELINE_CREATION_FEEDBACK_EXTENSION_NAME, VK_EXT_PIPELINE_CREATION_FEEDBACK_SPEC_VERSION } },
 };
 
 static uint32_t numSupportedExtensions(const ExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
@@ -430,7 +431,7 @@ static uint32_t numSupportedExtensions(const ExtensionProperties *extensionPrope
 
 	for(uint32_t i = 0; i < extensionPropertiesCount; i++)
 	{
-		if(extensionProperties[i].isSupported)
+		if(extensionProperties[i].isSupported())
 		{
 			count++;
 		}
@@ -476,7 +477,7 @@ static void copyExtensions(VkExtensionProperties *pProperties, uint32_t toCopy, 
 {
 	for(uint32_t i = 0, j = 0; i < toCopy; i++, j++)
 	{
-		while((j < extensionPropertiesCount) && !extensionProperties[j].isSupported)
+		while((j < extensionPropertiesCount) && !extensionProperties[j].isSupported())
 		{
 			j++;
 		}

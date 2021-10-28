@@ -120,6 +120,125 @@ std::shared_ptr<sw::ComputeProgram> createProgram(vk::Device *device, std::share
 	return program;
 }
 
+class PipelineCreationFeedback
+{
+public:
+	PipelineCreationFeedback(const VkGraphicsPipelineCreateInfo *pCreateInfo)
+	    : pipelineCreationFeedback(GetPipelineCreationFeedback(pCreateInfo->pNext))
+	{
+		pipelineCreationBegins();
+	}
+
+	PipelineCreationFeedback(const VkComputePipelineCreateInfo *pCreateInfo)
+	    : pipelineCreationFeedback(GetPipelineCreationFeedback(pCreateInfo->pNext))
+	{
+		pipelineCreationBegins();
+	}
+
+	~PipelineCreationFeedback()
+	{
+		pipelineCreationEnds();
+	}
+
+	void stageCreationBegins(uint32_t stage)
+	{
+		if(pipelineCreationFeedback)
+		{
+			// Record stage creation begin time
+			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].duration = now();
+		}
+	}
+
+	void cacheHit(uint32_t stage)
+	{
+		if(pipelineCreationFeedback)
+		{
+			pipelineCreationFeedback->pPipelineCreationFeedback->flags |=
+			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT_EXT;
+			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].flags |=
+			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT_EXT;
+		}
+	}
+
+	void stageCreationEnds(uint32_t stage)
+	{
+		if(pipelineCreationFeedback)
+		{
+			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].flags |=
+			    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT_EXT;
+			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].duration =
+			    now() - pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].duration;
+		}
+	}
+
+	void pipelineCreationError()
+	{
+		clear();
+		pipelineCreationFeedback = nullptr;
+	}
+
+private:
+	static const VkPipelineCreationFeedbackCreateInfoEXT *GetPipelineCreationFeedback(const void *pNext)
+	{
+		const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pNext);
+		while(extensionCreateInfo)
+		{
+			if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT)
+			{
+				return reinterpret_cast<const VkPipelineCreationFeedbackCreateInfoEXT *>(extensionCreateInfo);
+			}
+
+			extensionCreateInfo = extensionCreateInfo->pNext;
+		}
+
+		return nullptr;
+	}
+
+	void pipelineCreationBegins()
+	{
+		if(pipelineCreationFeedback)
+		{
+			clear();
+
+			// Record pipeline creation begin time
+			pipelineCreationFeedback->pPipelineCreationFeedback->duration = now();
+		}
+	}
+
+	void pipelineCreationEnds()
+	{
+		if(pipelineCreationFeedback)
+		{
+			pipelineCreationFeedback->pPipelineCreationFeedback->flags |=
+			    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT_EXT;
+			pipelineCreationFeedback->pPipelineCreationFeedback->duration =
+			    now() - pipelineCreationFeedback->pPipelineCreationFeedback->duration;
+		}
+	}
+
+	void clear()
+	{
+		if(pipelineCreationFeedback)
+		{
+			// Clear all flags and durations
+			pipelineCreationFeedback->pPipelineCreationFeedback->flags = 0;
+			pipelineCreationFeedback->pPipelineCreationFeedback->duration = 0;
+			for(uint32_t i = 0; i < pipelineCreationFeedback->pipelineStageCreationFeedbackCount; i++)
+			{
+				pipelineCreationFeedback->pPipelineStageCreationFeedbacks[i].flags = 0;
+				pipelineCreationFeedback->pPipelineStageCreationFeedbacks[i].duration = 0;
+			}
+		}
+	}
+
+	uint64_t now()
+	{
+		return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+	}
+
+	const VkPipelineCreationFeedbackCreateInfoEXT *pipelineCreationFeedback = nullptr;
+};
+
 }  // anonymous namespace
 
 namespace vk {
@@ -204,12 +323,18 @@ const std::shared_ptr<sw::SpirvShader> GraphicsPipeline::getShader(const VkShade
 
 VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, const VkGraphicsPipelineCreateInfo *pCreateInfo, PipelineCache *pPipelineCache)
 {
-	for(auto pStage = pCreateInfo->pStages; pStage != pCreateInfo->pStages + pCreateInfo->stageCount; pStage++)
+	PipelineCreationFeedback pipelineCreationFeedback(pCreateInfo);
+
+	for(uint32_t stageIndex = 0; stageIndex < pCreateInfo->stageCount; stageIndex++)
 	{
-		if(pStage->flags != 0)
+		const VkPipelineShaderStageCreateInfo &stageInfo = pCreateInfo->pStages[stageIndex];
+
+		pipelineCreationFeedback.stageCreationBegins(stageIndex);
+
+		if(stageInfo.flags != 0)
 		{
 			// Vulkan 1.2: "flags must be 0"
-			UNSUPPORTED("pStage->flags %d", int(pStage->flags));
+			UNSUPPORTED("pStage->flags %d", int(stageInfo.flags));
 		}
 
 		auto dbgctx = device->getDebuggerContext();
@@ -218,12 +343,13 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 		// instructions.
 		const bool optimize = !dbgctx;
 
-		const ShaderModule *module = vk::Cast(pStage->module);
-		const PipelineCache::SpirvBinaryKey key(module->getBinary(), pStage->pSpecializationInfo, optimize);
+		const ShaderModule *module = vk::Cast(stageInfo.module);
+		const PipelineCache::SpirvBinaryKey key(module->getBinary(), stageInfo.pSpecializationInfo, optimize);
 
 		if((pCreateInfo->flags & VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT) &&
 		   (!pPipelineCache || !pPipelineCache->contains(key)))
 		{
+			pipelineCreationFeedback.pipelineCreationError();
 			return VK_PIPELINE_COMPILE_REQUIRED_EXT;
 		}
 
@@ -231,9 +357,9 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 
 		if(pPipelineCache)
 		{
-			spirv = pPipelineCache->getOrOptimizeSpirv(key, [&] {
-				return optimizeSpirv(key);
-			});
+			auto onCacheMiss = [&] { return optimizeSpirv(key); };
+			auto onCacheHit = [&] { pipelineCreationFeedback.cacheHit(stageIndex); };
+			spirv = pPipelineCache->getOrOptimizeSpirv(key, onCacheMiss, onCacheHit);
 		}
 		else
 		{
@@ -248,10 +374,12 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 		}
 
 		// TODO(b/201798871): use allocator.
-		auto shader = std::make_shared<sw::SpirvShader>(pStage->stage, pStage->pName, spirv,
+		auto shader = std::make_shared<sw::SpirvShader>(stageInfo.stage, stageInfo.pName, spirv,
 		                                                vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass, robustBufferAccess, dbgctx);
 
-		setShader(pStage->stage, shader);
+		setShader(stageInfo.stage, shader);
+
+		pipelineCreationFeedback.stageCreationEnds(stageIndex);
 	}
 
 	return VK_SUCCESS;
@@ -275,6 +403,9 @@ size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCre
 
 VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, const VkComputePipelineCreateInfo *pCreateInfo, PipelineCache *pPipelineCache)
 {
+	PipelineCreationFeedback pipelineCreationFeedback(pCreateInfo);
+	pipelineCreationFeedback.stageCreationBegins(0);
+
 	auto &stage = pCreateInfo->stage;
 	const ShaderModule *module = vk::Cast(stage.module);
 
@@ -292,6 +423,7 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 	if((pCreateInfo->flags & VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT) &&
 	   (!pPipelineCache || !pPipelineCache->contains(shaderKey)))
 	{
+		pipelineCreationFeedback.pipelineCreationError();
 		return VK_PIPELINE_COMPILE_REQUIRED_EXT;
 	}
 
@@ -299,9 +431,9 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 
 	if(pPipelineCache)
 	{
-		spirv = pPipelineCache->getOrOptimizeSpirv(shaderKey, [&] {
-			return optimizeSpirv(shaderKey);
-		});
+		auto onCacheMiss = [&] { return optimizeSpirv(shaderKey); };
+		auto onCacheHit = [&] { pipelineCreationFeedback.cacheHit(0); };
+		spirv = pPipelineCache->getOrOptimizeSpirv(shaderKey, onCacheMiss, onCacheHit);
 	}
 	else
 	{
@@ -331,6 +463,8 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 	{
 		program = createProgram(device, shader, layout);
 	}
+
+	pipelineCreationFeedback.stageCreationEnds(0);
 
 	return VK_SUCCESS;
 }
