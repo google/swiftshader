@@ -331,9 +331,10 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 
 		pipelineCreationFeedback.stageCreationBegins(stageIndex);
 
-		if(stageInfo.flags != 0)
+		if((stageInfo.flags &
+		    ~(VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT |
+		      VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT)) != 0)
 		{
-			// Vulkan 1.2: "flags must be 0"
 			UNSUPPORTED("pStage->flags %d", int(stageInfo.flags));
 		}
 
