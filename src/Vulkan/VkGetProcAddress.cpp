@@ -542,6 +542,15 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryHostPointerPropertiesEXT),
 	    } },
 
+	// VK_EXT_private_data
+	{
+	    VK_EXT_PRIVATE_DATA_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCreatePrivateDataSlotEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkDestroyPrivateDataSlotEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetPrivateDataEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkSetPrivateDataEXT),
+	    } },
 #if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 	// VK_ANDROID_external_memory_android_hardware_buffer
 	{

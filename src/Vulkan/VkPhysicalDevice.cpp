@@ -310,7 +310,7 @@ static void getPhysicalDeviceDynamicRenderingFeatures(T *features)
 template<typename T>
 static void getPhysicalDevicePrivateDataFeatures(T *features)
 {
-	features->privateData = VK_FALSE;
+	features->privateData = VK_TRUE;
 }
 
 template<typename T>

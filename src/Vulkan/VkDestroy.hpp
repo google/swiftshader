@@ -29,6 +29,7 @@
 #include "VkPipeline.hpp"
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
+#include "VkPrivateData.hpp"
 #include "VkQueryPool.hpp"
 #include "VkQueue.hpp"
 #include "VkRenderPass.hpp"

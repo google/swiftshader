@@ -37,6 +37,7 @@ class Scheduler;
 namespace vk {
 
 class PhysicalDevice;
+class PrivateData;
 class Queue;
 
 namespace dbg {
@@ -72,6 +73,10 @@ public:
 	void unregisterImageView(ImageView *imageView);
 	void prepareForSampling(ImageView *imageView);
 	void contentsChanged(ImageView *imageView, Image::ContentsChangedContext context);
+
+	VkResult setPrivateData(VkObjectType objectType, uint64_t objectHandle, const PrivateData *privateDataSlot, uint64_t data);
+	void getPrivateData(VkObjectType objectType, uint64_t objectHandle, const PrivateData *privateDataSlot, uint64_t *data);
+	void removePrivateDataSlot(const PrivateData *privateDataSlot);
 
 	class SamplingRoutineCache
 	{
@@ -193,6 +198,32 @@ private:
 
 	marl::mutex imageViewSetMutex;
 	std::unordered_set<ImageView *> imageViewSet GUARDED_BY(imageViewSetMutex);
+
+	struct PrivateDataObject
+	{
+		VkObjectType objectType;
+		uint64_t objectHandle;
+
+		bool operator==(const PrivateDataObject &privateDataObject) const
+		{
+			return (objectType == privateDataObject.objectType) &&
+			       (objectHandle == privateDataObject.objectHandle);
+		}
+
+		struct Hash
+		{
+			std::size_t operator()(const PrivateDataObject &privateDataObject) const noexcept
+			{
+				// Since the object type is linked to the object's handle,
+				// simply use the object handle as the hash value.
+				return static_cast<size_t>(privateDataObject.objectHandle);
+			}
+		};
+	};
+	typedef std::unordered_map<PrivateDataObject, uint64_t, PrivateDataObject::Hash> PrivateDataSlot;
+
+	marl::mutex privateDataMutex;
+	std::map<const PrivateData *, PrivateDataSlot> privateData;
 
 #ifdef ENABLE_VK_DEBUGGER
 	struct

@@ -471,6 +471,41 @@ void Device::contentsChanged(ImageView *imageView, Image::ContentsChangedContext
 	}
 }
 
+VkResult Device::setPrivateData(VkObjectType objectType, uint64_t objectHandle, const PrivateData *privateDataSlot, uint64_t data)
+{
+	marl::lock lock(privateDataMutex);
+
+	auto &privateDataSlotMap = privateData[privateDataSlot];
+	const PrivateDataObject privateDataObject = { objectType, objectHandle };
+	privateDataSlotMap[privateDataObject] = data;
+	return VK_SUCCESS;
+}
+
+void Device::getPrivateData(VkObjectType objectType, uint64_t objectHandle, const PrivateData *privateDataSlot, uint64_t *data)
+{
+	marl::lock lock(privateDataMutex);
+
+	*data = 0;
+	auto it = privateData.find(privateDataSlot);
+	if(it != privateData.end())
+	{
+		auto &privateDataSlotMap = it->second;
+		const PrivateDataObject privateDataObject = { objectType, objectHandle };
+		auto it2 = privateDataSlotMap.find(privateDataObject);
+		if(it2 != privateDataSlotMap.end())
+		{
+			*data = it2->second;
+		}
+	}
+}
+
+void Device::removePrivateDataSlot(const PrivateData *privateDataSlot)
+{
+	marl::lock lock(privateDataMutex);
+
+	privateData.erase(privateDataSlot);
+}
+
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
 void Device::emitDeviceMemoryReport(VkDeviceMemoryReportEventTypeEXT type, uint64_t memoryObjectId, VkDeviceSize size, VkObjectType objectType, uint64_t objectHandle, uint32_t heapIndex)
 {

@@ -91,6 +91,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
     "VkPipeline.hpp",
     "VkPipelineCache.hpp",
     "VkPipelineLayout.hpp",
+    "VkPrivateData.hpp",
     "VkQueryPool.hpp",
     "VkQueue.hpp",
     "VkRenderPass.hpp",
