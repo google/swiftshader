@@ -2422,14 +2422,14 @@ Vector4f PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const
 		blendedColor.z = destColor.z * destFactor.z - sourceColor.z * sourceFactor.z;
 		break;
 	case VK_BLEND_OP_MIN:
-		blendedColor.x = Min(sourceColor.x * sourceFactor.x, destColor.x * destFactor.x);  // FIXME(b/204583457)
-		blendedColor.y = Min(sourceColor.y * sourceFactor.y, destColor.y * destFactor.y);  // FIXME(b/204583457)
-		blendedColor.z = Min(sourceColor.z * sourceFactor.z, destColor.z * destFactor.z);  // FIXME(b/204583457)
+		blendedColor.x = Min(sourceColor.x, destColor.x);
+		blendedColor.y = Min(sourceColor.y, destColor.y);
+		blendedColor.z = Min(sourceColor.z, destColor.z);
 		break;
 	case VK_BLEND_OP_MAX:
-		blendedColor.x = Max(sourceColor.x * sourceFactor.x, destColor.x * destFactor.x);  // FIXME(b/204583457)
-		blendedColor.y = Max(sourceColor.y * sourceFactor.y, destColor.y * destFactor.y);  // FIXME(b/204583457)
-		blendedColor.z = Max(sourceColor.z * sourceFactor.z, destColor.z * destFactor.z);  // FIXME(b/204583457)
+		blendedColor.x = Max(sourceColor.x, destColor.x);
+		blendedColor.y = Max(sourceColor.y, destColor.y);
+		blendedColor.z = Max(sourceColor.z, destColor.z);
 		break;
 	case VK_BLEND_OP_SRC_EXT:
 		blendedColor.x = sourceColor.x * sourceFactor.x;  // TODO(b/204583457)
@@ -2479,10 +2479,10 @@ Vector4f PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const
 		blendedColor.w = destColor.w * destFactor.w - sourceColor.w * sourceFactor.w;
 		break;
 	case VK_BLEND_OP_MIN:
-		blendedColor.w = Min(sourceColor.w * sourceFactor.w, destColor.w * destFactor.w);  // FIXME(b/204583457)
+		blendedColor.w = Min(sourceColor.w, destColor.w);
 		break;
 	case VK_BLEND_OP_MAX:
-		blendedColor.w = Max(sourceColor.w * sourceFactor.w, destColor.w * destFactor.w);  // FIXME(b/204583457)
+		blendedColor.w = Max(sourceColor.w, destColor.w);
 		break;
 	case VK_BLEND_OP_SRC_EXT:
 		blendedColor.w = sourceColor.w * sourceFactor.w;  // TODO(b/204583457)
