@@ -136,16 +136,6 @@ void IndexBuffer::getIndexBuffers(VkPrimitiveTopology topology, uint32_t count, 
 	}
 }
 
-bool Attachments::isColorClamped(int index) const
-{
-	if(colorBuffer[index] && colorBuffer[index]->getFormat().isFloatFormat())
-	{
-		return false;
-	}
-
-	return true;
-}
-
 VkFormat Attachments::colorFormat(int index) const
 {
 	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
@@ -702,23 +692,32 @@ const GraphicsState GraphicsState::combineStates(const DynamicState &dynamicStat
 BlendState GraphicsState::getBlendState(int index, const Attachments &attachments, bool fragmentContainsKill) const
 {
 	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
+	auto &state = blendState[index];
 
-	BlendState activeBlendState;
+	BlendState activeBlendState = {};
 	activeBlendState.alphaBlendEnable = alphaBlendActive(index, attachments, fragmentContainsKill);
-	activeBlendState.sourceBlendFactor = sourceBlendFactor(index);
-	activeBlendState.destBlendFactor = destBlendFactor(index);
-	activeBlendState.blendOperation = blendOperation(index, attachments);
-	activeBlendState.sourceBlendFactorAlpha = sourceBlendFactorAlpha(index);
-	activeBlendState.destBlendFactorAlpha = destBlendFactorAlpha(index);
-	activeBlendState.blendOperationAlpha = blendOperationAlpha(index, attachments);
+
+	if(activeBlendState.alphaBlendEnable)
+	{
+		vk::Format format = attachments.colorBuffer[index]->getFormat(VK_IMAGE_ASPECT_COLOR_BIT);
+
+		activeBlendState.sourceBlendFactor = sourceBlendFactor(index);
+		activeBlendState.destBlendFactor = destBlendFactor(index);
+		activeBlendState.blendOperation = blendOperation(state.blendOperation, state.sourceBlendFactor, state.destBlendFactor, format);
+		activeBlendState.sourceBlendFactorAlpha = sourceBlendFactorAlpha(index);
+		activeBlendState.destBlendFactorAlpha = destBlendFactorAlpha(index);
+		activeBlendState.blendOperationAlpha = blendOperation(state.blendOperationAlpha, state.sourceBlendFactorAlpha, state.destBlendFactorAlpha, format);
+	}
+
 	return activeBlendState;
 }
 
 bool GraphicsState::alphaBlendActive(int index, const Attachments &attachments, bool fragmentContainsKill) const
 {
 	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
+	auto &state = blendState[index];
 
-	if(!blendState[index].alphaBlendEnable)
+	if(!attachments.colorBuffer[index] || !blendState[index].alphaBlendEnable)
 	{
 		return false;
 	}
@@ -728,8 +727,9 @@ bool GraphicsState::alphaBlendActive(int index, const Attachments &attachments, 
 		return false;
 	}
 
-	bool colorBlend = blendOperation(index, attachments) != VK_BLEND_OP_SRC_EXT;
-	bool alphaBlend = blendOperationAlpha(index, attachments) != VK_BLEND_OP_SRC_EXT;
+	vk::Format format = attachments.colorBuffer[index]->getFormat(VK_IMAGE_ASPECT_COLOR_BIT);
+	bool colorBlend = blendOperation(state.blendOperation, state.sourceBlendFactor, state.destBlendFactor, format) != VK_BLEND_OP_SRC_EXT;
+	bool alphaBlend = blendOperation(state.blendOperationAlpha, state.sourceBlendFactorAlpha, state.destBlendFactorAlpha, format) != VK_BLEND_OP_SRC_EXT;
 
 	return colorBlend || alphaBlend;
 }
@@ -808,99 +808,6 @@ VkBlendFactor GraphicsState::destBlendFactor(int index) const
 	return blendState[index].destBlendFactor;
 }
 
-VkBlendOp GraphicsState::blendOperation(int index, const Attachments &attachments) const
-{
-	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
-
-	if(!blendState[index].alphaBlendEnable) return VK_BLEND_OP_SRC_EXT;
-
-	switch(blendState[index].blendOperation)
-	{
-	case VK_BLEND_OP_ADD:
-		if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_ZERO_EXT;
-			}
-			else if(destBlendFactor(index) == VK_BLEND_FACTOR_ONE)
-			{
-				return VK_BLEND_OP_DST_EXT;
-			}
-		}
-		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-		}
-		break;
-	case VK_BLEND_OP_SUBTRACT:
-		if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_ZERO_EXT;
-			}
-			else if(attachments.isColorClamped(index))
-			{
-				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-			}
-		}
-		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-		}
-		break;
-	case VK_BLEND_OP_REVERSE_SUBTRACT:
-		if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-		{
-			if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_ZERO_EXT;
-			}
-			else if(attachments.isColorClamped(index))
-			{
-				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-			}
-		}
-		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ONE)
-			{
-				return VK_BLEND_OP_DST_EXT;
-			}
-		}
-		break;
-	case VK_BLEND_OP_MIN:
-	case VK_BLEND_OP_MAX:
-	case VK_BLEND_OP_MULTIPLY_EXT:
-	case VK_BLEND_OP_SCREEN_EXT:
-	case VK_BLEND_OP_OVERLAY_EXT:
-	case VK_BLEND_OP_DARKEN_EXT:
-	case VK_BLEND_OP_LIGHTEN_EXT:
-	case VK_BLEND_OP_COLORDODGE_EXT:
-	case VK_BLEND_OP_COLORBURN_EXT:
-	case VK_BLEND_OP_HARDLIGHT_EXT:
-	case VK_BLEND_OP_SOFTLIGHT_EXT:
-	case VK_BLEND_OP_DIFFERENCE_EXT:
-	case VK_BLEND_OP_EXCLUSION_EXT:
-	case VK_BLEND_OP_HSL_HUE_EXT:
-	case VK_BLEND_OP_HSL_SATURATION_EXT:
-	case VK_BLEND_OP_HSL_COLOR_EXT:
-	case VK_BLEND_OP_HSL_LUMINOSITY_EXT:
-		return blendState[index].blendOperation;
-	default:
-		ASSERT(false);
-	}
-
-	return blendState[index].blendOperation;
-}
-
 VkBlendFactor GraphicsState::sourceBlendFactorAlpha(int index) const
 {
 	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
@@ -971,69 +878,67 @@ VkBlendFactor GraphicsState::destBlendFactorAlpha(int index) const
 	return blendState[index].destBlendFactorAlpha;
 }
 
-VkBlendOp GraphicsState::blendOperationAlpha(int index, const Attachments &attachments) const
+VkBlendOp GraphicsState::blendOperation(VkBlendOp blendOperation, VkBlendFactor sourceBlendFactor, VkBlendFactor destBlendFactor, vk::Format format) const
 {
-	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
-
-	switch(blendState[index].blendOperationAlpha)
+	switch(blendOperation)
 	{
 	case VK_BLEND_OP_ADD:
-		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		if(sourceBlendFactor == VK_BLEND_FACTOR_ZERO)
 		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactor == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
-			else if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+			else if(destBlendFactor == VK_BLEND_FACTOR_ONE)
 			{
 				return VK_BLEND_OP_DST_EXT;
 			}
 		}
-		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		else if(sourceBlendFactor == VK_BLEND_FACTOR_ONE)
 		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactor == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
 		}
 		break;
 	case VK_BLEND_OP_SUBTRACT:
-		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		if(sourceBlendFactor == VK_BLEND_FACTOR_ZERO)
 		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactor == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
-			else if(attachments.isColorClamped(index))
+			else if(format.isUnsignedNormalized())
 			{
 				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
 		}
-		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		else if(sourceBlendFactor == VK_BLEND_FACTOR_ONE)
 		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactor == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
 		}
 		break;
 	case VK_BLEND_OP_REVERSE_SUBTRACT:
-		if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		if(sourceBlendFactor == VK_BLEND_FACTOR_ZERO)
 		{
-			if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactor == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
-			else if(attachments.isColorClamped(index))
-			{
-				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-			}
-		}
-		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+			else if(destBlendFactor == VK_BLEND_FACTOR_ONE)
 			{
 				return VK_BLEND_OP_DST_EXT;
+			}
+		}
+		else
+		{
+			if(destBlendFactor == VK_BLEND_FACTOR_ZERO && format.isUnsignedNormalized())
+			{
+				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
 		}
 		break;
@@ -1056,14 +961,12 @@ VkBlendOp GraphicsState::blendOperationAlpha(int index, const Attachments &attac
 	case VK_BLEND_OP_HSL_SATURATION_EXT:
 	case VK_BLEND_OP_HSL_COLOR_EXT:
 	case VK_BLEND_OP_HSL_LUMINOSITY_EXT:
-		// All of the currently supported advanced blend modes compute the alpha the same way
-		// Use VK_BLEND_OP_MULTIPLY_EXT as a placeholder
-		return VK_BLEND_OP_MULTIPLY_EXT;
+		return blendOperation;
 	default:
 		ASSERT(false);
 	}
 
-	return blendState[index].blendOperationAlpha;
+	return blendOperation;
 }
 
 bool GraphicsState::colorWriteActive(const Attachments &attachments) const
@@ -1082,14 +985,17 @@ bool GraphicsState::colorWriteActive(const Attachments &attachments) const
 int GraphicsState::colorWriteActive(int index, const Attachments &attachments) const
 {
 	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
+	auto &state = blendState[index];
 
 	if(!attachments.colorBuffer[index] || attachments.colorBuffer[index]->getFormat() == VK_FORMAT_UNDEFINED)
 	{
 		return 0;
 	}
 
-	if(blendOperation(index, attachments) == VK_BLEND_OP_DST_EXT &&
-	   blendOperationAlpha(index, attachments) == VK_BLEND_OP_DST_EXT)
+	vk::Format format = attachments.colorBuffer[index]->getFormat(VK_IMAGE_ASPECT_COLOR_BIT);
+
+	if(blendOperation(state.blendOperation, state.sourceBlendFactor, state.destBlendFactor, format) == VK_BLEND_OP_DST_EXT &&
+	   blendOperation(state.blendOperationAlpha, state.sourceBlendFactorAlpha, state.destBlendFactorAlpha, format) == VK_BLEND_OP_DST_EXT)
 	{
 		return 0;
 	}

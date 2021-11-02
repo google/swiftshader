@@ -2539,8 +2539,21 @@ Vector4f PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const
 		blendedColor.w = Float4(0.0f);
 		break;
 	case VK_BLEND_OP_MULTIPLY_EXT:
-		// All of the currently supported advanced blend modes compute the alpha the same way
-		// Use VK_BLEND_OP_MULTIPLY_EXT as a placeholder
+	case VK_BLEND_OP_SCREEN_EXT:
+	case VK_BLEND_OP_OVERLAY_EXT:
+	case VK_BLEND_OP_DARKEN_EXT:
+	case VK_BLEND_OP_LIGHTEN_EXT:
+	case VK_BLEND_OP_COLORDODGE_EXT:
+	case VK_BLEND_OP_COLORBURN_EXT:
+	case VK_BLEND_OP_HARDLIGHT_EXT:
+	case VK_BLEND_OP_SOFTLIGHT_EXT:
+	case VK_BLEND_OP_DIFFERENCE_EXT:
+	case VK_BLEND_OP_EXCLUSION_EXT:
+	case VK_BLEND_OP_HSL_HUE_EXT:
+	case VK_BLEND_OP_HSL_SATURATION_EXT:
+	case VK_BLEND_OP_HSL_COLOR_EXT:
+	case VK_BLEND_OP_HSL_LUMINOSITY_EXT:
+		// All of the currently supported 'advanced blend modes' compute the alpha the same way.
 		blendedColor.w = sourceColor.w + destColor.w - (sourceColor.w * destColor.w);
 		break;
 	default:

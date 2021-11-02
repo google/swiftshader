@@ -20,6 +20,7 @@
 #include "Stream.hpp"
 #include "System/Types.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
+#include "Vulkan/VkFormat.hpp"
 
 #include <vector>
 
@@ -55,7 +56,6 @@ struct Attachments
 	ImageView *depthBuffer = nullptr;
 	ImageView *stencilBuffer = nullptr;
 
-	bool isColorClamped(int index) const;
 	VkFormat colorFormat(int index) const;
 	VkFormat depthFormat() const;
 };
@@ -196,11 +196,9 @@ private:
 
 	VkBlendFactor sourceBlendFactor(int index) const;
 	VkBlendFactor destBlendFactor(int index) const;
-	VkBlendOp blendOperation(int index, const Attachments &attachments) const;
-
 	VkBlendFactor sourceBlendFactorAlpha(int index) const;
 	VkBlendFactor destBlendFactorAlpha(int index) const;
-	VkBlendOp blendOperationAlpha(int index, const Attachments &attachments) const;
+	VkBlendOp blendOperation(VkBlendOp blendOperation, VkBlendFactor sourceBlendFactor, VkBlendFactor destBlendFactor, vk::Format format) const;
 
 	bool alphaBlendActive(int index, const Attachments &attachments, bool fragmentContainsKill) const;
 	bool colorWriteActive(const Attachments &attachments) const;
