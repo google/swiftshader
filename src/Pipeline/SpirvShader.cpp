@@ -1991,7 +1991,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 	case spv::OpImageDrefGather:
 	case spv::OpImageFetch:
 	case spv::OpImageQueryLod:
-		return EmitImageSample(insn, state);
+		return EmitImageSample(ImageInstruction(insn, *this), state);
 
 	case spv::OpImageQuerySizeLod:
 		return EmitImageQuerySizeLod(insn, state);
@@ -2006,10 +2006,10 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 		return EmitImageQuerySamples(insn, state);
 
 	case spv::OpImageRead:
-		return EmitImageRead(insn, state);
+		return EmitImageRead(ImageInstruction(insn, *this), state);
 
 	case spv::OpImageWrite:
-		return EmitImageWrite(insn, state);
+		return EmitImageWrite(ImageInstruction(insn, *this), state);
 
 	case spv::OpImageTexelPointer:
 		return EmitImageTexelPointer(insn, state);

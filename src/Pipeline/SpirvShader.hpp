@@ -578,9 +578,11 @@ public:
 
 		const uint32_t position;
 
+		Type::ID resultTypeId = 0;
 		Object::ID resultId = 0;
 		Object::ID sampledImageId = 0;
 		Object::ID coordinateId = 0;
+		Object::ID texelId = 0;
 		Object::ID drefId = 0;
 		Object::ID lodOrBiasId = 0;
 		Object::ID gradDxId = 0;
@@ -590,7 +592,8 @@ public:
 
 	private:
 		static ImageInstructionState parseVariantAndMethod(InsnIterator insn);
-		static uint32_t getImageOperands(InsnIterator insn);
+		static uint32_t getImageOperandsIndex(InsnIterator insn);
+		static uint32_t getImageOperandsMask(InsnIterator insn);
 	};
 
 	// This method is for retrieving an ID that uniquely identifies the
@@ -1284,13 +1287,13 @@ private:
 	EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitFunctionCall(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageSample(InsnIterator insn, EmitState *state) const;
+	EmitResult EmitImageSample(const ImageInstruction &instruction, EmitState *state) const;
 	EmitResult EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageQueryLevels(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageQuerySamples(InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageWrite(InsnIterator insn, EmitState *state) const;
+	EmitResult EmitImageRead(const ImageInstruction &instruction, EmitState *state) const;
+	EmitResult EmitImageWrite(const ImageInstruction &instruction, EmitState *state) const;
 	EmitResult EmitImageTexelPointer(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitAtomicOp(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
