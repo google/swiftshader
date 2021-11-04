@@ -20,6 +20,7 @@
 #include "Device/Vertex.hpp"
 #include "System/Debug.hpp"
 #include "System/Half.hpp"
+#include "Vulkan/VkDevice.hpp"
 
 namespace sw {
 
@@ -46,7 +47,7 @@ void VertexRoutine::generate()
 
 	UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask, vertexCount));
 
-	constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, constants));
+	constants = device + OFFSET(vk::Device, constants);
 
 	// Check the cache one vertex index at a time. If a hit occurs, copy from the cache to the 'vertex' output buffer.
 	// On a cache miss, process a SIMD width of consecutive indices from the input batch. They're written to the cache

@@ -17,6 +17,7 @@
 
 #include "VkImageView.hpp"
 #include "VkSampler.hpp"
+#include "Pipeline/Constants.hpp"
 #include "Reactor/Routine.hpp"
 #include "System/LRUCache.hpp"
 
@@ -175,6 +176,8 @@ public:
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
 	void emitDeviceMemoryReport(VkDeviceMemoryReportEventTypeEXT type, uint64_t memoryObjectId, VkDeviceSize size, VkObjectType objectType, uint64_t objectHandle, uint32_t heapIndex = 0);
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
+
+	const sw::Constants constants;
 
 private:
 	PhysicalDevice *const physicalDevice = nullptr;

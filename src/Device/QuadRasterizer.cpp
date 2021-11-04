@@ -19,6 +19,7 @@
 #include "Pipeline/Constants.hpp"
 #include "System/Debug.hpp"
 #include "System/Math.hpp"
+#include "Vulkan/VkDevice.hpp"
 
 namespace sw {
 
@@ -34,7 +35,7 @@ QuadRasterizer::~QuadRasterizer()
 
 void QuadRasterizer::generate()
 {
-	constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, constants));
+	constants = device + OFFSET(vk::Device, constants);
 	occlusion = 0;
 
 	Do

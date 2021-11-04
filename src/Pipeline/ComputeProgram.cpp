@@ -16,6 +16,7 @@
 
 #include "Constants.hpp"
 #include "System/Debug.hpp"
+#include "Vulkan/VkDevice.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 
 #include "marl/defer.h"
@@ -184,7 +185,7 @@ void ComputeProgram::emit(SpirvRoutine *routine)
 	routine->descriptorSets = data + OFFSET(Data, descriptorSets);
 	routine->descriptorDynamicOffsets = data + OFFSET(Data, descriptorDynamicOffsets);
 	routine->pushConstants = data + OFFSET(Data, pushConstants);
-	routine->constants = *Pointer<Pointer<Byte>>(data + OFFSET(Data, constants));
+	routine->constants = device + OFFSET(vk::Device, constants);
 	routine->workgroupMemory = workgroupMemory;
 
 	Int invocationsPerWorkgroup = *Pointer<Int>(data + OFFSET(Data, invocationsPerWorkgroup));
@@ -237,7 +238,6 @@ void ComputeProgram::run(
 	data.invocationsPerWorkgroup = invocationsPerWorkgroup;
 	data.subgroupsPerWorkgroup = subgroupsPerWorkgroup;
 	data.pushConstants = pushConstants;
-	data.constants = &sw::Constants::Get();
 
 	marl::WaitGroup wg;
 	const uint32_t batchCount = 16;

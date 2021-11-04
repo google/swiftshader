@@ -20,6 +20,7 @@
 #include "Device/Renderer.hpp"
 #include "Device/Vertex.hpp"
 #include "Reactor/Reactor.hpp"
+#include "Vulkan/VkDevice.hpp"
 
 namespace sw {
 
@@ -42,7 +43,7 @@ void SetupRoutine::generate()
 		Pointer<Byte> polygon(function.Arg<3>());
 		Pointer<Byte> data(function.Arg<4>());
 
-		Pointer<Byte> constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData, constants));
+		Pointer<Byte> constants = device + OFFSET(vk::Device, constants);
 
 		const bool point = state.isDrawPoint;
 		const bool line = state.isDrawLine;

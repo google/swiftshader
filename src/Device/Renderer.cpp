@@ -148,7 +148,6 @@ DrawCall::DrawCall()
 {
 	// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
 	data = (DrawData *)sw::allocateZeroOrPoison(sizeof(DrawData));
-	data->constants = &Constants::Get();
 }
 
 DrawCall::~DrawCall()

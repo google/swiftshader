@@ -25,12 +25,6 @@ constexpr float Constants::VkSampleLocations4[][2];
 constexpr float Constants::SampleLocationsX[4];
 constexpr float Constants::SampleLocationsY[4];
 
-const Constants &Constants::Get()
-{
-	static const Constants constants;
-	return constants;
-}
-
 Constants::Constants()
 {
 	static const unsigned int transposeBit0[16] = {

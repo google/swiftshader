@@ -18,6 +18,7 @@
 #include "SamplerCore.hpp"
 #include "Device/Primitive.hpp"
 #include "Device/Renderer.hpp"
+#include "Vulkan/VkDevice.hpp"
 
 namespace sw {
 
@@ -141,7 +142,7 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 	routine.descriptorSets = data + OFFSET(DrawData, descriptorSets);
 	routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
 	routine.pushConstants = data + OFFSET(DrawData, pushConstants);
-	routine.constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, constants));
+	routine.constants = device + OFFSET(vk::Device, constants);
 
 	auto it = spirvShader->inputBuiltins.find(spv::BuiltInFrontFacing);
 	if(it != spirvShader->inputBuiltins.end())

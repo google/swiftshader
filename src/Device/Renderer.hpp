@@ -61,8 +61,6 @@ using PrimitiveBatch = std::array<Primitive, MaxBatchSize>;
 
 struct DrawData
 {
-	const Constants *constants;
-
 	vk::DescriptorSet::Bindings descriptorSets = {};
 	vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
 
