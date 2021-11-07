@@ -55,26 +55,15 @@ PixelProcessor::PixelProcessor()
 
 void PixelProcessor::setBlendConstant(const float4 &blendConstant)
 {
-	// TODO(b/140935644): Check if clamp is required
-	factor.blendConstant4W[0] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.x)));
-	factor.blendConstant4W[1] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.y)));
-	factor.blendConstant4W[2] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.z)));
-	factor.blendConstant4W[3] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.w)));
-
-	factor.invBlendConstant4W[0] = word4(0xFFFFu - factor.blendConstant4W[0][0]);
-	factor.invBlendConstant4W[1] = word4(0xFFFFu - factor.blendConstant4W[1][0]);
-	factor.invBlendConstant4W[2] = word4(0xFFFFu - factor.blendConstant4W[2][0]);
-	factor.invBlendConstant4W[3] = word4(0xFFFFu - factor.blendConstant4W[3][0]);
-
-	factor.blendConstant4F[0] = float4(blendConstant.x);
-	factor.blendConstant4F[1] = float4(blendConstant.y);
-	factor.blendConstant4F[2] = float4(blendConstant.z);
-	factor.blendConstant4F[3] = float4(blendConstant.w);
-
-	factor.invBlendConstant4F[0] = float4(1 - blendConstant.x);
-	factor.invBlendConstant4F[1] = float4(1 - blendConstant.y);
-	factor.invBlendConstant4F[2] = float4(1 - blendConstant.z);
-	factor.invBlendConstant4F[3] = float4(1 - blendConstant.w);
+	for(int i = 0; i < 4; i++)
+	{
+		factor.blendConstantF[i] = blendConstant[i];
+		factor.invBlendConstantF[i] = 1.0f - blendConstant[i];
+		factor.blendConstantU[i] = clamp(blendConstant[i], 0.0f, 1.0f);
+		factor.invBlendConstantU[i] = 1.0f - clamp(blendConstant[i], 0.0f, 1.0f);
+		factor.blendConstantS[i] = clamp(blendConstant[i], -1.0f, 1.0f);
+		factor.invBlendConstantS[i] = 1.0f - clamp(blendConstant[i], -1.0f, 1.0f);
+	}
 }
 
 void PixelProcessor::setRoutineCacheSize(int cacheSize)

@@ -144,12 +144,12 @@ public:
 
 	struct Factor
 	{
-		word4 alphaReference4;
-
-		word4 blendConstant4W[4];
-		float4 blendConstant4F[4];
-		word4 invBlendConstant4W[4];
-		float4 invBlendConstant4F[4];
+		float4 blendConstantF;     // Unclamped for floating-point attachment formats.
+		float4 invBlendConstantF;  // Unclamped for floating-point attachment formats.
+		float4 blendConstantU;     // Clamped to [0,1] for unsigned fixed-point attachment formats.
+		float4 invBlendConstantU;  // Clamped to [0,1] for unsigned fixed-point attachment formats.
+		float4 blendConstantS;     // Clamped to [-1,1] for signed fixed-point attachment formats.
+		float4 invBlendConstantS;  // Clamped to [-1,1] for signed fixed-point attachment formats.
 	};
 
 public:
