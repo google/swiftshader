@@ -33,6 +33,7 @@ include(GNUInstallDirs)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 11)
 
+option(ENABLE_RTTI "Enables RTTI" OFF)
 option(SPIRV_ALLOW_TIMERS "Allow timers via clock_gettime on supported platforms" ON)
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
@@ -48,6 +49,8 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   add_definitions(-DSPIRV_MAC)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
   add_definitions(-DSPIRV_IOS)
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "tvOS")
+  add_definitions(-DSPIRV_TVOS)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
   add_definitions(-DSPIRV_ANDROID)
   set(SPIRV_TIMER_ENABLED ${SPIRV_ALLOW_TIMERS})
@@ -80,6 +83,10 @@ if(SPIRV_BUILD_COMPRESSION)
 endif(SPIRV_BUILD_COMPRESSION)
 
 option(SPIRV_BUILD_FUZZER "Build spirv-fuzz" OFF)
+
+set(SPIRV_LIB_FUZZING_ENGINE_LINK_OPTIONS "" CACHE STRING "Used by OSS-Fuzz to control, via link options, which fuzzing engine should be used")
+
+option(SPIRV_BUILD_LIBFUZZER_TARGETS "Build libFuzzer targets" OFF)
 
 option(SPIRV_WERROR "Enable error on warning" ON)
 if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")))
@@ -157,6 +164,7 @@ endif()
 #   Note this target provides no API stability guarantees.
 #
 # Ideally, all of these will go away - see https://github.com/KhronosGroup/SPIRV-Tools/issues/3909.
+option(ENABLE_EXCEPTIONS_ON_MSVC "Build SPIRV-TOOLS with c++ exceptions enabled in MSVC" ON)
 option(SPIRV_TOOLS_BUILD_STATIC "Build ${SPIRV_TOOLS}-static target. ${SPIRV_TOOLS} will alias to ${SPIRV_TOOLS}-static or ${SPIRV_TOOLS}-shared based on BUILD_SHARED_LIBS" ON)
 if(SPIRV_TOOLS_BUILD_STATIC)
   set(SPIRV_TOOLS_FULL_VISIBILITY ${SPIRV_TOOLS}-static)
@@ -176,11 +184,14 @@ function(spvtools_default_compile_options TARGET)
   target_compile_options(${TARGET} PRIVATE ${SPIRV_WARNINGS})
 
   if (${COMPILER_IS_LIKE_GNU})
-    target_compile_options(${TARGET} PRIVATE
-      -std=c++11 -fno-exceptions -fno-rtti)
+    target_compile_options(${TARGET} PRIVATE -std=c++11 -fno-exceptions)
     target_compile_options(${TARGET} PRIVATE
       -Wall -Wextra -Wno-long-long -Wshadow -Wundef -Wconversion
       -Wno-sign-conversion)
+
+    if(NOT ENABLE_RTTI)
+        add_compile_options(-fno-rtti)
+    endif()
     # For good call stacks in profiles, keep the frame pointers.
     if(NOT "${SPIRV_PERF}" STREQUAL "")
       target_compile_options(${TARGET} PRIVATE -fno-omit-frame-pointer)
@@ -205,7 +216,9 @@ function(spvtools_default_compile_options TARGET)
   if (MSVC)
     # Specify /EHs for exception handling. This makes using SPIRV-Tools as
     # dependencies in other projects easier.
-    target_compile_options(${TARGET} PRIVATE /EHs)
+    if(ENABLE_EXCEPTIONS_ON_MSVC)
+      target_compile_options(${TARGET} PRIVATE /EHs)
+    endif()
   endif()
 
   # For MinGW cross compile, statically link to the C++ runtime.
@@ -286,7 +299,7 @@ endif()
 # Turn off if they take too long.
 option(SPIRV_CHECK_CONTEXT "In a debug build, check if the IR context is in a valid state." ON)
 if (${SPIRV_CHECK_CONTEXT})
-  add_definitions(-DSPIRV_CHECK_CONTEXT)
+  add_compile_options($<$<CONFIG:Debug>:-DSPIRV_CHECK_CONTEXT>)
 endif()
 
 # Precompiled header macro. Parameters are source file list and filename for pch cpp file.

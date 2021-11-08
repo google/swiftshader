@@ -163,15 +163,15 @@ TEST(ShrinkerTest, ReduceAddedFunctions) {
   ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(
       donor_ir_context.get(), validator_options, kConsoleMessageConsumer));
 
-  PseudoRandomGenerator random_generator(0);
-  FuzzerContext fuzzer_context(&random_generator, 100);
+  FuzzerContext fuzzer_context(MakeUnique<PseudoRandomGenerator>(0), 100,
+                               false);
   TransformationContext transformation_context(
       MakeUnique<FactManager>(variant_ir_context.get()), validator_options);
 
   protobufs::TransformationSequence transformations;
   FuzzerPassDonateModules pass(variant_ir_context.get(),
                                &transformation_context, &fuzzer_context,
-                               &transformations, {});
+                               &transformations, false, {});
   pass.DonateSingleModule(donor_ir_context.get(), true);
 
   protobufs::FactSequence no_facts;
@@ -341,15 +341,15 @@ TEST(ShrinkerTest, HitStepLimitWhenReducingAddedFunctions) {
   ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(
       donor_ir_context.get(), validator_options, kConsoleMessageConsumer));
 
-  PseudoRandomGenerator random_generator(0);
-  FuzzerContext fuzzer_context(&random_generator, 100);
+  FuzzerContext fuzzer_context(MakeUnique<PseudoRandomGenerator>(0), 100,
+                               false);
   TransformationContext transformation_context(
       MakeUnique<FactManager>(variant_ir_context.get()), validator_options);
 
   protobufs::TransformationSequence transformations;
   FuzzerPassDonateModules pass(variant_ir_context.get(),
                                &transformation_context, &fuzzer_context,
-                               &transformations, {});
+                               &transformations, false, {});
   pass.DonateSingleModule(donor_ir_context.get(), true);
 
   protobufs::FactSequence no_facts;
@@ -365,7 +365,6 @@ TEST(ShrinkerTest, HitStepLimitWhenReducingAddedFunctions) {
           if (inst->opcode() == SpvOpCopyObject) {
             copy_object_count++;
           }
-
         });
     return copy_object_count >= 8;
   };

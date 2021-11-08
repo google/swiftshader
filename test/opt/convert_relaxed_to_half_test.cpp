@@ -204,6 +204,98 @@ OpFunctionEnd
                                            defs_after + func_after, true, true);
 }
 
+TEST_F(ConvertToHalfTest, ConvertToHalfForLinkage) {
+  const std::string before =
+      R"(OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpSource HLSL 630
+OpName %type_cbuff "type.cbuff"
+OpMemberName %type_cbuff 0 "c"
+OpName %cbuff "cbuff"
+OpName %main "main"
+OpName %BaseColor "BaseColor"
+OpName %bb_entry "bb.entry"
+OpName %v "v"
+OpDecorate %main LinkageAttributes "main" Export
+OpDecorate %cbuff DescriptorSet 0
+OpDecorate %cbuff Binding 0
+OpMemberDecorate %type_cbuff 0 Offset 0
+OpDecorate %type_cbuff Block
+OpDecorate %18 RelaxedPrecision
+%int = OpTypeInt 32 1
+%int_0 = OpConstant %int 0
+%float = OpTypeFloat 32
+%type_cbuff = OpTypeStruct %float
+%_ptr_Uniform_type_cbuff = OpTypePointer Uniform %type_cbuff
+%v4float = OpTypeVector %float 4
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%9 = OpTypeFunction %v4float %_ptr_Function_v4float
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+%cbuff = OpVariable %_ptr_Uniform_type_cbuff Uniform
+%main = OpFunction %v4float None %9
+%BaseColor = OpFunctionParameter %_ptr_Function_v4float
+%bb_entry = OpLabel
+%v = OpVariable %_ptr_Function_v4float Function
+%14 = OpLoad %v4float %BaseColor
+%16 = OpAccessChain %_ptr_Uniform_float %cbuff %int_0
+%17 = OpLoad %float %16
+%18 = OpVectorTimesScalar %v4float %14 %17
+OpStore %v %18
+%19 = OpLoad %v4float %v
+OpReturnValue %19
+OpFunctionEnd
+)";
+
+  const std::string after =
+      R"(OpCapability Shader
+OpCapability Linkage
+OpCapability Float16
+OpMemoryModel Logical GLSL450
+OpSource HLSL 630
+OpName %type_cbuff "type.cbuff"
+OpMemberName %type_cbuff 0 "c"
+OpName %cbuff "cbuff"
+OpName %main "main"
+OpName %BaseColor "BaseColor"
+OpName %bb_entry "bb.entry"
+OpName %v "v"
+OpDecorate %main LinkageAttributes "main" Export
+OpDecorate %cbuff DescriptorSet 0
+OpDecorate %cbuff Binding 0
+OpMemberDecorate %type_cbuff 0 Offset 0
+OpDecorate %type_cbuff Block
+%int = OpTypeInt 32 1
+%int_0 = OpConstant %int 0
+%float = OpTypeFloat 32
+%type_cbuff = OpTypeStruct %float
+%_ptr_Uniform_type_cbuff = OpTypePointer Uniform %type_cbuff
+%v4float = OpTypeVector %float 4
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%14 = OpTypeFunction %v4float %_ptr_Function_v4float
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+%cbuff = OpVariable %_ptr_Uniform_type_cbuff Uniform
+%half = OpTypeFloat 16
+%v4half = OpTypeVector %half 4
+%main = OpFunction %v4float None %14
+%BaseColor = OpFunctionParameter %_ptr_Function_v4float
+%bb_entry = OpLabel
+%v = OpVariable %_ptr_Function_v4float Function
+%16 = OpLoad %v4float %BaseColor
+%17 = OpAccessChain %_ptr_Uniform_float %cbuff %int_0
+%18 = OpLoad %float %17
+%22 = OpFConvert %v4half %16
+%23 = OpFConvert %half %18
+%7 = OpVectorTimesScalar %v4half %22 %23
+%24 = OpFConvert %v4float %7
+OpStore %v %24
+%19 = OpLoad %v4float %v
+OpReturnValue %19
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<ConvertToHalfPass>(before, after, true, true);
+}
 TEST_F(ConvertToHalfTest, ConvertToHalfWithDrefSample) {
   // The resulting SPIR-V was processed with --relax-float-ops.
   //
@@ -1329,6 +1421,72 @@ OpFunctionEnd
 
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   SinglePassRunAndMatch<ConvertToHalfPass>(defs + func, true);
+}
+
+TEST_F(ConvertToHalfTest, RemoveRelaxDec) {
+  // See https://github.com/KhronosGroup/SPIRV-Tools/issues/4117
+
+  // This test is a case where the relax precision decorations need to be
+  // removed, but the body of the function does not change because there are not
+  // arithmetic operations.  So, there is not need for the Float16 capability.
+  const std::string test =
+      R"(
+; CHECK-NOT: OpCapability Float16
+; GLSL seems to generate this decoration on the load of a texture, which seems odd to me.
+; This pass does not currently remove it, and I'm not sure what we should do with it, so I will leave it.
+; CHECK: OpDecorate [[tex:%\w+]] RelaxedPrecision
+; CHECK-NOT: OpDecorate {{%\w+}} RelaxedPrecision
+; CHECK: OpLabel
+; CHECK: [[tex]] = OpLoad {{%\w+}} %sTexture
+; CHECK: [[coord:%\w+]] = OpLoad %v2float
+; CHECK: [[retval:%\w+]] = OpImageSampleImplicitLod %v4float {{%\w+}} [[coord]]
+; CHECK: OpStore %outFragColor [[retval]]
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %outFragColor %v_texcoord
+               OpExecutionMode %main OriginUpperLeft
+               OpSource ESSL 310
+               OpName %main "main"
+               OpName %outFragColor "outFragColor"
+               OpName %sTexture "sTexture"
+               OpName %v_texcoord "v_texcoord"
+               OpDecorate %outFragColor RelaxedPrecision
+               OpDecorate %outFragColor Location 0
+               OpDecorate %sTexture RelaxedPrecision
+               OpDecorate %sTexture DescriptorSet 0
+               OpDecorate %sTexture Binding 0
+               OpDecorate %14 RelaxedPrecision
+               OpDecorate %v_texcoord RelaxedPrecision
+               OpDecorate %v_texcoord Location 0
+               OpDecorate %18 RelaxedPrecision
+               OpDecorate %19 RelaxedPrecision
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%outFragColor = OpVariable %_ptr_Output_v4float Output
+         %10 = OpTypeImage %float 2D 0 0 0 1 Unknown
+         %11 = OpTypeSampledImage %10
+%_ptr_UniformConstant_11 = OpTypePointer UniformConstant %11
+   %sTexture = OpVariable %_ptr_UniformConstant_11 UniformConstant
+    %v2float = OpTypeVector %float 2
+%_ptr_Input_v2float = OpTypePointer Input %v2float
+ %v_texcoord = OpVariable %_ptr_Input_v2float Input
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+         %14 = OpLoad %11 %sTexture
+         %18 = OpLoad %v2float %v_texcoord
+         %19 = OpImageSampleImplicitLod %v4float %14 %18
+               OpStore %outFragColor %19
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  auto result = SinglePassRunAndMatch<ConvertToHalfPass>(test, true);
+  EXPECT_EQ(Pass::Status::SuccessWithChange, std::get<1>(result));
 }
 
 }  // namespace

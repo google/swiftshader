@@ -45,12 +45,11 @@ FuzzerPassDonateModules::FuzzerPassDonateModules(
     opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
     protobufs::TransformationSequence* transformations,
-    const std::vector<fuzzerutil::ModuleSupplier>& donor_suppliers)
+    bool ignore_inapplicable_transformations,
+    std::vector<fuzzerutil::ModuleSupplier> donor_suppliers)
     : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                 transformations),
-      donor_suppliers_(donor_suppliers) {}
-
-FuzzerPassDonateModules::~FuzzerPassDonateModules() = default;
+                 transformations, ignore_inapplicable_transformations),
+      donor_suppliers_(std::move(donor_suppliers)) {}
 
 void FuzzerPassDonateModules::Apply() {
   // If there are no donor suppliers, this fuzzer pass is a no-op.
@@ -1202,11 +1201,14 @@ bool FuzzerPassDonateModules::MaybeAddLivesafeFunction(
         false);
   }
 
-  // Add the function in a livesafe manner.
-  ApplyTransformation(TransformationAddFunction(
+  // Try to add the function in a livesafe manner. This may fail due to edge
+  // cases, e.g. where adding loop limiters changes dominance such that the
+  // module becomes invalid. It would be ideal to handle all such edge cases,
+  // but as they are rare it is more pragmatic to bail out of making the
+  // function livesafe if the transformation's precondition fails to hold.
+  return MaybeApplyTransformation(TransformationAddFunction(
       donated_instructions, loop_limiter_variable_id, loop_limit, loop_limiters,
       kill_unreachable_return_value_id, access_chain_clamping_info));
-  return true;
 }
 
 }  // namespace fuzz

@@ -142,12 +142,29 @@ TEST(TransformationCompositeConstructTest, ConstructArrays) {
   TransformationCompositeConstruct make_vec2_array_length_3_bad(
       37, {41, 45, 27, 27}, MakeInstructionDescriptor(46, SpvOpAccessChain, 0),
       200);
+  // The first component does not correspond to an instruction with a result
+  // type so this check should return false.
+  TransformationCompositeConstruct make_vec2_array_length_3_nores(
+      37, {2, 45, 27}, MakeInstructionDescriptor(46, SpvOpAccessChain, 0), 200);
   ASSERT_TRUE(make_vec2_array_length_3.IsApplicable(context.get(),
                                                     transformation_context));
   ASSERT_FALSE(make_vec2_array_length_3_bad.IsApplicable(
       context.get(), transformation_context));
+  ASSERT_FALSE(make_vec2_array_length_3_nores.IsApplicable(
+      context.get(), transformation_context));
+  ASSERT_EQ(nullptr, context->get_def_use_mgr()->GetDef(200));
+  ASSERT_EQ(nullptr, context->get_instr_block(200));
+  uint32_t num_uses_of_41_before = context->get_def_use_mgr()->NumUses(41);
+  uint32_t num_uses_of_45_before = context->get_def_use_mgr()->NumUses(45);
+  uint32_t num_uses_of_27_before = context->get_def_use_mgr()->NumUses(27);
   ApplyAndCheckFreshIds(make_vec2_array_length_3, context.get(),
                         &transformation_context);
+  ASSERT_EQ(SpvOpCompositeConstruct,
+            context->get_def_use_mgr()->GetDef(200)->opcode());
+  ASSERT_EQ(34, context->get_instr_block(200)->id());
+  ASSERT_EQ(num_uses_of_41_before + 1, context->get_def_use_mgr()->NumUses(41));
+  ASSERT_EQ(num_uses_of_45_before + 1, context->get_def_use_mgr()->NumUses(45));
+  ASSERT_EQ(num_uses_of_27_before + 1, context->get_def_use_mgr()->NumUses(27));
   ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
                                                kConsoleMessageConsumer));
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
@@ -412,9 +429,15 @@ TEST(TransformationCompositeConstructTest, ConstructMatrices) {
   // Bad: %35 is mat4x3, not mat3x4.
   TransformationCompositeConstruct make_mat34_bad(
       35, {25, 28, 31}, MakeInstructionDescriptor(31, SpvOpReturn, 0), 200);
+  // The first component does not correspond to an instruction with a result
+  // type so this check should return false.
+  TransformationCompositeConstruct make_mat34_nores(
+      32, {2, 28, 31}, MakeInstructionDescriptor(31, SpvOpReturn, 0), 200);
   ASSERT_TRUE(make_mat34.IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       make_mat34_bad.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      make_mat34_nores.IsApplicable(context.get(), transformation_context));
   ApplyAndCheckFreshIds(make_mat34, context.get(), &transformation_context);
   ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
                                                kConsoleMessageConsumer));
@@ -625,9 +648,15 @@ TEST(TransformationCompositeConstructTest, ConstructStructs) {
   // Bad: Too few fields to make the struct.
   TransformationCompositeConstruct make_inner_bad(
       9, {25}, MakeInstructionDescriptor(57, SpvOpAccessChain, 0), 200);
+  // The first component does not correspond to an instruction with a result
+  // type so this check should return false.
+  TransformationCompositeConstruct make_inner_nores(
+      9, {2, 19}, MakeInstructionDescriptor(57, SpvOpAccessChain, 0), 200);
   ASSERT_TRUE(make_inner.IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       make_inner_bad.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      make_inner_nores.IsApplicable(context.get(), transformation_context));
   ApplyAndCheckFreshIds(make_inner, context.get(), &transformation_context);
   ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
                                                kConsoleMessageConsumer));

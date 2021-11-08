@@ -29,7 +29,7 @@ class FuzzerPassMock : public FuzzerPass {
                  FuzzerContext* fuzzer_context,
                  protobufs::TransformationSequence* transformations)
       : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                   transformations) {}
+                   transformations, false) {}
 
   ~FuzzerPassMock() override = default;
 
@@ -87,8 +87,8 @@ TEST(FuzzerPassTest, ForEachInstructionWithInstructionDescriptor) {
   ASSERT_TRUE(dominator_analysis->IsReachable(5));
   ASSERT_FALSE(dominator_analysis->IsReachable(8));
 
-  PseudoRandomGenerator prng(0);
-  FuzzerContext fuzzer_context(&prng, 100);
+  FuzzerContext fuzzer_context(MakeUnique<PseudoRandomGenerator>(0), 100,
+                               false);
   protobufs::TransformationSequence transformations;
   FuzzerPassMock fuzzer_pass_mock(context.get(), &transformation_context,
                                   &fuzzer_context, &transformations);

@@ -23,7 +23,7 @@ namespace fuzz {
 class TransformationFlattenConditionalBranch : public Transformation {
  public:
   explicit TransformationFlattenConditionalBranch(
-      const protobufs::TransformationFlattenConditionalBranch& message);
+      protobufs::TransformationFlattenConditionalBranch message);
 
   TransformationFlattenConditionalBranch(
       uint32_t header_block_id, bool true_branch_first,

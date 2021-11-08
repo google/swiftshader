@@ -66,6 +66,11 @@ bool CheckAllImageOperandsHandled() {
     case SpvImageOperandsVolatileTexelKHRMask:
     case SpvImageOperandsSignExtendMask:
     case SpvImageOperandsZeroExtendMask:
+    // TODO(jaebaek): Move this line properly after handling image offsets
+    //                operand. This line temporarily fixes CI failure that
+    //                blocks other PRs.
+    // https://github.com/KhronosGroup/SPIRV-Tools/issues/4565
+    case SpvImageOperandsOffsetsMask:
       return true;
   }
   return false;
@@ -281,12 +286,14 @@ spv_result_t ValidateImageOperands(ValidationState_t& _,
   // the module to be invalid.
   if (mask == 0) return SPV_SUCCESS;
 
-  if (spvtools::utils::CountSetBits(
-          mask & (SpvImageOperandsOffsetMask | SpvImageOperandsConstOffsetMask |
-                  SpvImageOperandsConstOffsetsMask)) > 1) {
+  if (spvtools::utils::CountSetBits(mask & (SpvImageOperandsOffsetMask |
+                                            SpvImageOperandsConstOffsetMask |
+                                            SpvImageOperandsConstOffsetsMask |
+                                            SpvImageOperandsOffsetsMask)) > 1) {
     return _.diag(SPV_ERROR_INVALID_DATA, inst)
-           << "Image Operands Offset, ConstOffset, ConstOffsets cannot be used "
-           << "together";
+           << _.VkErrorID(4662)
+           << "Image Operands Offset, ConstOffset, ConstOffsets, Offsets "
+              "cannot be used together";
   }
 
   const bool is_implicit_lod = IsImplicitLod(opcode);
@@ -439,6 +446,18 @@ spv_result_t ValidateImageOperands(ValidationState_t& _,
       return _.diag(SPV_ERROR_INVALID_DATA, inst)
              << "Expected Image Operand Offset to have " << plane_size
              << " components, but given " << offset_size;
+    }
+
+    if (!_.options()->before_hlsl_legalization &&
+        spvIsVulkanEnv(_.context()->target_env)) {
+      if (opcode != SpvOpImageGather && opcode != SpvOpImageDrefGather &&
+          opcode != SpvOpImageSparseGather &&
+          opcode != SpvOpImageSparseDrefGather) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << _.VkErrorID(4663)
+               << "Image Operand Offset can only be used with "
+                  "OpImage*Gather operations";
+      }
     }
   }
 
@@ -605,6 +624,10 @@ spv_result_t ValidateImageOperands(ValidationState_t& _,
     // void, and the Format is Unknown.
     // In Vulkan, the texel type is only known in all cases by the pipeline
     // setup.
+  }
+
+  if (mask & SpvImageOperandsOffsetsMask) {
+    // TODO: add validation
   }
 
   return SPV_SUCCESS;
@@ -887,6 +910,7 @@ spv_result_t ValidateTypeSampledImage(ValidationState_t& _,
   // Vulkan uses the Sampled=1 case.
   if ((info.sampled != 0) && (info.sampled != 1)) {
     return _.diag(SPV_ERROR_INVALID_DATA, inst)
+           << _.VkErrorID(4657)
            << "Sampled image type requires an image type with \"Sampled\" "
               "operand set to 0 or 1";
   }
@@ -1444,11 +1468,20 @@ spv_result_t ValidateImageGather(ValidationState_t& _,
   }
 
   if (opcode == SpvOpImageGather || opcode == SpvOpImageSparseGather) {
-    const uint32_t component_index_type = _.GetOperandTypeId(inst, 4);
+    const uint32_t component = inst->GetOperandAs<uint32_t>(4);
+    const uint32_t component_index_type = _.GetTypeId(component);
     if (!_.IsIntScalarType(component_index_type) ||
         _.GetBitWidth(component_index_type) != 32) {
       return _.diag(SPV_ERROR_INVALID_DATA, inst)
              << "Expected Component to be 32-bit int scalar";
+    }
+    if (spvIsVulkanEnv(_.context()->target_env)) {
+      if (!spvOpcodeIsConstant(_.GetIdOpcode(component))) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << _.VkErrorID(4664)
+               << "Expected Component Operand to be a const object for Vulkan "
+                  "environment";
+      }
     }
   } else {
     assert(opcode == SpvOpImageDrefGather ||
@@ -1487,8 +1520,8 @@ spv_result_t ValidateImageRead(ValidationState_t& _, const Instruction* inst) {
   if (spvIsVulkanEnv(target_env)) {
     if (_.GetDimension(actual_result_type) != 4) {
       return _.diag(SPV_ERROR_INVALID_DATA, inst)
-             << "Expected " << GetActualResultTypeStr(opcode)
-             << " to have 4 components";
+             << _.VkErrorID(4780) << "Expected "
+             << GetActualResultTypeStr(opcode) << " to have 4 components";
     }
   }  // Check OpenCL below, after we get the image info.
 
@@ -2035,11 +2068,13 @@ spv_result_t ImagePass(ValidationState_t& _, const Instruction* inst) {
                                       std::string* message) {
           const auto* models = state.GetExecutionModels(entry_point->id());
           const auto* modes = state.GetExecutionModes(entry_point->id());
-          if (models->find(SpvExecutionModelGLCompute) != models->end() &&
-              modes->find(SpvExecutionModeDerivativeGroupLinearNV) ==
-                  modes->end() &&
-              modes->find(SpvExecutionModeDerivativeGroupQuadsNV) ==
-                  modes->end()) {
+          if (models &&
+              models->find(SpvExecutionModelGLCompute) != models->end() &&
+              (!modes ||
+               (modes->find(SpvExecutionModeDerivativeGroupLinearNV) ==
+                    modes->end() &&
+                modes->find(SpvExecutionModeDerivativeGroupQuadsNV) ==
+                    modes->end()))) {
             if (message) {
               *message =
                   std::string(

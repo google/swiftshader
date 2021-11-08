@@ -24,12 +24,10 @@ namespace fuzz {
 FuzzerPassAddVectorShuffleInstructions::FuzzerPassAddVectorShuffleInstructions(
     opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
-    protobufs::TransformationSequence* transformations)
+    protobufs::TransformationSequence* transformations,
+    bool ignore_inapplicable_transformations)
     : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                 transformations) {}
-
-FuzzerPassAddVectorShuffleInstructions::
-    ~FuzzerPassAddVectorShuffleInstructions() = default;
+                 transformations, ignore_inapplicable_transformations) {}
 
 void FuzzerPassAddVectorShuffleInstructions::Apply() {
   ForEachInstructionWithInstructionDescriptor(
@@ -78,7 +76,7 @@ void FuzzerPassAddVectorShuffleInstructions::Apply() {
                            ->IdIsIrrelevant(instruction->result_id()) &&
                       !fuzzerutil::CanMakeSynonymOf(ir_context,
                                                     *GetTransformationContext(),
-                                                    instruction)) {
+                                                    *instruction)) {
                     // If the id is irrelevant, we can use it since it will not
                     // participate in DataSynonym fact. Otherwise, we should be
                     // able to produce a synonym out of the id.

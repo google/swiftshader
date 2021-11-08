@@ -25,11 +25,10 @@ namespace fuzz {
 FuzzerPassAddSynonyms::FuzzerPassAddSynonyms(
     opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
-    protobufs::TransformationSequence* transformations)
+    protobufs::TransformationSequence* transformations,
+    bool ignore_inapplicable_transformations)
     : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                 transformations) {}
-
-FuzzerPassAddSynonyms::~FuzzerPassAddSynonyms() = default;
+                 transformations, ignore_inapplicable_transformations) {}
 
 void FuzzerPassAddSynonyms::Apply() {
   ForEachInstructionWithInstructionDescriptor(
@@ -81,6 +80,8 @@ void FuzzerPassAddSynonyms::Apply() {
           case protobufs::TransformationAddSynonym::ADD_ZERO:
           case protobufs::TransformationAddSynonym::SUB_ZERO:
           case protobufs::TransformationAddSynonym::LOGICAL_OR:
+          case protobufs::TransformationAddSynonym::BITWISE_OR:
+          case protobufs::TransformationAddSynonym::BITWISE_XOR:
             // Create a zero constant to be used as an operand of the synonymous
             // instruction.
             FindOrCreateZeroConstant(existing_synonym->type_id(), false);

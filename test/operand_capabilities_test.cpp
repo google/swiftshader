@@ -199,7 +199,8 @@ INSTANTIATE_TEST_SUITE_P(
                 CASE1(STORAGE_CLASS, StorageClassOutput, Shader),
                 CASE0(STORAGE_CLASS, StorageClassWorkgroup),
                 CASE0(STORAGE_CLASS, StorageClassCrossWorkgroup),
-                CASE1(STORAGE_CLASS, StorageClassPrivate, Shader),
+                CASE2(STORAGE_CLASS, StorageClassPrivate, Shader,
+                      VectorComputeINTEL),
                 CASE0(STORAGE_CLASS, StorageClassFunction),
                 CASE1(STORAGE_CLASS, StorageClassGeneric,
                       GenericPointer),  // Bug 14287
@@ -365,19 +366,6 @@ INSTANTIATE_TEST_SUITE_P(
                 CASE0(OPTIONAL_IMAGE, ImageOperandsSampleMask),
                 CASE1(OPTIONAL_IMAGE, ImageOperandsMinLodMask, MinLod),
                 // clang-format on
-            })));
-
-// See SPIR-V Section 3.15 FP Fast Math Mode
-INSTANTIATE_TEST_SUITE_P(
-    FPFastMathMode, EnumCapabilityTest,
-    Combine(Values(SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_1),
-            ValuesIn(std::vector<EnumCapabilityCase>{
-                CASE0(FP_FAST_MATH_MODE, FPFastMathModeMaskNone),
-                CASE1(FP_FAST_MATH_MODE, FPFastMathModeNotNaNMask, Kernel),
-                CASE1(FP_FAST_MATH_MODE, FPFastMathModeNotInfMask, Kernel),
-                CASE1(FP_FAST_MATH_MODE, FPFastMathModeNSZMask, Kernel),
-                CASE1(FP_FAST_MATH_MODE, FPFastMathModeAllowRecipMask, Kernel),
-                CASE1(FP_FAST_MATH_MODE, FPFastMathModeFastMask, Kernel),
             })));
 
 // See SPIR-V Section 3.17 Linkage Type

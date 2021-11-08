@@ -24,6 +24,7 @@
 #include "source/opt/basic_block.h"
 #include "source/opt/instruction.h"
 #include "source/opt/ir_context.h"
+#include "source/opt/module.h"
 #include "spirv-tools/libspirv.hpp"
 
 namespace spvtools {
@@ -37,6 +38,15 @@ extern const spvtools::MessageConsumer kSilentMessageConsumer;
 
 // Function type that produces a SPIR-V module.
 using ModuleSupplier = std::function<std::unique_ptr<opt::IRContext>()>;
+
+// Builds a new opt::IRContext object. Returns true if successful and changes
+// the |ir_context| parameter. Otherwise (if any errors occur), returns false
+// and |ir_context| remains unchanged.
+bool BuildIRContext(spv_target_env target_env,
+                    const spvtools::MessageConsumer& message_consumer,
+                    const std::vector<uint32_t>& binary_in,
+                    spv_validator_options validator_options,
+                    std::unique_ptr<spvtools::opt::IRContext>* ir_context);
 
 // Returns true if and only if the module does not define the given id.
 bool IsFreshId(opt::IRContext* context, uint32_t id);
@@ -58,6 +68,16 @@ opt::BasicBlock* MaybeFindBlock(opt::IRContext* context,
 bool PhiIdsOkForNewEdge(
     opt::IRContext* context, opt::BasicBlock* bb_from, opt::BasicBlock* bb_to,
     const google::protobuf::RepeatedField<google::protobuf::uint32>& phi_ids);
+
+// Returns an OpBranchConditional instruction that will create an unreachable
+// branch from |bb_from_id| to |bb_to_id|. |bool_id| must be a result id of
+// either OpConstantTrue or OpConstantFalse. Based on the opcode of |bool_id|,
+// operands of the returned instruction will be positioned in a way that the
+// branch from |bb_from_id| to |bb_to_id| is always unreachable.
+opt::Instruction CreateUnreachableEdgeInstruction(opt::IRContext* ir_context,
+                                                  uint32_t bb_from_id,
+                                                  uint32_t bb_to_id,
+                                                  uint32_t bool_id);
 
 // Requires that |bool_id| is a valid result id of either OpConstantTrue or
 // OpConstantFalse, that PhiIdsOkForNewEdge(context, bb_from, bb_to, phi_ids)
@@ -88,11 +108,6 @@ bool BlockIsInLoopContinueConstruct(opt::IRContext* context, uint32_t block_id,
 opt::BasicBlock::iterator GetIteratorForInstruction(
     opt::BasicBlock* block, const opt::Instruction* inst);
 
-// Returns true if and only if there is a path to |bb| from the entry block of
-// the function that contains |bb|.
-bool BlockIsReachableInItsFunction(opt::IRContext* context,
-                                   opt::BasicBlock* bb);
-
 // Determines whether it is OK to insert an instruction with opcode |opcode|
 // before |instruction_in_block|.
 bool CanInsertOpcodeBeforeInstruction(
@@ -103,7 +118,7 @@ bool CanInsertOpcodeBeforeInstruction(
 // does not participate in IdIsIrrelevant fact.
 bool CanMakeSynonymOf(opt::IRContext* ir_context,
                       const TransformationContext& transformation_context,
-                      opt::Instruction* inst);
+                      const opt::Instruction& inst);
 
 // Determines whether the given type is a composite; that is: an array, matrix,
 // struct or vector.
@@ -153,6 +168,10 @@ uint32_t GetArraySize(const opt::Instruction& array_type_instruction,
 // matrix. |composite_type_inst| must be the type of a composite.
 uint32_t GetBoundForCompositeIndex(const opt::Instruction& composite_type_inst,
                                    opt::IRContext* ir_context);
+
+// Returns memory semantics mask for specific storage class.
+SpvMemorySemanticsMask GetMemorySemanticsForStorageClass(
+    SpvStorageClass storage_class);
 
 // Returns true if and only if |context| is valid, according to the validator
 // instantiated with |validator_options|.  |consumer| is used for error
@@ -258,8 +277,10 @@ uint32_t InOperandIndexFromOperandIndex(const opt::Instruction& inst,
                                         uint32_t absolute_index);
 
 // Returns true if and only if |type| is one of the types for which it is legal
-// to have an OpConstantNull value.
-bool IsNullConstantSupported(const opt::analysis::Type& type);
+// to have an OpConstantNull value. This may depend on the capabilities declared
+// in |context|.
+bool IsNullConstantSupported(opt::IRContext* context,
+                             const opt::Instruction& type);
 
 // Returns true if and only if the SPIR-V version being used requires that
 // global variables accessed in the static call graph of an entry point need
@@ -284,9 +305,12 @@ void AddVariableIdToEntryPointInterfaces(opt::IRContext* context, uint32_t id);
 // - |initializer_id| must be 0 if |storage_class| is Workgroup, and otherwise
 //   may either be 0 or the id of a constant whose type is the pointee type of
 //   |type_id|.
-void AddGlobalVariable(opt::IRContext* context, uint32_t result_id,
-                       uint32_t type_id, SpvStorageClass storage_class,
-                       uint32_t initializer_id);
+//
+// Returns a pointer to the new global variable instruction.
+opt::Instruction* AddGlobalVariable(opt::IRContext* context, uint32_t result_id,
+                                    uint32_t type_id,
+                                    SpvStorageClass storage_class,
+                                    uint32_t initializer_id);
 
 // Adds an instruction to the start of |function_id|, of the form:
 //   |result_id| = OpVariable |type_id| Function |initializer_id|.
@@ -296,9 +320,11 @@ void AddGlobalVariable(opt::IRContext* context, uint32_t result_id,
 // - |initializer_id| must be the id of a constant with the same type as the
 //   pointer's pointee type.
 // - |function_id| must be the id of a function.
-void AddLocalVariable(opt::IRContext* context, uint32_t result_id,
-                      uint32_t type_id, uint32_t function_id,
-                      uint32_t initializer_id);
+//
+// Returns a pointer to the new local variable instruction.
+opt::Instruction* AddLocalVariable(opt::IRContext* context, uint32_t result_id,
+                                   uint32_t type_id, uint32_t function_id,
+                                   uint32_t initializer_id);
 
 // Returns true if the vector |arr| has duplicates.
 bool HasDuplicates(const std::vector<uint32_t>& arr);
@@ -476,30 +502,6 @@ uint32_t MaybeGetBoolConstant(
     const TransformationContext& transformation_context, bool value,
     bool is_irrelevant);
 
-// Creates a new OpTypeInt instruction in the module. Updates module's id bound
-// to accommodate for |result_id|.
-void AddIntegerType(opt::IRContext* ir_context, uint32_t result_id,
-                    uint32_t width, bool is_signed);
-
-// Creates a new OpTypeFloat instruction in the module. Updates module's id
-// bound to accommodate for |result_id|.
-void AddFloatType(opt::IRContext* ir_context, uint32_t result_id,
-                  uint32_t width);
-
-// Creates a new OpTypeVector instruction in the module. |component_type_id|
-// must be a valid result id of an OpTypeInt, OpTypeFloat or OpTypeBool
-// instruction in the module. |element_count| must be in the range [2, 4].
-// Updates module's id bound to accommodate for |result_id|.
-void AddVectorType(opt::IRContext* ir_context, uint32_t result_id,
-                   uint32_t component_type_id, uint32_t element_count);
-
-// Creates a new OpTypeStruct instruction in the module. Updates module's id
-// bound to accommodate for |result_id|. |component_type_ids| may not contain
-// a result id of an OpTypeFunction. if |component_type_ids| contains a result
-// of an OpTypeStruct instruction, that struct may not have BuiltIn members.
-void AddStructType(opt::IRContext* ir_context, uint32_t result_id,
-                   const std::vector<uint32_t>& component_type_ids);
-
 // Returns a vector of words representing the integer |value|, only considering
 // the last |width| bits. The last |width| bits are sign-extended if the value
 // is signed, zero-extended if it is unsigned.
@@ -587,6 +589,35 @@ bool InstructionHasNoSideEffects(const opt::Instruction& instruction);
 // Assumes that the function exists in the module.
 std::set<uint32_t> GetReachableReturnBlocks(opt::IRContext* ir_context,
                                             uint32_t function_id);
+
+// Returns true if changing terminator instruction to |new_terminator| in the
+// basic block with id |block_id| preserves domination rules and valid block
+// order (i.e. dominator must always appear before dominated in the CFG).
+// Returns false otherwise.
+bool NewTerminatorPreservesDominationRules(opt::IRContext* ir_context,
+                                           uint32_t block_id,
+                                           opt::Instruction new_terminator);
+
+// Return the iterator that points to the function with the corresponding
+// function id. If the function is not found, return the pointer pointing to
+// module()->end().
+opt::Module::iterator GetFunctionIterator(opt::IRContext* ir_context,
+                                          uint32_t function_id);
+
+// Returns true if the instruction with opcode |opcode| does not change its
+// behaviour depending on the signedness of the operand at
+// |use_in_operand_index|.
+// Assumes that the operand must be the id of an integer scalar or vector.
+bool IsAgnosticToSignednessOfOperand(SpvOp opcode,
+                                     uint32_t use_in_operand_index);
+
+// Returns true if |type_id_1| and |type_id_2| represent compatible types
+// given the context of the instruction with |opcode| (i.e. we can replace
+// an operand of |opcode| of the first type with an id of the second type
+// and vice-versa).
+bool TypesAreCompatible(opt::IRContext* ir_context, SpvOp opcode,
+                        uint32_t use_in_operand_index, uint32_t type_id_1,
+                        uint32_t type_id_2);
 
 }  // namespace fuzzerutil
 }  // namespace fuzz

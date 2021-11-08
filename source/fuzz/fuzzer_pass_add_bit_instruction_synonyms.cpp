@@ -24,12 +24,10 @@ namespace fuzz {
 FuzzerPassAddBitInstructionSynonyms::FuzzerPassAddBitInstructionSynonyms(
     opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
-    protobufs::TransformationSequence* transformations)
+    protobufs::TransformationSequence* transformations,
+    bool ignore_inapplicable_transformations)
     : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                 transformations) {}
-
-FuzzerPassAddBitInstructionSynonyms::~FuzzerPassAddBitInstructionSynonyms() =
-    default;
+                 transformations, ignore_inapplicable_transformations) {}
 
 void FuzzerPassAddBitInstructionSynonyms::Apply() {
   for (auto& function : *GetIRContext()->module()) {
@@ -48,22 +46,11 @@ void FuzzerPassAddBitInstructionSynonyms::Apply() {
           continue;
         }
 
-        // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3557):
-        //  Right now we only support certain operations. When this issue is
-        //  addressed the following conditional can use the function
-        //  |spvOpcodeIsBit|.
-        if (instruction.opcode() != SpvOpBitwiseOr &&
-            instruction.opcode() != SpvOpBitwiseXor &&
-            instruction.opcode() != SpvOpBitwiseAnd &&
-            instruction.opcode() != SpvOpNot) {
-          continue;
-        }
-
-        // Right now, only integer operands are supported.
-        if (GetIRContext()
-                ->get_type_mgr()
-                ->GetType(instruction.type_id())
-                ->AsVector()) {
+        // Make sure fuzzer never applies a transformation to a bitwise
+        // instruction with differently signed operands, only integer operands
+        // are supported and bitwise operations are supported only.
+        if (!TransformationAddBitInstructionSynonym::IsInstructionSupported(
+                GetIRContext(), &instruction)) {
           continue;
         }
 

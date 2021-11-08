@@ -835,7 +835,7 @@ class OpTypeArrayLengthTest
         position_(spv_position_t{0, 0, 0}),
         diagnostic_(spvDiagnosticCreate(&position_, "")) {}
 
-  ~OpTypeArrayLengthTest() { spvDiagnosticDestroy(diagnostic_); }
+  ~OpTypeArrayLengthTest() override { spvDiagnosticDestroy(diagnostic_); }
 
   // Runs spvValidate() on v, printing any errors via spvDiagnosticPrint().
   spv_result_t Val(const SpirvVector& v, const std::string& expected_err = "") {
@@ -1055,6 +1055,8 @@ TEST_F(ValidateIdWithMessage, OpTypeStructOpaqueTypeBad) {
 )";
   CompileSuccessfully(spirv.c_str(), SPV_ENV_VULKAN_1_0);
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_0));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-None-04667"));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("OpTypeStruct must not contain an opaque type"));
 }
@@ -5522,9 +5524,9 @@ OpFunctionEnd
   CompileSuccessfully(spirv.c_str());
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("OpDecorate SpecId decoration target <id> "
-                        "'1[%uint_3]' is not a scalar specialization "
-                        "constant."));
+              HasSubstr("SpecId decoration on target <id> "
+                        "'1[%uint_3]' must be a scalar specialization "
+                        "constant"));
 }
 
 TEST_F(ValidateIdWithMessage, SpecIdTargetOpSpecConstantOpBad) {
@@ -5544,8 +5546,8 @@ OpFunctionEnd
   CompileSuccessfully(spirv.c_str());
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("OpDecorate SpecId decoration target <id> '1[%1]' is "
-                        "not a scalar specialization constant."));
+              HasSubstr("SpecId decoration on target <id> '1[%1]' "
+                        "must be a scalar specialization constant"));
 }
 
 TEST_F(ValidateIdWithMessage, SpecIdTargetOpSpecConstantCompositeBad) {
@@ -5564,8 +5566,8 @@ OpFunctionEnd
   CompileSuccessfully(spirv.c_str());
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("OpDecorate SpecId decoration target <id> '1[%1]' is "
-                        "not a scalar specialization constant."));
+              HasSubstr("SpecId decoration on target <id> '1[%1]' "
+                        "must be a scalar specialization constant"));
 }
 
 TEST_F(ValidateIdWithMessage, SpecIdTargetGood) {

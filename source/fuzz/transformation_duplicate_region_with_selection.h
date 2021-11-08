@@ -26,7 +26,7 @@ namespace fuzz {
 class TransformationDuplicateRegionWithSelection : public Transformation {
  public:
   explicit TransformationDuplicateRegionWithSelection(
-      const protobufs::TransformationDuplicateRegionWithSelection& message);
+      protobufs::TransformationDuplicateRegionWithSelection message);
 
   explicit TransformationDuplicateRegionWithSelection(
       uint32_t new_entry_fresh_id, uint32_t condition_id,

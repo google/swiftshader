@@ -21,6 +21,7 @@
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
 #include "source/fuzz/random_generator.h"
 #include "source/opt/function.h"
+#include "source/opt/ir_context.h"
 
 namespace spvtools {
 namespace fuzz {
@@ -32,7 +33,8 @@ class FuzzerContext {
  public:
   // Constructs a fuzzer context with a given random generator and the minimum
   // value that can be used for fresh ids.
-  FuzzerContext(RandomGenerator* random_generator, uint32_t min_fresh_id);
+  FuzzerContext(std::unique_ptr<RandomGenerator> random_generator,
+                uint32_t min_fresh_id, bool is_wgsl_compatible);
 
   ~FuzzerContext();
 
@@ -64,7 +66,7 @@ class FuzzerContext {
   }
 
   // Randomly shuffles a |sequence| between |lo| and |hi| indices inclusively.
-  // |lo| and |hi| must be valid indices to the |sequence|
+  // |lo| and |hi| must be valid indices to the |sequence|.
   template <typename T>
   void Shuffle(std::vector<T>* sequence, size_t lo, size_t hi) const {
     auto& array = *sequence;
@@ -89,7 +91,7 @@ class FuzzerContext {
     }
   }
 
-  // Ramdomly shuffles a |sequence|
+  // Randomly shuffles a |sequence|.
   template <typename T>
   void Shuffle(std::vector<T>* sequence) const {
     if (!sequence->empty()) {
@@ -102,7 +104,7 @@ class FuzzerContext {
   uint32_t GetFreshId();
 
   // Returns a vector of |count| fresh ids.
-  std::vector<uint32_t> GetFreshIds(const uint32_t count);
+  std::vector<uint32_t> GetFreshIds(uint32_t count);
 
   // A suggested limit on the id bound for the module being fuzzed.  This is
   // useful for deciding when to stop the overall fuzzing process.  Furthermore,
@@ -114,6 +116,14 @@ class FuzzerContext {
   // Also useful to control the overall fuzzing process and rein in individual
   // fuzzer passes.
   uint32_t GetTransformationLimit() const;
+
+  // Returns the minimum fresh id that can be used given the |ir_context|.
+  static uint32_t GetMinFreshId(opt::IRContext* ir_context);
+
+  // Returns true if all transformations should be compatible with WGSL.
+  bool IsWgslCompatible() const {
+    return is_wgsl_compatible_;
+  }
 
   // Probabilities associated with applying various transformations.
   // Keep them in alphabetical order.
@@ -131,6 +141,12 @@ class FuzzerContext {
   }
   uint32_t GetChanceOfAddingArrayOrStructType() const {
     return chance_of_adding_array_or_struct_type_;
+  }
+  uint32_t GetChanceOfAddingAtomicLoad() const {
+    return chance_of_adding_atomic_load_;
+  }
+  uint32_t GetChanceOfAddingAtomicStore() const {
+    return chance_of_adding_atomic_store_;
   }
   uint32_t GetChanceOfAddingBitInstructionSynonym() const {
     return chance_of_adding_bit_instruction_synonym_;
@@ -293,6 +309,9 @@ class FuzzerContext {
   uint32_t GetChanceOfOutliningFunction() const {
     return chance_of_outlining_function_;
   }
+  uint32_t GetChanceOfPermutingFunctionVariables() const {
+    return chance_of_permuting_function_variables_;
+  }
   uint32_t GetChanceOfPermutingInstructions() const {
     return chance_of_permuting_instructions_;
   }
@@ -350,14 +369,26 @@ class FuzzerContext {
   uint32_t GetChanceOfSplittingBlock() const {
     return chance_of_splitting_block_;
   }
+  uint32_t GetChanceOfSwappingAnotherPairOfFunctionVariables() const {
+    return chance_of_swapping_another_pair_of_function_variables_;
+  }
   uint32_t GetChanceOfSwappingConditionalBranchOperands() const {
     return chance_of_swapping_conditional_branch_operands_;
   }
+
+  uint32_t GetChanceOfSwappingFunctions() const {
+    return chance_of_swapping_functions_;
+  }
+
   uint32_t GetChanceOfTogglingAccessChainInstruction() const {
     return chance_of_toggling_access_chain_instruction_;
   }
   uint32_t GetChanceOfWrappingRegionInSelection() const {
     return chance_of_wrapping_region_in_selection_;
+  }
+
+  uint32_t GetChanceOfWrappingVectorSynonym() const {
+    return chance_of_wrapping_vector_synonym_;
   }
 
   // Other functions to control transformations. Keep them in alphabetical
@@ -404,6 +435,9 @@ class FuzzerContext {
   uint32_t GetRandomIndexForCompositeInsert(uint32_t number_of_components) {
     return random_generator_->RandomUint32(number_of_components);
   }
+  uint32_t GetRandomIndexForWrappingVector(uint32_t vector_width) {
+    return random_generator_->RandomUint32(vector_width);
+  }
   int64_t GetRandomValueForStepConstantInLoop() {
     return random_generator_->RandomUint64(UINT64_MAX);
   }
@@ -441,15 +475,21 @@ class FuzzerContext {
     // Ensure that the number of unused components is non-zero.
     return random_generator_->RandomUint32(max_unused_component_count) + 1;
   }
+  uint32_t GetWidthOfWrappingVector() {
+    return 2 + random_generator_->RandomUint32(3);
+  }
   bool GoDeeperInConstantObfuscation(uint32_t depth) {
-    return go_deeper_in_constant_obfuscation_(depth, random_generator_);
+    return go_deeper_in_constant_obfuscation_(depth, random_generator_.get());
   }
 
  private:
   // The source of randomness.
-  RandomGenerator* random_generator_;
+  std::unique_ptr<RandomGenerator> random_generator_;
   // The next fresh id to be issued.
   uint32_t next_fresh_id_;
+
+  // True if all transformations should be compatible with WGSL spec.
+  bool is_wgsl_compatible_;
 
   // Probabilities associated with applying various transformations.
   // Keep them in alphabetical order.
@@ -458,6 +498,8 @@ class FuzzerContext {
   uint32_t chance_of_adding_another_pass_to_pass_loop_;
   uint32_t chance_of_adding_another_struct_field_;
   uint32_t chance_of_adding_array_or_struct_type_;
+  uint32_t chance_of_adding_atomic_load_;
+  uint32_t chance_of_adding_atomic_store_;
   uint32_t chance_of_adding_bit_instruction_synonym_;
   uint32_t chance_of_adding_both_branches_when_replacing_opselect_;
   uint32_t chance_of_adding_composite_extract_;
@@ -513,6 +555,7 @@ class FuzzerContext {
   uint32_t chance_of_mutating_pointer_;
   uint32_t chance_of_obfuscating_constant_;
   uint32_t chance_of_outlining_function_;
+  uint32_t chance_of_permuting_function_variables_;
   uint32_t chance_of_permuting_instructions_;
   uint32_t chance_of_permuting_parameters_;
   uint32_t chance_of_permuting_phi_operands_;
@@ -532,9 +575,12 @@ class FuzzerContext {
   uint32_t chance_of_replacing_parameters_with_globals_;
   uint32_t chance_of_replacing_parameters_with_struct_;
   uint32_t chance_of_splitting_block_;
+  uint32_t chance_of_swapping_another_pair_of_function_variables_;
   uint32_t chance_of_swapping_conditional_branch_operands_;
+  uint32_t chance_of_swapping_functions_;
   uint32_t chance_of_toggling_access_chain_instruction_;
   uint32_t chance_of_wrapping_region_in_selection_;
+  uint32_t chance_of_wrapping_vector_synonym_;
 
   // Limits associated with various quantities for which random values are
   // chosen during fuzzing.

@@ -257,6 +257,8 @@ TEST_F(ValidationStateTest, CheckVulkanDirectlyRecursiveBodyBad) {
   EXPECT_EQ(SPV_ERROR_INVALID_BINARY,
             ValidateAndRetrieveValidationState(SPV_ENV_VULKAN_1_1));
   EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-None-04634"));
+  EXPECT_THAT(getDiagnosticString(),
               HasSubstr("Entry points may not have a call graph with cycles.\n "
                         " %1 = OpFunction %void Pure|Const %3\n"));
 }
@@ -273,6 +275,8 @@ TEST_F(ValidationStateTest, CheckVulkanIndirectlyRecursiveBodyBad) {
   CompileSuccessfully(spirv, SPV_ENV_VULKAN_1_1);
   EXPECT_EQ(SPV_ERROR_INVALID_BINARY,
             ValidateAndRetrieveValidationState(SPV_ENV_VULKAN_1_1));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-None-04634"));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("Entry points may not have a call graph with cycles.\n "
                         " %1 = OpFunction %void Pure|Const %3\n"));

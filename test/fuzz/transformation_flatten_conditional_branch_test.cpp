@@ -1334,20 +1334,24 @@ TEST(TransformationFlattenConditionalBranchTest,
                OpFunctionEnd
   )";
 
-  const auto env = SPV_ENV_UNIVERSAL_1_3;
-  const auto consumer = nullptr;
-  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  spvtools::ValidatorOptions validator_options;
-  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
-                                               kConsoleMessageConsumer));
+  for (auto env :
+       {SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_1, SPV_ENV_UNIVERSAL_1_2,
+        SPV_ENV_UNIVERSAL_1_3, SPV_ENV_VULKAN_1_0, SPV_ENV_VULKAN_1_1}) {
+    const auto consumer = nullptr;
+    const auto context =
+        BuildModule(env, consumer, shader, kFuzzAssembleOption);
+    spvtools::ValidatorOptions validator_options;
+    ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(
+        context.get(), validator_options, kConsoleMessageConsumer));
 
-  TransformationContext transformation_context(
-      MakeUnique<FactManager>(context.get()), validator_options);
+    TransformationContext transformation_context(
+        MakeUnique<FactManager>(context.get()), validator_options);
 
-  auto transformation =
-      TransformationFlattenConditionalBranch(5, true, 0, 0, 0, {});
-  ASSERT_FALSE(
-      transformation.IsApplicable(context.get(), transformation_context));
+    auto transformation =
+        TransformationFlattenConditionalBranch(5, true, 0, 0, 0, {});
+    ASSERT_FALSE(
+        transformation.IsApplicable(context.get(), transformation_context));
+  }
 }
 
 TEST(TransformationFlattenConditionalBranchTest,

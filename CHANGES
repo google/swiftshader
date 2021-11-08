@@ -1,7 +1,118 @@
 Revision history for SPIRV-Tools
 
-v2020.7-dev 2020-12-07
- - Start v2020.7-dev
+v2021.4-dev 2021-08-25
+  - Add a WebAssembly build
+
+v2021.3 2021-08-24
+ - General
+    - Initial support for SPV_KHR_integer_dot_product (#4327)
+    - Add non-semantic vulkan extended instruction set (#4362)
+    - Add common enum for debug info instructions from either opencl or vulkan (#4377)
+ - Validator
+    - Add validation for SPV_EXT_shader_atomic_float16_add (#4325)
+    - Disallow loading a runtime-sized array (#4473)
+    - spirv-val: Validate vulkan debug info similarly to opencl debug info (#4466)
+ - Optimizer
+    - spirv-opt: support SPV_EXT_shader_image_int64 (#4379)
+    - spirv-opt: Add dataflow analysis framework (#4402)
+    - Add control dependence analysis to opt (#4380)
+    - Add spirv-opt convert-to-sampled-image pass (#4340)
+    - spirv-opt: Add handling of vulkan debug info to DebugInfoManager (#4423)
+ - Fuzz
+    - spirv-fuzz: support AtomicLoad (#4330)
+    - spirv-fuzz: Support AtomicStore (#4440)
+    - spirv-fuzz: TransformationWrapVectorSynonym that rewrites scalar operations using vectors (#4376)
+    - spirv-fuzz: Add minimal SPIR-V example to test shaders (#4415)
+    - spirv-fuzz: support building using gn (#4365)
+ - Linter
+    - Add new target for spirv-lint (#4446)
+    - spirv-lint: add basic CLI argument handling (#4478)
+    - Add divergence analysis to linter (#4465)
+
+v2021.2 2021-06-18
+ - General
+    - Support SPV_KHR_subgroup_uniform_control_flow (#4318)
+    - Support Intel extensions for fixed point and hls-float (#4321)
+    - Fix crash when optimizing shaders with DebugPrintf (#4280)
+
+ - Validator
+    - Support Vulkan Storage Class for Execution Model (#4212)
+
+ - Optimizer
+    - Handle SPV_KHR_vulkan_memory_model in dead-code elimination (#4320)
+    - Support folding OpBitcast with numeric constants (#4247)
+
+ - Fuzz
+    - Add tests for MaybeGet* functions in fuzzerutil (#4284)
+    - Fix OutlineFunction in presence of unreachable blocks (#4308)
+    - Fix def-use update in PermutePhiOperands (#4309)
+    - Swap positions of two functions in a module (#4236)
+
+v2021.1 2021-04-19
+ - General
+    - Support SPV_KHR_linkonce_odr, SPV_KHR_expect_assume (#4161)
+    - Fixes for the vscode language server extension (#4150)
+ - Validator
+    - Add validation for SPV_EXT_shader_atomic_float_min_max (#4105)
+    - Add Vulkan Execution Scope checks (#4183)
+    - Vulkan 64-bit OpAtomicStore check (#4163)
+ - Optimizer
+    - Add interpolate legalization pass (#4220)
+ - Fuzz
+    - Various performance optimizations
+    - Do not add too many dead blocks (#4217)
+    - Add WGSL compatibility flag to context (#4193)
+    - Add persistent state to the fuzzer (#4137)
+
+v2020.7 2021-02-16
+ - General
+    - Support pending Intel extensions (#4116)
+    - Remove WebGPU support (#4108)
+ - Validator
+    - Vulkan image gather constant component (#4133)
+    - Add Vulkan PSB64 convert VUID (#4122)
+    - Validate SPV_KHR_workgroup_memory_explicit_layout (#4128)
+    - Validate VK_KHR_zero_initialize_workgroup_memory (#4124)
+    - Add Vulkan image gather offset VUID (#4118)
+    - Label Vulkan atomic semantics VUIDs (#4120)
+    - Label VUID 04662 (#4123)
+    - Label VUID 04683 (#4121)
+    - Add Vulkan EXT builtins (#4115)
+    - Validate Sampled=1 for Vulkan ImageQuerySizeLod, ImageQueryLevels, ImageQueryLod (#4103)
+    - Add Vulkan Memory Scope VUs (#4106)
+    - Add Vulkan Addressing Model check (#4107)
+    - Vulkan atomic storage class (#4079)
+    - Label standalone Vulkan VUID (#4091)
+    - Add Vulkan decroation VUID (#4090)
+    - Add Vulkan FP Mode VUID (#4088)
+    - Fix Vulkan image sampled check (#4085)
+    - Add Vulkan ForwardPointer VUID (#4089)
+    - Add Vulkan ImageTexelPointer format check (#4087)
+    - Add Vulkan Group Operation VUID (#4086)
+    - Add first StandAlone VUID 04633 (#4077)
+    - Add Subgroup VUIDs (#4074)
+    - validate return type of OpImageRead (#4072)
+    - tighter validation of multisampled images (#4059)
+    - validate OpTypeImage Sampled values for environemnts (#4064)
+    - validate StorageImageMultisampled capability (#4062)
+    - Add last TessLevelOuter and TessLevelInner VUID (#4055)
+    - Add last ClipDistance and CullDistance VUID (#4054)
+    - Add last ViewportIndex and Layer VUID (#4053)
+    - Add last Position VUID (#4052)
+    - Allow forward pointer to be used in types generally (#4044)
+ - Optimizer
+    - Mark module as modified if convert-to-half removes decorations (#4127)
+    - Fix binding number calculation in desc sroa (#4095)
+    - Run DCE when SPV_KHR_shader_clock is used (#4049)
+ - Debug Info
+    - Set correct scope and line info for DebugValue (#4125)
+    - Avoid integrity check failures caused by propagating line instructions (#4096)
+ - Linker
+    - Linker usability improvements (#4084)
+ - Instrumentation
+    - Generate differentiated error codes for buffer oob checking (#4097)
+ - Fuzz
+    - Fix OpPhi handling in DuplicateRegionWithSelection (#4065)
 
 v2020.6 2020-12-07
  - General

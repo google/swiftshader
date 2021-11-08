@@ -15,13 +15,14 @@
 #include "source/fuzz/transformation_add_global_undef.h"
 
 #include "source/fuzz/fuzzer_util.h"
+#include "source/opt/reflect.h"
 
 namespace spvtools {
 namespace fuzz {
 
 TransformationAddGlobalUndef::TransformationAddGlobalUndef(
-    const spvtools::fuzz::protobufs::TransformationAddGlobalUndef& message)
-    : message_(message) {}
+    spvtools::fuzz::protobufs::TransformationAddGlobalUndef message)
+    : message_(std::move(message)) {}
 
 TransformationAddGlobalUndef::TransformationAddGlobalUndef(uint32_t fresh_id,
                                                            uint32_t type_id) {
@@ -35,21 +36,23 @@ bool TransformationAddGlobalUndef::IsApplicable(
   if (!fuzzerutil::IsFreshId(ir_context, message_.fresh_id())) {
     return false;
   }
-  auto type = ir_context->get_type_mgr()->GetType(message_.type_id());
-  // The type must exist, and must not be a function type.
-  return type && !type->AsFunction();
+  auto type = ir_context->get_def_use_mgr()->GetDef(message_.type_id());
+  // The type must exist, and must not be a function or pointer type.
+  return type != nullptr && opt::IsTypeInst(type->opcode()) &&
+         type->opcode() != SpvOpTypeFunction &&
+         type->opcode() != SpvOpTypePointer;
 }
 
 void TransformationAddGlobalUndef::Apply(
     opt::IRContext* ir_context, TransformationContext* /*unused*/) const {
-  ir_context->module()->AddGlobalValue(MakeUnique<opt::Instruction>(
+  auto new_instruction = MakeUnique<opt::Instruction>(
       ir_context, SpvOpUndef, message_.type_id(), message_.fresh_id(),
-      opt::Instruction::OperandList()));
+      opt::Instruction::OperandList());
+  auto new_instruction_ptr = new_instruction.get();
+  ir_context->module()->AddGlobalValue(std::move(new_instruction));
   fuzzerutil::UpdateModuleIdBound(ir_context, message_.fresh_id());
-  // We have added an instruction to the module, so need to be careful about the
-  // validity of existing analyses.
-  ir_context->InvalidateAnalysesExceptFor(
-      opt::IRContext::Analysis::kAnalysisNone);
+  // Inform the def-use manager about the new instruction.
+  ir_context->get_def_use_mgr()->AnalyzeInstDef(new_instruction_ptr);
 }
 
 protobufs::Transformation TransformationAddGlobalUndef::ToMessage() const {

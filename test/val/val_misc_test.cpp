@@ -273,6 +273,30 @@ TEST_F(ValidateMisc, UndefVoid) {
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("Cannot create undefined values with void type"));
 }
+
+TEST_F(ValidateMisc, VulkanInvalidStorageClass) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %func "shader"
+%int = OpTypeInt 32 0
+%ptr = OpTypePointer CrossWorkgroup %int
+%var = OpVariable %ptr CrossWorkgroup
+%void   = OpTypeVoid
+%void_f = OpTypeFunction %void
+%func   = OpFunction %void None %void_f
+%label  = OpLabel
+          OpReturn
+          OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_VULKAN_1_0);
+  ASSERT_EQ(SPV_ERROR_INVALID_BINARY, ValidateInstructions(SPV_ENV_VULKAN_1_0));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-None-04643"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Invalid storage class for target environment"));
+}
 }  // namespace
 }  // namespace val
 }  // namespace spvtools
