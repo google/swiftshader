@@ -43,27 +43,6 @@ sw::SIMD::Float Interpolate(const sw::SIMD::Float &x, const sw::SIMD::Float &y, 
 	return interpolant;
 }
 
-// TODO(b/179925303): Eliminate when interpolants are tightly packed.
-uint32_t ComputeInterpolantOffset(uint32_t offset, uint32_t components_per_row, bool useArrayOffset)
-{
-	if(useArrayOffset)
-	{
-		uint32_t interpolant_offset = offset / components_per_row;
-		offset = (interpolant_offset * 4) + (offset - interpolant_offset * components_per_row);
-	}
-	return offset;
-}
-
-rr::Int ComputeInterpolantOffset(rr::Int offset, uint32_t components_per_row, bool useArrayOffset)
-{
-	if(useArrayOffset)
-	{
-		rr::Int interpolant_offset = offset / rr::Int(components_per_row);
-		offset = (interpolant_offset << 2) + (offset - interpolant_offset * rr::Int(components_per_row));
-	}
-	return offset;
-}
-
 }  // namespace
 
 namespace sw {
@@ -927,7 +906,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto ptr = state->getPointer(insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, Interpolate(ptr, d.Location, 0, i, type.componentCount, state, SpirvShader::Centroid));
+				dst.move(i, Interpolate(ptr, d.Location, 0, i, state, SpirvShader::Centroid));
 			}
 		}
 		break;
@@ -938,7 +917,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto ptr = state->getPointer(insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, Interpolate(ptr, d.Location, insn.word(6), i, type.componentCount, state, SpirvShader::AtSample));
+				dst.move(i, Interpolate(ptr, d.Location, insn.word(6), i, state, SpirvShader::AtSample));
 			}
 		}
 		break;
@@ -949,7 +928,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto ptr = state->getPointer(insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, Interpolate(ptr, d.Location, insn.word(6), i, type.componentCount, state, SpirvShader::AtOffset));
+				dst.move(i, Interpolate(ptr, d.Location, insn.word(6), i, state, SpirvShader::AtOffset));
 			}
 		}
 		break;
@@ -993,8 +972,8 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	return EmitResult::Continue;
 }
 
-SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId, uint32_t component,
-                                     uint32_t component_count, EmitState *state, InterpolationType type) const
+SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId,
+                                     uint32_t component, EmitState *state, InterpolationType type) const
 {
 	uint32_t interpolant = (location * 4);
 	uint32_t components_per_row = GetNumInputComponents(location);
@@ -1002,12 +981,6 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 	{
 		return SIMD::Float(0.0f);
 	}
-
-	// Distinguish between the operator[] being used on a vector of on an array
-	// If the number of components of the interpolant is 1, then the operator[] automatically means this is an array.
-	// Otherwise, if the component_count is 1, than the operator[] can be the result of this operator being called
-	// from a vec2, vec3 or vec4, so a component_count greater than 1 means any offset is for an array
-	bool useArrayOffset = (components_per_row == 1) || (component_count > 1);
 
 	const auto &interpolationData = state->routine->interpolationData;
 
@@ -1074,11 +1047,12 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 		return SIMD::Float(0.0f);
 	}
 
-	Pointer<Byte> planeEquation = interpolationData.primitive + OFFSET(Primitive, V[interpolant]);
+	uint32_t packedInterpolant = GetPackedInterpolant(location);
+	Pointer<Byte> planeEquation = interpolationData.primitive + OFFSET(Primitive, V[packedInterpolant]);
 	if(ptr.hasDynamicOffsets)
 	{
 		// This code assumes all dynamic offsets are equal
-		Int offset = ComputeInterpolantOffset(((Extract(ptr.dynamicOffsets, 0) + ptr.staticOffsets[0]) >> 2) + component, components_per_row, useArrayOffset);
+		Int offset = ((Extract(ptr.dynamicOffsets, 0) + ptr.staticOffsets[0]) >> 2) + component;
 		offset = Min(offset, Int(inputs.size() - interpolant - 1));
 		planeEquation += (offset * sizeof(PlaneEquation));
 	}
@@ -1086,7 +1060,7 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 	{
 		ASSERT(ptr.hasStaticEqualOffsets());
 
-		uint32_t offset = ComputeInterpolantOffset((ptr.staticOffsets[0] >> 2) + component, components_per_row, useArrayOffset);
+		uint32_t offset = (ptr.staticOffsets[0] >> 2) + component;
 		if((interpolant + offset) >= inputs.size())
 		{
 			return SIMD::Float(0.0f);

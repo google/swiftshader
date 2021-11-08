@@ -931,6 +931,24 @@ uint32_t SpirvShader::GetNumInputComponents(int32_t location) const
 	return num_components_per_input;
 }
 
+uint32_t SpirvShader::GetPackedInterpolant(int32_t location) const
+{
+	ASSERT(location >= 0);
+	const uint32_t maxInterpolant = (location << 2);
+
+	// Return the number of used components only at location
+	uint32_t packedInterpolant = 0;
+	for(uint32_t i = 0; i < maxInterpolant; ++i)
+	{
+		if (inputs[i].Type != ATTRIBTYPE_UNUSED)
+		{
+			++packedInterpolant;
+		}
+	}
+
+	return packedInterpolant;
+}
+
 void SpirvShader::ProcessExecutionMode(InsnIterator insn)
 {
 	Function::ID function = insn.word(1);

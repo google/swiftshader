@@ -203,32 +203,34 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 					yyyy += Float4(Constants::SampleLocationsY[samples[0]]);
 				}
 
-				for(int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+				int packedInterpolant = 0;
+				for(int interfaceInterpolant = 0; interfaceInterpolant < MAX_INTERFACE_COMPONENTS; interfaceInterpolant++)
 				{
-					auto const &input = spirvShader->inputs[interpolant];
+					auto const &input = spirvShader->inputs[interfaceInterpolant];
 					if(input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
 					{
 						if(input.Centroid && state.enableMultiSampling)
 						{
-							routine.inputs[interpolant] =
+							routine.inputs[interfaceInterpolant] =
 							    SpirvRoutine::interpolateAtXY(XXXX, YYYY, rhwCentroid,
-							                                  primitive + OFFSET(Primitive, V[interpolant]),
+							                                  primitive + OFFSET(Primitive, V[packedInterpolant]),
 							                                  input.Flat, !input.NoPerspective);
 						}
 						else if(perSampleShading)
 						{
-							routine.inputs[interpolant] =
+							routine.inputs[interfaceInterpolant] =
 							    SpirvRoutine::interpolateAtXY(xxxx, yyyy, rhw,
-							                                  primitive + OFFSET(Primitive, V[interpolant]),
+							                                  primitive + OFFSET(Primitive, V[packedInterpolant]),
 							                                  input.Flat, !input.NoPerspective);
 						}
 						else
 						{
-							routine.inputs[interpolant] =
-							    interpolate(xxxx, Dv[interpolant], rhw,
-							                primitive + OFFSET(Primitive, V[interpolant]),
+							routine.inputs[interfaceInterpolant] =
+							    interpolate(xxxx, Dv[interfaceInterpolant], rhw,
+							                primitive + OFFSET(Primitive, V[packedInterpolant]),
 							                input.Flat, !input.NoPerspective);
 						}
+						packedInterpolant++;
 					}
 				}
 
