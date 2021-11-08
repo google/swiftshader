@@ -419,6 +419,7 @@ if(MSVC)
     # Treat specific warnings as errors
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS
         "/we4018" # 'expression' : signed/unsigned mismatch
+        "/we4062" # enumerator 'identifier' in switch of enum 'enumeration' is not handled
         "/we4471" # 'enumeration': a forward declaration of an unscoped enumeration must have an underlying type (int assumed)
         "/we4838" # conversion from 'type_1' to 'type_2' requires a narrowing conversion
         "/we5038" # data member 'member1' will be initialized after data member 'member2' data member 'member' will be initialized after base class 'base_class'
