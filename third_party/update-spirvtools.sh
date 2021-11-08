@@ -29,4 +29,4 @@ fi
 ALL_CHANGES=`git log -n 1 HEAD^2 | egrep '^(\s{4}[0-9a-f]{9}\s*.*)$'`
 HEAD_CHANGE=`echo "$ALL_CHANGES" | egrep '[0-9a-f]{9}' -o -m 1`
 LOG_MSG=`echo -e "Update SPIR-V Tools to $HEAD_CHANGE\n${REASON}\nChanges:\n$ALL_CHANGES\n\nCommands:\n    ./third_party/update-spirvtools.sh\n\nBug: b/123642959"`
-git commit --amend -m "$LOG_MSG"
+git commit --no-verify --amend -m "$LOG_MSG"
