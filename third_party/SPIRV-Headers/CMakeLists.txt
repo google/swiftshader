@@ -79,7 +79,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 if (SPIRV_HEADERS_ENABLE_INSTALL)
     message(STATUS "Installing SPIRV-Header")
 
-    set(config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+    set(config_install_dir "${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME}")
 
     set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
@@ -123,5 +123,11 @@ if (SPIRV_HEADERS_ENABLE_INSTALL)
         EXPORT "${TARGETS_EXPORT_NAME}"
         NAMESPACE "${namespace}"
         DESTINATION "${config_install_dir}"
+    )
+
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Headers.pc.in ${CMAKE_BINARY_DIR}/SPIRV-Headers.pc @ONLY)
+    install(
+        FILES "${CMAKE_BINARY_DIR}/SPIRV-Headers.pc"
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/pkgconfig
     )
 endif()

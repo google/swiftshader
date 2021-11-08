@@ -64,6 +64,7 @@ enum SourceLanguage : uint
     OpenCL_C = 3,
     OpenCL_CPP = 4,
     HLSL = 5,
+    CPP_for_OpenCL = 6,
 }
 
 enum ExecutionModel : uint
@@ -149,6 +150,7 @@ enum ExecutionMode : uint
     SubgroupsPerWorkgroupId = 37,
     LocalSizeId = 38,
     LocalSizeHintId = 39,
+    SubgroupUniformControlFlowKHR = 4421,
     PostDepthCoverage = 4446,
     DenormPreserve = 4459,
     DenormFlushToZero = 4460,
@@ -350,6 +352,7 @@ enum ImageOperandsShift : uint
     VolatileTexelKHR = 11,
     SignExtend = 12,
     ZeroExtend = 13,
+    Offsets = 16,
 }
 
 enum ImageOperandsMask : uint
@@ -373,6 +376,7 @@ enum ImageOperandsMask : uint
     VolatileTexelKHR = 0x00000800,
     SignExtend = 0x00001000,
     ZeroExtend = 0x00002000,
+    Offsets = 0x00010000,
 }
 
 enum FPFastMathModeShift : uint
@@ -406,22 +410,11 @@ enum FPRoundingMode : uint
     RTN = 3,
 }
 
-enum FPDenormMode : uint
-{
-    Preserve = 0,
-    FlushToZero = 1,
-}
-
-enum FPOperationMode : uint
-{
-    IEEE = 0,
-    ALT = 1,
-}
-
 enum LinkageType : uint
 {
     Export = 0,
     Import = 1,
+    LinkOnceODR = 2,
 }
 
 enum AccessQualifier : uint
@@ -509,6 +502,10 @@ enum Decoration : uint
     RestrictPointerEXT = 5355,
     AliasedPointer = 5356,
     AliasedPointerEXT = 5356,
+    BindlessSamplerNV = 5398,
+    BindlessImageNV = 5399,
+    BoundSamplerNV = 5400,
+    BoundImageNV = 5401,
     SIMTCallINTEL = 5599,
     ReferencedIndirectlyINTEL = 5602,
     ClobberINTEL = 5607,
@@ -663,6 +660,7 @@ enum BuiltIn : uint
     HitTNV = 5332,
     HitKindKHR = 5333,
     HitKindNV = 5333,
+    CurrentRayTimeNV = 5334,
     IncomingRayFlagsKHR = 5351,
     IncomingRayFlagsNV = 5351,
     RayGeometryIndexKHR = 5352,
@@ -734,6 +732,7 @@ enum FunctionControlShift : uint
     DontInline = 1,
     Pure = 2,
     Const = 3,
+    OptNoneINTEL = 16,
 }
 
 enum FunctionControlMask : uint
@@ -743,6 +742,7 @@ enum FunctionControlMask : uint
     DontInline = 0x00000002,
     Pure = 0x00000004,
     Const = 0x00000008,
+    OptNoneINTEL = 0x00010000,
 }
 
 enum MemorySemanticsShift : uint
@@ -930,6 +930,9 @@ enum Capability : uint
     FragmentShadingRateKHR = 4422,
     SubgroupBallotKHR = 4423,
     DrawParameters = 4427,
+    WorkgroupMemoryExplicitLayoutKHR = 4428,
+    WorkgroupMemoryExplicitLayout8BitAccessKHR = 4429,
+    WorkgroupMemoryExplicitLayout16BitAccessKHR = 4430,
     SubgroupVoteKHR = 4431,
     StorageBuffer16BitAccess = 4433,
     StorageUniformBufferBlock16 = 4433,
@@ -1002,6 +1005,7 @@ enum Capability : uint
     StorageTexelBufferArrayNonUniformIndexing = 5312,
     StorageTexelBufferArrayNonUniformIndexingEXT = 5312,
     RayTracingNV = 5340,
+    RayTracingMotionBlurNV = 5341,
     VulkanMemoryModel = 5345,
     VulkanMemoryModelKHR = 5345,
     VulkanMemoryModelDeviceScope = 5346,
@@ -1016,6 +1020,7 @@ enum Capability : uint
     ShaderSMBuiltinsNV = 5373,
     FragmentShaderPixelInterlockEXT = 5378,
     DemoteToHelperInvocationEXT = 5379,
+    BindlessTextureNV = 5390,
     SubgroupShuffleINTEL = 5568,
     SubgroupBufferBlockIOINTEL = 5569,
     SubgroupImageBlockIOINTEL = 5570,
@@ -1026,8 +1031,12 @@ enum Capability : uint
     FunctionPointersINTEL = 5603,
     IndirectReferencesINTEL = 5604,
     AsmINTEL = 5606,
+    AtomicFloat32MinMaxEXT = 5612,
+    AtomicFloat64MinMaxEXT = 5613,
+    AtomicFloat16MinMaxEXT = 5616,
     VectorComputeINTEL = 5617,
     VectorAnyINTEL = 5619,
+    ExpectAssumeKHR = 5629,
     SubgroupAvcMotionEstimationINTEL = 5696,
     SubgroupAvcMotionEstimationIntraINTEL = 5697,
     SubgroupAvcMotionEstimationChromaINTEL = 5698,
@@ -1036,6 +1045,7 @@ enum Capability : uint
     FPGAMemoryAttributesINTEL = 5824,
     FPFastMathModeINTEL = 5837,
     ArbitraryPrecisionIntegersINTEL = 5844,
+    ArbitraryPrecisionFloatingPointINTEL = 5845,
     UnstructuredLoopControlsINTEL = 5886,
     FPGALoopControlsINTEL = 5888,
     KernelAttributesINTEL = 5892,
@@ -1044,13 +1054,22 @@ enum Capability : uint
     FPGAClusterAttributesINTEL = 5904,
     LoopFuseINTEL = 5906,
     FPGABufferLocationINTEL = 5920,
+    ArbitraryPrecisionFixedPointINTEL = 5922,
     USMStorageClassesINTEL = 5935,
     IOPipesINTEL = 5943,
     BlockingPipesINTEL = 5945,
     FPGARegINTEL = 5948,
+    DotProductInputAllKHR = 6016,
+    DotProductInput4x8BitKHR = 6017,
+    DotProductInput4x8BitPackedKHR = 6018,
+    DotProductKHR = 6019,
+    BitInstructions = 6025,
     AtomicFloat32AddEXT = 6033,
     AtomicFloat64AddEXT = 6034,
     LongConstantCompositeINTEL = 6089,
+    OptNoneINTEL = 6094,
+    AtomicFloat16AddEXT = 6095,
+    DebugInfoModuleINTEL = 6114,
 }
 
 enum RayFlagsShift : uint
@@ -1116,6 +1135,43 @@ enum FragmentShadingRateMask : uint
     Vertical4Pixels = 0x00000002,
     Horizontal2Pixels = 0x00000004,
     Horizontal4Pixels = 0x00000008,
+}
+
+enum FPDenormMode : uint
+{
+    Preserve = 0,
+    FlushToZero = 1,
+}
+
+enum FPOperationMode : uint
+{
+    IEEE = 0,
+    ALT = 1,
+}
+
+enum QuantizationModes : uint
+{
+    TRN = 0,
+    TRN_ZERO = 1,
+    RND = 2,
+    RND_ZERO = 3,
+    RND_INF = 4,
+    RND_MIN_INF = 5,
+    RND_CONV = 6,
+    RND_CONV_ODD = 7,
+}
+
+enum OverflowModes : uint
+{
+    WRAP = 0,
+    SAT = 1,
+    SAT_ZERO = 2,
+    SAT_SYM = 3,
+}
+
+enum PackedVectorFormat : uint
+{
+    PackedVectorFormat4x8BitKHR = 0,
 }
 
 enum Op : uint
@@ -1476,6 +1532,12 @@ enum Op : uint
     OpConvertUToAccelerationStructureKHR = 4447,
     OpIgnoreIntersectionKHR = 4448,
     OpTerminateRayKHR = 4449,
+    OpSDotKHR = 4450,
+    OpUDotKHR = 4451,
+    OpSUDotKHR = 4452,
+    OpSDotAccSatKHR = 4453,
+    OpUDotAccSatKHR = 4454,
+    OpSUDotAccSatKHR = 4455,
     OpTypeRayQueryKHR = 4472,
     OpRayQueryInitializeKHR = 4473,
     OpRayQueryTerminateKHR = 4474,
@@ -1502,6 +1564,8 @@ enum Op : uint
     OpIgnoreIntersectionNV = 5335,
     OpTerminateRayNV = 5336,
     OpTraceNV = 5337,
+    OpTraceMotionNV = 5338,
+    OpTraceRayMotionNV = 5339,
     OpTypeAccelerationStructureKHR = 5341,
     OpTypeAccelerationStructureNV = 5341,
     OpExecuteCallableNV = 5344,
@@ -1514,6 +1578,13 @@ enum Op : uint
     OpEndInvocationInterlockEXT = 5365,
     OpDemoteToHelperInvocationEXT = 5380,
     OpIsHelperInvocationEXT = 5381,
+    OpConvertUToImageNV = 5391,
+    OpConvertUToSamplerNV = 5392,
+    OpConvertImageToUNV = 5393,
+    OpConvertSamplerToUNV = 5394,
+    OpConvertUToSampledImageNV = 5395,
+    OpConvertSampledImageToUNV = 5396,
+    OpSamplerImageAddressingModeNV = 5397,
     OpSubgroupShuffleINTEL = 5571,
     OpSubgroupShuffleDownINTEL = 5572,
     OpSubgroupShuffleUpINTEL = 5573,
@@ -1543,6 +1614,10 @@ enum Op : uint
     OpAsmTargetINTEL = 5609,
     OpAsmINTEL = 5610,
     OpAsmCallINTEL = 5611,
+    OpAtomicFMinEXT = 5614,
+    OpAtomicFMaxEXT = 5615,
+    OpAssumeTrueKHR = 5630,
+    OpExpectKHR = 5631,
     OpDecorateString = 5632,
     OpDecorateStringGOOGLE = 5632,
     OpMemberDecorateString = 5633,
@@ -1668,7 +1743,59 @@ enum Op : uint
     OpVariableLengthArrayINTEL = 5818,
     OpSaveMemoryINTEL = 5819,
     OpRestoreMemoryINTEL = 5820,
+    OpArbitraryFloatSinCosPiINTEL = 5840,
+    OpArbitraryFloatCastINTEL = 5841,
+    OpArbitraryFloatCastFromIntINTEL = 5842,
+    OpArbitraryFloatCastToIntINTEL = 5843,
+    OpArbitraryFloatAddINTEL = 5846,
+    OpArbitraryFloatSubINTEL = 5847,
+    OpArbitraryFloatMulINTEL = 5848,
+    OpArbitraryFloatDivINTEL = 5849,
+    OpArbitraryFloatGTINTEL = 5850,
+    OpArbitraryFloatGEINTEL = 5851,
+    OpArbitraryFloatLTINTEL = 5852,
+    OpArbitraryFloatLEINTEL = 5853,
+    OpArbitraryFloatEQINTEL = 5854,
+    OpArbitraryFloatRecipINTEL = 5855,
+    OpArbitraryFloatRSqrtINTEL = 5856,
+    OpArbitraryFloatCbrtINTEL = 5857,
+    OpArbitraryFloatHypotINTEL = 5858,
+    OpArbitraryFloatSqrtINTEL = 5859,
+    OpArbitraryFloatLogINTEL = 5860,
+    OpArbitraryFloatLog2INTEL = 5861,
+    OpArbitraryFloatLog10INTEL = 5862,
+    OpArbitraryFloatLog1pINTEL = 5863,
+    OpArbitraryFloatExpINTEL = 5864,
+    OpArbitraryFloatExp2INTEL = 5865,
+    OpArbitraryFloatExp10INTEL = 5866,
+    OpArbitraryFloatExpm1INTEL = 5867,
+    OpArbitraryFloatSinINTEL = 5868,
+    OpArbitraryFloatCosINTEL = 5869,
+    OpArbitraryFloatSinCosINTEL = 5870,
+    OpArbitraryFloatSinPiINTEL = 5871,
+    OpArbitraryFloatCosPiINTEL = 5872,
+    OpArbitraryFloatASinINTEL = 5873,
+    OpArbitraryFloatASinPiINTEL = 5874,
+    OpArbitraryFloatACosINTEL = 5875,
+    OpArbitraryFloatACosPiINTEL = 5876,
+    OpArbitraryFloatATanINTEL = 5877,
+    OpArbitraryFloatATanPiINTEL = 5878,
+    OpArbitraryFloatATan2INTEL = 5879,
+    OpArbitraryFloatPowINTEL = 5880,
+    OpArbitraryFloatPowRINTEL = 5881,
+    OpArbitraryFloatPowNINTEL = 5882,
     OpLoopControlINTEL = 5887,
+    OpFixedSqrtINTEL = 5923,
+    OpFixedRecipINTEL = 5924,
+    OpFixedRsqrtINTEL = 5925,
+    OpFixedSinINTEL = 5926,
+    OpFixedCosINTEL = 5927,
+    OpFixedSinCosINTEL = 5928,
+    OpFixedSinPiINTEL = 5929,
+    OpFixedCosPiINTEL = 5930,
+    OpFixedSinCosPiINTEL = 5931,
+    OpFixedLogINTEL = 5932,
+    OpFixedExpINTEL = 5933,
     OpPtrCastToCrossWorkgroupINTEL = 5934,
     OpCrossWorkgroupCastToPtrINTEL = 5938,
     OpReadPipeBlockingINTEL = 5946,
