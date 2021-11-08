@@ -28,8 +28,11 @@ add_spvtools_unittest(TARGET opt
        compact_ids_test.cpp
        constants_test.cpp
        constant_manager_test.cpp
+       control_dependence.cpp
        convert_relaxed_to_half_test.cpp
+       convert_to_sampled_image_test.cpp
        copy_prop_array_test.cpp
+       dataflow.cpp
        dead_branch_elim_test.cpp
        dead_insert_elim_test.cpp
        dead_variable_elim_test.cpp
@@ -57,6 +60,7 @@ add_spvtools_unittest(TARGET opt
        inst_debug_printf_test.cpp
        instruction_list_test.cpp
        instruction_test.cpp
+       interp_fixup_test.cpp
        ir_builder.cpp
        ir_context_test.cpp
        ir_loader_test.cpp
@@ -78,8 +82,10 @@ add_spvtools_unittest(TARGET opt
        propagator_test.cpp
        reduce_load_size_test.cpp
        redundancy_elimination_test.cpp
+	   remove_unused_interface_variables_test.cpp
        register_liveness.cpp
        relax_float_ops_test.cpp
+       replace_desc_array_access_using_var_index_test.cpp
        replace_invalid_opc_test.cpp
        scalar_analysis.cpp
        scalar_replacement_test.cpp

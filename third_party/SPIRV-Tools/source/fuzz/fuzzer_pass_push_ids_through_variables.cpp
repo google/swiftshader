@@ -24,12 +24,10 @@ namespace fuzz {
 FuzzerPassPushIdsThroughVariables::FuzzerPassPushIdsThroughVariables(
     opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
-    protobufs::TransformationSequence* transformations)
+    protobufs::TransformationSequence* transformations,
+    bool ignore_inapplicable_transformations)
     : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                 transformations) {}
-
-FuzzerPassPushIdsThroughVariables::~FuzzerPassPushIdsThroughVariables() =
-    default;
+                 transformations, ignore_inapplicable_transformations) {}
 
 void FuzzerPassPushIdsThroughVariables::Apply() {
   ForEachInstructionWithInstructionDescriptor(
@@ -50,7 +48,7 @@ void FuzzerPassPushIdsThroughVariables::Apply() {
 
         // The block containing the instruction we are going to insert before
         // must be reachable.
-        if (!fuzzerutil::BlockIsReachableInItsFunction(GetIRContext(), block)) {
+        if (!GetIRContext()->IsReachable(*block)) {
           return;
         }
 
@@ -72,6 +70,12 @@ void FuzzerPassPushIdsThroughVariables::Apply() {
         auto basic_type_ids_and_pointers =
             GetAvailableBasicTypesAndPointers(variable_storage_class);
         auto& basic_types = basic_type_ids_and_pointers.first;
+
+        // There must be at least some basic types.
+        if (basic_types.empty()) {
+          return;
+        }
+
         uint32_t basic_type_id =
             basic_types[GetFuzzerContext()->RandomIndex(basic_types)];
 
@@ -99,7 +103,7 @@ void FuzzerPassPushIdsThroughVariables::Apply() {
                            ->IdIsIrrelevant(instruction->result_id()) &&
                       !fuzzerutil::CanMakeSynonymOf(ir_context,
                                                     *GetTransformationContext(),
-                                                    instruction)) {
+                                                    *instruction)) {
                     return false;
                   }
 

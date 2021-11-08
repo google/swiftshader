@@ -15,7 +15,7 @@
 #ifndef SOURCE_FUZZ_FUZZER_PASS_CONSTRUCT_COMPOSITES_H_
 #define SOURCE_FUZZ_FUZZER_PASS_CONSTRUCT_COMPOSITES_H_
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "source/fuzz/fuzzer_pass.h"
@@ -29,25 +29,15 @@ class FuzzerPassConstructComposites : public FuzzerPass {
   FuzzerPassConstructComposites(
       opt::IRContext* ir_context, TransformationContext* transformation_context,
       FuzzerContext* fuzzer_context,
-      protobufs::TransformationSequence* transformations);
-
-  ~FuzzerPassConstructComposites();
+      protobufs::TransformationSequence* transformations,
+      bool ignore_inapplicable_transformations);
 
   void Apply() override;
 
  private:
-  // Used to map a type id to relevant instructions whose result type matches
-  // the type id.
-  typedef std::map<uint32_t, std::vector<opt::Instruction*>>
-      TypeIdToInstructions;
-
-  // Considers all instructions that are available at |inst| - instructions
-  // whose results could be packed into a composite - and updates
-  // |type_id_to_available_instructions| so that each such instruction is
-  // associated with its the id of its result type.
-  void RecordAvailableInstruction(
-      opt::Instruction* inst,
-      TypeIdToInstructions* type_id_to_available_instructions);
+  // Used to map a type id to the ids of relevant instructions of the type.
+  using TypeIdToInstructions =
+      std::unordered_map<uint32_t, std::vector<uint32_t>>;
 
   // Requires that |array_type_instruction| has opcode OpTypeArray.
   // Attempts to find suitable instruction result ids from the values of

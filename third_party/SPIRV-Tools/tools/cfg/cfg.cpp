@@ -69,16 +69,16 @@ int main(int argc, char** argv) {
           if (0 == strcmp(argv[argi], "--help")) {
             print_usage(argv[0]);
             return 0;
-          } else if (0 == strcmp(argv[argi], "--version")) {
+          }
+          if (0 == strcmp(argv[argi], "--version")) {
             printf("%s EXPERIMENTAL\n", spvSoftwareVersionDetailsString());
             printf("Target: %s\n",
                    spvTargetEnvDescription(kDefaultEnvironment));
             return 0;
-          } else {
-            print_usage(argv[0]);
-            return 1;
           }
-        } break;
+          print_usage(argv[0]);
+          return 1;
+        }
         case 0: {
           // Setting a filename of "-" to indicate stdin.
           if (!inFile) {
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 
   // Read the input binary.
   std::vector<uint32_t> contents;
-  if (!ReadFile<uint32_t>(inFile, "rb", &contents)) return 1;
+  if (!ReadBinaryFile<uint32_t>(inFile, &contents)) return 1;
   spv_context context = spvContextCreate(kDefaultEnvironment);
   spv_diagnostic diagnostic = nullptr;
 

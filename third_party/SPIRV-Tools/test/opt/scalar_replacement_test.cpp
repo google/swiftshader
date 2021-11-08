@@ -1935,12 +1935,12 @@ OpName %6 "simple_struct"
 ; CHECK: [[dbg_local_var:%\w+]] = OpExtInst %void [[ext]] DebugLocalVariable
 ; CHECK: [[deref_expr:%\w+]] = OpExtInst %void [[ext]] DebugExpression [[deref]]
 ; CHECK: [[repl3:%\w+]] = OpVariable %_ptr_Function_uint Function
-; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl3]] [[deref_expr]] %int_3
 ; CHECK: [[repl2:%\w+]] = OpVariable %_ptr_Function_uint Function
-; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl2]] [[deref_expr]] %int_2
 ; CHECK: [[repl1:%\w+]] = OpVariable %_ptr_Function_uint Function
-; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl1]] [[deref_expr]] %int_1
 ; CHECK: [[repl0:%\w+]] = OpVariable %_ptr_Function_uint Function
+; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl3]] [[deref_expr]] %int_3
+; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl2]] [[deref_expr]] %int_2
+; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl1]] [[deref_expr]] %int_1
 ; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl0]] [[deref_expr]] %int_0
 ; CHECK-NOT: DebugDeclare
 %decl = OpExtInst %1 %ext DebugDeclare %dbg_foo %14 %null_expr
@@ -2058,10 +2058,10 @@ OpName %6 "simple_struct"
 ; CHECK: [[repl2:%\w+]] = OpVariable %_ptr_Function_float Function %float_1
 ; CHECK: [[repl1:%\w+]] = OpVariable %_ptr_Function_uint Function %uint_32
 ; CHECK: [[repl3:%\w+]] = OpVariable %_ptr_Function_float Function %float_1
+; CHECK: [[repl0:%\w+]] = OpVariable %_ptr_Function_uint Function %uint_32
 ; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl3]] [[deref_expr]] %int_2
 ; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl1]] [[deref_expr]] %int_1 %int_0
 ; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl2]] [[deref_expr]] %int_1 %int_1
-; CHECK: [[repl0:%\w+]] = OpVariable %_ptr_Function_uint Function %uint_32
 ; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl0]] [[deref_expr]] %int_0
 ; CHECK-NOT: DebugDeclare
 %decl = OpExtInst %1 %ext DebugDeclare %dbg_foo %14 %null_expr
@@ -2174,12 +2174,12 @@ OpName %6 "simple_struct"
 
 ; CHECK: [[dbg_local_var:%\w+]] = OpExtInst %void [[ext:%\w+]] DebugLocalVariable
 ; CHECK: [[repl3:%\w+]] = OpVariable %_ptr_Function_uint Function
-; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl3]] [[deref_expr:%\w+]] %int_3
 ; CHECK: [[repl2:%\w+]] = OpVariable %_ptr_Function_uint Function
-; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl2]] [[deref_expr]] %int_2
 ; CHECK: [[repl1:%\w+]] = OpVariable %_ptr_Function_uint Function
-; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl1]] [[deref_expr]] %int_1
 ; CHECK: [[repl0:%\w+]] = OpVariable %_ptr_Function_uint Function
+; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl3]] [[deref_expr:%\w+]] %int_3
+; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl2]] [[deref_expr]] %int_2
+; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl1]] [[deref_expr]] %int_1
 ; CHECK: OpExtInst %void [[ext]] DebugValue [[dbg_local_var]] [[repl0]] [[deref_expr]] %int_0
 
 OpBranch %20
@@ -2195,6 +2195,72 @@ OpFunctionEnd
 )";
 
   SinglePassRunAndMatch<ScalarReplacementPass>(text, true);
+}
+
+TEST_F(ScalarReplacementTest, ImageTexelPointer) {
+  // Test whether the scalar replacement correctly checks the
+  // OpImageTexelPointer user of an aggregate with an image type.
+  const std::string text = R"(
+;
+; CHECK: [[imgTy:%\w+]] = OpTypeImage %uint Buffer 2 0 0 2 R32ui
+; CHECK: [[ptrImgTy:%\w+]] = OpTypePointer Function [[imgTy]]
+; CHECK: [[img:%\w+]] = OpVariable [[ptrImgTy]] Function
+; CHECK: [[imgTexelPtr:%\w+]] = OpImageTexelPointer {{%\w+}} [[img]] %uint_0 %uint_0
+; CHECK: OpAtomicIAdd %uint [[imgTexelPtr]] %uint_1 %uint_0 %uint_1
+;
+OpCapability Shader
+OpCapability SampledBuffer
+OpCapability ImageBuffer
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %1 "main"
+OpExecutionMode %1 LocalSize 64 1 1
+%void = OpTypeVoid
+%uint = OpTypeInt 32 0
+%uint_0 = OpConstant %uint 0
+%uint_1 = OpConstant %uint 1
+%_ptr_Image_uint = OpTypePointer Image %uint
+%type_buffer_image = OpTypeImage %uint Buffer 2 0 0 2 R32ui
+%_ptr_Function_type_buffer_image = OpTypePointer Function %type_buffer_image
+%image_struct = OpTypeStruct %type_buffer_image %type_buffer_image
+%_ptr_Function_image_struct = OpTypePointer Function %image_struct
+%func = OpTypeFunction %void
+%1 = OpFunction %void None %func
+%2 = OpLabel
+%3 = OpVariable %_ptr_Function_image_struct Function
+%4 = OpAccessChain %_ptr_Function_type_buffer_image %3 %uint_1
+%5 = OpImageTexelPointer %_ptr_Image_uint %4 %uint_0 %uint_0
+%6 = OpAtomicIAdd %uint %5 %uint_1 %uint_0 %uint_1
+OpReturn
+OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<ScalarReplacementPass>(text, false);
+}
+
+TEST_F(ScalarReplacementTest, FunctionDeclaration) {
+  // Make sure the pass works with a function declaration that is called.
+  const std::string text = R"(OpCapability Addresses
+OpCapability Linkage
+OpCapability Kernel
+OpCapability Int8
+%1 = OpExtInstImport "OpenCL.std"
+OpMemoryModel Physical64 OpenCL
+OpEntryPoint Kernel %2 "_Z23julia__1166_kernel_77094Bool"
+OpExecutionMode %2 ContractionOff
+OpSource Unknown 0
+OpDecorate %3 LinkageAttributes "julia_error_7712" Import
+%void = OpTypeVoid
+%5 = OpTypeFunction %void
+%3 = OpFunction %void None %5
+OpFunctionEnd
+%2 = OpFunction %void None %5
+%6 = OpLabel
+%7 = OpFunctionCall %void %3
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<ScalarReplacementPass>(text, text, false);
 }
 
 }  // namespace

@@ -28,9 +28,8 @@ class FuzzerPassExpandVectorReductions : public FuzzerPass {
   FuzzerPassExpandVectorReductions(
       opt::IRContext* ir_context, TransformationContext* transformation_context,
       FuzzerContext* fuzzer_context,
-      protobufs::TransformationSequence* transformations);
-
-  ~FuzzerPassExpandVectorReductions();
+      protobufs::TransformationSequence* transformations,
+      bool ignore_inapplicable_transformations);
 
   void Apply() override;
 };

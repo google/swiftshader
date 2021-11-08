@@ -22,11 +22,10 @@ namespace fuzz {
 FuzzerPassAdjustFunctionControls::FuzzerPassAdjustFunctionControls(
     opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
-    protobufs::TransformationSequence* transformations)
+    protobufs::TransformationSequence* transformations,
+    bool ignore_inapplicable_transformations)
     : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                 transformations) {}
-
-FuzzerPassAdjustFunctionControls::~FuzzerPassAdjustFunctionControls() = default;
+                 transformations, ignore_inapplicable_transformations) {}
 
 void FuzzerPassAdjustFunctionControls::Apply() {
   // Consider every function in the module.

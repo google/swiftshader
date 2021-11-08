@@ -27,14 +27,15 @@ FuzzerPassInterchangeSignednessOfIntegerOperands::
         opt::IRContext* ir_context,
         TransformationContext* transformation_context,
         FuzzerContext* fuzzer_context,
-        protobufs::TransformationSequence* transformations)
+        protobufs::TransformationSequence* transformations,
+        bool ignore_inapplicable_transformations)
     : FuzzerPass(ir_context, transformation_context, fuzzer_context,
-                 transformations) {}
-
-FuzzerPassInterchangeSignednessOfIntegerOperands::
-    ~FuzzerPassInterchangeSignednessOfIntegerOperands() = default;
+                 transformations, ignore_inapplicable_transformations) {}
 
 void FuzzerPassInterchangeSignednessOfIntegerOperands::Apply() {
+  assert(!GetFuzzerContext()->IsWgslCompatible() &&
+         "Cannot interchange signedness in WGSL");
+
   // Make vector keeping track of all the uses we want to replace.
   // This is a vector of pairs, where the first element is an id use descriptor
   // identifying the use of a constant id and the second is the id that should

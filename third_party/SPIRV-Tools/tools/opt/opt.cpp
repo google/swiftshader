@@ -143,6 +143,15 @@ Options (in lexicographical order):)",
                does not support RelaxedPrecision or ignores it. This pass also
                removes all RelaxedPrecision decorations.)");
   printf(R"(
+  --convert-to-sampled-image "<descriptor set>:<binding> ..."
+               convert images and/or samplers with the given pairs of descriptor
+               set and binding to sampled images. If a pair of an image and a
+               sampler have the same pair of descriptor set and binding that is
+               one of the given pairs, they will be converted to a sampled
+               image. In addition, if only an image or a sampler has the
+               descriptor set and binding that is one of the given pairs, it
+               will be converted to a sampled image.)");
+  printf(R"(
   --copy-propagate-arrays
                Does propagation of memory references when an array is a copy of
                another.  It will only propagate an array if the source is never
@@ -153,6 +162,11 @@ Options (in lexicographical order):)",
                followed by a store of the initial value. This is done to work
                around known issues with some Vulkan drivers for initialize
                variables.)");
+  printf(R"(
+  --replace-desc-array-access-using-var-index
+               Replaces accesses to descriptor arrays based on a variable index
+               with a switch that has a case for every possible value of the
+               index.)");
   printf(R"(
   --descriptor-scalar-replacement
                Replaces every array variable |desc| that has a DescriptorSet
@@ -378,9 +392,12 @@ Options (in lexicographical order):)",
                Change the scope of private variables that are used in a single
                function to that function.)");
   printf(R"(
-  --reduce-load-size
+  --reduce-load-size[=<threshold>]
                Replaces loads of composite objects where not every component is
-               used by loads of just the elements that are used.)");
+               used by loads of just the elements that are used.  If the ratio
+               of the used components of the load is less than the <threshold>,
+               we replace the load.  <threshold> is a double type number.  If
+               it is bigger than 1.0, we always replaces the load.)");
   printf(R"(
   --redundancy-elimination
                Looks for instructions in the same function that compute the
@@ -405,6 +422,12 @@ Options (in lexicographical order):)",
   --remove-duplicates
                Removes duplicate types, decorations, capabilities and extension
                instructions.)");
+  printf(R"(
+  --remove-unused-interface-variables
+               Removes variables referenced on the |OpEntryPoint| instruction 
+               that are not referenced in the entry point function or any function 
+               in its call tree.  Note that this could cause the shader interface 
+               to no longer match other shader stages.)");
   printf(R"(
   --replace-invalid-opcode
                Replaces instructions whose opcode is valid for shader modules,
@@ -489,6 +512,10 @@ Options (in lexicographical order):)",
                Rewrites instructions for which there are known driver bugs to
                avoid triggering those bugs.
                Current workarounds: Avoid OpUnreachable in loops.)");
+  printf(R"(
+  --workgroup-scalar-block-layout
+               Forwards this option to the validator.  See the validator help
+               for details.)");
   printf(R"(
   --wrap-opkill
                Replaces all OpKill instructions in functions that can be called
@@ -741,6 +768,8 @@ OptStatus ParseFlags(int argc, const char** argv,
         validator_options->SetRelaxBlockLayout(true);
       } else if (0 == strcmp(cur_arg, "--scalar-block-layout")) {
         validator_options->SetScalarBlockLayout(true);
+      } else if (0 == strcmp(cur_arg, "--workgroup-scalar-block-layout")) {
+        validator_options->SetWorkgroupScalarBlockLayout(true);
       } else if (0 == strcmp(cur_arg, "--skip-block-layout")) {
         validator_options->SetSkipBlockLayout(true);
       } else if (0 == strcmp(cur_arg, "--relax-struct-store")) {
@@ -801,7 +830,7 @@ int main(int argc, const char** argv) {
   }
 
   std::vector<uint32_t> binary;
-  if (!ReadFile<uint32_t>(in_file, "rb", &binary)) {
+  if (!ReadBinaryFile<uint32_t>(in_file, &binary)) {
     return 1;
   }
 

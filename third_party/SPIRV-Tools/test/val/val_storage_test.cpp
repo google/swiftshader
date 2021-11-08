@@ -30,6 +30,7 @@ using ::testing::Values;
 using ValidateStorage = spvtest::ValidateBase<std::string>;
 using ValidateStorageClass =
     spvtest::ValidateBase<std::tuple<std::string, bool, bool, std::string>>;
+using ValidateStorageExecutionModel = spvtest::ValidateBase<std::string>;
 
 TEST_F(ValidateStorage, FunctionStorageInsideFunction) {
   char str[] = R"(
@@ -249,6 +250,46 @@ TEST_F(ValidateStorage, RelaxedLogicalPointerFunctionParamBad) {
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("OpFunctionCall Argument <id> '"));
 }
+
+TEST_P(ValidateStorageExecutionModel, VulkanOutsideStoreFailure) {
+  std::stringstream ss;
+  ss << R"(
+              OpCapability Shader
+              OpCapability RayTracingKHR
+              OpExtension "SPV_KHR_ray_tracing"
+              OpMemoryModel Logical GLSL450
+              OpEntryPoint )"
+     << GetParam() << R"(  %func "func" %output
+              OpDecorate %output Location 0
+%intt       = OpTypeInt 32 0
+%int0       = OpConstant %intt 0
+%voidt      = OpTypeVoid
+%vfunct     = OpTypeFunction %voidt
+%outputptrt = OpTypePointer Output %intt
+%output     = OpVariable %outputptrt Output
+%func       = OpFunction %voidt None %vfunct
+%funcl      = OpLabel
+              OpStore %output %int0
+              OpReturn
+              OpFunctionEnd
+)";
+
+  CompileSuccessfully(ss.str(), SPV_ENV_VULKAN_1_0);
+  ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_0));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-None-04644"));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr("in Vulkan evironment, Output Storage Class must not be used "
+                "in GLCompute, RayGenerationKHR, IntersectionKHR, AnyHitKHR, "
+                "ClosestHitKHR, MissKHR, or CallableKHR execution models"));
+}
+
+INSTANTIATE_TEST_SUITE_P(MatrixExecutionModel, ValidateStorageExecutionModel,
+                         ::testing::Values("RayGenerationKHR",
+                                           "IntersectionKHR", "AnyHitKHR",
+                                           "ClosestHitKHR", "MissKHR",
+                                           "CallableKHR"));
 
 }  // namespace
 }  // namespace val

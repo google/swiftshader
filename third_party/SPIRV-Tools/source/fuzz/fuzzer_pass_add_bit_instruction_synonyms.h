@@ -28,9 +28,8 @@ class FuzzerPassAddBitInstructionSynonyms : public FuzzerPass {
   FuzzerPassAddBitInstructionSynonyms(
       opt::IRContext* ir_context, TransformationContext* transformation_context,
       FuzzerContext* fuzzer_context,
-      protobufs::TransformationSequence* transformations);
-
-  ~FuzzerPassAddBitInstructionSynonyms();
+      protobufs::TransformationSequence* transformations,
+      bool ignore_inapplicable_transformations);
 
   void Apply() override;
 };

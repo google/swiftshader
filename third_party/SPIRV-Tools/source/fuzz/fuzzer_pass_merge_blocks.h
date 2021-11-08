@@ -26,9 +26,8 @@ class FuzzerPassMergeBlocks : public FuzzerPass {
   FuzzerPassMergeBlocks(opt::IRContext* ir_context,
                         TransformationContext* transformation_context,
                         FuzzerContext* fuzzer_context,
-                        protobufs::TransformationSequence* transformations);
-
-  ~FuzzerPassMergeBlocks();
+                        protobufs::TransformationSequence* transformations,
+                        bool ignore_inapplicable_transformations);
 
   void Apply() override;
 };

@@ -21,6 +21,12 @@ namespace fuzz {
 
 namespace {
 
+// An offset between the the module's id bound and the minimum fresh id.
+//
+// TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/2541): consider
+//  the case where the maximum id bound is reached.
+const uint32_t kIdBoundGap = 100;
+
 // Limits to help control the overall fuzzing process and rein in individual
 // fuzzer passes.
 const uint32_t kIdBoundLimit = 50000;
@@ -36,6 +42,8 @@ const std::pair<uint32_t, uint32_t> kChanceOfAddingAnotherPassToPassLoop = {50,
 const std::pair<uint32_t, uint32_t> kChanceOfAddingAnotherStructField = {20,
                                                                          90};
 const std::pair<uint32_t, uint32_t> kChanceOfAddingArrayOrStructType = {20, 90};
+const std::pair<uint32_t, uint32_t> KChanceOfAddingAtomicLoad = {30, 90};
+const std::pair<uint32_t, uint32_t> KChanceOfAddingAtomicStore = {20, 90};
 const std::pair<uint32_t, uint32_t> kChanceOfAddingBitInstructionSynonym = {5,
                                                                             20};
 const std::pair<uint32_t, uint32_t>
@@ -114,6 +122,8 @@ const std::pair<uint32_t, uint32_t> kChanceOfMovingBlockDown = {20, 50};
 const std::pair<uint32_t, uint32_t> kChanceOfMutatingPointer = {20, 90};
 const std::pair<uint32_t, uint32_t> kChanceOfObfuscatingConstant = {10, 90};
 const std::pair<uint32_t, uint32_t> kChanceOfOutliningFunction = {10, 90};
+const std::pair<uint32_t, uint32_t> kChanceOfPermutingFunctionVariables = {30,
+                                                                           90};
 const std::pair<uint32_t, uint32_t> kChanceOfPermutingInstructions = {20, 70};
 const std::pair<uint32_t, uint32_t> kChanceOfPermutingParameters = {30, 90};
 const std::pair<uint32_t, uint32_t> kChanceOfPermutingPhiOperands = {30, 90};
@@ -145,12 +155,16 @@ const std::pair<uint32_t, uint32_t> kChanceOfReplacingParametersWithGlobals = {
 const std::pair<uint32_t, uint32_t> kChanceOfReplacingParametersWithStruct = {
     20, 40};
 const std::pair<uint32_t, uint32_t> kChanceOfSplittingBlock = {40, 95};
+const std::pair<uint32_t, uint32_t>
+    kChanceOfSwappingAnotherPairOfFunctionVariables = {30, 90};
 const std::pair<uint32_t, uint32_t> kChanceOfSwappingConditionalBranchOperands =
     {10, 70};
+const std::pair<uint32_t, uint32_t> kChanceOfSwappingFunctions = {10, 90};
 const std::pair<uint32_t, uint32_t> kChanceOfTogglingAccessChainInstruction = {
     20, 90};
 const std::pair<uint32_t, uint32_t> kChanceOfWrappingRegionInSelection = {70,
                                                                           90};
+const std::pair<uint32_t, uint32_t> kChanceOfWrappingVectorSynonym = {10, 90};
 
 // Default limits for various quantities that are chosen during fuzzing.
 // Keep them in alphabetical order.
@@ -177,10 +191,11 @@ const std::function<bool(uint32_t, RandomGenerator*)>
 
 }  // namespace
 
-FuzzerContext::FuzzerContext(RandomGenerator* random_generator,
-                             uint32_t min_fresh_id)
-    : random_generator_(random_generator),
+FuzzerContext::FuzzerContext(std::unique_ptr<RandomGenerator> random_generator,
+                             uint32_t min_fresh_id, bool is_wgsl_compatible)
+    : random_generator_(std::move(random_generator)),
       next_fresh_id_(min_fresh_id),
+      is_wgsl_compatible_(is_wgsl_compatible),
       max_equivalence_class_size_for_data_synonym_fact_closure_(
           kDefaultMaxEquivalenceClassSizeForDataSynonymFactClosure),
       max_loop_control_partial_count_(kDefaultMaxLoopControlPartialCount),
@@ -203,6 +218,10 @@ FuzzerContext::FuzzerContext(RandomGenerator* random_generator,
       ChooseBetweenMinAndMax(kChanceOfAddingAnotherStructField);
   chance_of_adding_array_or_struct_type_ =
       ChooseBetweenMinAndMax(kChanceOfAddingArrayOrStructType);
+  chance_of_adding_atomic_load_ =
+      ChooseBetweenMinAndMax(KChanceOfAddingAtomicLoad);
+  chance_of_adding_atomic_store_ =
+      ChooseBetweenMinAndMax(KChanceOfAddingAtomicStore);
   chance_of_adding_bit_instruction_synonym_ =
       ChooseBetweenMinAndMax(kChanceOfAddingBitInstructionSynonym);
   chance_of_adding_both_branches_when_replacing_opselect_ =
@@ -308,6 +327,8 @@ FuzzerContext::FuzzerContext(RandomGenerator* random_generator,
       ChooseBetweenMinAndMax(kChanceOfObfuscatingConstant);
   chance_of_outlining_function_ =
       ChooseBetweenMinAndMax(kChanceOfOutliningFunction);
+  chance_of_permuting_function_variables_ =
+      ChooseBetweenMinAndMax(kChanceOfPermutingFunctionVariables);
   chance_of_permuting_instructions_ =
       ChooseBetweenMinAndMax(kChanceOfPermutingInstructions);
   chance_of_permuting_parameters_ =
@@ -345,12 +366,18 @@ FuzzerContext::FuzzerContext(RandomGenerator* random_generator,
   chance_of_replacing_parameters_with_struct_ =
       ChooseBetweenMinAndMax(kChanceOfReplacingParametersWithStruct);
   chance_of_splitting_block_ = ChooseBetweenMinAndMax(kChanceOfSplittingBlock);
+  chance_of_swapping_another_pair_of_function_variables_ =
+      ChooseBetweenMinAndMax(kChanceOfSwappingAnotherPairOfFunctionVariables);
   chance_of_swapping_conditional_branch_operands_ =
       ChooseBetweenMinAndMax(kChanceOfSwappingConditionalBranchOperands);
+  chance_of_swapping_functions_ =
+      ChooseBetweenMinAndMax(kChanceOfSwappingFunctions);
   chance_of_toggling_access_chain_instruction_ =
       ChooseBetweenMinAndMax(kChanceOfTogglingAccessChainInstruction);
   chance_of_wrapping_region_in_selection_ =
       ChooseBetweenMinAndMax(kChanceOfWrappingRegionInSelection);
+  chance_of_wrapping_vector_synonym_ =
+      ChooseBetweenMinAndMax(kChanceOfWrappingVectorSynonym);
 }
 
 FuzzerContext::~FuzzerContext() = default;
@@ -401,6 +428,10 @@ uint32_t FuzzerContext::GetIdBoundLimit() const { return kIdBoundLimit; }
 
 uint32_t FuzzerContext::GetTransformationLimit() const {
   return kTransformationLimit;
+}
+
+uint32_t FuzzerContext::GetMinFreshId(opt::IRContext* ir_context) {
+  return ir_context->module()->id_bound() + kIdBoundGap;
 }
 
 }  // namespace fuzz

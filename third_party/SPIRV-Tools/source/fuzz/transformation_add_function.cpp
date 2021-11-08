@@ -21,8 +21,8 @@ namespace spvtools {
 namespace fuzz {
 
 TransformationAddFunction::TransformationAddFunction(
-    const spvtools::fuzz::protobufs::TransformationAddFunction& message)
-    : message_(message) {}
+    protobufs::TransformationAddFunction message)
+    : message_(std::move(message)) {}
 
 TransformationAddFunction::TransformationAddFunction(
     const std::vector<protobufs::Instruction>& instructions) {

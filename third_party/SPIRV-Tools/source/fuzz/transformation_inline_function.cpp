@@ -21,8 +21,8 @@ namespace spvtools {
 namespace fuzz {
 
 TransformationInlineFunction::TransformationInlineFunction(
-    const spvtools::fuzz::protobufs::TransformationInlineFunction& message)
-    : message_(message) {}
+    protobufs::TransformationInlineFunction message)
+    : message_(std::move(message)) {}
 
 TransformationInlineFunction::TransformationInlineFunction(
     uint32_t function_call_id,
