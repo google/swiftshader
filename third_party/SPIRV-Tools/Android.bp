@@ -71,6 +71,7 @@ genrule {
         "spv-amd-shader-explicit-vertex-parameter.insts.inc",
         "spv-amd-shader-trinary-minmax.insts.inc",
         "nonsemantic.clspvreflection.insts.inc",
+        "nonsemantic.shader.debuginfo.100.insts.inc",
     ],
     srcs: [
         ":swiftshader_spirv_headers_unified1_extinst.glsl.std.450.grammar.json",
@@ -83,6 +84,7 @@ genrule {
         ":swiftshader_spirv_headers_unified1_extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json",
         ":swiftshader_spirv_headers_unified1_extinst.spv-amd-shader-trinary-minmax.grammar.json",
         ":swiftshader_spirv_headers_unified1_extinst.nonsemantic.clspvreflection.grammar.json",
+        ":swiftshader_spirv_headers_unified1_extinst.nonsemantic.shader.debuginfo.100.grammar.json",
     ],
     tool_files: ["utils/generate_grammar_tables.py"],
     cmd:
@@ -97,6 +99,7 @@ genrule {
         "$(location) --extinst-opencl-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.opencl.std.100.grammar.json) --opencl-insts-output=$(location opencl.std.insts.inc); "+
         "$(location) --extinst-glsl-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.glsl.std.450.grammar.json) --glsl-insts-output=$(location glsl.std.450.insts.inc); " +
         "$(location) --extinst-vendor-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.nonsemantic.clspvreflection.grammar.json) --vendor-insts-output=$(location nonsemantic.clspvreflection.insts.inc) --vendor-operand-kind-prefix=; "
+        "$(location) --extinst-vendor-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.nonsemantic.shader.debuginfo.100.grammar.json) --vendor-insts-output=$(location nonsemantic.shader.debuginfo.100.insts.inc) --vendor-operand-kind-prefix=; "
 }
 
 genrule {
