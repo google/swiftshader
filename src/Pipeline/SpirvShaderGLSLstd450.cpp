@@ -360,7 +360,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	case GLSLstd450Length:
 		{
 			auto x = Operand(this, state, insn.word(5));
-			SIMD::Float d = Dot(getType(getObject(insn.word(5))).componentCount, x, x);
+			SIMD::Float d = Dot(getObjectType(insn.word(5)).componentCount, x, x);
 
 			dst.move(0, Sqrt(d));
 		}
@@ -368,7 +368,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	case GLSLstd450Normalize:
 		{
 			auto x = Operand(this, state, insn.word(5));
-			SIMD::Float d = Dot(getType(getObject(insn.word(5))).componentCount, x, x);
+			SIMD::Float d = Dot(getObjectType(insn.word(5)).componentCount, x, x);
 			SIMD::Float invLength = SIMD::Float(1.0f) / Sqrt(d);
 
 			for(auto i = 0u; i < type.componentCount; i++)

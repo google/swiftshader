@@ -135,7 +135,7 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 		operand += 2;
 		imageOperands &= ~spv::ImageOperandsGradMask;
 
-		grad = spirv.getType(spirv.getObject(gradDxId)).componentCount;
+		grad = spirv.getObjectType(gradDxId).componentCount;
 	}
 
 	if(imageOperands & spv::ImageOperandsConstOffsetMask)
@@ -144,7 +144,7 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 		operand++;
 		imageOperands &= ~spv::ImageOperandsConstOffsetMask;
 
-		offset = spirv.getType(spirv.getObject(offsetId)).componentCount;
+		offset = spirv.getObjectType(offsetId).componentCount;
 	}
 
 	if(imageOperands & spv::ImageOperandsSampleMask)
@@ -359,7 +359,7 @@ void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, const Im
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
+	auto &resultTy = getType(insn.resultTypeId());
 	auto imageId = Object::ID(insn.word(3));
 	auto lodId = Object::ID(insn.word(4));
 
@@ -371,7 +371,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, Em
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySize(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
+	auto &resultTy = getType(insn.resultTypeId());
 	auto imageId = Object::ID(insn.word(3));
 	auto lodId = Object::ID(0);
 
@@ -446,7 +446,7 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 
 SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
+	auto &resultTy = getType(insn.resultTypeId());
 	ASSERT(resultTy.componentCount == 1);
 	auto imageId = Object::ID(insn.word(3));
 
@@ -474,10 +474,10 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
+	auto &resultTy = getType(insn.resultTypeId());
 	ASSERT(resultTy.componentCount == 1);
 	auto imageId = Object::ID(insn.word(3));
-	auto imageTy = getType(getObject(imageId));
+	auto imageTy = getObjectType(imageId);
 	ASSERT(imageTy.definition.opcode() == spv::OpTypeImage);
 	ASSERT(imageTy.definition.word(3) == spv::Dim2D);
 	ASSERT(imageTy.definition.word(6 /* MS */) == 1);

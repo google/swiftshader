@@ -2158,7 +2158,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorShuffle(InsnIterator insn, EmitSt
 
 	// Note: number of components in result type, first half type, and second
 	// half type are all independent.
-	auto &firstHalfType = getType(getObject(insn.word(3)));
+	auto &firstHalfType = getObjectType(insn.word(3));
 
 	Operand firstHalfAccess(this, state, insn.word(3));
 	Operand secondHalfAccess(this, state, insn.word(4));
@@ -2189,7 +2189,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorExtractDynamic(InsnIterator insn,
 {
 	auto &type = getType(insn.resultTypeId());
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
-	auto &srcType = getType(getObject(insn.word(3)));
+	auto &srcType = getObjectType(insn.word(3));
 
 	Operand src(this, state, insn.word(3));
 	Operand index(this, state, insn.word(4));
@@ -2250,7 +2250,7 @@ SpirvShader::EmitResult SpirvShader::EmitAny(InsnIterator insn, EmitState *state
 	auto &type = getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
-	auto &srcType = getType(getObject(insn.word(3)));
+	auto &srcType = getObjectType(insn.word(3));
 	auto src = Operand(this, state, insn.word(3));
 
 	SIMD::UInt result = src.UInt(0);
@@ -2269,7 +2269,7 @@ SpirvShader::EmitResult SpirvShader::EmitAll(InsnIterator insn, EmitState *state
 	auto &type = getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
-	auto &srcType = getType(getObject(insn.word(3)));
+	auto &srcType = getObjectType(insn.word(3));
 	auto src = Operand(this, state, insn.word(3));
 
 	SIMD::UInt result = src.UInt(0);
@@ -2414,7 +2414,7 @@ SpirvShader::EmitResult SpirvShader::EmitArrayLength(InsnIterator insn, EmitStat
 	ASSERT(resultType.componentCount == 1);
 	ASSERT(resultType.definition.opcode() == spv::OpTypeInt);
 
-	auto &structPtrTy = getType(getObject(structPtrId));
+	auto &structPtrTy = getObjectType(structPtrId);
 	auto &structTy = getType(structPtrTy.element);
 	auto arrayId = Type::ID(structTy.definition.word(2 + arrayFieldIdx));
 

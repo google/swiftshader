@@ -243,8 +243,8 @@ SpirvShader::EmitResult SpirvShader::EmitCopyMemory(InsnIterator insn, EmitState
 {
 	Object::ID dstPtrId = insn.word(1);
 	Object::ID srcPtrId = insn.word(2);
-	auto &dstPtrTy = getType(getObject(dstPtrId));
-	auto &srcPtrTy = getType(getObject(srcPtrId));
+	auto &dstPtrTy = getObjectType(dstPtrId);
+	auto &srcPtrTy = getObjectType(srcPtrId);
 	ASSERT(dstPtrTy.element == srcPtrTy.element);
 
 	bool dstInterleavedByLane = IsStorageInterleavedByLane(dstPtrTy.storageClass);

@@ -85,7 +85,7 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, Em
 
 	auto numColumns = type.definition.word(3);
 	auto numRows = getType(type.definition.word(2)).definition.word(3);
-	auto numAdds = getType(getObject(insn.word(3))).definition.word(3);
+	auto numAdds = getObjectType(insn.word(3)).definition.word(3);
 
 	for(auto row = 0u; row < numRows; row++)
 	{
@@ -310,7 +310,7 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 {
 	auto &type = getType(insn.resultTypeId());
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
-	auto &lhsType = getType(getObject(insn.word(3)));
+	auto &lhsType = getObjectType(insn.word(3));
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 
@@ -518,7 +518,7 @@ SpirvShader::EmitResult SpirvShader::EmitDot(InsnIterator insn, EmitState *state
 	auto &type = getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
-	auto &lhsType = getType(getObject(insn.word(3)));
+	auto &lhsType = getObjectType(insn.word(3));
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 

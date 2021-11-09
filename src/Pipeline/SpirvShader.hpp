@@ -1183,6 +1183,11 @@ private:
 		return it->second;
 	}
 
+	Type const &getObjectType(Object::ID id) const
+	{
+		return getType(getObject(id));
+	}
+
 	Function const &getFunction(Function::ID id) const
 	{
 		auto it = functions.find(id);

@@ -511,7 +511,7 @@ SpirvShader::EmitResult SpirvShader::EmitBranchConditional(InsnIterator insn, Em
 	auto falseBlockId = Block::ID(block.branchInstruction.word(3));
 
 	auto cond = Operand(this, state, condId);
-	ASSERT_MSG(getType(getObject(condId)).componentCount == 1, "Condition must be a Boolean type scalar");
+	ASSERT_MSG(getObjectType(condId).componentCount == 1, "Condition must be a Boolean type scalar");
 
 	// TODO: Optimize for case where all lanes take same path.
 
