@@ -65,7 +65,7 @@ void Blitter::clear(const void *pixel, vk::Format format, vk::Image *dest, const
 	}
 
 	VkClearColorValue clampedPixel;
-	if(viewFormat.isSignedNormalized() || viewFormat.isUnsignedNormalized() || viewFormat.isSRGBformat())
+	if(viewFormat.isSignedNormalized() || viewFormat.isUnsignedNormalized())
 	{
 		const float minValue = viewFormat.isSignedNormalized() ? -1.0f : 0.0f;
 		memcpy(clampedPixel.float32, pixel, sizeof(VkClearColorValue));

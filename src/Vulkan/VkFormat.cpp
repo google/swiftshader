@@ -46,7 +46,10 @@ bool Format::isUnsignedNormalized() const
 	case VK_FORMAT_R16G16B16A16_UNORM:
 		return true;
 	default:
-		return false;
+		// sRGB encoded formats are also unsigned normalized.
+		// Note that floating-pont formats have no need for nonlinear encoding,
+		// and the sRGB transfer function is only defined for [0.0, 1.0].
+		return isSRGBformat();
 	}
 }
 
