@@ -557,7 +557,7 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 	}
 
 	SIMD::Int n = 0;
-	if(sampleId.value())
+	if(sampleId != 0)
 	{
 		Operand sample(this, state, sampleId);
 		if(!sample.isConstantZero())
@@ -587,7 +587,7 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(w), SIMD::UInt(depth)));
 		}
 
-		if(sampleId.value())
+		if(sampleId != 0)
 		{
 			Operand sample(this, state, sampleId);
 			if(!sample.isConstantZero())

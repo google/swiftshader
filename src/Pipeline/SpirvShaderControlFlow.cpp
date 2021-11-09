@@ -778,6 +778,7 @@ void SpirvShader::WriteCFGGraphVizDotFile(const char *path) const
 					     << "[label=\"M\" style=dashed color=blue]"
 					     << std::endl;
 				}
+
 				if(block.second.continueTarget != 0)
 				{
 					file << "    block_" << block.first.value() << " -> "

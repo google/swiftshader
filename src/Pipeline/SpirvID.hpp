@@ -15,6 +15,8 @@
 #ifndef sw_ID_hpp
 #define sw_ID_hpp
 
+#include "System/Debug.hpp"
+
 #include <cstdint>
 #include <unordered_map>
 
@@ -31,15 +33,16 @@ class SpirvID
 public:
 	SpirvID() = default;
 	inline SpirvID(uint32_t id);
+
 	inline bool operator==(const SpirvID<T> &rhs) const;
 	inline bool operator!=(const SpirvID<T> &rhs) const;
 	inline bool operator<(const SpirvID<T> &rhs) const;
 
-	// value returns the numerical value of the identifier.
+	// Returns the numerical value of the identifier.
 	inline uint32_t value() const;
 
 private:
-	uint32_t id = 0;
+	uint32_t id = 0;  // Valid ids are in the range "0 < id < Bound".
 };
 
 template<typename T>
@@ -68,6 +71,10 @@ bool SpirvID<T>::operator<(const SpirvID<T> &rhs) const
 template<typename T>
 uint32_t SpirvID<T>::value() const
 {
+	// Assert that we don't attempt to use unassigned IDs.
+	// Use if(id != 0) { ... } to avoid invalid code paths.
+	ASSERT(id != 0);
+
 	return id;
 }
 

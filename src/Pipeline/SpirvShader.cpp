@@ -207,7 +207,7 @@ SpirvShader::SpirvShader(
 
 		case spv::OpLabel:
 			{
-				ASSERT(currentBlock.value() == 0);
+				ASSERT(currentBlock == 0);
 				currentBlock = Block::ID(insn.word(1));
 				blockStart = insn;
 			}
@@ -224,8 +224,8 @@ SpirvShader::SpirvShader(
 		case spv::OpKill:
 		case spv::OpUnreachable:
 			{
-				ASSERT(currentBlock.value() != 0);
-				ASSERT(currentFunction.value() != 0);
+				ASSERT(currentBlock != 0);
+				ASSERT(currentFunction != 0);
 
 				auto blockEnd = insn;
 				blockEnd++;
