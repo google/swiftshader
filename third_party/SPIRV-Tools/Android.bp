@@ -98,7 +98,7 @@ genrule {
         "$(location) --spirv-core-grammar=$(location :swiftshader_spirv_headers_unified1_spirv.core.grammar.json) --extinst-debuginfo-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.debuginfo.grammar.json) --extinst-cldebuginfo100-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.opencl.debuginfo.100.grammar.json) --extension-enum-output=$(location extension_enum.inc) --enum-string-mapping-output=$(location enum_string_mapping.inc); "+
         "$(location) --extinst-opencl-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.opencl.std.100.grammar.json) --opencl-insts-output=$(location opencl.std.insts.inc); "+
         "$(location) --extinst-glsl-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.glsl.std.450.grammar.json) --glsl-insts-output=$(location glsl.std.450.insts.inc); " +
-        "$(location) --extinst-vendor-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.nonsemantic.clspvreflection.grammar.json) --vendor-insts-output=$(location nonsemantic.clspvreflection.insts.inc) --vendor-operand-kind-prefix=; "
+        "$(location) --extinst-vendor-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.nonsemantic.clspvreflection.grammar.json) --vendor-insts-output=$(location nonsemantic.clspvreflection.insts.inc) --vendor-operand-kind-prefix=; " +
         "$(location) --extinst-vendor-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.nonsemantic.shader.debuginfo.100.grammar.json) --vendor-insts-output=$(location nonsemantic.shader.debuginfo.100.insts.inc) --vendor-operand-kind-prefix=; "
 }
 
