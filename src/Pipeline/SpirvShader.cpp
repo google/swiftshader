@@ -1958,46 +1958,24 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 		return EmitKill(insn, state);
 
 	case spv::OpImageSampleImplicitLod:
-		return EmitImageSampleImplicitLod(None, insn, state);
-
 	case spv::OpImageSampleExplicitLod:
-		return EmitImageSampleExplicitLod(None, insn, state);
-
 	case spv::OpImageSampleDrefImplicitLod:
-		return EmitImageSampleImplicitLod(Dref, insn, state);
-
 	case spv::OpImageSampleDrefExplicitLod:
-		return EmitImageSampleExplicitLod(Dref, insn, state);
-
 	case spv::OpImageSampleProjImplicitLod:
-		return EmitImageSampleImplicitLod(Proj, insn, state);
-
 	case spv::OpImageSampleProjExplicitLod:
-		return EmitImageSampleExplicitLod(Proj, insn, state);
-
 	case spv::OpImageSampleProjDrefImplicitLod:
-		return EmitImageSampleImplicitLod(ProjDref, insn, state);
-
 	case spv::OpImageSampleProjDrefExplicitLod:
-		return EmitImageSampleExplicitLod(ProjDref, insn, state);
-
 	case spv::OpImageGather:
-		return EmitImageGather(None, insn, state);
-
 	case spv::OpImageDrefGather:
-		return EmitImageGather(Dref, insn, state);
-
 	case spv::OpImageFetch:
-		return EmitImageFetch(insn, state);
+	case spv::OpImageQueryLod:
+		return EmitImageSample(insn, state);
 
 	case spv::OpImageQuerySizeLod:
 		return EmitImageQuerySizeLod(insn, state);
 
 	case spv::OpImageQuerySize:
 		return EmitImageQuerySize(insn, state);
-
-	case spv::OpImageQueryLod:
-		return EmitImageQueryLod(insn, state);
 
 	case spv::OpImageQueryLevels:
 		return EmitImageQueryLevels(insn, state);

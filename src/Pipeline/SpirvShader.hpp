@@ -492,7 +492,7 @@ public:
 	};
 
 	// OpImageSample variants
-	enum Variant
+	enum Variant : uint32_t
 	{
 		None,  // No Dref or Proj. Also used by OpImageFetch and OpImageQueryLod.
 		Dref,
@@ -501,25 +501,25 @@ public:
 		VARIANT_LAST = ProjDref
 	};
 
-	// Compact representation of image instruction parameters that is passed to the
+	// Compact representation of image instruction state that is passed to the
 	// trampoline function for retrieving/generating the corresponding sampling routine.
-	struct ImageInstruction
+	struct ImageInstructionState
 	{
-		ImageInstruction(Variant variant, SamplerMethod samplerMethod)
-		    : parameters(0)
+		ImageInstructionState(Variant variant, SamplerMethod samplerMethod)
+		    : state(0)
 		{
 			this->variant = variant;
 			this->samplerMethod = samplerMethod;
 		}
 
 		// Unmarshal from raw 32-bit data
-		ImageInstruction(uint32_t parameters)
-		    : parameters(parameters)
+		explicit ImageInstructionState(uint32_t state)
+		    : state(state)
 		{}
 
 		SamplerFunction getSamplerFunction() const
 		{
-			return { static_cast<SamplerMethod>(samplerMethod), offset != 0, sample != 0 };
+			return { samplerMethod, offset != 0, sample != 0 };
 		}
 
 		bool isDref() const
@@ -532,12 +532,22 @@ public:
 			return (variant == Proj) || (variant == ProjDref);
 		}
 
+		bool hasLod() const
+		{
+			return samplerMethod == Lod || samplerMethod == Fetch;  // We always pass a Lod operand for Fetch operations.
+		}
+
+		bool hasGrad() const
+		{
+			return samplerMethod == Grad;
+		}
+
 		union
 		{
 			struct
 			{
-				uint32_t variant : BITS(VARIANT_LAST);
-				uint32_t samplerMethod : BITS(SAMPLER_METHOD_LAST);
+				Variant variant : BITS(VARIANT_LAST);
+				SamplerMethod samplerMethod : BITS(SAMPLER_METHOD_LAST);
 				uint32_t gatherComponent : 2;
 
 				// Parameters are passed to the sampling routine in this order:
@@ -549,11 +559,31 @@ public:
 				uint32_t sample : 1;            // 0-1 scalar integer
 			};
 
-			uint32_t parameters;
+			uint32_t state;
 		};
 	};
 
-	static_assert(sizeof(ImageInstruction) == sizeof(uint32_t), "ImageInstruction must be 32-bit");
+	// This gets stored as a literal in the generated code, so it should be compact.
+	static_assert(sizeof(ImageInstructionState) == sizeof(uint32_t), "ImageInstructionState must be 32-bit");
+
+	struct ImageInstruction : public ImageInstructionState
+	{
+		ImageInstruction(InsnIterator insn, const SpirvShader &spirv);
+
+		Object::ID resultId = 0;
+		Object::ID sampledImageId = 0;
+		Object::ID coordinateId = 0;
+		Object::ID drefId = 0;
+		Object::ID lodOrBiasId = 0;
+		Object::ID gradDxId = 0;
+		Object::ID gradDyId = 0;
+		Object::ID offsetId = 0;
+		Object::ID sampleId = 0;
+
+	private:
+		static ImageInstructionState parseVariantAndMethod(InsnIterator insn);
+		static uint32_t getImageOperands(InsnIterator insn);
+	};
 
 	// This method is for retrieving an ID that uniquely identifies the
 	// shader entry point represented by this object.
@@ -1241,14 +1271,9 @@ private:
 	EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitFunctionCall(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageSampleImplicitLod(Variant variant, InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageSampleExplicitLod(Variant variant, InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageGather(Variant variant, InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageFetch(InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
+	EmitResult EmitImageSample(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
-	EmitResult EmitImageQueryLod(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageQueryLevels(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageQuerySamples(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;
@@ -1265,7 +1290,7 @@ private:
 	EmitResult EmitArrayLength(InsnIterator insn, EmitState *state) const;
 
 	// Emits code to sample an image, regardless of whether any SIMD lanes are active.
-	void EmitImageSampleUnconditional(Array<SIMD::Float> &out, ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
+	void EmitImageSampleUnconditional(Array<SIMD::Float> &out, const ImageInstruction &instruction, EmitState *state) const;
 
 	void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
 	SIMD::Pointer GetTexelAddress(EmitState const *state, Pointer<Byte> imageBase, Int imageSizeInBytes, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect, OutOfBoundsBehavior outOfBoundsBehavior) const;
@@ -1331,7 +1356,7 @@ private:
 	std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
 
 	static ImageSampler *getImageSampler(const vk::Device *device, uint32_t instruction, uint32_t samplerId, uint32_t imageViewId);
-	static std::shared_ptr<rr::Routine> emitSamplerRoutine(ImageInstruction instruction, const Sampler &samplerState);
+	static std::shared_ptr<rr::Routine> emitSamplerRoutine(ImageInstructionState instruction, const Sampler &samplerState);
 
 	// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.
 	static sw::FilterType convertFilterMode(const vk::SamplerState *samplerState, VkImageViewType imageViewType, SamplerMethod samplerMethod);
