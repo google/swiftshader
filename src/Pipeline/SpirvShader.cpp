@@ -1634,7 +1634,11 @@ void SpirvShader::emitProlog(SpirvRoutine *routine) const
 		case spv::OpImageSampleProjDrefImplicitLod:
 		case spv::OpImageSampleProjExplicitLod:
 		case spv::OpImageSampleProjImplicitLod:
-			routine->samplerCache.emplace(insn.resultId(), SpirvRoutine::SamplerCache{});
+			{
+				// The 'inline' sampler caches must be created in the prolog to initialize the tags.
+				uint32_t instructionPosition = insn.distanceFrom(this->begin());
+				routine->samplerCache.emplace(instructionPosition, SpirvRoutine::SamplerCache{});
+			}
 			break;
 
 		default:

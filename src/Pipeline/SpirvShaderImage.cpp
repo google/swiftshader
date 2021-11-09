@@ -89,6 +89,7 @@ namespace sw {
 
 SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvShader &spirv)
     : ImageInstructionState(parseVariantAndMethod(insn))
+    , position(insn.distanceFrom(spirv.begin()))
 {
 	resultId = insn.resultId();     // word(2)
 	sampledImageId = insn.word(3);  // For OpImageFetch this is just an Image, not a SampledImage.
@@ -340,10 +341,8 @@ void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, const Im
 		in[i] = As<SIMD::Float>(sampleValue.Int(0));
 	}
 
-	auto cacheIt = state->routine->samplerCache.find(instruction.resultId);
-	ASSERT(cacheIt != state->routine->samplerCache.end());
-	auto &cache = cacheIt->second;
-	auto cacheHit = cache.imageDescriptor == imageDescriptor && cache.samplerId == samplerId;
+	auto &cache = state->routine->samplerCache.at(instruction.position);
+	auto cacheHit = (cache.imageDescriptor == imageDescriptor) && (cache.samplerId == samplerId);  // TODO(b/205566405): Skip sampler ID check for samplerless instructions.
 
 	If(!cacheHit)
 	{

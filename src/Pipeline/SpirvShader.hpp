@@ -253,6 +253,11 @@ public:
 			return word(2);
 		}
 
+		uint32_t distanceFrom(const InsnIterator &other) const
+		{
+			return static_cast<uint32_t>(iter - other.iter);
+		}
+
 		bool operator==(InsnIterator const &other) const
 		{
 			return iter == other.iter;
@@ -285,9 +290,10 @@ public:
 		SpirvBinary::const_iterator iter;
 	};
 
-	/* range-based-for interface */
+	// Range-based-for interface
 	InsnIterator begin() const
 	{
+		// Skip over the header words
 		return InsnIterator{ insns.cbegin() + 5 };
 	}
 
@@ -569,6 +575,8 @@ public:
 	struct ImageInstruction : public ImageInstructionState
 	{
 		ImageInstruction(InsnIterator insn, const SpirvShader &spirv);
+
+		const uint32_t position;
 
 		Object::ID resultId = 0;
 		Object::ID sampledImageId = 0;
@@ -1432,10 +1440,12 @@ public:
 
 	using Variable = Array<SIMD::Float>;
 
+	// Single-entry 'inline' sampler routine cache.
 	struct SamplerCache
 	{
 		Pointer<Byte> imageDescriptor = nullptr;
 		Int samplerId;
+
 		Pointer<Byte> function;
 	};
 
@@ -1453,7 +1463,7 @@ public:
 	vk::PipelineLayout const *const pipelineLayout;
 
 	std::unordered_map<SpirvShader::Object::ID, Variable> variables;
-	std::unordered_map<SpirvShader::Object::ID, SamplerCache> samplerCache;
+	std::unordered_map<uint32_t, SamplerCache> samplerCache;  // Indexed by the instruction position, in words.
 	Variable inputs = Variable{ MAX_INTERFACE_COMPONENTS };
 	Variable outputs = Variable{ MAX_INTERFACE_COMPONENTS };
 	InterpolationData interpolationData;
