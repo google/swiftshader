@@ -1778,8 +1778,10 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	}
 }
 
-Float PixelRoutine::blendConstant(vk::Format format, bool inverse, int component)
+Float PixelRoutine::blendConstant(vk::Format format, int component, BlendFactorModifier modifier)
 {
+	bool inverse = (modifier == OneMinus);
+
 	if(format.isUnsignedNormalized() || format.isSRGBformat())
 	{
 		return inverse ? *Pointer<Float>(data + OFFSET(DrawData, factor.invBlendConstantU[component]))
@@ -1859,24 +1861,24 @@ void PixelRoutine::blendFactorRGB(Vector4f &blendFactor, const Vector4f &sourceC
 		blendFactor.z = blendFactor.x;
 		break;
 	case VK_BLEND_FACTOR_CONSTANT_COLOR:
-		blendFactor.x = Float4(blendConstant(format, false, 0));
-		blendFactor.y = Float4(blendConstant(format, false, 1));
-		blendFactor.z = Float4(blendConstant(format, false, 2));
+		blendFactor.x = Float4(blendConstant(format, 0));
+		blendFactor.y = Float4(blendConstant(format, 1));
+		blendFactor.z = Float4(blendConstant(format, 2));
 		break;
 	case VK_BLEND_FACTOR_CONSTANT_ALPHA:
-		blendFactor.x = Float4(blendConstant(format, false, 3));
-		blendFactor.y = Float4(blendConstant(format, false, 3));
-		blendFactor.z = Float4(blendConstant(format, false, 3));
+		blendFactor.x = Float4(blendConstant(format, 3));
+		blendFactor.y = Float4(blendConstant(format, 3));
+		blendFactor.z = Float4(blendConstant(format, 3));
 		break;
 	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
-		blendFactor.x = Float4(blendConstant(format, true, 0));
-		blendFactor.y = Float4(blendConstant(format, true, 1));
-		blendFactor.z = Float4(blendConstant(format, true, 2));
+		blendFactor.x = Float4(blendConstant(format, 0, OneMinus));
+		blendFactor.y = Float4(blendConstant(format, 1, OneMinus));
+		blendFactor.z = Float4(blendConstant(format, 2, OneMinus));
 		break;
 	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA:
-		blendFactor.x = Float4(blendConstant(format, true, 3));
-		blendFactor.y = Float4(blendConstant(format, true, 3));
-		blendFactor.z = Float4(blendConstant(format, true, 3));
+		blendFactor.x = Float4(blendConstant(format, 3, OneMinus));
+		blendFactor.y = Float4(blendConstant(format, 3, OneMinus));
+		blendFactor.z = Float4(blendConstant(format, 3, OneMinus));
 		break;
 
 	default:
@@ -1942,11 +1944,11 @@ void PixelRoutine::blendFactorAlpha(Float4 &blendFactorAlpha, const Float4 &sour
 		break;
 	case VK_BLEND_FACTOR_CONSTANT_COLOR:
 	case VK_BLEND_FACTOR_CONSTANT_ALPHA:
-		blendFactorAlpha = Float4(blendConstant(format, false, 3));
+		blendFactorAlpha = Float4(blendConstant(format, 3));
 		break;
 	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
 	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA:
-		blendFactorAlpha = Float4(blendConstant(format, true, 3));
+		blendFactorAlpha = Float4(blendConstant(format, 3, OneMinus));
 		break;
 	default:
 		UNSUPPORTED("VkBlendFactor: %d", int(alphaBlendFactor));
