@@ -32,7 +32,7 @@ struct Vertex;
 struct DrawCall;
 struct DrawData;
 
-using SetupFunction = FunctionT<int(Primitive *primitive, const Triangle *triangle, const Polygon *polygon, const DrawData *draw)>;
+using SetupFunction = FunctionT<int(const vk::Device *device, Primitive *primitive, const Triangle *triangle, const Polygon *polygon, const DrawData *draw)>;
 
 class SetupProcessor
 {

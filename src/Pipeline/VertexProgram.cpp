@@ -19,7 +19,6 @@
 #include "Device/Vertex.hpp"
 #include "System/Debug.hpp"
 #include "System/Half.hpp"
-
 #include "Vulkan/VkPipelineLayout.hpp"
 
 namespace sw {
@@ -55,6 +54,7 @@ VertexProgram::VertexProgram(
 		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(SIMD::Width));
 	});
 
+	routine.device = device;
 	routine.descriptorSets = data + OFFSET(DrawData, descriptorSets);
 	routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
 	routine.pushConstants = data + OFFSET(DrawData, pushConstants);

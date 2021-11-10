@@ -51,7 +51,7 @@ struct VertexTask
 	VertexCache vertexCache;
 };
 
-using VertexRoutineFunction = FunctionT<void(Vertex *output, unsigned int *batch, VertexTask *vertextask, DrawData *draw)>;
+using VertexRoutineFunction = FunctionT<void(const vk::Device *device, Vertex *output, unsigned int *batch, VertexTask *vertextask, DrawData *draw)>;
 
 class VertexProcessor
 {

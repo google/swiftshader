@@ -24,15 +24,17 @@ class Rasterizer : public RasterizerFunction
 {
 public:
 	Rasterizer()
-	    : primitive(Arg<0>())
-	    , count(Arg<1>())
-	    , cluster(Arg<2>())
-	    , clusterCount(Arg<3>())
-	    , data(Arg<4>())
+	    : device(Arg<0>())
+	    , primitive(Arg<1>())
+	    , count(Arg<2>())
+	    , cluster(Arg<3>())
+	    , clusterCount(Arg<4>())
+	    , data(Arg<5>())
 	{}
 	virtual ~Rasterizer() {}
 
 protected:
+	Pointer<Byte> device;
 	Pointer<Byte> primitive;
 	Int count;
 	Int cluster;

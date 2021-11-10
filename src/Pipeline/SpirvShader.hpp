@@ -1472,6 +1472,7 @@ public:
 	Variable outputs = Variable{ MAX_INTERFACE_COMPONENTS };
 	InterpolationData interpolationData;
 
+	Pointer<Byte> device;
 	Pointer<Byte> workgroupMemory;
 	Pointer<Pointer<Byte>> descriptorSets;
 	Pointer<Int> descriptorDynamicOffsets;

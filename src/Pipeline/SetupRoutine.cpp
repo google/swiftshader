@@ -13,12 +13,12 @@
 // limitations under the License.
 
 #include "SetupRoutine.hpp"
-#include <Device/Vertex.hpp>
 
 #include "Constants.hpp"
 #include "Device/Polygon.hpp"
 #include "Device/Primitive.hpp"
 #include "Device/Renderer.hpp"
+#include "Device/Vertex.hpp"
 #include "Reactor/Reactor.hpp"
 
 namespace sw {
@@ -36,10 +36,11 @@ void SetupRoutine::generate()
 {
 	SetupFunction function;
 	{
-		Pointer<Byte> primitive(function.Arg<0>());
-		Pointer<Byte> tri(function.Arg<1>());
-		Pointer<Byte> polygon(function.Arg<2>());
-		Pointer<Byte> data(function.Arg<3>());
+		Pointer<Byte> device(function.Arg<0>());
+		Pointer<Byte> primitive(function.Arg<1>());
+		Pointer<Byte> tri(function.Arg<2>());
+		Pointer<Byte> polygon(function.Arg<3>());
+		Pointer<Byte> data(function.Arg<4>());
 
 		Pointer<Byte> constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData, constants));
 

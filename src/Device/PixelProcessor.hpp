@@ -28,7 +28,7 @@ struct DrawData;
 struct Primitive;
 class SpirvShader;
 
-using RasterizerFunction = FunctionT<void(const Primitive *primitive, int count, int cluster, int clusterCount, DrawData *draw)>;
+using RasterizerFunction = FunctionT<void(const vk::Device *device, const Primitive *primitive, int count, int cluster, int clusterCount, DrawData *draw)>;
 
 class PixelProcessor
 {

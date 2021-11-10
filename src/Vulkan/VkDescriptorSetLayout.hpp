@@ -43,7 +43,6 @@ struct alignas(16) SampledImageDescriptor
 	int mipLevels;
 	int sampleCount;
 
-	Device *device;
 	ImageView *memoryOwner;  // Pointer to the view which owns the memory used by the descriptor set
 };
 
