@@ -97,6 +97,11 @@ filegroup {
 }
 
 filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.nonsemantic.shader.debuginfo.100.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.nonsemantic.shader.debuginfo.100.grammar.json"],
+}
+
+filegroup {
     name: "swiftshader_spirv_headers_spir-v.xml",
     srcs: ["include/spirv/spir-v.xml"],
 }
