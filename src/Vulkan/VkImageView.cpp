@@ -15,6 +15,7 @@
 #include "VkImageView.hpp"
 
 #include "VkImage.hpp"
+#include "VkStructConversion.hpp"
 #include "System/Math.hpp"
 
 #include <climits>
@@ -342,17 +343,13 @@ int ImageView::layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage) const
 
 VkExtent2D ImageView::getMipLevelExtent(uint32_t mipLevel) const
 {
-	VkExtent3D extent = image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
-	                                             subresourceRange.baseMipLevel + mipLevel);
-
-	return { extent.width, extent.height };
+	return Extent2D(image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
+	                                         subresourceRange.baseMipLevel + mipLevel));
 }
 
 VkExtent2D ImageView::getMipLevelExtent(uint32_t mipLevel, VkImageAspectFlagBits aspect) const
 {
-	VkExtent3D extent = image->getMipLevelExtent(aspect, subresourceRange.baseMipLevel + mipLevel);
-
-	return { extent.width, extent.height };
+	return Extent2D(image->getMipLevelExtent(aspect, subresourceRange.baseMipLevel + mipLevel));
 }
 
 int ImageView::getDepthOrLayerCount(uint32_t mipLevel) const

@@ -19,6 +19,7 @@
 #include "VkDeviceMemory.hpp"
 #include "VkImageView.hpp"
 #include "VkStringify.hpp"
+#include "VkStructConversion.hpp"
 #include "Device/ASTC_Decoder.hpp"
 #include "Device/BC_Decoder.hpp"
 #include "Device/Blitter.hpp"
@@ -467,8 +468,8 @@ void Image::copySingleAspectTo(Image *dstImage, const VkImageCopy2KHR &region) c
 	                     (copyExtent.height == dstExtent.height) &&
 	                     (srcDepthPitch == dstDepthPitch);
 
-	const uint8_t *srcLayer = static_cast<const uint8_t *>(getTexelPointer(region.srcOffset, { region.srcSubresource.aspectMask, region.srcSubresource.mipLevel, region.srcSubresource.baseArrayLayer }));
-	uint8_t *dstLayer = static_cast<uint8_t *>(dstImage->getTexelPointer(region.dstOffset, { region.dstSubresource.aspectMask, region.dstSubresource.mipLevel, region.dstSubresource.baseArrayLayer }));
+	const uint8_t *srcLayer = static_cast<const uint8_t *>(getTexelPointer(region.srcOffset, ImageSubresource(region.srcSubresource)));
+	uint8_t *dstLayer = static_cast<uint8_t *>(dstImage->getTexelPointer(region.dstOffset, ImageSubresource(region.dstSubresource)));
 
 	for(uint32_t layer = 0; layer < layerCount; layer++)
 	{
@@ -541,8 +542,7 @@ void Image::copySingleAspectTo(Image *dstImage, const VkImageCopy2KHR &region) c
 		dstLayer += dstLayerPitch;
 	}
 
-	dstImage->contentsChanged({ region.dstSubresource.aspectMask, region.dstSubresource.mipLevel, 1,
-	                            region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount });
+	dstImage->contentsChanged(ImageSubresourceRange(region.dstSubresource));
 }
 
 void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool bufferIsSource)
@@ -571,14 +571,14 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool buffe
 		return;
 	}
 
-	VkExtent2D bufferExtent = bufferExtentInBlocks({ imageExtent.width, imageExtent.height }, region);
+	VkExtent2D bufferExtent = bufferExtentInBlocks(Extent2D(imageExtent), region);
 	int bytesPerBlock = copyFormat.bytesPerBlock();
 	int bufferRowPitchBytes = bufferExtent.width * bytesPerBlock;
 	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
 	ASSERT(samples == 1);
 
 	uint8_t *bufferMemory = static_cast<uint8_t *>(buffer->getOffsetPointer(region.bufferOffset));
-	uint8_t *imageMemory = static_cast<uint8_t *>(getTexelPointer(region.imageOffset, { region.imageSubresource.aspectMask, region.imageSubresource.mipLevel, region.imageSubresource.baseArrayLayer }));
+	uint8_t *imageMemory = static_cast<uint8_t *>(getTexelPointer(region.imageOffset, ImageSubresource(region.imageSubresource)));
 	uint8_t *srcMemory = bufferIsSource ? bufferMemory : imageMemory;
 	uint8_t *dstMemory = bufferIsSource ? imageMemory : bufferMemory;
 	int imageRowPitchBytes = rowPitchBytes(aspect, region.imageSubresource.mipLevel);
@@ -671,8 +671,7 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool buffe
 
 	if(bufferIsSource)
 	{
-		contentsChanged({ region.imageSubresource.aspectMask, region.imageSubresource.mipLevel, 1,
-		                  region.imageSubresource.baseArrayLayer, region.imageSubresource.layerCount });
+		contentsChanged(ImageSubresourceRange(region.imageSubresource));
 	}
 }
 
@@ -1018,8 +1017,7 @@ const Image *Image::getSampledImage(const vk::Format &imageViewFormat) const
 
 void Image::blitTo(Image *dstImage, const VkImageBlit2KHR &region, VkFilter filter) const
 {
-	prepareForSampling({ region.srcSubresource.aspectMask, region.srcSubresource.mipLevel, 1,
-	                     region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount });
+	prepareForSampling(ImageSubresourceRange(region.srcSubresource));
 	device->getBlitter()->blit(decompressedImage ? decompressedImage : this, dstImage, region, filter);
 }
 

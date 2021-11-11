@@ -95,6 +95,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
     "VkShaderModule.hpp",
     "VkSpecializationInfo.hpp",
     "VkStringify.hpp",
+    "VkStructConversion.hpp",
     "VkTimelineSemaphore.hpp",
     "VulkanPlatform.hpp",
   ]
