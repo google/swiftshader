@@ -582,7 +582,8 @@ public:
 
 		Type::ID resultTypeId = 0;
 		Object::ID resultId = 0;
-		Object::ID sampledImageId = 0;
+		Object::ID imageId = 0;
+		Object::ID samplerId = 0;
 		Object::ID coordinateId = 0;
 		Object::ID texelId = 0;
 		Object::ID drefId = 0;
