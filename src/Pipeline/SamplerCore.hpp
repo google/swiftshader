@@ -26,17 +26,18 @@ using namespace rr;
 
 enum SamplerMethod : uint32_t
 {
-	Implicit,  // Compute gradients (pixel shader only).
-	Bias,      // Compute gradients and add provided bias.
-	Lod,       // Use provided LOD.
-	Grad,      // Use provided gradients.
-	Fetch,     // Use provided integer coordinates.
-	Base,      // Sample base level.
-	Query,     // Return implicit LOD.
-	Gather,    // Return one channel of each texel in footprint.
-	Read,      // Read a texel from an image without a sampler.
-	Write,     // Write a texel to an image without a sampler.
-	SAMPLER_METHOD_LAST = Write,
+	Implicit,      // Compute gradients (pixel shader only).
+	Bias,          // Compute gradients and add provided bias.
+	Lod,           // Use provided LOD.
+	Grad,          // Use provided gradients.
+	Fetch,         // Use provided integer coordinates.
+	Base,          // Sample base level.
+	Query,         // Return implicit LOD.
+	Gather,        // Return one channel of each texel in footprint.
+	Read,          // Read a texel from an image without a sampler.
+	Write,         // Write a texel to an image without a sampler.
+	TexelPointer,  // Form a pointer to a texel of an image.
+	SAMPLER_METHOD_LAST = TexelPointer,
 };
 
 // TODO(b/129523279): Eliminate and use SpirvShader::ImageInstruction instead.

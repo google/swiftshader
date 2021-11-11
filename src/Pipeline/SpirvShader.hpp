@@ -1295,7 +1295,7 @@ private:
 	EmitResult EmitImageQuerySamples(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageRead(const ImageInstruction &instruction, EmitState *state) const;
 	EmitResult EmitImageWrite(const ImageInstruction &instruction, EmitState *state) const;
-	EmitResult EmitImageTexelPointer(InsnIterator insn, EmitState *state) const;
+	EmitResult EmitImageTexelPointer(const ImageInstruction &instruction, EmitState *state) const;
 	EmitResult EmitAtomicOp(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitSampledImageCombineOrSplit(InsnIterator insn, EmitState *state) const;

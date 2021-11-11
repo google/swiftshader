@@ -101,14 +101,14 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 	{
 		resultTypeId = insn.resultTypeId();  // word(1)
 		resultId = insn.resultId();          // word(2)
-		Object::ID sampledImageId = insn.word(3);
 
-		if(samplerMethod == Fetch || samplerMethod == Read)  // Samplerless
+		if(samplerMethod == Fetch || samplerMethod == Read || samplerMethod == TexelPointer)  // Samplerless
 		{
-			imageId = sampledImageId;
+			imageId = insn.word(3);
 		}
 		else
 		{
+			Object::ID sampledImageId = insn.word(3);
 			const Object &sampledImage = spirv.getObject(sampledImageId);
 
 			if(sampledImage.opcode() == spv::OpSampledImage)
@@ -129,6 +129,12 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 	const Object &coordinateObject = spirv.getObject(coordinateId);
 	const Type &coordinateType = spirv.getType(coordinateObject);
 	coordinates = coordinateType.componentCount - (isProj() ? 1 : 0);
+
+	if(samplerMethod == TexelPointer)
+	{
+		sampleId = insn.word(5);
+		sample = !spirv.getObject(sampleId).isConstantZero();
+	}
 
 	if(isDref())
 	{
@@ -231,6 +237,7 @@ SpirvShader::ImageInstructionSignature SpirvShader::ImageInstruction::parseVaria
 	case spv::OpImageQueryLod: return { None, Query };
 	case spv::OpImageRead: return { None, Read };
 	case spv::OpImageWrite: return { None, Write };
+	case spv::OpImageTexelPointer: return { None, TexelPointer };
 
 	default:
 		ASSERT(false);
@@ -267,6 +274,9 @@ uint32_t SpirvShader::ImageInstruction::getImageOperandsIndex(InsnIterator insn)
 		return insn.wordCount() > 5 ? 5 : 0;  // Optional
 	case spv::OpImageWrite:
 		return insn.wordCount() > 4 ? 4 : 0;  // Optional
+	case spv::OpImageTexelPointer:
+		ASSERT(insn.wordCount() == 6);
+		return 0;  // No image operands.
 
 	default:
 		ASSERT(false);
@@ -1333,34 +1343,33 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(const ImageInstruction &instruction, EmitState *state) const
 {
-	auto &resultType = getType(Type::ID(insn.word(1)));
-	auto imageId = Object::ID(insn.word(3));
-	auto &image = getObject(imageId);
+	auto &resultType = getType(instruction.resultTypeId);
+	auto &image = getObject(instruction.imageId);
 	// Note: OpImageTexelPointer is unusual in that the image is passed by pointer.
 	// Look through to get the actual image type.
 	auto &imageType = getType(getType(image).element);
-	Object::ID resultId = insn.word(2);
 
 	ASSERT(imageType.opcode() == spv::OpTypeImage);
 	ASSERT(resultType.storageClass == spv::StorageClassImage);
+
 	ASSERT(getType(resultType.element).opcode() == spv::OpTypeInt);
+	const int texelSize = sizeof(uint32_t);
 
-	auto coordinate = Operand(this, state, insn.word(4));
-	Object::ID sampleId = insn.word(5);
+	auto coordinate = Operand(this, state, instruction.coordinateId);
 
-	Pointer<Byte> binding = state->getPointer(imageId).base;
-	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
-	auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
+	Pointer<Byte> descriptor = state->getPointer(instruction.imageId).base;  // vk::StorageImageDescriptor*
+	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::StorageImageDescriptor, ptr));
+	auto imageSizeInBytes = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 	// VK_EXT_image_robustness requires checking for out-of-bounds accesses.
 	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 	auto robustness = OutOfBoundsBehavior::Nullify;
 
-	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, sizeof(uint32_t), sampleId, false, robustness);
+	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, descriptor, texelSize, instruction.sampleId, false, robustness);
 
-	state->createPointer(resultId, ptr);
+	state->createPointer(instruction.resultId, ptr);
 
 	return EmitResult::Continue;
 }

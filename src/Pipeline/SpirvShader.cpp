@@ -2012,7 +2012,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 		return EmitImageWrite(ImageInstruction(insn, *this), state);
 
 	case spv::OpImageTexelPointer:
-		return EmitImageTexelPointer(insn, state);
+		return EmitImageTexelPointer(ImageInstruction(insn, *this), state);
 
 	case spv::OpSampledImage:
 	case spv::OpImage:
