@@ -167,7 +167,7 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 		operandsIndex += 1;
 		imageOperands &= ~spv::ImageOperandsSampleMask;
 
-		sample = true;
+		sample = !spirv.getObject(sampleId).isConstantZero();
 	}
 
 	// TODO(b/174475384)
@@ -619,9 +619,9 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 	SIMD::Int n = 0;
 	if(sampleId != 0)
 	{
-		Operand sample(this, state, sampleId);
-		if(!sample.isConstantZero())
+		if(!getObject(sampleId).isConstantZero())
 		{
+			Operand sample(this, state, sampleId);
 			n = sample.Int(0);
 			ptrOffset += n * samplePitch;
 		}
@@ -649,8 +649,7 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 
 		if(sampleId != 0)
 		{
-			Operand sample(this, state, sampleId);
-			if(!sample.isConstantZero())
+			if(!getObject(sampleId).isConstantZero())
 			{
 				SIMD::UInt sampleCount = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount));
 				oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(n), sampleCount));

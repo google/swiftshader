@@ -327,6 +327,8 @@ public:
 		Type::ID typeId() const { return definition.resultTypeId(); }
 		Object::ID id() const { return definition.resultId(); }
 
+		bool isConstantZero() const;
+
 		InsnIterator definition;
 		std::vector<uint32_t> constantValue;
 
@@ -1157,8 +1159,6 @@ private:
 
 			return SIMD::UInt(constant[i]);
 		}
-
-		bool isConstantZero() const;
 
 	private:
 		RR_PRINT_ONLY(friend struct rr::PrintValue::Ty<Operand>;)
