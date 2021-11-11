@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import("//build/config/ui.gni")
+import("//build/config/ozone.gni")
 import("../../swiftshader.gni")
 
 # Need a separate config to ensure the warnings are added to the end.
@@ -69,6 +70,8 @@ swiftshader_shared_library("swiftshader_libEGL") {
     ]
   }
 
+  defines = []
+
   if (is_mac) {
     sources += [ "OSXUtils.mm" ]
     frameworks = [
@@ -83,8 +86,9 @@ swiftshader_shared_library("swiftshader_libEGL") {
           rebase_path("libEGL_deprecated.exports", root_build_dir),
     ]
   } else if (is_linux || is_chromeos) {
-    if (use_x11) {
+    if (ozone_platform_x11) {
       sources += [ "../../Main/libX11.cpp" ]
+      defines += [ "SWIFTSHADER_USE_X11" ]
     }
     inputs = [ "libEGL_deprecated.lds" ]
     ldflags =

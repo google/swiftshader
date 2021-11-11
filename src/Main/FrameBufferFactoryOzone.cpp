@@ -16,14 +16,14 @@
 
 #include "Main/FrameBufferOzone.hpp"
 
-#if defined(USE_X11)
+#if defined(SWIFTSHADER_USE_X11)
 #include "libX11.hpp"
 #include "Main/FrameBufferX11.hpp"
 #endif
 
 NO_SANITIZE_FUNCTION sw::FrameBuffer *createFrameBuffer(void *display, intptr_t window, int width, int height)
 {
-#if defined(USE_X11)
+#if defined(SWIFTSHADER_USE_X11)
 	if(reinterpret_cast<::Display *>(display))
 	{
 		return new sw::FrameBufferX11((::Display *)display, window, width, height);

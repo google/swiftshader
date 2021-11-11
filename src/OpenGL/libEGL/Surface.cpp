@@ -26,7 +26,7 @@
 #include "common/debug.h"
 #include "main.h"
 
-#if defined(USE_X11)
+#if defined(SWIFTSHADER_USE_X11)
 #include "Main/libX11.hpp"
 #elif defined(_WIN32)
 #include <tchar.h>
@@ -338,7 +338,7 @@ bool WindowSurface::checkForResize()
 	#elif defined(__ANDROID__)
 		int windowWidth = ANativeWindow_getWidth(window);
 		int windowHeight = ANativeWindow_getHeight(window);
-	#elif defined(USE_X11)
+	#elif defined(SWIFTSHADER_USE_X11)
 		XWindowAttributes windowAttributes;
 		Status status = libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
 

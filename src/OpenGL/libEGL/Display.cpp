@@ -30,7 +30,7 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 #include <vndk/window.h>
-#elif defined(USE_X11)
+#elif defined(SWIFTSHADER_USE_X11)
 #include "Main/libX11.hpp"
 #elif defined(__APPLE__)
 #include "OSXUtils.hpp"
@@ -66,7 +66,7 @@ Display *Display::get(EGLDisplay dpy)
 
 	static void *nativeDisplay = nullptr;
 
-	#if defined(USE_X11)
+	#if defined(SWIFTSHADER_USE_X11)
 		// Even if the application provides a native display handle, we open (and close) our own connection
 		if(!nativeDisplay && dpy != HEADLESS_DISPLAY && libX11 && libX11->XOpenDisplay)
 		{
@@ -89,7 +89,7 @@ Display::~Display()
 {
 	terminate();
 
-	#if defined(USE_X11)
+	#if defined(SWIFTSHADER_USE_X11)
 		if(nativeDisplay && libX11->XCloseDisplay)
 		{
 			libX11->XCloseDisplay((::Display*)nativeDisplay);
@@ -668,7 +668,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 			return false;
 		}
 		return true;
-	#elif defined(USE_X11)
+	#elif defined(SWIFTSHADER_USE_X11)
 		if(nativeDisplay)
 		{
 			XWindowAttributes windowAttributes;
@@ -837,7 +837,7 @@ sw::Format Display::getDisplayFormat() const
 
 		// No framebuffer device found, or we're in user space
 		return sw::FORMAT_X8B8G8R8;
-	#elif defined(USE_X11)
+	#elif defined(SWIFTSHADER_USE_X11)
 		if(nativeDisplay)
 		{
 			Screen *screen = libX11->XDefaultScreenOfDisplay((::Display*)nativeDisplay);
