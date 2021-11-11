@@ -1107,42 +1107,127 @@ bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatur
 	return true;
 }
 
+// CheckFeature returns false if requested is asking for a feature that is not supported
+#define CheckFeature(requested, supported, feature) (requested->feature == VK_FALSE || supported.feature == VK_TRUE)
+
 template<typename T>
-bool PhysicalDevice::hasExtendedFeatures(const T *requestedFeature) const
+T PhysicalDevice::getSupportedFeatures(const T *requested) const
 {
 	VkPhysicalDeviceFeatures2 features;
 	features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-	T supportedFeature;
-	supportedFeature.sType = requestedFeature->sType;
-	supportedFeature.pNext = nullptr;
-	features.pNext = &supportedFeature;
-
+	T supported;
+	supported.sType = requested->sType;
+	supported.pNext = nullptr;
+	features.pNext = &supported;
 	getFeatures2(&features);
-	size_t offsetToFirstBool32 = sizeof(VkBaseOutStructure);
-	size_t numFeatures = (sizeof(T) - offsetToFirstBool32) / sizeof(VkBool32);
-	const VkBool32 *requestedFeatureBools = reinterpret_cast<const VkBool32 *>(
-	    reinterpret_cast<const uint8_t *>(requestedFeature) + offsetToFirstBool32);
-	const VkBool32 *supportedFeatureBools = reinterpret_cast<const VkBool32 *>(
-	    reinterpret_cast<const uint8_t *>(&supportedFeature) + offsetToFirstBool32);
-
-	for(size_t i = 0; i < numFeatures; i++)
-	{
-		if((requestedFeatureBools[i] != VK_FALSE) && (supportedFeatureBools[i] == VK_FALSE))
-		{
-			return false;
-		}
-	}
-	return true;
+	return supported;
 }
 
-#define InstantiateHasExtendedFeatures(Type) template bool PhysicalDevice::hasExtendedFeatures<Type>(const Type *requestedFeature) const
-InstantiateHasExtendedFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT);
-InstantiateHasExtendedFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT);
-InstantiateHasExtendedFeatures(VkPhysicalDeviceVulkan11Features);
-InstantiateHasExtendedFeatures(VkPhysicalDeviceVulkan12Features);
-InstantiateHasExtendedFeatures(VkPhysicalDeviceDepthClipEnableFeaturesEXT);
-InstantiateHasExtendedFeatures(VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT);
-#undef InstantiateHasExtendedFeatures
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceLineRasterizationFeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, rectangularLines) &&
+	       CheckFeature(requested, supported, bresenhamLines) &&
+	       CheckFeature(requested, supported, smoothLines) &&
+	       CheckFeature(requested, supported, stippledRectangularLines) &&
+	       CheckFeature(requested, supported, stippledBresenhamLines) &&
+	       CheckFeature(requested, supported, stippledSmoothLines);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceProvokingVertexFeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, provokingVertexLast) &&
+	       CheckFeature(requested, supported, transformFeedbackPreservesProvokingVertex);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceVulkan11Features *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, storageBuffer16BitAccess) &&
+	       CheckFeature(requested, supported, uniformAndStorageBuffer16BitAccess) &&
+	       CheckFeature(requested, supported, storagePushConstant16) &&
+	       CheckFeature(requested, supported, storageInputOutput16) &&
+	       CheckFeature(requested, supported, multiview) &&
+	       CheckFeature(requested, supported, multiviewGeometryShader) &&
+	       CheckFeature(requested, supported, multiviewTessellationShader) &&
+	       CheckFeature(requested, supported, variablePointersStorageBuffer) &&
+	       CheckFeature(requested, supported, variablePointers) &&
+	       CheckFeature(requested, supported, protectedMemory) &&
+	       CheckFeature(requested, supported, samplerYcbcrConversion) &&
+	       CheckFeature(requested, supported, shaderDrawParameters);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceVulkan12Features *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, samplerMirrorClampToEdge) &&
+	       CheckFeature(requested, supported, drawIndirectCount) &&
+	       CheckFeature(requested, supported, storageBuffer8BitAccess) &&
+	       CheckFeature(requested, supported, uniformAndStorageBuffer8BitAccess) &&
+	       CheckFeature(requested, supported, storagePushConstant8) &&
+	       CheckFeature(requested, supported, shaderBufferInt64Atomics) &&
+	       CheckFeature(requested, supported, shaderSharedInt64Atomics) &&
+	       CheckFeature(requested, supported, shaderFloat16) &&
+	       CheckFeature(requested, supported, shaderInt8) &&
+	       CheckFeature(requested, supported, descriptorIndexing) &&
+	       CheckFeature(requested, supported, shaderInputAttachmentArrayDynamicIndexing) &&
+	       CheckFeature(requested, supported, shaderUniformTexelBufferArrayDynamicIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageTexelBufferArrayDynamicIndexing) &&
+	       CheckFeature(requested, supported, shaderUniformBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderSampledImageArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageImageArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderInputAttachmentArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderUniformTexelBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageTexelBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, descriptorBindingUniformBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingSampledImageUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingStorageImageUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingStorageBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingUniformTexelBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingStorageTexelBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingUpdateUnusedWhilePending) &&
+	       CheckFeature(requested, supported, descriptorBindingPartiallyBound) &&
+	       CheckFeature(requested, supported, descriptorBindingVariableDescriptorCount) &&
+	       CheckFeature(requested, supported, runtimeDescriptorArray) &&
+	       CheckFeature(requested, supported, samplerFilterMinmax) &&
+	       CheckFeature(requested, supported, scalarBlockLayout) &&
+	       CheckFeature(requested, supported, imagelessFramebuffer) &&
+	       CheckFeature(requested, supported, uniformBufferStandardLayout) &&
+	       CheckFeature(requested, supported, shaderSubgroupExtendedTypes) &&
+	       CheckFeature(requested, supported, separateDepthStencilLayouts) &&
+	       CheckFeature(requested, supported, hostQueryReset) &&
+	       CheckFeature(requested, supported, timelineSemaphore) &&
+	       CheckFeature(requested, supported, bufferDeviceAddress) &&
+	       CheckFeature(requested, supported, bufferDeviceAddressCaptureReplay) &&
+	       CheckFeature(requested, supported, bufferDeviceAddressMultiDevice) &&
+	       CheckFeature(requested, supported, vulkanMemoryModel) &&
+	       CheckFeature(requested, supported, vulkanMemoryModelDeviceScope) &&
+	       CheckFeature(requested, supported, vulkanMemoryModelAvailabilityVisibilityChains) &&
+	       CheckFeature(requested, supported, shaderOutputViewportIndex) &&
+	       CheckFeature(requested, supported, shaderOutputLayer) &&
+	       CheckFeature(requested, supported, subgroupBroadcastDynamicId);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceDepthClipEnableFeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, depthClipEnable);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, advancedBlendCoherentOperations);
+}
+#undef CheckFeature
 
 void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFormatProperties)
 {
