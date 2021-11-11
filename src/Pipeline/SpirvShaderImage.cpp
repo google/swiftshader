@@ -600,27 +600,28 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 	return EmitResult::Continue;
 }
 
-SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte> imageBase, Int imageSizeInBytes, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect, OutOfBoundsBehavior outOfBoundsBehavior) const
+SIMD::Pointer SpirvShader::GetTexelAddress(ImageInstructionSignature instruction, Pointer<Byte> descriptor, SIMD::Int coordinate[], SIMD::Int sample, vk::Format imageFormat, OutOfBoundsBehavior outOfBoundsBehavior, const EmitState *state)
 {
-	auto routine = state->routine;
-	bool isArrayed = imageType.definition.word(5) != 0;
-	auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
-	int dims = coordinate.componentCount - (isArrayed ? 1 : 0);
+	bool isArrayed = instruction.arrayed;
+	spv::Dim dim = static_cast<spv::Dim>(instruction.dim);
+	int dims = instruction.coordinates - (isArrayed ? 1 : 0);
 
-	SIMD::Int u = coordinate.Int(0);
+	SIMD::Int u = coordinate[0];
 	SIMD::Int v = SIMD::Int(0);
 
-	if(coordinate.componentCount > 1)
+	if(dims > 1)
 	{
-		v = coordinate.Int(1);
+		v = coordinate[1];
 	}
 
 	if(dim == spv::DimSubpassData)
 	{
-		u += routine->windowSpacePosition[0];
-		v += routine->windowSpacePosition[1];
+		u += state->routine->windowSpacePosition[0];
+		v += state->routine->windowSpacePosition[1];
 	}
 
+	const int texelSize = imageFormat.bytes();
+	const bool useStencilAspect = (imageFormat == VK_FORMAT_S8_UINT);
 	auto rowPitch = SIMD::Int(*Pointer<Int>(descriptor + (useStencilAspect
 	                                                          ? OFFSET(vk::StorageImageDescriptor, stencilRowPitchBytes)
 	                                                          : OFFSET(vk::StorageImageDescriptor, rowPitchBytes))));
@@ -645,12 +646,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 	{
 		if(dims > 2)
 		{
-			w += coordinate.Int(2);
+			w += coordinate[2];
 		}
 
 		if(isArrayed)
 		{
-			w += coordinate.Int(dims);
+			w += coordinate[dims];
 		}
 
 		ptrOffset += w * slicePitch;
@@ -659,18 +660,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 	if(dim == spv::DimSubpassData)
 	{
 		// Multiview input attachment access is to the layer corresponding to the current view
-		ptrOffset += SIMD::Int(routine->viewID) * slicePitch;
+		ptrOffset += SIMD::Int(state->routine->viewID) * slicePitch;
 	}
 
-	SIMD::Int n = 0;
-	if(sampleId != 0)
+	if(instruction.sample)
 	{
-		if(!getObject(sampleId).isConstantZero())
-		{
-			Operand sample(this, state, sampleId);
-			n = sample.Int(0);
-			ptrOffset += n * samplePitch;
-		}
+		ptrOffset += sample * samplePitch;
 	}
 
 	// If the out-of-bounds behavior is set to nullify, then each coordinate must be tested individually.
@@ -693,13 +688,10 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(w), SIMD::UInt(depth)));
 		}
 
-		if(sampleId != 0)
+		if(instruction.sample)
 		{
-			if(!getObject(sampleId).isConstantZero())
-			{
-				SIMD::UInt sampleCount = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount));
-				oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(n), sampleCount));
-			}
+			SIMD::UInt sampleCount = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount));
+			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(sample), sampleCount));
 		}
 
 		constexpr int32_t OOB_OFFSET = 0x7FFFFFFF - 16;  // SIMD pointer offsets are signed 32-bit, so this is the largest offset (for 16-byte texels).
@@ -707,6 +699,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 
 		ptrOffset = (ptrOffset & ~oobMask) | (oobMask & SIMD::Int(OOB_OFFSET));  // oob ? OOB_OFFSET : ptrOffset  // TODO: IfThenElse()
 	}
+
+	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(descriptor + (useStencilAspect
+	                                                                    ? OFFSET(vk::StorageImageDescriptor, stencilPtr)
+	                                                                    : OFFSET(vk::StorageImageDescriptor, ptr)));
+
+	Int imageSizeInBytes = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 	return SIMD::Pointer(imageBase, imageSizeInBytes, ptrOffset);
 }
@@ -725,13 +723,13 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(const ImageInstruction &instr
 
 	// For subpass data, format in the instruction is spv::ImageFormatUnknown. Get it from
 	// the renderpass data instead. In all other cases, we can use the format in the instruction.
-	auto imageFormat = (dim == spv::DimSubpassData)
-	                       ? inputAttachmentFormats[d.InputAttachmentIndex]
-	                       : SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat));
+	vk::Format imageFormat = (dim == spv::DimSubpassData)
+	                             ? inputAttachmentFormats[d.InputAttachmentIndex]
+	                             : SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat));
 
 	// Depth+Stencil image attachments select aspect based on the Sampled Type of the
 	// OpTypeImage. If float, then we want the depth aspect. If int, we want the stencil aspect.
-	auto useStencilAspect = (imageFormat == VK_FORMAT_D32_SFLOAT_S8_UINT &&
+	bool useStencilAspect = (imageFormat == VK_FORMAT_D32_SFLOAT_S8_UINT &&
 	                         getType(imageType.definition.word(2)).opcode() == spv::OpTypeInt);
 
 	if(useStencilAspect)
@@ -740,20 +738,28 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(const ImageInstruction &instr
 	}
 
 	Pointer<Byte> descriptor = state->getPointer(instruction.imageId).base;  // vk::StorageImageDescriptor*
-	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(descriptor + (useStencilAspect
-	                                                                    ? OFFSET(vk::StorageImageDescriptor, stencilPtr)
-	                                                                    : OFFSET(vk::StorageImageDescriptor, ptr)));
-
-	Int imageSizeInBytes = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
-
 	auto &dst = state->createIntermediate(instruction.resultId, resultType.componentCount);
 
 	// VK_EXT_image_robustness requires replacing out-of-bounds access with zero.
 	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 	auto robustness = OutOfBoundsBehavior::Nullify;
-	const int texelSize = imageFormat.bytes();
 
-	auto texelPtr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, descriptor, texelSize, instruction.sampleId, useStencilAspect, robustness);
+	SIMD::Int uvwa[4];
+	SIMD::Int sample;
+
+	for(uint32_t i = 0; i < instruction.coordinates; i++)
+	{
+		uvwa[i] = coordinate.Int(i);
+	}
+
+	if(instruction.sample)
+	{
+		sample = Operand(this, state, instruction.sampleId).Int(0);
+	}
+
+	auto texelPtr = GetTexelAddress(instruction, descriptor, uvwa, sample, imageFormat, robustness, state);
+
+	const int texelSize = imageFormat.bytes();
 
 	// Gather packed texel data. Texels larger than 4 bytes occupy multiple SIMD::Int elements.
 	// TODO(b/160531165): Provide gather abstractions for various element sizes.
@@ -1135,8 +1141,6 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	auto texel = Operand(this, state, instruction.texelId);
 
 	Pointer<Byte> descriptor = state->getPointer(instruction.imageId).base;  // vk::StorageImageDescriptor*
-	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::StorageImageDescriptor, ptr));
-	Int imageSizeInBytes = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 	SIMD::Int packed[4];
 	vk::Format imageFormat = SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat));
@@ -1285,9 +1289,23 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	//  validation. If the texel fails integer texel coordinate validation, then the write has no effect."
 	// - https://www.khronos.org/registry/vulkan/specs/1.2/html/chap16.html#textures-output-coordinate-validation
 	auto robustness = OutOfBoundsBehavior::Nullify;
-	const int texelSize = imageFormat.bytes();
 
-	auto texelPtr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, descriptor, texelSize, instruction.sampleId, false, robustness);
+	SIMD::Int uvwa[4];
+	SIMD::Int sample;
+
+	for(uint32_t i = 0; i < instruction.coordinates; i++)
+	{
+		uvwa[i] = coordinate.Int(i);
+	}
+
+	if(instruction.sample)
+	{
+		sample = Operand(this, state, instruction.sampleId).Int(0);
+	}
+
+	auto texelPtr = GetTexelAddress(instruction, descriptor, uvwa, sample, imageFormat, robustness, state);
+
+	const int texelSize = imageFormat.bytes();
 
 	// Scatter packed texel data.
 	// TODO(b/160531165): Provide scatter abstractions for various element sizes.
@@ -1333,27 +1351,25 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 
 SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(const ImageInstruction &instruction, EmitState *state) const
 {
-	auto &resultType = getType(instruction.resultTypeId);
-	auto &image = getObject(instruction.imageId);
-	// Note: OpImageTexelPointer is unusual in that the image is passed by pointer.
-	// Look through to get the actual image type.
-	auto &imageType = getType(getType(image).element);
-
-	ASSERT(imageType.opcode() == spv::OpTypeImage);
-	ASSERT(resultType.storageClass == spv::StorageClassImage);
-
 	auto coordinate = Operand(this, state, instruction.coordinateId);
 
 	Pointer<Byte> descriptor = state->getPointer(instruction.imageId).base;  // vk::StorageImageDescriptor*
-	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::StorageImageDescriptor, ptr));
-	auto imageSizeInBytes = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 	// VK_EXT_image_robustness requires checking for out-of-bounds accesses.
 	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 	auto robustness = OutOfBoundsBehavior::Nullify;
-	const int texelSize = SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat)).bytes();
+	vk::Format imageFormat = SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat));
 
-	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, descriptor, texelSize, instruction.sampleId, false, robustness);
+	SIMD::Int uvwa[4];
+
+	for(uint32_t i = 0; i < instruction.coordinates; i++)
+	{
+		uvwa[i] = coordinate.Int(i);
+	}
+
+	SIMD::Int sample = Operand(this, state, instruction.sampleId).Int(0);
+
+	auto ptr = GetTexelAddress(instruction, descriptor, uvwa, sample, imageFormat, robustness, state);
 
 	state->createPointer(instruction.resultId, ptr);
 
