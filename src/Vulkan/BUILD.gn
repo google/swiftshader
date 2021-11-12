@@ -218,6 +218,8 @@ action("icd_file") {
     library_path = ".\\vk_swiftshader.dll"
   } else if (is_mac) {
     library_path = "./libvk_swiftshader.dylib"
+  } else if (is_fuchsia) {
+    library_path = "/pkg/lib/libvk_swiftshader.so"
   } else {
     library_path = "./libvk_swiftshader.so"
   }
