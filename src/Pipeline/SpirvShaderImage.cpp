@@ -442,7 +442,7 @@ void SpirvShader::callSamplerFunction(Pointer<Byte> samplerFunction, Array<SIMD:
 
 	Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
 
-	Call<ImageSampler>(samplerFunction, texture, &in[0], &out[0], state->routine->constants);
+	Call<ImageSampler>(samplerFunction, texture, &in, &out, state->routine->constants);
 }
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const
@@ -1131,47 +1131,83 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	auto &imageType = getType(image);
 
 	ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
+	ASSERT(static_cast<spv::Dim>(instruction.dim) != spv::DimSubpassData);  // "Its Dim operand must not be SubpassData."
 
 	auto coordinate = Operand(this, state, instruction.coordinateId);
 	auto texel = Operand(this, state, instruction.texelId);
 
+	Array<SIMD::Int> coord(5);  // uvwa & sample
+
+	uint32_t i = 0;
+	for(; i < instruction.coordinates; i++)
+	{
+		coord[i] = coordinate.Int(i);
+	}
+
+	if(instruction.sample)
+	{
+		coord[i] = Operand(this, state, instruction.sampleId).Int(0);
+	}
+
+	Array<SIMD::Int> texelAndMask(5);
+	texelAndMask[0] = texel.Int(0);
+	texelAndMask[1] = texel.Int(1);
+	texelAndMask[2] = texel.Int(2);
+	texelAndMask[3] = texel.Int(3);
+	texelAndMask[4] = state->activeStoresAndAtomicsMask();
+
 	Pointer<Byte> descriptor = state->getPointer(instruction.imageId).base;  // vk::StorageImageDescriptor*
 
-	SIMD::Int packed[4];
 	vk::Format imageFormat = SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat));
+
+	WriteImage(instruction, descriptor, &coord, &texelAndMask, imageFormat);
+
+	return EmitResult::Continue;
+}
+
+void SpirvShader::WriteImage(ImageInstructionSignature instruction, Pointer<Byte> descriptor, const Pointer<SIMD::Int> &coord, const Pointer<SIMD::Int> &texelAndMask, vk::Format imageFormat)
+{
+	SIMD::Int texel[4];
+	texel[0] = texelAndMask[0];
+	texel[1] = texelAndMask[1];
+	texel[2] = texelAndMask[2];
+	texel[3] = texelAndMask[3];
+	SIMD::Int mask = texelAndMask[4];
+
+	SIMD::Int packed[4];
 	switch(imageFormat)
 	{
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 	case VK_FORMAT_R32G32B32A32_SINT:
 	case VK_FORMAT_R32G32B32A32_UINT:
-		packed[0] = texel.Int(0);
-		packed[1] = texel.Int(1);
-		packed[2] = texel.Int(2);
-		packed[3] = texel.Int(3);
+		packed[0] = texel[0];
+		packed[1] = texel[1];
+		packed[2] = texel[2];
+		packed[3] = texel[3];
 		break;
 	case VK_FORMAT_R32_SFLOAT:
 	case VK_FORMAT_R32_SINT:
 	case VK_FORMAT_R32_UINT:
-		packed[0] = texel.Int(0);
+		packed[0] = texel[0];
 		break;
 	case VK_FORMAT_R8G8B8A8_UNORM:
 	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-		packed[0] = (SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) |
-		            ((SIMD::UInt(Round(Min(Max(texel.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 8) |
-		            ((SIMD::UInt(Round(Min(Max(texel.Float(2), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 16) |
-		            ((SIMD::UInt(Round(Min(Max(texel.Float(3), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 24);
+		packed[0] = (SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) |
+		            ((SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 8) |
+		            ((SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[2]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 16) |
+		            ((SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[3]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 24);
 		break;
 	case VK_FORMAT_R8G8B8A8_SNORM:
 	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-		packed[0] = (SIMD::Int(Round(Min(Max(texel.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+		packed[0] = (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
 		             SIMD::Int(0xFF)) |
-		            ((SIMD::Int(Round(Min(Max(texel.Float(1), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+		            ((SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
 		              SIMD::Int(0xFF))
 		             << 8) |
-		            ((SIMD::Int(Round(Min(Max(texel.Float(2), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+		            ((SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[2]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
 		              SIMD::Int(0xFF))
 		             << 16) |
-		            ((SIMD::Int(Round(Min(Max(texel.Float(3), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+		            ((SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[3]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
 		              SIMD::Int(0xFF))
 		             << 24);
 		break;
@@ -1179,105 +1215,105 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	case VK_FORMAT_R8G8B8A8_UINT:
 	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-		packed[0] = (SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xff))) |
-		            (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xff)) << 8) |
-		            (SIMD::UInt(texel.UInt(2) & SIMD::UInt(0xff)) << 16) |
-		            (SIMD::UInt(texel.UInt(3) & SIMD::UInt(0xff)) << 24);
+		packed[0] = (SIMD::UInt(As<SIMD::UInt>(texel[0]) & SIMD::UInt(0xff))) |
+		            (SIMD::UInt(As<SIMD::UInt>(texel[1]) & SIMD::UInt(0xff)) << 8) |
+		            (SIMD::UInt(As<SIMD::UInt>(texel[2]) & SIMD::UInt(0xff)) << 16) |
+		            (SIMD::UInt(As<SIMD::UInt>(texel[3]) & SIMD::UInt(0xff)) << 24);
 		break;
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
-		packed[0] = floatToHalfBits(texel.UInt(0), false) | floatToHalfBits(texel.UInt(1), true);
-		packed[1] = floatToHalfBits(texel.UInt(2), false) | floatToHalfBits(texel.UInt(3), true);
+		packed[0] = floatToHalfBits(As<SIMD::UInt>(texel[0]), false) | floatToHalfBits(As<SIMD::UInt>(texel[1]), true);
+		packed[1] = floatToHalfBits(As<SIMD::UInt>(texel[2]), false) | floatToHalfBits(As<SIMD::UInt>(texel[3]), true);
 		break;
 	case VK_FORMAT_R16G16B16A16_SINT:
 	case VK_FORMAT_R16G16B16A16_UINT:
-		packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xFFFF)) << 16);
-		packed[1] = SIMD::UInt(texel.UInt(2) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(texel.UInt(3) & SIMD::UInt(0xFFFF)) << 16);
+		packed[0] = SIMD::UInt(As<SIMD::UInt>(texel[0]) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(As<SIMD::UInt>(texel[1]) & SIMD::UInt(0xFFFF)) << 16);
+		packed[1] = SIMD::UInt(As<SIMD::UInt>(texel[2]) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(As<SIMD::UInt>(texel[3]) & SIMD::UInt(0xFFFF)) << 16);
 		break;
 	case VK_FORMAT_R32G32_SFLOAT:
 	case VK_FORMAT_R32G32_SINT:
 	case VK_FORMAT_R32G32_UINT:
-		packed[0] = texel.Int(0);
-		packed[1] = texel.Int(1);
+		packed[0] = texel[0];
+		packed[1] = texel[1];
 		break;
 	case VK_FORMAT_R16G16_SFLOAT:
-		packed[0] = floatToHalfBits(texel.UInt(0), false) | floatToHalfBits(texel.UInt(1), true);
+		packed[0] = floatToHalfBits(As<SIMD::UInt>(texel[0]), false) | floatToHalfBits(As<SIMD::UInt>(texel[1]), true);
 		break;
 	case VK_FORMAT_R16G16_SINT:
 	case VK_FORMAT_R16G16_UINT:
-		packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xFFFF)) << 16);
+		packed[0] = SIMD::UInt(As<SIMD::UInt>(texel[0]) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(As<SIMD::UInt>(texel[1]) & SIMD::UInt(0xFFFF)) << 16);
 		break;
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		// Truncates instead of rounding. See b/147900455
-		packed[0] = ((floatToHalfBits(As<SIMD::UInt>(Max(texel.Float(0), SIMD::Float(0.0f))), false) & SIMD::UInt(0x7FF0)) >> 4) |
-		            ((floatToHalfBits(As<SIMD::UInt>(Max(texel.Float(1), SIMD::Float(0.0f))), false) & SIMD::UInt(0x7FF0)) << 7) |
-		            ((floatToHalfBits(As<SIMD::UInt>(Max(texel.Float(2), SIMD::Float(0.0f))), false) & SIMD::UInt(0x7FE0)) << 17);
+		packed[0] = ((floatToHalfBits(As<SIMD::UInt>(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f))), false) & SIMD::UInt(0x7FF0)) >> 4) |
+		            ((floatToHalfBits(As<SIMD::UInt>(Max(As<SIMD::Float>(texel[1]), SIMD::Float(0.0f))), false) & SIMD::UInt(0x7FF0)) << 7) |
+		            ((floatToHalfBits(As<SIMD::UInt>(Max(As<SIMD::Float>(texel[2]), SIMD::Float(0.0f))), false) & SIMD::UInt(0x7FE0)) << 17);
 		break;
 	case VK_FORMAT_R16_SFLOAT:
-		packed[0] = floatToHalfBits(texel.UInt(0), false);
+		packed[0] = floatToHalfBits(As<SIMD::UInt>(texel[0]), false);
 		break;
 	case VK_FORMAT_R16G16B16A16_UNORM:
-		packed[0] = SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) |
-		            (SIMD::UInt(Round(Min(Max(texel.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) << 16);
-		packed[1] = SIMD::UInt(Round(Min(Max(texel.Float(2), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) |
-		            (SIMD::UInt(Round(Min(Max(texel.Float(3), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) << 16);
+		packed[0] = SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) |
+		            (SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) << 16);
+		packed[1] = SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[2]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) |
+		            (SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[3]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) << 16);
 		break;
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-		packed[0] = (SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3FF)))) |
-		            ((SIMD::UInt(Round(Min(Max(texel.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3FF)))) << 10) |
-		            ((SIMD::UInt(Round(Min(Max(texel.Float(2), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3FF)))) << 20) |
-		            ((SIMD::UInt(Round(Min(Max(texel.Float(3), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3)))) << 30);
+		packed[0] = (SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3FF)))) |
+		            ((SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3FF)))) << 10) |
+		            ((SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[2]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3FF)))) << 20) |
+		            ((SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[3]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x3)))) << 30);
 		break;
 	case VK_FORMAT_R16G16_UNORM:
-		packed[0] = SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) |
-		            (SIMD::UInt(Round(Min(Max(texel.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) << 16);
+		packed[0] = SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) |
+		            (SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF))) << 16);
 		break;
 	case VK_FORMAT_R8G8_UNORM:
-		packed[0] = SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFF))) |
-		            (SIMD::UInt(Round(Min(Max(texel.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFF))) << 8);
+		packed[0] = SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFF))) |
+		            (SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFF))) << 8);
 		break;
 	case VK_FORMAT_R16_UNORM:
-		packed[0] = SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF)));
+		packed[0] = SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFFFF)));
 		break;
 	case VK_FORMAT_R8_UNORM:
-		packed[0] = SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFF)));
+		packed[0] = SIMD::UInt(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(0xFF)));
 		break;
 	case VK_FORMAT_R16G16B16A16_SNORM:
-		packed[0] = (SIMD::Int(Round(Min(Max(texel.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) & SIMD::Int(0xFFFF)) |
-		            (SIMD::Int(Round(Min(Max(texel.Float(1), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) << 16);
-		packed[1] = (SIMD::Int(Round(Min(Max(texel.Float(2), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) & SIMD::Int(0xFFFF)) |
-		            (SIMD::Int(Round(Min(Max(texel.Float(3), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) << 16);
+		packed[0] = (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) & SIMD::Int(0xFFFF)) |
+		            (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) << 16);
+		packed[1] = (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[2]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) & SIMD::Int(0xFFFF)) |
+		            (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[3]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) << 16);
 		break;
 	case VK_FORMAT_R16G16_SNORM:
-		packed[0] = (SIMD::Int(Round(Min(Max(texel.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) & SIMD::Int(0xFFFF)) |
-		            (SIMD::Int(Round(Min(Max(texel.Float(1), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) << 16);
+		packed[0] = (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) & SIMD::Int(0xFFFF)) |
+		            (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF))) << 16);
 		break;
 	case VK_FORMAT_R8G8_SNORM:
-		packed[0] = (SIMD::Int(Round(Min(Max(texel.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7F))) & SIMD::Int(0xFF)) |
-		            (SIMD::Int(Round(Min(Max(texel.Float(1), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7F))) << 8);
+		packed[0] = (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7F))) & SIMD::Int(0xFF)) |
+		            (SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[1]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7F))) << 8);
 		break;
 	case VK_FORMAT_R16_SNORM:
-		packed[0] = SIMD::Int(Round(Min(Max(texel.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF)));
+		packed[0] = SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7FFF)));
 		break;
 	case VK_FORMAT_R8_SNORM:
-		packed[0] = SIMD::Int(Round(Min(Max(texel.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7F)));
+		packed[0] = SIMD::Int(Round(Min(Max(As<SIMD::Float>(texel[0]), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(0x7F)));
 		break;
 	case VK_FORMAT_R8G8_SINT:
 	case VK_FORMAT_R8G8_UINT:
-		packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xFF)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xFF)) << 8);
+		packed[0] = SIMD::UInt(As<SIMD::UInt>(texel[0]) & SIMD::UInt(0xFF)) | (SIMD::UInt(As<SIMD::UInt>(texel[1]) & SIMD::UInt(0xFF)) << 8);
 		break;
 	case VK_FORMAT_R16_SINT:
 	case VK_FORMAT_R16_UINT:
-		packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xFFFF));
+		packed[0] = SIMD::UInt(As<SIMD::UInt>(texel[0]) & SIMD::UInt(0xFFFF));
 		break;
 	case VK_FORMAT_R8_SINT:
 	case VK_FORMAT_R8_UINT:
-		packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xFF));
+		packed[0] = SIMD::UInt(As<SIMD::UInt>(texel[0]) & SIMD::UInt(0xFF));
 		break;
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-		packed[0] = (SIMD::UInt(texel.UInt(0) & SIMD::UInt(0x3FF))) |
-		            (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0x3FF)) << 10) |
-		            (SIMD::UInt(texel.UInt(2) & SIMD::UInt(0x3FF)) << 20) |
-		            (SIMD::UInt(texel.UInt(3) & SIMD::UInt(0x3)) << 30);
+		packed[0] = (SIMD::UInt(As<SIMD::UInt>(texel[0]) & SIMD::UInt(0x3FF))) |
+		            (SIMD::UInt(As<SIMD::UInt>(texel[1]) & SIMD::UInt(0x3FF)) << 10) |
+		            (SIMD::UInt(As<SIMD::UInt>(texel[2]) & SIMD::UInt(0x3FF)) << 20) |
+		            (SIMD::UInt(As<SIMD::UInt>(texel[3]) & SIMD::UInt(0x3)) << 30);
 		break;
 	default:
 		UNSUPPORTED("VkFormat %d", int(imageFormat));
@@ -1288,18 +1324,21 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	//  validation. If the texel fails integer texel coordinate validation, then the write has no effect."
 	// - https://www.khronos.org/registry/vulkan/specs/1.2/html/chap16.html#textures-output-coordinate-validation
 	auto robustness = OutOfBoundsBehavior::Nullify;
+	// GetTexelAddress() only needs the EmitState* for SubpassData accesses (i.e. input attachments).
+	const EmitState *state = nullptr;
 
 	SIMD::Int uvwa[4];
 	SIMD::Int sample;
 
-	for(uint32_t i = 0; i < instruction.coordinates; i++)
+	uint32_t i = 0;
+	for(; i < instruction.coordinates; i++)
 	{
-		uvwa[i] = coordinate.Int(i);
+		uvwa[i] = As<SIMD::Int>(coord[i]);
 	}
 
 	if(instruction.sample)
 	{
-		sample = Operand(this, state, instruction.sampleId).Int(0);
+		sample = As<SIMD::Int>(coord[i]);
 	}
 
 	auto texelPtr = GetTexelAddress(instruction, descriptor, uvwa, sample, imageFormat, robustness, state);
@@ -1312,14 +1351,14 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	{
 		for(auto i = 0; i < texelSize / 4; i++)
 		{
-			texelPtr.Store(packed[i], robustness, state->activeStoresAndAtomicsMask());
+			texelPtr.Store(packed[i], robustness, mask);
 			texelPtr += sizeof(float);
 		}
 	}
 	else if(texelSize == 2)
 	{
 		SIMD::Int offsets = texelPtr.offsets();
-		SIMD::Int mask = state->activeStoresAndAtomicsMask() & texelPtr.isInBounds(2, robustness);
+		mask = mask & texelPtr.isInBounds(2, robustness);
 
 		for(int i = 0; i < SIMD::Width; i++)
 		{
@@ -1332,7 +1371,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	else if(texelSize == 1)
 	{
 		SIMD::Int offsets = texelPtr.offsets();
-		SIMD::Int mask = state->activeStoresAndAtomicsMask() & texelPtr.isInBounds(1, robustness);
+		mask = mask & texelPtr.isInBounds(1, robustness);
 
 		for(int i = 0; i < SIMD::Width; i++)
 		{
@@ -1344,8 +1383,6 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 	}
 	else
 		UNREACHABLE("texelSize: %d", int(texelSize));
-
-	return EmitResult::Continue;
 }
 
 SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(const ImageInstruction &instruction, EmitState *state) const
