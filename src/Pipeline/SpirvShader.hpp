@@ -670,6 +670,7 @@ public:
 		bool ImageQuery : 1;
 		bool DerivativeControl : 1;
 		bool InterpolationFunction : 1;
+		bool StorageImageWriteWithoutFormat : 1;
 		bool GroupNonUniform : 1;
 		bool GroupNonUniformVote : 1;
 		bool GroupNonUniformBallot : 1;
@@ -1381,6 +1382,7 @@ private:
 
 	static ImageSampler *getImageSampler(const vk::Device *device, uint32_t signature, uint32_t samplerId, uint32_t imageViewId);
 	static std::shared_ptr<rr::Routine> emitSamplerRoutine(ImageInstructionSignature instruction, const Sampler &samplerState);
+	static std::shared_ptr<rr::Routine> emitWriteRoutine(ImageInstructionSignature instruction, const Sampler &samplerState);
 
 	// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.
 	static sw::FilterType convertFilterMode(const vk::SamplerState *samplerState, VkImageViewType imageViewType, SamplerMethod samplerMethod);

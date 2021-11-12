@@ -14,7 +14,7 @@
 
 #include "SpirvShader.hpp"
 
-#include "SamplerCore.hpp"  // TODO: Figure out what's needed.
+#include "SamplerCore.hpp"
 #include "Device/Config.hpp"
 #include "System/Debug.hpp"
 #include "System/Math.hpp"
@@ -33,12 +33,12 @@ namespace sw {
 SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device, uint32_t signature, uint32_t samplerId, uint32_t imageViewId)
 {
 	ImageInstructionSignature instruction(signature);
-	ASSERT(imageViewId != 0 && (samplerId != 0 || instruction.samplerMethod == Fetch));
+	ASSERT(imageViewId != 0 && (samplerId != 0 || instruction.samplerMethod == Fetch || instruction.samplerMethod == Write));
 	ASSERT(device);
 
 	vk::Device::SamplingRoutineCache::Key key = { signature, samplerId, imageViewId };
 
-	auto createSamplingRoutine = [&device](const vk::Device::SamplingRoutineCache::Key &key) {
+	auto createSamplingRoutine = [device](const vk::Device::SamplingRoutineCache::Key &key) {
 		ImageInstructionSignature instruction(key.instruction);
 		const vk::Identifier::State imageViewState = vk::Identifier(key.imageView).getState();
 		const vk::SamplerState *vkSamplerState = (key.sampler != 0) ? device->findSampler(key.sampler) : nullptr;
@@ -95,10 +95,8 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 				samplerState.maxLod = 0.0f;
 			}
 		}
-		else  // Fetch
+		else if(samplerMethod == Fetch)
 		{
-			ASSERT(samplerMethod == Fetch);
-
 			// OpImageFetch does not take a sampler descriptor, but for VK_EXT_image_robustness
 			// requires replacing invalid texels with zero.
 			// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
@@ -111,6 +109,12 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 				samplerState.maxLod = 0.0f;
 			}
 		}
+		else if(samplerMethod == Write)
+		{
+			return emitWriteRoutine(instruction, samplerState);
+		}
+		else
+			ASSERT(false);
 
 		return emitSamplerRoutine(instruction, samplerState);
 	};
@@ -119,6 +123,22 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 	auto routine = cache->getOrCreate(key, createSamplingRoutine);
 
 	return (ImageSampler *)(routine->getEntry());
+}
+
+std::shared_ptr<rr::Routine> SpirvShader::emitWriteRoutine(ImageInstructionSignature instruction, const Sampler &samplerState)
+{
+	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
+	rr::Function<Void(Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
+	{
+		Pointer<Byte> descriptor = function.Arg<0>();
+		Pointer<SIMD::Float> coord = function.Arg<1>();
+		Pointer<SIMD::Float> texelAndMask = function.Arg<2>();
+		Pointer<Byte> constants = function.Arg<3>();
+
+		WriteImage(instruction, descriptor, coord, texelAndMask, samplerState.textureFormat);
+	}
+
+	return function("sampler");
 }
 
 std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstructionSignature instruction, const Sampler &samplerState)

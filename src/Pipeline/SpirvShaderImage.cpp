@@ -27,6 +27,7 @@ vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
 {
 	switch(format)
 	{
+	case spv::ImageFormatUnknown: return VK_FORMAT_UNDEFINED;
 	case spv::ImageFormatRgba32f: return VK_FORMAT_R32G32B32A32_SFLOAT;
 	case spv::ImageFormatRgba16f: return VK_FORMAT_R16G16B16A16_SFLOAT;
 	case spv::ImageFormatR32f: return VK_FORMAT_R32_SFLOAT;
@@ -1160,7 +1161,16 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &inst
 
 	vk::Format imageFormat = SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat));
 
-	WriteImage(instruction, descriptor, &coord, &texelAndMask, imageFormat);
+	if(imageFormat == VK_FORMAT_UNDEFINED)  // spv::ImageFormatUnknown
+	{
+		Pointer<Byte> samplerFunction = lookupSamplerFunction(descriptor, instruction, state);
+
+		Call<ImageSampler>(samplerFunction, descriptor, &coord, &texelAndMask, state->routine->constants);
+	}
+	else
+	{
+		WriteImage(instruction, descriptor, &coord, &texelAndMask, imageFormat);
+	}
 
 	return EmitResult::Continue;
 }

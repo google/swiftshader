@@ -71,7 +71,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_TRUE,   // shaderStorageImageExtendedFormats
 		VK_TRUE,   // shaderStorageImageMultisample
 		VK_FALSE,  // shaderStorageImageReadWithoutFormat
-		VK_FALSE,  // shaderStorageImageWriteWithoutFormat
+		VK_TRUE,   // shaderStorageImageWriteWithoutFormat
 		VK_TRUE,   // shaderUniformBufferArrayDynamicIndexing
 		VK_TRUE,   // shaderSampledImageArrayDynamicIndexing
 		VK_TRUE,   // shaderStorageBufferArrayDynamicIndexing
