@@ -87,22 +87,18 @@ private:
 
 LibXcb libXcb;
 
-VkExtent2D getWindowSize(xcb_connection_t *connection, xcb_window_t window)
+bool getWindowSizeAndDepth(xcb_connection_t *connection, xcb_window_t window, VkExtent2D *windowExtent, int *depth)
 {
-	VkExtent2D windowExtent = { 0, 0 };
-	xcb_generic_error_t *error = nullptr;
-	auto geom = libXcb->xcb_get_geometry_reply(connection, libXcb->xcb_get_geometry(connection, window), &error);
-	if(error)
+	auto cookie = libXcb->xcb_get_geometry(connection, window);
+	if(auto *geom = libXcb->xcb_get_geometry_reply(connection, cookie, nullptr))
 	{
-		free(error);
+		windowExtent->width = static_cast<uint32_t>(geom->width);
+		windowExtent->height = static_cast<uint32_t>(geom->height);
+		*depth = static_cast<int>(geom->depth);
+		free(geom);
+		return true;
 	}
-	else if(geom)
-	{
-		windowExtent.width = static_cast<uint32_t>(geom->width);
-		windowExtent.height = static_cast<uint32_t>(geom->height);
-	}
-	free(geom);
-	return windowExtent;
+	return false;
 }
 
 }  // anonymous namespace
@@ -133,7 +129,12 @@ VkResult XcbSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfac
 {
 	setCommonSurfaceCapabilities(pSurfaceCapabilities);
 
-	VkExtent2D extent = getWindowSize(connection, window);
+	VkExtent2D extent;
+	int depth;
+	if(!getWindowSizeAndDepth(connection, window, &extent, &depth))
+	{
+		return VK_ERROR_SURFACE_LOST_KHR;
+	}
 
 	pSurfaceCapabilities->currentExtent = extent;
 	pSurfaceCapabilities->minImageExtent = extent;
@@ -166,7 +167,13 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 	auto it = graphicsContexts.find(image);
 	if(it != graphicsContexts.end())
 	{
-		VkExtent2D windowExtent = getWindowSize(connection, window);
+		VkExtent2D windowExtent;
+		int depth;
+		if(!getWindowSizeAndDepth(connection, window, &windowExtent, &depth))
+		{
+			return VK_ERROR_SURFACE_LOST_KHR;
+		}
+
 		const VkExtent3D &extent = image->getImage()->getExtent();
 
 		if(windowExtent.width != extent.width || windowExtent.height != extent.height)
@@ -178,8 +185,6 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 		int stride = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 		auto buffer = reinterpret_cast<uint8_t *>(image->getImageMemory()->getOffsetPointer(0));
 		size_t bufferSize = extent.height * stride;
-		constexpr int depth = 24;  // TODO: Actually use window display depth.
-
 		libXcb->xcb_put_image(
 		    connection,
 		    XCB_IMAGE_FORMAT_Z_PIXMAP,
