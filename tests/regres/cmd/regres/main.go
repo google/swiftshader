@@ -784,7 +784,7 @@ func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 	if !util.IsFile(p) {
 		return nil, fmt.Errorf("Failed to locate %s while trying to update the dEQP SHA", deqpConfigRelPath)
 	}
-	file, err := os.OpenFile(path.Join(test.checkoutDir, deqpConfigRelPath), os.O_RDWR, 0666)
+	file, err := os.Open(p)
 	if err != nil {
 		return nil, cause.Wrap(err, "Couldn't open dEQP config file")
 	}
@@ -800,13 +800,23 @@ func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 		return nil, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
 	}
 
-	hash, err := git.FetchRefHash("refs/head/master", cfg.Remote)
+	hash, err := git.FetchRefHash("HEAD", cfg.Remote)
 	if err != nil {
 		return nil, cause.Wrap(err, "Failed to fetch dEQP ref")
 	}
-
 	cfg.SHA = hash.String()
-	if err := json.NewEncoder(file).Encode(&cfg); err != nil {
+	log.Println("New dEQP revision: %s", cfg.SHA)
+
+	newFile, err := os.Create(p)
+	if err != nil {
+		return nil, cause.Wrap(err, "Failed to open %s for encoding", deqpConfigRelPath)
+	}
+	defer newFile.Close()
+
+	encoder := json.NewEncoder(newFile)
+	// Make the encoder create a new-line and space-based indents for each field
+	encoder.SetIndent("", "    ")
+	if err := encoder.Encode(&cfg); err != nil {
 		return nil, cause.Wrap(err, "Failed to re-encode %s", deqpConfigRelPath)
 	}
 	out = append(out, p)
