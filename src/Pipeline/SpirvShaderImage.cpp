@@ -335,18 +335,13 @@ void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, const Im
 
 Pointer<Byte> SpirvShader::lookupSamplerFunction(Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, EmitState *state) const
 {
-	// If the instruction uses a separate sampler descriptor, look up its pointer.
-	// Otherwise the image descriptor has the (combined) sampler descriptor.
-	Pointer<Byte> samplerDescriptor = (instruction.samplerId != 0) ? state->getPointer(instruction.samplerId).base : imageDescriptor;
+	Int samplerId = 0;
 
-	rr::Int samplerId = *Pointer<rr::Int>(samplerDescriptor + OFFSET(vk::SampledImageDescriptor, samplerId));  // vk::Sampler::id
-
-	// Above we assumed that if the SampledImage operand is not the result of an OpSampledImage,
-	// it must be a combined image sampler loaded straight from the descriptor set. For OpImageFetch
-	// it's just an Image operand, so there's no sampler descriptor data.
-	if(instruction.samplerId == 0)
+	if(instruction.samplerId != 0)
 	{
-		samplerId = Int(0);  // TODO(b/205566405): Skip sampler ID lookup for samplerless instructions.
+		Pointer<Byte> samplerDescriptor = state->getPointer(instruction.samplerId).base;  // vk::SampledImageDescriptor*
+
+		samplerId = *Pointer<rr::Int>(samplerDescriptor + OFFSET(vk::SampledImageDescriptor, samplerId));  // vk::Sampler::id
 	}
 
 	auto &cache = state->routine->samplerCache.at(instruction.position);
@@ -354,7 +349,7 @@ Pointer<Byte> SpirvShader::lookupSamplerFunction(Pointer<Byte> imageDescriptor, 
 
 	If(!cacheHit)
 	{
-		rr::Int imageViewId = *Pointer<rr::Int>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, imageViewId));
+		rr::Int imageViewId = *Pointer<rr::Int>(imageDescriptor + OFFSET(vk::ImageDescriptor, imageViewId));
 		cache.function = Call(getImageSampler, state->routine->device, instruction.signature, samplerId, imageViewId);
 		cache.imageDescriptor = imageDescriptor;
 		cache.samplerId = samplerId;

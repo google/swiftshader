@@ -29,12 +29,16 @@ class DescriptorSet;
 class Device;
 
 // TODO(b/129523279): Move to the Device or Pipeline layer.
-struct alignas(16) SampledImageDescriptor
+struct alignas(16) ImageDescriptor
+{
+	uint32_t imageViewId;
+};
+
+struct alignas(16) SampledImageDescriptor : ImageDescriptor
 {
 	~SampledImageDescriptor() = delete;
 
 	uint32_t samplerId;
-	uint32_t imageViewId;
 
 	alignas(16) sw::Texture texture;
 	int width;  // Of base mip-level.
@@ -46,7 +50,7 @@ struct alignas(16) SampledImageDescriptor
 	ImageView *memoryOwner;  // Pointer to the view which owns the memory used by the descriptor set
 };
 
-struct alignas(16) StorageImageDescriptor
+struct alignas(16) StorageImageDescriptor : ImageDescriptor
 {
 	~StorageImageDescriptor() = delete;
 

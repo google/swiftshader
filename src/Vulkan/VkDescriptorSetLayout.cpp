@@ -456,6 +456,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			const auto &extent = imageView->getMipLevelExtent(0);
 			auto layerCount = imageView->getSubresourceRange().layerCount;
 
+			storageImage[i].imageViewId = imageView->id;
 			storageImage[i].ptr = imageView->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, 0);
 			storageImage[i].width = extent.width;
 			storageImage[i].height = extent.height;
@@ -487,6 +488,8 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 		{
 			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
 			auto bufferView = vk::Cast(*update);
+
+			storageImage[i].imageViewId = bufferView->id;
 			storageImage[i].ptr = bufferView->getPointer();
 			storageImage[i].width = bufferView->getElementCount();
 			storageImage[i].height = 1;
