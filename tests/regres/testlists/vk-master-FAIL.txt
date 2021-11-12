@@ -7,14 +7,6 @@ dEQP-VK.graphicsfuzz.stable-quicksort-conditional-bitwise-or-clamp
 dEQP-VK.graphicsfuzz.stable-rects-vec4-clamp-conditional-min-mix
 dEQP-VK.graphicsfuzz.stable-triangle-clamp-conditional-mix
 dEQP-VK.graphicsfuzz.stable-triangle-nested-conditional-clamped-float
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.component_0.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.component_0.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.component_1.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.component_1.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_0.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_0.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_1.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_interpolation.centroid_interpolation_consistency.pushc_component_1.137_191_1.samples_4
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16b16a16_snorm
