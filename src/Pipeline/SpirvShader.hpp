@@ -511,18 +511,18 @@ public:
 
 	// Compact representation of image instruction state that is passed to the
 	// trampoline function for retrieving/generating the corresponding sampling routine.
-	struct ImageInstructionState
+	struct ImageInstructionSignature
 	{
-		ImageInstructionState(Variant variant, SamplerMethod samplerMethod)
-		    : state(0)
+		ImageInstructionSignature(Variant variant, SamplerMethod samplerMethod)
+		    : signature(0)
 		{
 			this->variant = variant;
 			this->samplerMethod = samplerMethod;
 		}
 
 		// Unmarshal from raw 32-bit data
-		explicit ImageInstructionState(uint32_t state)
-		    : state(state)
+		explicit ImageInstructionSignature(uint32_t signature)
+		    : signature(signature)
 		{}
 
 		SamplerFunction getSamplerFunction() const
@@ -567,14 +567,14 @@ public:
 				uint32_t sample : 1;            // 0-1 scalar integer
 			};
 
-			uint32_t state;
+			uint32_t signature;
 		};
 	};
 
 	// This gets stored as a literal in the generated code, so it should be compact.
-	static_assert(sizeof(ImageInstructionState) == sizeof(uint32_t), "ImageInstructionState must be 32-bit");
+	static_assert(sizeof(ImageInstructionSignature) == sizeof(uint32_t), "ImageInstructionSignature must be 32-bit");
 
-	struct ImageInstruction : public ImageInstructionState
+	struct ImageInstruction : public ImageInstructionSignature
 	{
 		ImageInstruction(InsnIterator insn, const SpirvShader &spirv);
 
@@ -594,7 +594,7 @@ public:
 		Object::ID sampleId = 0;
 
 	private:
-		static ImageInstructionState parseVariantAndMethod(InsnIterator insn);
+		static ImageInstructionSignature parseVariantAndMethod(InsnIterator insn);
 		static uint32_t getImageOperandsIndex(InsnIterator insn);
 		static uint32_t getImageOperandsMask(InsnIterator insn);
 	};
@@ -1376,8 +1376,8 @@ private:
 	// Returns the pair <significand, exponent>
 	std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
 
-	static ImageSampler *getImageSampler(const vk::Device *device, uint32_t instruction, uint32_t samplerId, uint32_t imageViewId);
-	static std::shared_ptr<rr::Routine> emitSamplerRoutine(ImageInstructionState instruction, const Sampler &samplerState);
+	static ImageSampler *getImageSampler(const vk::Device *device, uint32_t signature, uint32_t samplerId, uint32_t imageViewId);
+	static std::shared_ptr<rr::Routine> emitSamplerRoutine(ImageInstructionSignature instruction, const Sampler &samplerState);
 
 	// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.
 	static sw::FilterType convertFilterMode(const vk::SamplerState *samplerState, VkImageViewType imageViewType, SamplerMethod samplerMethod);

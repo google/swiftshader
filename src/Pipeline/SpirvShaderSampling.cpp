@@ -30,16 +30,16 @@
 
 namespace sw {
 
-SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device, uint32_t inst, uint32_t samplerId, uint32_t imageViewId)
+SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device, uint32_t signature, uint32_t samplerId, uint32_t imageViewId)
 {
-	ImageInstructionState instruction(inst);
+	ImageInstructionSignature instruction(signature);
 	ASSERT(imageViewId != 0 && (samplerId != 0 || instruction.samplerMethod == Fetch));
 	ASSERT(device);
 
-	vk::Device::SamplingRoutineCache::Key key = { inst, samplerId, imageViewId };
+	vk::Device::SamplingRoutineCache::Key key = { signature, samplerId, imageViewId };
 
 	auto createSamplingRoutine = [&device](const vk::Device::SamplingRoutineCache::Key &key) {
-		ImageInstructionState instruction(key.instruction);
+		ImageInstructionSignature instruction(key.instruction);
 		const vk::Identifier::State imageViewState = vk::Identifier(key.imageView).getState();
 		const vk::SamplerState *vkSamplerState = (key.sampler != 0) ? device->findSampler(key.sampler) : nullptr;
 
@@ -121,7 +121,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 	return (ImageSampler *)(routine->getEntry());
 }
 
-std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstructionState instruction, const Sampler &samplerState)
+std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstructionSignature instruction, const Sampler &samplerState)
 {
 	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
 	rr::Function<Void(Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;

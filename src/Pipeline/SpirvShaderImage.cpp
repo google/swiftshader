@@ -88,7 +88,7 @@ sw::SIMD::Float sRGBtoLinear(sw::SIMD::Float c)
 namespace sw {
 
 SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvShader &spirv)
-    : ImageInstructionState(parseVariantAndMethod(insn))
+    : ImageInstructionSignature(parseVariantAndMethod(insn))
     , position(insn.distanceFrom(spirv.begin()))
 {
 	if(samplerMethod == Write)
@@ -209,7 +209,7 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 	}
 }
 
-SpirvShader::ImageInstructionState SpirvShader::ImageInstruction::parseVariantAndMethod(InsnIterator insn)
+SpirvShader::ImageInstructionSignature SpirvShader::ImageInstruction::parseVariantAndMethod(InsnIterator insn)
 {
 	uint32_t imageOperands = getImageOperandsMask(insn);
 	bool bias = imageOperands & spv::ImageOperandsBiasMask;
@@ -330,7 +330,7 @@ Pointer<Byte> SpirvShader::lookupSamplerFunction(Pointer<Byte> imageDescriptor, 
 	If(!cacheHit)
 	{
 		rr::Int imageViewId = *Pointer<rr::Int>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, imageViewId));
-		cache.function = Call(getImageSampler, state->routine->device, instruction.state, samplerId, imageViewId);
+		cache.function = Call(getImageSampler, state->routine->device, instruction.signature, samplerId, imageViewId);
 		cache.imageDescriptor = imageDescriptor;
 		cache.samplerId = samplerId;
 	}
