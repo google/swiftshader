@@ -442,6 +442,12 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	    {
 	        MAKE_VULKAN_DEVICE_ENTRY(vkResetQueryPoolEXT),
 	    } },
+	// VK_EXT_tooling_info
+	{
+	    VK_EXT_TOOLING_INFO_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetPhysicalDeviceToolPropertiesEXT),
+	    } },
 #ifndef __ANDROID__
 	// VK_KHR_swapchain
 	{
