@@ -222,7 +222,7 @@ public:
 				// encoding scheme. The UTF-8 octets (8-bit bytes) are packed
 				// four per word, following the little-endian convention (i.e.,
 				// the first octet is in the lowest-order 8 bits of the word).
-				// The final word contains the string’s nul-termination
+				// The final word contains the string's nul-termination
 				// character (0), and all contents past the end of the string in
 				// the final word are padded with 0.
 				if(u8[3] == 0)

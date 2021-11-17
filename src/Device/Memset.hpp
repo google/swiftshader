@@ -19,7 +19,7 @@
 #include <type_traits>
 
 // GCC 8+ warns that
-// "‘void* memset(void*, int, size_t)’ clearing an object of non-trivial type ‘T’;
+// "'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'T';
 //  use assignment or value-initialization instead [-Werror=class-memaccess]"
 // This is benign iff it happens before any of the base or member constructors are called.
 #if defined(__GNUC__) && (__GNUC__ >= 8)
