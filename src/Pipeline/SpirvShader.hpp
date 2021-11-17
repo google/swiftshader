@@ -1018,19 +1018,14 @@ private:
 		          RValue<SIMD::Int> activeLaneMask,
 		          RValue<SIMD::Int> storesAndAtomicsMask,
 		          const vk::DescriptorSet::Bindings &descriptorSets,
-		          bool robustBufferAccess,
-		          unsigned int multiSampleCount,
-		          spv::ExecutionModel executionModel)
+		          unsigned int multiSampleCount)
 		    : routine(routine)
 		    , function(function)
 		    , activeLaneMaskValue(activeLaneMask.value())
 		    , storesAndAtomicsMaskValue(storesAndAtomicsMask.value())
 		    , descriptorSets(descriptorSets)
-		    , robustBufferAccess(robustBufferAccess)
 		    , multiSampleCount(multiSampleCount)
-		    , executionModel(executionModel)
 		{
-			ASSERT(executionModel != spv::ExecutionModelMax);  // Must parse OpEntryPoint before emitting.
 		}
 
 		// Returns the mask describing the active lanes as updated by dynamic
@@ -1087,8 +1082,6 @@ private:
 
 		const vk::DescriptorSet::Bindings &descriptorSets;
 
-		OutOfBoundsBehavior getOutOfBoundsBehavior(spv::StorageClass storageClass) const;
-
 		unsigned int getMultiSampleCount() const { return multiSampleCount; }
 
 		Intermediate &createIntermediate(Object::ID id, uint32_t componentCount)
@@ -1124,9 +1117,7 @@ private:
 		std::unordered_map<Object::ID, Intermediate> intermediates;
 		std::unordered_map<Object::ID, SIMD::Pointer> pointers;
 
-		const bool robustBufferAccess;  // Emit robustBufferAccess safe code.
 		const unsigned int multiSampleCount;
-		const spv::ExecutionModel executionModel;
 	};
 
 	// EmitResult is an enumerator of result values from the Emit functions.
@@ -1247,6 +1238,8 @@ private:
 	//  - InterfaceVariable
 	// Calling GetPointerToData with objects of any other kind will assert.
 	SIMD::Pointer GetPointerToData(Object::ID id, Int arrayIndex, EmitState const *state) const;
+
+	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, EmitState const *state) const;
 
 	SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const;
 	SIMD::Pointer WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const;

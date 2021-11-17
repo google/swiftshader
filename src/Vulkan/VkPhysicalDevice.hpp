@@ -46,6 +46,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceSubgroupSizeControlFeatures *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceInlineUniformBlockFeatures *features) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
@@ -77,6 +78,7 @@ public:
 	void getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceSubgroupSizeControlProperties *properties) const;
+	void getProperties(VkPhysicalDeviceInlineUniformBlockProperties *properties) const;
 	void getProperties(VkPhysicalDeviceTexelBufferAlignmentProperties *properties) const;
 	void getProperties(VkPhysicalDeviceVulkan11Properties *properties) const;
 

@@ -48,8 +48,17 @@ size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreat
 
 	for(uint32_t i = 0; i < pCreateInfo->poolSizeCount; i++)
 	{
-		size += pCreateInfo->pPoolSizes[i].descriptorCount *
-		        sw::align(DescriptorSetLayout::GetDescriptorSize(pCreateInfo->pPoolSizes[i].type), 16);
+		uint32_t descriptorSize = DescriptorSetLayout::GetDescriptorSize(pCreateInfo->pPoolSizes[i].type);
+		if(pCreateInfo->pPoolSizes[i].type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK)
+		{
+			// If type is VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK then descriptorCount
+			// is the number of bytes to allocate for descriptors of this type.
+			size += sw::align(pCreateInfo->pPoolSizes[i].descriptorCount, 16);
+		}
+		else
+		{
+			size += pCreateInfo->pPoolSizes[i].descriptorCount * sw::align(descriptorSize, 16);
+		}
 	}
 
 	return size;

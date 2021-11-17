@@ -1608,9 +1608,25 @@ void SpirvShader::DefineResult(const InsnIterator &insn)
 	dbgDeclareResult(insn, resultId);
 }
 
-OutOfBoundsBehavior SpirvShader::EmitState::getOutOfBoundsBehavior(spv::StorageClass storageClass) const
+OutOfBoundsBehavior SpirvShader::getOutOfBoundsBehavior(Object::ID pointerId, EmitState const *state) const
 {
-	switch(storageClass)
+	auto it = descriptorDecorations.find(pointerId);
+	if(it != descriptorDecorations.end())
+	{
+		const auto &d = it->second;
+		if((d.DescriptorSet >= 0) && (d.Binding >= 0))
+		{
+			auto descriptorType = state->routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding);
+			if(descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT)
+			{
+				return OutOfBoundsBehavior::UndefinedBehavior;
+			}
+		}
+	}
+
+	auto &pointer = getObject(pointerId);
+	auto &pointerTy = getType(pointer);
+	switch(pointerTy.storageClass)
 	{
 	case spv::StorageClassUniform:
 	case spv::StorageClassStorageBuffer:
@@ -1702,7 +1718,7 @@ void SpirvShader::emitProlog(SpirvRoutine *routine) const
 
 void SpirvShader::emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, RValue<SIMD::Int> const &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount) const
 {
-	EmitState state(routine, entryPoint, activeLaneMask, storesAndAtomicsMask, descriptorSets, robustBufferAccess, multiSampleCount, executionModel);
+	EmitState state(routine, entryPoint, activeLaneMask, storesAndAtomicsMask, descriptorSets, multiSampleCount);
 
 	dbgBeginEmit(&state);
 	defer(dbgEndEmit(&state));
