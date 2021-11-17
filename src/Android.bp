@@ -31,6 +31,7 @@ cc_defaults {
     ],
 
     srcs: [
+        "Reactor/Assert.cpp",
         "Reactor/CPUID.cpp",
         "Reactor/Debug.cpp",
         "Reactor/EmulatedIntrinsics.cpp",

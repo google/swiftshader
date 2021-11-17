@@ -18,6 +18,8 @@ set(ROOT_PROJECT_COMPILE_OPTIONS
 )
 
 set(REACTOR_SRC_FILES
+    Assert.cpp
+    Assert.hpp
     Debug.cpp
     Debug.hpp
     EmulatedIntrinsics.cpp
