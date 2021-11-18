@@ -230,16 +230,18 @@ private:
 class CmdVertexBufferBind : public vk::CommandBuffer::Command
 {
 public:
-	CmdVertexBufferBind(uint32_t binding, vk::Buffer *buffer, const VkDeviceSize offset)
+	CmdVertexBufferBind(uint32_t binding, vk::Buffer *buffer, const VkDeviceSize offset, const VkDeviceSize size, const VkDeviceSize stride)
 	    : binding(binding)
 	    , buffer(buffer)
 	    , offset(offset)
+	    , size(size)
+	    , stride(stride)
 	{
 	}
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		executionState.vertexInputBindings[binding] = { buffer, offset };
+		executionState.vertexInputBindings[binding] = { buffer, offset, size, stride };
 	}
 
 	std::string description() override { return "vkCmdVertexBufferBind()"; }
@@ -248,6 +250,8 @@ private:
 	const uint32_t binding;
 	vk::Buffer *const buffer;
 	const VkDeviceSize offset;
+	const VkDeviceSize size;
+	const VkDeviceSize stride;
 };
 
 class CmdIndexBufferBind : public vk::CommandBuffer::Command
@@ -262,7 +266,7 @@ public:
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		executionState.indexBufferBinding = { buffer, offset };
+		executionState.indexBufferBinding = { buffer, offset, 0, 0 };
 		executionState.indexType = indexType;
 	}
 
@@ -395,12 +399,12 @@ public:
 	{
 		if(faceMask & VK_STENCIL_FACE_FRONT_BIT)
 		{
-			executionState.dynamicState.compareMask[0] = compareMask;
+			executionState.dynamicState.frontStencil.compareMask = compareMask;
 		}
 
 		if(faceMask & VK_STENCIL_FACE_BACK_BIT)
 		{
-			executionState.dynamicState.compareMask[1] = compareMask;
+			executionState.dynamicState.backStencil.compareMask = compareMask;
 		}
 	}
 
@@ -424,12 +428,12 @@ public:
 	{
 		if(faceMask & VK_STENCIL_FACE_FRONT_BIT)
 		{
-			executionState.dynamicState.writeMask[0] = writeMask;
+			executionState.dynamicState.frontStencil.writeMask = writeMask;
 		}
 
 		if(faceMask & VK_STENCIL_FACE_BACK_BIT)
 		{
-			executionState.dynamicState.writeMask[1] = writeMask;
+			executionState.dynamicState.backStencil.writeMask = writeMask;
 		}
 	}
 
@@ -453,11 +457,11 @@ public:
 	{
 		if(faceMask & VK_STENCIL_FACE_FRONT_BIT)
 		{
-			executionState.dynamicState.reference[0] = reference;
+			executionState.dynamicState.frontStencil.reference = reference;
 		}
 		if(faceMask & VK_STENCIL_FACE_BACK_BIT)
 		{
-			executionState.dynamicState.reference[1] = reference;
+			executionState.dynamicState.backStencil.reference = reference;
 		}
 	}
 
@@ -466,6 +470,241 @@ public:
 private:
 	const VkStencilFaceFlags faceMask;
 	const uint32_t reference;
+};
+
+class CmdSetCullMode : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetCullMode(VkCullModeFlags cullMode)
+	    : cullMode(cullMode)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.cullMode = cullMode;
+	}
+
+	std::string description() override { return "vkCmdSetCullModeEXT()"; }
+
+private:
+	const VkCullModeFlags cullMode;
+};
+
+class CmdSetDepthBoundsTestEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthBoundsTestEnable(VkBool32 depthBoundsTestEnable)
+	    : depthBoundsTestEnable(depthBoundsTestEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthBoundsTestEnable = depthBoundsTestEnable;
+	}
+
+	std::string description() override { return "vkCmdSetDepthBoundsTestEnableEXT()"; }
+
+private:
+	const VkBool32 depthBoundsTestEnable;
+};
+
+class CmdSetDepthCompareOp : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthCompareOp(VkCompareOp depthCompareOp)
+	    : depthCompareOp(depthCompareOp)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthCompareOp = depthCompareOp;
+	}
+
+	std::string description() override { return "vkCmdSetDepthCompareOpEXT()"; }
+
+private:
+	const VkCompareOp depthCompareOp;
+};
+
+class CmdSetDepthTestEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthTestEnable(VkBool32 depthTestEnable)
+	    : depthTestEnable(depthTestEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthTestEnable = depthTestEnable;
+	}
+
+	std::string description() override { return "vkCmdSetDepthTestEnableEXT()"; }
+
+private:
+	const VkBool32 depthTestEnable;
+};
+
+class CmdSetDepthWriteEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthWriteEnable(VkBool32 depthWriteEnable)
+	    : depthWriteEnable(depthWriteEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthWriteEnable = depthWriteEnable;
+	}
+
+	std::string description() override { return "vkCmdSetDepthWriteEnableEXT()"; }
+
+private:
+	const VkBool32 depthWriteEnable;
+};
+
+class CmdSetFrontFace : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetFrontFace(VkFrontFace frontFace)
+	    : frontFace(frontFace)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.frontFace = frontFace;
+	}
+
+	std::string description() override { return "vkCmdSetFrontFaceEXT()"; }
+
+private:
+	const VkFrontFace frontFace;
+};
+
+class CmdSetPrimitiveTopology : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetPrimitiveTopology(VkPrimitiveTopology primitiveTopology)
+	    : primitiveTopology(primitiveTopology)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.primitiveTopology = primitiveTopology;
+	}
+
+	std::string description() override { return "vkCmdSetPrimitiveTopologyEXT()"; }
+
+private:
+	const VkPrimitiveTopology primitiveTopology;
+};
+
+class CmdSetScissorWithCount : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetScissorWithCount(uint32_t scissorCount, const VkRect2D *pScissors)
+	    : scissorCount(scissorCount)
+	{
+		memcpy(&(scissors[0]), pScissors, scissorCount * sizeof(VkRect2D));
+	}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.scissorCount = scissorCount;
+		for(uint32_t i = 0; i < scissorCount; i++)
+		{
+			executionState.dynamicState.scissors[i] = scissors[i];
+		}
+	}
+
+	std::string description() override { return "vkCmdSetScissorWithCountEXT()"; }
+
+private:
+	const uint32_t scissorCount;
+	VkRect2D scissors[vk::MAX_VIEWPORTS];
+};
+
+class CmdSetStencilOp : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetStencilOp(VkStencilFaceFlags faceMask, VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp)
+	    : faceMask(faceMask)
+	    , failOp(failOp)
+	    , passOp(passOp)
+	    , depthFailOp(depthFailOp)
+	    , compareOp(compareOp)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.faceMask |= faceMask;
+
+		if(faceMask & VK_STENCIL_FACE_FRONT_BIT)
+		{
+			executionState.dynamicState.frontStencil.failOp = failOp;
+			executionState.dynamicState.frontStencil.passOp = passOp;
+			executionState.dynamicState.frontStencil.depthFailOp = depthFailOp;
+			executionState.dynamicState.frontStencil.compareOp = compareOp;
+		}
+		if(faceMask & VK_STENCIL_FACE_BACK_BIT)
+		{
+			executionState.dynamicState.backStencil.failOp = failOp;
+			executionState.dynamicState.backStencil.passOp = passOp;
+			executionState.dynamicState.backStencil.depthFailOp = depthFailOp;
+			executionState.dynamicState.backStencil.compareOp = compareOp;
+		}
+	}
+
+	std::string description() override { return "vkCmdSetStencilOpEXT()"; }
+
+private:
+	const VkStencilFaceFlags faceMask;
+	const VkStencilOp failOp;
+	const VkStencilOp passOp;
+	const VkStencilOp depthFailOp;
+	const VkCompareOp compareOp;
+};
+
+class CmdSetStencilTestEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetStencilTestEnable(VkBool32 stencilTestEnable)
+	    : stencilTestEnable(stencilTestEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.stencilTestEnable = stencilTestEnable;
+	}
+
+	std::string description() override { return "vkCmdSetStencilTestEnableEXT()"; }
+
+private:
+	const VkBool32 stencilTestEnable;
+};
+
+class CmdSetViewportWithCount : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetViewportWithCount(uint32_t viewportCount, const VkViewport *pViewports)
+	    : viewportCount(viewportCount)
+	{
+		memcpy(&(viewports[0]), pViewports, viewportCount * sizeof(VkRect2D));
+	}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.viewportCount = viewportCount;
+		for(uint32_t i = 0; i < viewportCount; i++)
+		{
+			executionState.dynamicState.viewports[i] = viewports[i];
+		}
+	}
+
+	std::string description() override { return "vkCmdSetViewportWithCountEXT()"; }
+
+private:
+	const uint32_t viewportCount;
+	VkRect2D viewports[vk::MAX_VIEWPORTS];
 };
 
 class CmdDrawBase : public vk::CommandBuffer::Command
@@ -492,7 +731,7 @@ public:
 		indexBuffer.setIndexBufferBinding(executionState.indexBufferBinding, executionState.indexType);
 
 		std::vector<std::pair<uint32_t, void *>> indexBuffers;
-		pipeline->getIndexBuffers(count, first, indexed, &indexBuffers);
+		pipeline->getIndexBuffers(executionState.dynamicState, count, first, indexed, &indexBuffers);
 
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
@@ -1372,11 +1611,14 @@ void CommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint, Pipeline
 }
 
 void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, uint32_t bindingCount,
-                                      const VkBuffer *pBuffers, const VkDeviceSize *pOffsets)
+                                      const VkBuffer *pBuffers, const VkDeviceSize *pOffsets,
+                                      const VkDeviceSize *pSizes, const VkDeviceSize *pStrides)
 {
 	for(uint32_t i = 0; i < bindingCount; ++i)
 	{
-		addCommand<::CmdVertexBufferBind>(i + firstBinding, vk::Cast(pBuffers[i]), pOffsets[i]);
+		addCommand<::CmdVertexBufferBind>(i + firstBinding, vk::Cast(pBuffers[i]), pOffsets[i],
+		                                  pSizes ? pSizes[i] : 0,
+		                                  pStrides ? pStrides[i] : 0);
 	}
 }
 
@@ -1481,6 +1723,61 @@ void CommandBuffer::setStencilReference(VkStencilFaceFlags faceMask, uint32_t re
 	ASSERT(faceMask != 0);
 
 	addCommand<::CmdSetStencilReference>(faceMask, reference);
+}
+
+void CommandBuffer::setCullMode(VkCullModeFlags cullMode)
+{
+	addCommand<::CmdSetCullMode>(cullMode);
+}
+
+void CommandBuffer::setDepthBoundsTestEnable(VkBool32 depthBoundsTestEnable)
+{
+	addCommand<::CmdSetDepthBoundsTestEnable>(depthBoundsTestEnable);
+}
+
+void CommandBuffer::setDepthCompareOp(VkCompareOp depthCompareOp)
+{
+	addCommand<::CmdSetDepthCompareOp>(depthCompareOp);
+}
+
+void CommandBuffer::setDepthTestEnable(VkBool32 depthTestEnable)
+{
+	addCommand<::CmdSetDepthTestEnable>(depthTestEnable);
+}
+
+void CommandBuffer::setDepthWriteEnable(VkBool32 depthWriteEnable)
+{
+	addCommand<::CmdSetDepthWriteEnable>(depthWriteEnable);
+}
+
+void CommandBuffer::setFrontFace(VkFrontFace frontFace)
+{
+	addCommand<::CmdSetFrontFace>(frontFace);
+}
+
+void CommandBuffer::setPrimitiveTopology(VkPrimitiveTopology primitiveTopology)
+{
+	addCommand<::CmdSetPrimitiveTopology>(primitiveTopology);
+}
+
+void CommandBuffer::setScissorWithCount(uint32_t scissorCount, const VkRect2D *pScissors)
+{
+	addCommand<::CmdSetScissorWithCount>(scissorCount, pScissors);
+}
+
+void CommandBuffer::setStencilOp(VkStencilFaceFlags faceMask, VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp)
+{
+	addCommand<::CmdSetStencilOp>(faceMask, failOp, passOp, depthFailOp, compareOp);
+}
+
+void CommandBuffer::setStencilTestEnable(VkBool32 stencilTestEnable)
+{
+	addCommand<::CmdSetStencilTestEnable>(stencilTestEnable);
+}
+
+void CommandBuffer::setViewportWithCount(uint32_t viewportCount, const VkViewport *pViewports)
+{
+	addCommand<::CmdSetViewportWithCount>(viewportCount, pViewports);
 }
 
 void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout *pipelineLayout,

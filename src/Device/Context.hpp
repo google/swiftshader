@@ -33,8 +33,10 @@ class PipelineLayout;
 
 struct VertexInputBinding
 {
-	Buffer *buffer;
-	VkDeviceSize offset;
+	Buffer *buffer = nullptr;
+	VkDeviceSize offset = 0;
+	VkDeviceSize size = 0;
+	VkDeviceSize stride = 0;
 };
 
 struct IndexBuffer
@@ -75,6 +77,7 @@ struct Inputs
 	void bindVertexInputs(int firstInstance);
 	void setVertexInputBinding(const VertexInputBinding vertexInputBindings[]);
 	void advanceInstanceAttributes();
+	VkDeviceSize getVertexStride(uint32_t i, bool dynamicVertexStride) const;
 
 private:
 	VertexInputBinding vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS] = {};
@@ -127,9 +130,21 @@ struct DynamicState
 	float minDepthBounds = 0.0f;
 	float maxDepthBounds = 0.0f;
 
-	uint32_t compareMask[2] = { 0 };
-	uint32_t writeMask[2] = { 0 };
-	uint32_t reference[2] = { 0 };
+	VkCullModeFlags cullMode = VK_CULL_MODE_NONE;
+	VkBool32 depthBoundsTestEnable = VK_FALSE;
+	VkCompareOp depthCompareOp = VK_COMPARE_OP_NEVER;
+	VkBool32 depthTestEnable = VK_FALSE;
+	VkBool32 depthWriteEnable = VK_FALSE;
+	VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	VkPrimitiveTopology primitiveTopology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	uint32_t scissorCount = 0;
+	VkRect2D scissors[vk::MAX_VIEWPORTS] = {};
+	VkStencilFaceFlags faceMask = (VkStencilFaceFlags)0;
+	VkStencilOpState frontStencil = {};
+	VkStencilOpState backStencil = {};
+	VkBool32 stencilTestEnable = VK_FALSE;
+	uint32_t viewportCount = 0;
+	VkRect2D viewports[vk::MAX_VIEWPORTS] = {};
 };
 
 struct GraphicsState
@@ -190,6 +205,9 @@ struct GraphicsState
 	bool depthTestActive(const Attachments &attachments) const;
 	bool stencilActive(const Attachments &attachments) const;
 	bool depthBoundsTestActive(const Attachments &attachments) const;
+
+	inline bool hasDynamicVertexStride() const { return dynamicStateFlags.dynamicVertexInputBindingStride; }
+	inline bool hasDynamicTopology() const { return dynamicStateFlags.dynamicPrimitiveTopology; }
 
 private:
 	struct DynamicStateFlags

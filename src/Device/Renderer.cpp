@@ -282,7 +282,7 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		const sw::Stream &stream = inputs.getStream(i);
 		data->input[i] = stream.buffer;
 		data->robustnessSize[i] = stream.robustnessSize;
-		data->stride[i] = stream.vertexStride;
+		data->stride[i] = inputs.getVertexStride(i, pipelineState.hasDynamicVertexStride());
 	}
 
 	data->indices = indexBuffer;

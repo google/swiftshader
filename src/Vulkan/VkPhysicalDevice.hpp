@@ -44,6 +44,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceVulkan12Features *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceDepthClipEnableFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *features) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceSubgroupSizeControlFeatures *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
