@@ -3801,7 +3801,14 @@ VKAPI_ATTR void VKAPI_CALL vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer,
 	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t lineStippleFactor = %u, uint16_t lineStipplePattern = %u)",
 	      commandBuffer, lineStippleFactor, lineStipplePattern);
 
-	UNSUPPORTED("VkPhysicalDeviceLineRasterizationFeaturesEXT::stippled*Lines");
+	static constexpr uint16_t solidLine = 0xFFFFu;
+	if(lineStipplePattern != solidLine)
+	{
+		// VkPhysicalDeviceLineRasterizationFeaturesEXT::stippled*Lines are all set to VK_FALSE and,
+		// according to the Vulkan spec for VkPipelineRasterizationLineStateCreateInfoEXT:
+		// "If stippledLineEnable is VK_FALSE, the values of lineStippleFactor and lineStipplePattern are ignored."
+		WARN("vkCmdSetLineStippleEXT: line stipple pattern ignored : 0x%04X", lineStipplePattern);
+	}
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBeginDebugUtilsLabelEXT(VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT *pLabelInfo)
