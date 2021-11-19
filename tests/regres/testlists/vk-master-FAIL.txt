@@ -1,6 +1,5 @@
 dEQP-VK.api.driver_properties.conformance_version
 dEQP-VK.fragment_operations.early_fragment.discard_early_fragment_tests_stencil
-dEQP-VK.glsl.builtin.precision.inverse.highp.mat3
 dEQP-VK.graphicsfuzz.stable-colorgrid-modulo-float-mat-determinant-clamp
 dEQP-VK.graphicsfuzz.stable-mergesort-clamped-conditional-bit-shift
 dEQP-VK.graphicsfuzz.stable-quicksort-conditional-bitwise-or-clamp
