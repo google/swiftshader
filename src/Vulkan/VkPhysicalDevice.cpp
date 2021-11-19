@@ -953,7 +953,7 @@ static void getFloatControlsProperties(T *properties)
 {
 	// The spec states:
 	// shaderSignedZeroInfNanPreserveFloat32 is a boolean value indicating whether
-	// sign of a zero, Nans and ±infinity can be preserved in 32-bit floating-point
+	// sign of a zero, Nans and +/-infinity can be preserved in 32-bit floating-point
 	// computations. It also indicates whether the SignedZeroInfNanPreserve execution
 	// mode can be used for 32-bit floating-point types.
 	//
