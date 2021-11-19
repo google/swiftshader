@@ -7,6 +7,7 @@ vk-default/descriptor-indexing.txt
 vk-default/device-group.txt
 vk-default/draw.txt
 vk-default/drm-format-modifiers.txt
+vk-default/dynamic-rendering.txt
 vk-default/dynamic-state.txt
 vk-default/fragment-operations.txt
 vk-default/fragment-shader-interlock.txt
@@ -19,6 +20,7 @@ vk-default/imageless-framebuffer.txt
 vk-default/info.txt
 vk-default/memory-model.txt
 vk-default/memory.txt
+vk-default/mesh-shader.txt
 vk-default/multiview.txt
 vk-default/pipeline.txt
 vk-default/protected-memory.txt

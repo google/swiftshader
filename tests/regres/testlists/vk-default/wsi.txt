@@ -25,6 +25,7 @@ dEQP-VK.wsi.xlib.swapchain.create.pre_transform
 dEQP-VK.wsi.xlib.swapchain.create.composite_alpha
 dEQP-VK.wsi.xlib.swapchain.create.present_mode
 dEQP-VK.wsi.xlib.swapchain.create.clipped
+dEQP-VK.wsi.xlib.swapchain.create.exclusive_nonzero_queues
 dEQP-VK.wsi.xlib.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_format
@@ -36,6 +37,7 @@ dEQP-VK.wsi.xlib.swapchain.simulate_oom.pre_transform
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.present_mode
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.exclusive_nonzero_queues
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.xlib.swapchain.render.basic
 dEQP-VK.wsi.xlib.swapchain.render.basic2
@@ -60,6 +62,7 @@ dEQP-VK.wsi.xlib.swapchain.private_data.pre_transform
 dEQP-VK.wsi.xlib.swapchain.private_data.composite_alpha
 dEQP-VK.wsi.xlib.swapchain.private_data.present_mode
 dEQP-VK.wsi.xlib.swapchain.private_data.clipped
+dEQP-VK.wsi.xlib.swapchain.private_data.exclusive_nonzero_queues
 dEQP-VK.wsi.xlib.incremental_present.scale_none.immediate.identity.opaque.reference
 dEQP-VK.wsi.xlib.incremental_present.scale_none.immediate.identity.opaque.incremental_present
 dEQP-VK.wsi.xlib.incremental_present.scale_none.immediate.identity.pre_multiplied.reference
@@ -477,6 +480,7 @@ dEQP-VK.wsi.xcb.swapchain.create.pre_transform
 dEQP-VK.wsi.xcb.swapchain.create.composite_alpha
 dEQP-VK.wsi.xcb.swapchain.create.present_mode
 dEQP-VK.wsi.xcb.swapchain.create.clipped
+dEQP-VK.wsi.xcb.swapchain.create.exclusive_nonzero_queues
 dEQP-VK.wsi.xcb.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_format
@@ -488,6 +492,7 @@ dEQP-VK.wsi.xcb.swapchain.simulate_oom.pre_transform
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.present_mode
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.xcb.swapchain.simulate_oom.exclusive_nonzero_queues
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.xcb.swapchain.render.basic
 dEQP-VK.wsi.xcb.swapchain.render.basic2
@@ -512,6 +517,7 @@ dEQP-VK.wsi.xcb.swapchain.private_data.pre_transform
 dEQP-VK.wsi.xcb.swapchain.private_data.composite_alpha
 dEQP-VK.wsi.xcb.swapchain.private_data.present_mode
 dEQP-VK.wsi.xcb.swapchain.private_data.clipped
+dEQP-VK.wsi.xcb.swapchain.private_data.exclusive_nonzero_queues
 dEQP-VK.wsi.xcb.incremental_present.scale_none.immediate.identity.opaque.reference
 dEQP-VK.wsi.xcb.incremental_present.scale_none.immediate.identity.opaque.incremental_present
 dEQP-VK.wsi.xcb.incremental_present.scale_none.immediate.identity.pre_multiplied.reference
@@ -927,6 +933,7 @@ dEQP-VK.wsi.wayland.swapchain.create.pre_transform
 dEQP-VK.wsi.wayland.swapchain.create.composite_alpha
 dEQP-VK.wsi.wayland.swapchain.create.present_mode
 dEQP-VK.wsi.wayland.swapchain.create.clipped
+dEQP-VK.wsi.wayland.swapchain.create.exclusive_nonzero_queues
 dEQP-VK.wsi.wayland.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_format
@@ -938,6 +945,7 @@ dEQP-VK.wsi.wayland.swapchain.simulate_oom.pre_transform
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.present_mode
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.wayland.swapchain.simulate_oom.exclusive_nonzero_queues
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.wayland.swapchain.render.basic
 dEQP-VK.wsi.wayland.swapchain.render.basic2
@@ -963,6 +971,7 @@ dEQP-VK.wsi.wayland.swapchain.private_data.pre_transform
 dEQP-VK.wsi.wayland.swapchain.private_data.composite_alpha
 dEQP-VK.wsi.wayland.swapchain.private_data.present_mode
 dEQP-VK.wsi.wayland.swapchain.private_data.clipped
+dEQP-VK.wsi.wayland.swapchain.private_data.exclusive_nonzero_queues
 dEQP-VK.wsi.wayland.incremental_present.scale_none.immediate.identity.opaque.reference
 dEQP-VK.wsi.wayland.incremental_present.scale_none.immediate.identity.opaque.incremental_present
 dEQP-VK.wsi.wayland.incremental_present.scale_none.immediate.identity.pre_multiplied.reference
@@ -1379,6 +1388,7 @@ dEQP-VK.wsi.android.swapchain.create.pre_transform
 dEQP-VK.wsi.android.swapchain.create.composite_alpha
 dEQP-VK.wsi.android.swapchain.create.present_mode
 dEQP-VK.wsi.android.swapchain.create.clipped
+dEQP-VK.wsi.android.swapchain.create.exclusive_nonzero_queues
 dEQP-VK.wsi.android.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.android.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.android.swapchain.simulate_oom.image_format
@@ -1390,6 +1400,7 @@ dEQP-VK.wsi.android.swapchain.simulate_oom.pre_transform
 dEQP-VK.wsi.android.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.android.swapchain.simulate_oom.present_mode
 dEQP-VK.wsi.android.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.android.swapchain.simulate_oom.exclusive_nonzero_queues
 dEQP-VK.wsi.android.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.android.swapchain.render.basic
 dEQP-VK.wsi.android.swapchain.render.basic2
@@ -1415,6 +1426,7 @@ dEQP-VK.wsi.android.swapchain.private_data.pre_transform
 dEQP-VK.wsi.android.swapchain.private_data.composite_alpha
 dEQP-VK.wsi.android.swapchain.private_data.present_mode
 dEQP-VK.wsi.android.swapchain.private_data.clipped
+dEQP-VK.wsi.android.swapchain.private_data.exclusive_nonzero_queues
 dEQP-VK.wsi.android.incremental_present.scale_none.immediate.identity.opaque.reference
 dEQP-VK.wsi.android.incremental_present.scale_none.immediate.identity.opaque.incremental_present
 dEQP-VK.wsi.android.incremental_present.scale_none.immediate.identity.pre_multiplied.reference
@@ -2552,6 +2564,7 @@ dEQP-VK.wsi.win32.swapchain.create.pre_transform
 dEQP-VK.wsi.win32.swapchain.create.composite_alpha
 dEQP-VK.wsi.win32.swapchain.create.present_mode
 dEQP-VK.wsi.win32.swapchain.create.clipped
+dEQP-VK.wsi.win32.swapchain.create.exclusive_nonzero_queues
 dEQP-VK.wsi.win32.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.win32.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.win32.swapchain.simulate_oom.image_format
@@ -2563,6 +2576,7 @@ dEQP-VK.wsi.win32.swapchain.simulate_oom.pre_transform
 dEQP-VK.wsi.win32.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.win32.swapchain.simulate_oom.present_mode
 dEQP-VK.wsi.win32.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.win32.swapchain.simulate_oom.exclusive_nonzero_queues
 dEQP-VK.wsi.win32.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.win32.swapchain.render.basic
 dEQP-VK.wsi.win32.swapchain.render.basic2
@@ -2587,6 +2601,7 @@ dEQP-VK.wsi.win32.swapchain.private_data.pre_transform
 dEQP-VK.wsi.win32.swapchain.private_data.composite_alpha
 dEQP-VK.wsi.win32.swapchain.private_data.present_mode
 dEQP-VK.wsi.win32.swapchain.private_data.clipped
+dEQP-VK.wsi.win32.swapchain.private_data.exclusive_nonzero_queues
 dEQP-VK.wsi.win32.incremental_present.scale_none.immediate.identity.opaque.reference
 dEQP-VK.wsi.win32.incremental_present.scale_none.immediate.identity.opaque.incremental_present
 dEQP-VK.wsi.win32.incremental_present.scale_none.immediate.identity.pre_multiplied.reference
@@ -3004,6 +3019,7 @@ dEQP-VK.wsi.macos.swapchain.create.pre_transform
 dEQP-VK.wsi.macos.swapchain.create.composite_alpha
 dEQP-VK.wsi.macos.swapchain.create.present_mode
 dEQP-VK.wsi.macos.swapchain.create.clipped
+dEQP-VK.wsi.macos.swapchain.create.exclusive_nonzero_queues
 dEQP-VK.wsi.macos.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.macos.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.macos.swapchain.simulate_oom.image_format
@@ -3015,6 +3031,7 @@ dEQP-VK.wsi.macos.swapchain.simulate_oom.pre_transform
 dEQP-VK.wsi.macos.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.macos.swapchain.simulate_oom.present_mode
 dEQP-VK.wsi.macos.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.macos.swapchain.simulate_oom.exclusive_nonzero_queues
 dEQP-VK.wsi.macos.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.macos.swapchain.render.basic
 dEQP-VK.wsi.macos.swapchain.render.basic2
@@ -3039,6 +3056,7 @@ dEQP-VK.wsi.macos.swapchain.private_data.pre_transform
 dEQP-VK.wsi.macos.swapchain.private_data.composite_alpha
 dEQP-VK.wsi.macos.swapchain.private_data.present_mode
 dEQP-VK.wsi.macos.swapchain.private_data.clipped
+dEQP-VK.wsi.macos.swapchain.private_data.exclusive_nonzero_queues
 dEQP-VK.wsi.macos.incremental_present.scale_none.immediate.identity.opaque.reference
 dEQP-VK.wsi.macos.incremental_present.scale_none.immediate.identity.opaque.incremental_present
 dEQP-VK.wsi.macos.incremental_present.scale_none.immediate.identity.pre_multiplied.reference
@@ -3454,6 +3472,7 @@ dEQP-VK.wsi.headless.swapchain.create.pre_transform
 dEQP-VK.wsi.headless.swapchain.create.composite_alpha
 dEQP-VK.wsi.headless.swapchain.create.present_mode
 dEQP-VK.wsi.headless.swapchain.create.clipped
+dEQP-VK.wsi.headless.swapchain.create.exclusive_nonzero_queues
 dEQP-VK.wsi.headless.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.headless.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.headless.swapchain.simulate_oom.image_format
@@ -3465,6 +3484,7 @@ dEQP-VK.wsi.headless.swapchain.simulate_oom.pre_transform
 dEQP-VK.wsi.headless.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.headless.swapchain.simulate_oom.present_mode
 dEQP-VK.wsi.headless.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.headless.swapchain.simulate_oom.exclusive_nonzero_queues
 dEQP-VK.wsi.headless.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.headless.swapchain.render.basic
 dEQP-VK.wsi.headless.swapchain.render.basic2
@@ -3490,6 +3510,7 @@ dEQP-VK.wsi.headless.swapchain.private_data.pre_transform
 dEQP-VK.wsi.headless.swapchain.private_data.composite_alpha
 dEQP-VK.wsi.headless.swapchain.private_data.present_mode
 dEQP-VK.wsi.headless.swapchain.private_data.clipped
+dEQP-VK.wsi.headless.swapchain.private_data.exclusive_nonzero_queues
 dEQP-VK.wsi.headless.incremental_present.scale_none.immediate.identity.opaque.reference
 dEQP-VK.wsi.headless.incremental_present.scale_none.immediate.identity.opaque.incremental_present
 dEQP-VK.wsi.headless.incremental_present.scale_none.immediate.identity.pre_multiplied.reference
