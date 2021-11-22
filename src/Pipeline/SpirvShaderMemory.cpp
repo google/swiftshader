@@ -16,7 +16,7 @@
 #include "SpirvShaderDebug.hpp"
 
 #include "ShaderCore.hpp"
-
+#include "Reactor/Assert.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 
 #include <spirv/unified1/spirv.hpp>
@@ -394,6 +394,7 @@ SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, Int arrayIndex, EmitS
 			Int descriptorOffset = bindingOffset + descriptorSize * arrayIndex;
 
 			auto set = state->getPointer(id);
+			Assert(set.base != Pointer<Byte>(nullptr));
 			Pointer<Byte> descriptor = set.base + descriptorOffset;                                        // BufferDescriptor*
 			Pointer<Byte> data = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::BufferDescriptor, ptr));  // void*
 			Int size = *Pointer<Int>(descriptor + OFFSET(vk::BufferDescriptor, sizeInBytes));
