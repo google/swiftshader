@@ -2135,7 +2135,7 @@ sw::int4 Format::bitsPerComponent() const
 		return sw::int4(5, 5, 5, 1);
 	case VK_FORMAT_R5G6B5_UNORM_PACK16:
 	case VK_FORMAT_B5G6R5_UNORM_PACK16:
-		return sw::int4(5, 5, 5, 0);
+		return sw::int4(5, 6, 5, 0);
 	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
