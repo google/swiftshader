@@ -94,9 +94,6 @@ private:
 	void address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Int4 &offset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function);
 	Int4 computeLayerIndex(const Float4 &a, Pointer<Byte> &mipmap, SamplerFunction function);
 	Int4 computeFilterOffset(Float &lod);
-
-	void convertSigned15(Float4 &cf, Short4 &ci);
-	void convertUnsigned16(Float4 &cf, Short4 &ci);
 	void sRGBtoLinearFF00(Short4 &c);
 
 	bool hasFloatTexture() const;
@@ -111,6 +108,8 @@ private:
 	bool isRGBComponent(int component) const;
 	bool borderModeActive() const;
 	VkComponentSwizzle gatherSwizzle() const;
+	sw::float4 getComponentScale() const;
+	int getGatherComponent() const;
 
 	Pointer<Byte> &constants;
 	const Sampler &state;

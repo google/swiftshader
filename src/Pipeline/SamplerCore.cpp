@@ -142,6 +142,9 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 	bool use32BitFiltering = hasFloatTexture() || hasUnnormalizedIntegerTexture() || force32BitFiltering ||
 	                         state.isCube() || state.unnormalizedCoordinates || state.compareEnable ||
 	                         borderModeActive() || (function == Gather) || (function == Fetch);
+	const sw::float4 compScale = getComponentScale();
+	int gatherComponent = (function == Gather) ? getGatherComponent() : 0;
+	int numComponents = (function == Gather) ? 4 : textureComponentCount();
 
 	if(use32BitFiltering)
 	{
@@ -149,76 +152,9 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 
 		if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable)
 		{
-			switch(state.textureFormat)
+			for(int component = 0; component < numComponents; component++)
 			{
-			case VK_FORMAT_R5G6B5_UNORM_PACK16:
-			case VK_FORMAT_B5G6R5_UNORM_PACK16:
-				c.x *= Float4(1.0f / 0xF800);
-				c.y *= Float4(1.0f / 0xFC00);
-				c.z *= Float4(1.0f / 0xF800);
-				break;
-			case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-			case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
-			case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
-				c.x *= Float4(1.0f / 0xF000);
-				c.y *= Float4(1.0f / 0xF000);
-				c.z *= Float4(1.0f / 0xF000);
-				c.w *= Float4(1.0f / 0xF000);
-				break;
-			case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
-			case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
-			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-				c.x *= Float4(1.0f / 0xF800);
-				c.y *= Float4(1.0f / 0xF800);
-				c.z *= Float4(1.0f / 0xF800);
-				c.w *= Float4(1.0f / 0x8000);
-				break;
-			case VK_FORMAT_R8_SNORM:
-			case VK_FORMAT_R8G8_SNORM:
-			case VK_FORMAT_R8G8B8A8_SNORM:
-			case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-				c.x = Max(c.x * Float4(1.0f / 0x7F00), Float4(-1.0f));
-				c.y = Max(c.y * Float4(1.0f / 0x7F00), Float4(-1.0f));
-				c.z = Max(c.z * Float4(1.0f / 0x7F00), Float4(-1.0f));
-				c.w = Max(c.w * Float4(1.0f / 0x7F00), Float4(-1.0f));
-				break;
-			case VK_FORMAT_R8_UNORM:
-			case VK_FORMAT_R8G8_UNORM:
-			case VK_FORMAT_R8G8B8A8_UNORM:
-			case VK_FORMAT_B8G8R8A8_UNORM:
-			case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-			case VK_FORMAT_B8G8R8A8_SRGB:
-			case VK_FORMAT_R8G8B8A8_SRGB:
-			case VK_FORMAT_R8_SRGB:
-			case VK_FORMAT_R8G8_SRGB:
-				c.x *= Float4(1.0f / 0xFF00u);
-				c.y *= Float4(1.0f / 0xFF00u);
-				c.z *= Float4(1.0f / 0xFF00u);
-				c.w *= Float4(1.0f / 0xFF00u);
-				break;
-			//TODO(b/205576016)
-			case VK_FORMAT_R16_UNORM:
-			case VK_FORMAT_R16G16_UNORM:
-			case VK_FORMAT_R16G16B16A16_UNORM:
-				c.x *= Float4(1.0f / 0xFFFF);
-				c.y *= Float4(1.0f / 0xFFFF);
-				c.z *= Float4(1.0f / 0xFFFF);
-				c.w *= Float4(1.0f / 0xFFFF);
-				break;
-			case VK_FORMAT_R16_SNORM:
-			case VK_FORMAT_R16G16_SNORM:
-			case VK_FORMAT_R16G16B16A16_SNORM:
-				c.x = Max(c.x * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-				c.y = Max(c.y * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-				c.z = Max(c.z * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-				c.w = Max(c.w * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-				break;
-			default:
-				for(int component = 0; component < textureComponentCount(); component++)
-				{
-					c[component] *= Float4(hasUnsignedTextureComponent(component) ? 1.0f / 0xFFFF : 1.0f / 0x7FFF);
-				}
+				c[component] *= Float4(1.0f / compScale[(function == Gather) ? gatherComponent : component]);
 			}
 		}
 	}
@@ -226,74 +162,26 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 	{
 		Vector4s cs = sampleFilter(texture, u, v, w, a, offset, sample, lod, anisotropy, uDelta, vDelta, function);
 
-		switch(state.textureFormat)
+		for(int component = 0; component < numComponents; component++)
 		{
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		case VK_FORMAT_B5G6R5_UNORM_PACK16:
-			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
-			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
-			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
-			break;
-		case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-		case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
-		case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
-			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF000);
-			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF000);
-			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF000);
-			c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xF000);
-			break;
-		case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
-		case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
-		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
-			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF800);
-			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
-			c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0x8000);
-			break;
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-			c.x = Max(Float4(cs.x) * Float4(1.0f / 0x7F00), Float4(-1.0f));
-			c.y = Max(Float4(cs.y) * Float4(1.0f / 0x7F00), Float4(-1.0f));
-			c.z = Max(Float4(cs.z) * Float4(1.0f / 0x7F00), Float4(-1.0f));
-			c.w = Max(Float4(cs.w) * Float4(1.0f / 0x7F00), Float4(-1.0f));
-			break;
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-		case VK_FORMAT_B8G8R8A8_SRGB:
-		case VK_FORMAT_R8G8B8A8_SRGB:
-		case VK_FORMAT_R8_SRGB:
-		case VK_FORMAT_R8G8_SRGB:
-			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xFF00u);
-			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFF00u);
-			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xFF00u);
-			c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xFF00u);
-			break;
-		case VK_FORMAT_R16_SNORM:
-		case VK_FORMAT_R16G16_SNORM:
-		case VK_FORMAT_R16G16B16A16_SNORM:
-			c.x = Max(Float4(cs.x) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-			c.y = Max(Float4(cs.y) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-			c.z = Max(Float4(cs.z) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-			c.w = Max(Float4(cs.w) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-			break;
-		default:
-			for(int component = 0; component < textureComponentCount(); component++)
+			if(hasUnsignedTextureComponent(component))
 			{
-				if(hasUnsignedTextureComponent(component))
-				{
-					convertUnsigned16(c[component], cs[component]);
-				}
-				else
-				{
-					convertSigned15(c[component], cs[component]);
-				}
+				c[component] = Float4(As<UShort4>(cs[component]));
 			}
+			else
+			{
+				c[component] = Float4(cs[component]);
+			}
+
+			c[component] *= Float4(1.0f / compScale[(function == Gather) ? gatherComponent : component]);
+		}
+	}
+
+	if(state.textureFormat.isSignedNormalized())
+	{
+		for(int component = 0; component < numComponents; component++)
+		{
+			c[component] = Max(c[component], Float4(-1.0f));
 		}
 	}
 
@@ -2179,19 +2067,7 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 	Vector4i border;
 
 	const bool scaled = !hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable;
-	const sw::float4 scale = state.textureFormat.getScale();
-	const sw::int4 bits = state.textureFormat.bitsPerComponent();
-	const sw::int4 shift = sw::int4(std::max(16 - bits.x, 0), std::max(16 - bits.y, 0), std::max(16 - bits.z, 0), std::max(16 - bits.w, 0));
-	sw::float4 scaleComp = scaled ? sw::float4(static_cast<uint16_t>(scale.x) << shift.x, static_cast<uint16_t>(scale.y) << shift.y,
-	                                           static_cast<uint16_t>(scale.z) << shift.z, static_cast<uint16_t>(scale.w) << shift.w)
-	                              : sw::float4(1.0, 1.0, 1.0, 1.0);
-	// TODO(b/204709464): Unlike other formats, the fixed point presentation of the formats below are handled with bit extension.
-	// This special handling of such formats should be removed later.
-	const VkFormat format = static_cast<VkFormat>(state.textureFormat);
-	if(format == VK_FORMAT_A2B10G10R10_UNORM_PACK32 || format == VK_FORMAT_A2R10G10B10_UNORM_PACK32)
-		scaleComp = sw::float4(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
-	else if(format == VK_FORMAT_A2B10G10R10_SNORM_PACK32 || format == VK_FORMAT_A2R10G10B10_SNORM_PACK32)
-		scaleComp = sw::float4(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
+	const sw::float4 scaleComp = scaled ? getComponentScale() : sw::float4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	switch(state.border)
 	{
@@ -2608,16 +2484,6 @@ Int4 SamplerCore::computeLayerIndex(const Float4 &a, Pointer<Byte> &mipmap, Samp
 	}
 }
 
-void SamplerCore::convertSigned15(Float4 &cf, Short4 &cs)
-{
-	cf = Float4(cs) * Float4(1.0f / 0x7FFF);
-}
-
-void SamplerCore::convertUnsigned16(Float4 &cf, Short4 &cs)
-{
-	cf = Float4(As<UShort4>(cs)) * Float4(1.0f / 0xFFFF);
-}
-
 void SamplerCore::sRGBtoLinearFF00(Short4 &c)
 {
 	c = As<UShort4>(c) >> 8;
@@ -2699,6 +2565,58 @@ VkComponentSwizzle SamplerCore::gatherSwizzle() const
 		UNREACHABLE("Invalid component");
 		return VK_COMPONENT_SWIZZLE_R;
 	}
+}
+
+sw::float4 SamplerCore::getComponentScale() const
+{
+	// TODO(b/204709464): Unlike other formats, the fixed point presentation of the formats below are handled with bit extension.
+	// This special handling of such formats should be removed later.
+	const VkFormat format = static_cast<VkFormat>(state.textureFormat);
+	switch(format)
+	{
+	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		return sw::float4(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
+	case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+	case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+		return sw::float4(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
+	default:
+		break;
+	};
+
+	const sw::float4 scale = state.textureFormat.getScale();
+	const sw::int4 bits = state.textureFormat.bitsPerComponent();
+	const sw::int4 shift = sw::int4(std::max(16 - bits.x, 0), std::max(16 - bits.y, 0), std::max(16 - bits.z, 0),
+	                                std::max(16 - bits.w, 0));
+
+	return sw::float4(static_cast<uint16_t>(scale.x) << shift.x,
+	                  static_cast<uint16_t>(scale.y) << shift.y,
+	                  static_cast<uint16_t>(scale.z) << shift.z,
+	                  static_cast<uint16_t>(scale.w) << shift.w);
+}
+
+int SamplerCore::getGatherComponent() const
+{
+	VkComponentSwizzle swizzle = gatherSwizzle();
+
+	switch(swizzle)
+	{
+	default: UNSUPPORTED("VkComponentSwizzle %d", (int)swizzle); return 0;
+	case VK_COMPONENT_SWIZZLE_R:
+	case VK_COMPONENT_SWIZZLE_G:
+	case VK_COMPONENT_SWIZZLE_B:
+	case VK_COMPONENT_SWIZZLE_A:
+		// Normalize all components using the gather component scale.
+		return swizzle - VK_COMPONENT_SWIZZLE_R;
+	case VK_COMPONENT_SWIZZLE_ZERO:
+	case VK_COMPONENT_SWIZZLE_ONE:
+		// These cases are handled later.
+		return 0;
+	}
+
+	return 0;
 }
 
 }  // namespace sw
