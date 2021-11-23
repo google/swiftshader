@@ -56,9 +56,9 @@ public:
 	int componentCount() const;
 	bool isUnsignedComponent(int component) const;
 
-	int bytes() const;
-	int pitchB(int width, int border) const;
-	int sliceB(int width, int height, int border) const;
+	size_t bytes() const;
+	size_t pitchB(int width, int border) const;
+	size_t sliceB(int width, int height, int border) const;
 
 	sw::float4 getScale() const;
 
@@ -78,7 +78,7 @@ public:
 
 private:
 	VkFormat compatibleFormat() const;
-	int sliceBUnpadded(int width, int height, int border) const;
+	size_t sliceBUnpadded(int width, int height, int border) const;
 
 	VkFormat format = VK_FORMAT_UNDEFINED;
 };

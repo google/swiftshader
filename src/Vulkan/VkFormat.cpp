@@ -1529,7 +1529,7 @@ bool Format::isUnsignedComponent(int component) const
 	return false;
 }
 
-int Format::bytes() const
+size_t Format::bytes() const
 {
 	switch(format)
 	{
@@ -1742,7 +1742,7 @@ int Format::bytes() const
 	return 0;
 }
 
-int Format::pitchB(int width, int border) const
+size_t Format::pitchB(int width, int border) const
 {
 	// Render targets require 2x2 quads
 	width = sw::align<2>(width + 2 * border);
@@ -1818,7 +1818,7 @@ int Format::pitchB(int width, int border) const
 	}
 }
 
-int Format::sliceBUnpadded(int width, int height, int border) const
+size_t Format::sliceBUnpadded(int width, int height, int border) const
 {
 	// Render targets require 2x2 quads
 	height = sw::align<2>(height + 2 * border);
@@ -1890,7 +1890,7 @@ int Format::sliceBUnpadded(int width, int height, int border) const
 	}
 }
 
-int Format::sliceB(int width, int height, int border) const
+size_t Format::sliceB(int width, int height, int border) const
 {
 	return sw::align<16>(sliceBUnpadded(width, height, border) + 15);
 }

@@ -116,10 +116,10 @@ void Blitter::clear(const void *pixel, vk::Format format, vk::Image *dest, const
 		BlitData data = {
 			pixel, nullptr,  // source, dest
 
-			format.bytes(),                                  // sPitchB
-			dest->rowPitchBytes(aspect, subres.mipLevel),    // dPitchB
-			0,                                               // sSliceB (unused in clear operations)
-			dest->slicePitchBytes(aspect, subres.mipLevel),  // dSliceB
+			static_cast<uint32_t>(format.bytes()),                                  // sPitchB
+			static_cast<uint32_t>(dest->rowPitchBytes(aspect, subres.mipLevel)),    // dPitchB
+			0,                                                                      // sSliceB (unused in clear operations)
+			static_cast<uint32_t>(dest->slicePitchBytes(aspect, subres.mipLevel)),  // dSliceB
 
 			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f,  // x0, y0, z0, w, h, d
 
@@ -1901,12 +1901,12 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit2KHR region,
 	}
 
 	BlitData data = {
-		nullptr,                                                          // source
-		nullptr,                                                          // dest
-		src->rowPitchBytes(srcAspect, region.srcSubresource.mipLevel),    // sPitchB
-		dst->rowPitchBytes(dstAspect, region.dstSubresource.mipLevel),    // dPitchB
-		src->slicePitchBytes(srcAspect, region.srcSubresource.mipLevel),  // sSliceB
-		dst->slicePitchBytes(dstAspect, region.dstSubresource.mipLevel),  // dSliceB
+		nullptr,                                                                                 // source
+		nullptr,                                                                                 // dest
+		static_cast<uint32_t>(src->rowPitchBytes(srcAspect, region.srcSubresource.mipLevel)),    // sPitchB
+		static_cast<uint32_t>(dst->rowPitchBytes(dstAspect, region.dstSubresource.mipLevel)),    // dPitchB
+		static_cast<uint32_t>(src->slicePitchBytes(srcAspect, region.srcSubresource.mipLevel)),  // sSliceB
+		static_cast<uint32_t>(dst->slicePitchBytes(dstAspect, region.dstSubresource.mipLevel)),  // dSliceB
 
 		x0,
 		y0,
@@ -2354,7 +2354,7 @@ void Blitter::updateBorders(const vk::Image *image, const VkImageSubresource &su
 	VkExtent3D extent = image->getMipLevelExtent(aspect, subresource.mipLevel);
 	CubeBorderData data = {
 		image->getTexelPointer({ 0, 0, 0 }, posX),
-		image->rowPitchBytes(aspect, subresource.mipLevel),
+		static_cast<uint32_t>(image->rowPitchBytes(aspect, subresource.mipLevel)),
 		static_cast<uint32_t>(image->getLayerSize(aspect)),
 		extent.width
 	};

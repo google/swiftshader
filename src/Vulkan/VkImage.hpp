@@ -87,8 +87,8 @@ public:
 	VkSampleCountFlagBits getSampleCountFlagBits() const { return samples; }
 	const VkExtent3D &getExtent() const { return extent; }
 	VkExtent3D getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
-	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
-	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
+	size_t rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
+	size_t slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	void *getTexelPointer(const VkOffset3D &offset, const VkImageSubresource &subresource) const;
 	bool isCubeCompatible() const;
 	bool is3DSlice() const;

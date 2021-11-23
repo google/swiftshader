@@ -104,10 +104,10 @@ class Blitter
 	{
 		const void *source;
 		void *dest;
-		int sPitchB;
-		int dPitchB;
-		int sSliceB;
-		int dSliceB;
+		uint32_t sPitchB;
+		uint32_t dPitchB;
+		uint32_t sSliceB;
+		uint32_t dSliceB;
 
 		float x0;
 		float y0;
@@ -133,7 +133,7 @@ class Blitter
 	struct CubeBorderData
 	{
 		void *layers;
-		int pitchB;
+		uint32_t pitchB;
 		uint32_t layerSize;
 		uint32_t dim;
 	};
