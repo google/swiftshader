@@ -15,6 +15,7 @@
 #ifndef sw_Types_hpp
 #define sw_Types_hpp
 
+#include <cassert>
 #include <limits>
 #include <type_traits>
 
@@ -48,6 +49,16 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 namespace sw {
+
+// assert_cast<> is like a static_cast<> which asserts that no information was lost.
+template<typename To, typename From>
+To assert_cast(From x)
+{
+	To y = static_cast<To>(x);
+	assert(static_cast<From>(y) == x);
+
+	return y;
+}
 
 // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 constexpr inline uint32_t bit_ceil(uint32_t i)
