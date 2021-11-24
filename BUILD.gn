@@ -23,7 +23,11 @@ config("swiftshader_config") {
     cflags += [ "-Wno-shadow" ]
   }
 
-  if (!is_debug) {
+  if (is_debug) {
+    if (swiftshader_startup_dialog) {
+      defines += [ "DEBUGGER_WAIT_DIALOG" ]
+    }
+  } else {
     defines += [ "ANGLE_DISABLE_TRACE" ]
   }
 

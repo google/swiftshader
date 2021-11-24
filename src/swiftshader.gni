@@ -21,6 +21,10 @@ declare_args() {
   # By default, build SwiftShader with optimizations enabled in debug
   # for performance reasons. Set to false to build as unoptimized.
   swiftshader_optimized_debug_build = true
+
+  # If enabled, debug builds on Windows will pop up a dialog when the
+  # SwiftShader DLL gets loaded, to facilitate attaching a debugger.
+  swiftshader_startup_dialog = false
 }
 
 configs_to_add = []
