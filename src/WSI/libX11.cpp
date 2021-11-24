@@ -51,34 +51,24 @@ LibX11exports *LibX11::operator->()
 
 LibX11exports *LibX11::loadExports()
 {
-	static void *libX11 = nullptr;
-	static void *libXext = nullptr;
-	static std::unique_ptr<LibX11exports> libX11exports = nullptr;
-
-	if(!libX11)
-	{
+	static LibX11exports exports = [] {
 		if(getProcAddress(RTLD_DEFAULT, "XOpenDisplay"))  // Search the global scope for pre-loaded X11 library.
 		{
-			libX11exports = std::make_unique<LibX11exports>(RTLD_DEFAULT, RTLD_DEFAULT);
-			libX11 = (void *)-1;  // No need to load it.
+			return LibX11exports(RTLD_DEFAULT, RTLD_DEFAULT);
 		}
-		else
+
+		void *libX11 = loadLibrary("libX11.so");
+
+		if(libX11)
 		{
-			libX11 = loadLibrary("libX11.so");
-
-			if(libX11)
-			{
-				libXext = loadLibrary("libXext.so");
-				libX11exports = std::make_unique<LibX11exports>(libX11, libXext);
-			}
-			else
-			{
-				libX11 = (void *)-1;  // Don't attempt loading more than once.
-			}
+			void *libXext = loadLibrary("libXext.so");
+			return LibX11exports(libX11, libXext);
 		}
-	}
 
-	return libX11exports.get();
+		return LibX11exports();
+	}();
+
+	return exports.XOpenDisplay ? &exports : nullptr;
 }
 
 LibX11 libX11;
