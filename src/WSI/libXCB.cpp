@@ -36,21 +36,21 @@ LibXcbExports *LibXCB::operator->()
 
 LibXcbExports *LibXCB::loadExports()
 {
-	static auto exports = [] {
-		if(getProcAddress(RTLD_DEFAULT, "xcb_create_gc"))
+	static LibXcbExports exports = [] {
+		if(getProcAddress(RTLD_DEFAULT, "xcb_create_gc"))  // Search the global scope for pre-loaded XCB library.
 		{
-			return std::make_unique<LibXcbExports>(RTLD_DEFAULT);
+			return LibXcbExports(RTLD_DEFAULT);
 		}
 
 		if(void *lib = loadLibrary("libxcb.so.1"))
 		{
-			return std::make_unique<LibXcbExports>(lib);
+			return LibXcbExports(lib);
 		}
 
-		return std::unique_ptr<LibXcbExports>();
+		return LibXcbExports();
 	}();
 
-	return exports.get();
+	return exports.xcb_create_gc ? &exports : nullptr;
 }
 
 LibXCB libXCB;
