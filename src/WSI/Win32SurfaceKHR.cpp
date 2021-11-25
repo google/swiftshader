@@ -20,18 +20,19 @@
 #include <string.h>
 
 namespace {
-VkExtent2D getWindowSize(HWND hwnd)
+VkResult getWindowSize(HWND hwnd, VkExtent2D &windowSize)
 {
-	ASSERT(IsWindow(hwnd) == TRUE);
-
 	RECT clientRect = {};
-	BOOL status = GetClientRect(hwnd, &clientRect);
-	ASSERT(status != 0);
+	if(!IsWindow(hwnd) || !GetClientRect(hwnd, &clientRect))
+	{
+		windowSize = { 0, 0 };
+		return VK_ERROR_SURFACE_LOST_KHR;
+	}
 
-	int windowWidth = clientRect.right - clientRect.left;
-	int windowHeight = clientRect.bottom - clientRect.top;
+	windowSize = { static_cast<uint32_t>(clientRect.right - clientRect.left),
+		           static_cast<uint32_t>(clientRect.bottom - clientRect.top) };
 
-	return { static_cast<uint32_t>(windowWidth), static_cast<uint32_t>(windowHeight) };
+	return VK_SUCCESS;
 }
 }  // namespace
 
@@ -62,20 +63,12 @@ VkResult Win32SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurf
 {
 	setCommonSurfaceCapabilities(pSurfaceCapabilities);
 
-	if(!IsWindow(hwnd))
-	{
-		VkExtent2D extent = { 0, 0 };
-		pSurfaceCapabilities->currentExtent = extent;
-		pSurfaceCapabilities->minImageExtent = extent;
-		pSurfaceCapabilities->maxImageExtent = extent;
-		return VK_ERROR_SURFACE_LOST_KHR;
-	}
-
-	VkExtent2D extent = getWindowSize(hwnd);
+	VkExtent2D extent;
+	VkResult result = getWindowSize(hwnd, extent);
 	pSurfaceCapabilities->currentExtent = extent;
 	pSurfaceCapabilities->minImageExtent = extent;
 	pSurfaceCapabilities->maxImageExtent = extent;
-	return VK_SUCCESS;
+	return result;
 }
 
 void Win32SurfaceKHR::attachImage(PresentImage *image)
@@ -93,7 +86,11 @@ void Win32SurfaceKHR::detachImage(PresentImage *image)
 VkResult Win32SurfaceKHR::present(PresentImage *image)
 {
 	// Recreate frame buffer in case window size has changed
-	lazyCreateFrameBuffer();
+	VkResult result = lazyCreateFrameBuffer();
+	if(result != VK_SUCCESS)
+	{
+		return result;
+	}
 
 	if(!framebuffer)
 	{
@@ -115,12 +112,19 @@ VkResult Win32SurfaceKHR::present(PresentImage *image)
 	return VK_SUCCESS;
 }
 
-void Win32SurfaceKHR::lazyCreateFrameBuffer()
+VkResult Win32SurfaceKHR::lazyCreateFrameBuffer()
 {
-	auto currWindowExtent = getWindowSize(hwnd);
+	VkExtent2D currWindowExtent;
+	VkResult result = getWindowSize(hwnd, currWindowExtent);
+	if(result != VK_SUCCESS)
+	{
+		destroyFrameBuffer();
+		return result;
+	}
+
 	if(currWindowExtent.width == windowExtent.width && currWindowExtent.height == windowExtent.height)
 	{
-		return;
+		return VK_SUCCESS;
 	}
 
 	windowExtent = currWindowExtent;
@@ -132,7 +136,7 @@ void Win32SurfaceKHR::lazyCreateFrameBuffer()
 
 	if(windowExtent.width == 0 || windowExtent.height == 0)
 	{
-		return;
+		return VK_SUCCESS;
 	}
 
 	BITMAPINFO bitmapInfo = {};
@@ -151,6 +155,8 @@ void Win32SurfaceKHR::lazyCreateFrameBuffer()
 	int status = GetObject(bitmap, sizeof(BITMAP), &header);
 	ASSERT(status != 0);
 	bitmapRowPitch = static_cast<int>(header.bmWidthBytes);
+
+	return VK_SUCCESS;
 }
 
 void Win32SurfaceKHR::destroyFrameBuffer()

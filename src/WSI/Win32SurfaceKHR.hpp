@@ -45,7 +45,7 @@ public:
 	VkResult present(PresentImage *image) override;
 
 private:
-	void lazyCreateFrameBuffer();
+	VkResult lazyCreateFrameBuffer();
 	void destroyFrameBuffer();
 
 	const HWND hwnd;
