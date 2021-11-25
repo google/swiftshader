@@ -728,10 +728,8 @@ bool GraphicsState::alphaBlendActive(int index, const Attachments &attachments, 
 		return false;
 	}
 
-	bool colorBlend = !(blendOperation(index, attachments) == VK_BLEND_OP_SRC_EXT &&
-	                    sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE);
-	bool alphaBlend = !(blendOperationAlpha(index, attachments) == VK_BLEND_OP_SRC_EXT &&
-	                    sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE);
+	bool colorBlend = blendOperation(index, attachments) != VK_BLEND_OP_SRC_EXT;
+	bool alphaBlend = blendOperationAlpha(index, attachments) != VK_BLEND_OP_SRC_EXT;
 
 	return colorBlend || alphaBlend;
 }
@@ -825,7 +823,7 @@ VkBlendOp GraphicsState::blendOperation(int index, const Attachments &attachment
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
-			else
+			else if(destBlendFactor(index) == VK_BLEND_FACTOR_ONE)
 			{
 				return VK_BLEND_OP_DST_EXT;
 			}
@@ -836,83 +834,48 @@ VkBlendOp GraphicsState::blendOperation(int index, const Attachments &attachment
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
-			else
-			{
-				return VK_BLEND_OP_ADD;
-			}
 		}
-		else
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-			else
-			{
-				return VK_BLEND_OP_ADD;
-			}
-		}
+		break;
 	case VK_BLEND_OP_SUBTRACT:
-		if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
-		{
-			return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-		}
-		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-			else
-			{
-				return VK_BLEND_OP_SUBTRACT;
-			}
-		}
-		else
-		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-			else
-			{
-				return VK_BLEND_OP_SUBTRACT;
-			}
-		}
-	case VK_BLEND_OP_REVERSE_SUBTRACT:
 		if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
 		{
 			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
-			else
+			else if(attachments.isColorClamped(index))
 			{
-				return VK_BLEND_OP_DST_EXT;
+				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
 		}
 		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
 		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
 			{
-				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-			}
-			else
-			{
-				return VK_BLEND_OP_REVERSE_SUBTRACT;
+				return VK_BLEND_OP_SRC_EXT;
 			}
 		}
-		else
+		break;
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
 		{
-			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+			if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_ZERO_EXT;
+			}
+			else if(attachments.isColorClamped(index))
 			{
 				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
-			else
+		}
+		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ONE)
 			{
-				return VK_BLEND_OP_REVERSE_SUBTRACT;
+				return VK_BLEND_OP_DST_EXT;
 			}
 		}
+		break;
 	case VK_BLEND_OP_MIN:
 	case VK_BLEND_OP_MAX:
 	case VK_BLEND_OP_MULTIPLY_EXT:
@@ -1021,7 +984,7 @@ VkBlendOp GraphicsState::blendOperationAlpha(int index, const Attachments &attac
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
-			else
+			else if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
 			{
 				return VK_BLEND_OP_DST_EXT;
 			}
@@ -1032,83 +995,48 @@ VkBlendOp GraphicsState::blendOperationAlpha(int index, const Attachments &attac
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
-			else
-			{
-				return VK_BLEND_OP_ADD;
-			}
 		}
-		else
-		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-			else
-			{
-				return VK_BLEND_OP_ADD;
-			}
-		}
+		break;
 	case VK_BLEND_OP_SUBTRACT:
-		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
-		{
-			return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-		}
-		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
-		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-			else
-			{
-				return VK_BLEND_OP_SUBTRACT;
-			}
-		}
-		else
-		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				return VK_BLEND_OP_SRC_EXT;
-			}
-			else
-			{
-				return VK_BLEND_OP_SUBTRACT;
-			}
-		}
-	case VK_BLEND_OP_REVERSE_SUBTRACT:
 		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 		{
 			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
-			else
+			else if(attachments.isColorClamped(index))
 			{
-				return VK_BLEND_OP_DST_EXT;
+				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
 		}
 		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
 		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
-				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-			}
-			else
-			{
-				return VK_BLEND_OP_REVERSE_SUBTRACT;
+				return VK_BLEND_OP_SRC_EXT;
 			}
 		}
-		else
+		break;
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 		{
-			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+			if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_ZERO_EXT;
+			}
+			else if(attachments.isColorClamped(index))
 			{
 				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
-			else
+		}
+		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
 			{
-				return VK_BLEND_OP_REVERSE_SUBTRACT;
+				return VK_BLEND_OP_DST_EXT;
 			}
 		}
+		break;
 	case VK_BLEND_OP_MIN:
 		return VK_BLEND_OP_MIN;
 	case VK_BLEND_OP_MAX:
@@ -1160,8 +1088,8 @@ int GraphicsState::colorWriteActive(int index, const Attachments &attachments) c
 		return 0;
 	}
 
-	if(blendOperation(index, attachments) == VK_BLEND_OP_DST_EXT && destBlendFactor(index) == VK_BLEND_FACTOR_ONE &&
-	   (blendOperationAlpha(index, attachments) == VK_BLEND_OP_DST_EXT && destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE))
+	if(blendOperation(index, attachments) == VK_BLEND_OP_DST_EXT &&
+	   blendOperationAlpha(index, attachments) == VK_BLEND_OP_DST_EXT)
 	{
 		return 0;
 	}
