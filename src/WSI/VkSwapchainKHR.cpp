@@ -102,6 +102,11 @@ VkResult SwapchainKHR::createImages(VkDevice device, const VkSwapchainCreateInfo
 		imageInfo.flags |= VK_IMAGE_CREATE_PROTECTED_BIT;
 	}
 
+	if(pCreateInfo->flags & VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR)
+	{
+		imageInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+	}
+
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
 	imageInfo.format = pCreateInfo->imageFormat;
 	imageInfo.extent.height = pCreateInfo->imageExtent.height;
