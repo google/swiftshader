@@ -224,8 +224,6 @@ sw::SIMD::UInt halfToFloatBits(sw::SIMD::UInt halfBits);
 sw::SIMD::UInt floatToHalfBits(sw::SIMD::UInt floatBits, bool storeInUpperBits);
 Float4 r11g11b10Unpack(UInt r11g11b10bits);
 UInt r11g11b10Pack(const Float4 &value);
-Vector4s a2b10g10r10Unpack(const Int4 &value);
-Vector4s a2r10g10b10Unpack(const Int4 &value);
 
 rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints);
 

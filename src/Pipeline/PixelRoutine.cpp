@@ -1189,7 +1189,18 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 			v = Insert(v, *Pointer<Int>(buffer + 0), 2);
 			v = Insert(v, *Pointer<Int>(buffer + 4), 3);
 
-			pixel = a2b10g10r10Unpack(v);
+			pixel.x = Short4(v << 6) & Short4(0xFFC0u);
+			pixel.y = Short4(v >> 4) & Short4(0xFFC0u);
+			pixel.z = Short4(v >> 14) & Short4(0xFFC0u);
+			pixel.w = Short4(v >> 16) & Short4(0xC000u);
+
+			// Expand to 16 bit range
+			pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 10);
+			pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 10);
+			pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 10);
+			pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 2);
+			pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 4);
+			pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 8);
 		}
 		break;
 	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
@@ -1201,7 +1212,18 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 			v = Insert(v, *Pointer<Int>(buffer + 4 * x), 2);
 			v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 3);
 
-			pixel = a2r10g10b10Unpack(v);
+			pixel.x = Short4(v >> 14) & Short4(0xFFC0u);
+			pixel.y = Short4(v >> 4) & Short4(0xFFC0u);
+			pixel.z = Short4(v << 6) & Short4(0xFFC0u);
+			pixel.w = Short4(v >> 16) & Short4(0xC000u);
+
+			// Expand to 16 bit range
+			pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 10);
+			pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 10);
+			pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 10);
+			pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 2);
+			pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 4);
+			pixel.w |= As<Short4>(As<UShort4>(pixel.w) >> 8);
 		}
 		break;
 	default:

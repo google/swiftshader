@@ -1658,7 +1658,10 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		c = a2b10g10r10Unpack(cc);
+		c.x = Short4(cc << 6) & Short4(0xFFC0u);
+		c.y = Short4(cc >> 4) & Short4(0xFFC0u);
+		c.z = Short4(cc >> 14) & Short4(0xFFC0u);
+		c.w = Short4(cc >> 16) & Short4(0xC000u);
 	}
 	else if(state.textureFormat == VK_FORMAT_A2R10G10B10_UNORM_PACK32)
 	{
@@ -1668,7 +1671,10 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		c = a2r10g10b10Unpack(cc);
+		c.x = Short4(cc >> 14) & Short4(0xFFC0u);
+		c.y = Short4(cc >> 4) & Short4(0xFFC0u);
+		c.z = Short4(cc << 6) & Short4(0xFFC0u);
+		c.w = Short4(cc >> 16) & Short4(0xC000u);
 	}
 	else if(state.textureFormat == VK_FORMAT_A2B10G10R10_UINT_PACK32)
 	{
@@ -1678,10 +1684,10 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		c.x = Short4((cc & Int4(0x3FF)));
-		c.y = Short4(((cc >> 10) & Int4(0x3FF)));
-		c.z = Short4(((cc >> 20) & Int4(0x3FF)));
-		c.w = Short4(((cc >> 30) & Int4(0x3)));
+		c.x = Short4(cc & Int4(0x3FF));
+		c.y = Short4((cc >> 10) & Int4(0x3FF));
+		c.z = Short4((cc >> 20) & Int4(0x3FF));
+		c.w = Short4((cc >> 30) & Int4(0x3));
 	}
 	else if(state.textureFormat == VK_FORMAT_A2R10G10B10_UINT_PACK32)
 	{
@@ -2569,16 +2575,10 @@ VkComponentSwizzle SamplerCore::gatherSwizzle() const
 
 sw::float4 SamplerCore::getComponentScale() const
 {
-	// TODO(b/204709464): Unlike other formats, the fixed point presentation of the formats below are handled with bit extension.
+	// TODO(b/204709464): Unlike other formats, the fixed-point representation of the formats below are handled with bit extension.
 	// This special handling of such formats should be removed later.
-	const VkFormat format = static_cast<VkFormat>(state.textureFormat);
-	switch(format)
+	switch(state.textureFormat)
 	{
-	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-		return sw::float4(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
-	case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
-	case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
 	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 		return sw::float4(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
