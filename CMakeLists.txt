@@ -449,6 +449,8 @@ else()
             "-Wextra-semi"
             "-Wignored-qualifiers"
             "-Wdeprecated-copy"  # implicit copy constructor for 'X' is deprecated because of user-declared copy assignment operator.
+            # TODO(b/208256248): Avoid exit-time destructor.
+            #"-Wexit-time-destructors"  # declaration requires an exit-time destructor
         )
     endif()
 

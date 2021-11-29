@@ -115,7 +115,6 @@ target_link_libraries(ReactorSubzero
         ${REACTOR_PRIVATE_LINK_LIBRARIES}
 )
 
-
 # ReactorLLVM library
 
 add_library(ReactorLLVM STATIC EXCLUDE_FROM_ALL

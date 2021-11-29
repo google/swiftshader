@@ -49,6 +49,13 @@ if(LINUX OR ANDROID)
     )
 endif()
 
+set(SYSTEM_COMPILE_OPTIONS "")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND SYSTEM_COMPILE_OPTIONS
+        "-Wexit-time-destructors"  # declaration requires an exit-time destructor
+    )
+endif()
+
 add_library(vk_system EXCLUDE_FROM_ALL
     ${SYSTEM_SRC_FILES}
 )
@@ -66,6 +73,7 @@ target_include_directories(vk_system
 target_compile_options(vk_system
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+        ${SYSTEM_COMPILE_OPTIONS}
 )
 
 target_link_libraries(vk_system

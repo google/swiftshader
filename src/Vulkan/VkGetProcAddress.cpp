@@ -32,6 +32,8 @@ namespace vk {
 	{                                                                 \
 #		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
 	}
+
+// TODO(b/208256248): Avoid exit-time destructor.
 static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionPointers = {
 	MAKE_VULKAN_GLOBAL_ENTRY(vkGetInstanceProcAddr),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkCreateInstance),
@@ -46,6 +48,8 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionP
 	{                                                                 \
 #		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
 	}
+
+// TODO(b/208256248): Avoid exit-time destructor.
 static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctionPointers = {
 
 	MAKE_VULKAN_INSTANCE_ENTRY(vkDestroyInstance),
@@ -160,6 +164,8 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 	{                                                                 \
 #		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
 	}
+
+// TODO(b/208256248): Avoid exit-time destructor.
 static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionPointers = {
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceProcAddr),
 	MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDevice),
@@ -332,6 +338,7 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdDrawIndexedIndirectCount),
 };
 
+// TODO(b/208256248): Avoid exit-time destructor.
 static const std::vector<std::pair<const char *, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers = {
 	// VK_KHR_descriptor_update_template
 	{

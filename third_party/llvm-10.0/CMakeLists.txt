@@ -1169,7 +1169,7 @@ list(APPEND LLVM_INCLUDE_DIR
 )
 
 # Suppress known LLVM warnings
-set(LLVM_COMPILE_OPTIONS)
+set(LLVM_COMPILE_OPTIONS "")
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     list(APPEND LLVM_COMPILE_OPTIONS
         "-Wno-noexcept-type"           # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type

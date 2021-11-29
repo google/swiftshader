@@ -53,6 +53,13 @@ set(PIPELINE_SRC_FILES
     VertexRoutine.hpp
 )
 
+set(PIPELINE_COMPILE_OPTIONS "")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND PIPELINE_COMPILE_OPTIONS
+        "-Wexit-time-destructors"  # declaration requires an exit-time destructor
+    )
+endif()
+
 add_library(vk_pipeline EXCLUDE_FROM_ALL
     ${PIPELINE_SRC_FILES}
 )
@@ -84,6 +91,7 @@ target_include_directories(vk_pipeline
 target_compile_options(vk_pipeline
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+        ${PIPELINE_COMPILE_OPTIONS}
 )
 
 target_link_options(vk_pipeline

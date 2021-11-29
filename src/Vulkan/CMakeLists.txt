@@ -139,6 +139,12 @@ if(FUCHSIA)
     # the constants are upstreamed to the official Vulkan headers.
     list(APPEND VULKAN_COMPILE_OPTIONS "-Wno-switch")
 endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND VULKAN_COMPILE_OPTIONS
+        # TODO(b/208256248): Avoid exit-time destructor.
+        #"-Wexit-time-destructors"  # declaration requires an exit-time destructor
+    )
+endif()
 
 set(VULKAN_LINKER_FLAGS "")
 if(FUCHSIA)
