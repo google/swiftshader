@@ -5338,7 +5338,7 @@
       "version" : "None"
     },
     {
-      "opname" : "OpConstFunctionPointerINTEL",
+      "opname" : "OpConstantFunctionPointerINTEL",
       "class"  : "@exclude",
       "opcode" : 5600,
       "operands" : [
@@ -11504,6 +11504,12 @@
         {
           "enumerant" : "VectorComputeCallableFunctionINTEL",
           "value" : 6087,
+          "capabilities" : [ "VectorComputeINTEL" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "MediaBlockIOINTEL",
+          "value" : 6140,
           "capabilities" : [ "VectorComputeINTEL" ],
           "version" : "None"
         }
