@@ -517,6 +517,7 @@ spv = {
         FunctionFloatingPointModeINTEL = 6080,
         SingleElementVectorINTEL = 6085,
         VectorComputeCallableFunctionINTEL = 6087,
+        MediaBlockIOINTEL = 6140,
     },
 
     BuiltIn = {
@@ -1551,7 +1552,7 @@ spv = {
         OpUSubSatINTEL = 5596,
         OpIMul32x16INTEL = 5597,
         OpUMul32x16INTEL = 5598,
-        OpConstFunctionPointerINTEL = 5600,
+        OpConstantFunctionPointerINTEL = 5600,
         OpFunctionPointerCallINTEL = 5601,
         OpAsmTargetINTEL = 5609,
         OpAsmINTEL = 5610,
