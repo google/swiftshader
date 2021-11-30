@@ -1702,14 +1702,6 @@ std::make_pair(std::string(kOpenCLMemoryModel) +
           AllCapabilities()),
 std::make_pair(std::string(kOpenCLMemoryModel) +
           "OpEntryPoint Kernel %func \"compute\" \n" +
-          "OpDecorate %ones BuiltIn WorkgroupSize\n"
-          "%intt = OpTypeInt 32 0\n"
-          "%int3 = OpTypeVector %intt 3\n"
-          "%int_1 = OpConstant %intt 1\n"
-          "%ones = OpConstantComposite %int3 %int_1 %int_1 %int_1\n" + std::string(kVoidFVoid),
-          AllCapabilities()),
-std::make_pair(std::string(kOpenCLMemoryModel) +
-          "OpEntryPoint Kernel %func \"compute\" \n" +
           "OpDecorate %var BuiltIn WorkgroupId\n"
           "%intt = OpTypeInt 32 0\n"
           "%ptr = OpTypePointer Input %intt\n"

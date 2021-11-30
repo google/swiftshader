@@ -224,6 +224,7 @@ OpName %main "main"
 %104 = OpConstant %float 0 ; Need a def with an numerical id to define id maps.
 %float_null = OpConstantNull %float
 %float_0 = OpConstant %float 0
+%float_n0 = OpConstant %float -0.0
 %float_1 = OpConstant %float 1
 %float_2 = OpConstant %float 2
 %float_3 = OpConstant %float 3
@@ -249,6 +250,7 @@ OpName %main "main"
 %105 = OpConstant %double 0 ; Need a def with an numerical id to define id maps.
 %double_null = OpConstantNull %double
 %double_0 = OpConstant %double 0
+%double_n0 = OpConstant %double -0.0
 %double_1 = OpConstant %double 1
 %double_2 = OpConstant %double 2
 %double_3 = OpConstant %double 3
@@ -1987,7 +1989,39 @@ INSTANTIATE_TEST_SUITE_P(FloatConstantFoldingTest, FloatInstructionFoldingTest,
             "%2 = OpExtInst %float %1 Pow %float_2 %float_3\n" +
             "OpReturn\n" +
             "OpFunctionEnd",
-        2, 8.0)
+        2, 8.0),
+    // Test case 43: Fold 1.0 / -0.0.
+    InstructionFoldingCase<float>(
+        Header() + "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpFDiv %float %float_1 %float_n0\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        2, -std::numeric_limits<float>::infinity()),
+    // Test case 44: Fold -1.0 / -0.0
+    InstructionFoldingCase<float>(
+        Header() + "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpFDiv %float %float_n1 %float_n0\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        2, std::numeric_limits<float>::infinity()),
+    // Test case 45: Fold 0.0 / 0.0
+    InstructionFoldingCase<float>(
+        Header() + "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpFDiv %float %float_0 %float_0\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        2, std::numeric_limits<float>::quiet_NaN()),
+    // Test case 46: Fold 0.0 / -0.0
+    InstructionFoldingCase<float>(
+        Header() + "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpFDiv %float %float_0 %float_n0\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        2, std::numeric_limits<float>::quiet_NaN())
 ));
 // clang-format on
 
@@ -2019,7 +2053,11 @@ TEST_P(DoubleInstructionFoldingTest, Case) {
         const_mrg->GetConstantFromInst(inst)->AsFloatConstant();
     EXPECT_NE(result, nullptr);
     if (result != nullptr) {
-      EXPECT_EQ(result->GetDoubleValue(), tc.expected_result);
+      if (!std::isnan(tc.expected_result)) {
+        EXPECT_EQ(result->GetDoubleValue(), tc.expected_result);
+      } else {
+        EXPECT_TRUE(std::isnan(result->GetDoubleValue()));
+      }
     }
   }
 }
@@ -2222,7 +2260,39 @@ INSTANTIATE_TEST_SUITE_P(DoubleConstantFoldingTest, DoubleInstructionFoldingTest
                 "%2 = OpExtInst %double %1 Pow %double_2 %double_3\n" +
                 "OpReturn\n" +
                 "OpFunctionEnd",
-            2, 8.0)
+            2, 8.0),
+        // Test case 23: Fold 1.0 / -0.0.
+        InstructionFoldingCase<double>(
+            Header() + "%main = OpFunction %void None %void_func\n" +
+                "%main_lab = OpLabel\n" +
+                "%2 = OpFDiv %double %double_1 %double_n0\n" +
+                "OpReturn\n" +
+                "OpFunctionEnd",
+            2, -std::numeric_limits<double>::infinity()),
+        // Test case 24: Fold -1.0 / -0.0
+        InstructionFoldingCase<double>(
+            Header() + "%main = OpFunction %void None %void_func\n" +
+                "%main_lab = OpLabel\n" +
+                "%2 = OpFDiv %double %double_n1 %double_n0\n" +
+                "OpReturn\n" +
+                "OpFunctionEnd",
+            2, std::numeric_limits<double>::infinity()),
+        // Test case 25: Fold 0.0 / 0.0
+        InstructionFoldingCase<double>(
+            Header() + "%main = OpFunction %void None %void_func\n" +
+                "%main_lab = OpLabel\n" +
+                "%2 = OpFDiv %double %double_0 %double_0\n" +
+                "OpReturn\n" +
+                "OpFunctionEnd",
+            2, std::numeric_limits<double>::quiet_NaN()),
+        // Test case 26: Fold 0.0 / -0.0
+        InstructionFoldingCase<double>(
+            Header() + "%main = OpFunction %void None %void_func\n" +
+                "%main_lab = OpLabel\n" +
+                "%2 = OpFDiv %double %double_0 %double_n0\n" +
+                "OpReturn\n" +
+                "OpFunctionEnd",
+            2, std::numeric_limits<double>::quiet_NaN())
 ));
 // clang-format on
 

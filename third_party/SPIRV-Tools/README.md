@@ -468,11 +468,11 @@ $ANDROID_NDK/ndk-build -C ../android_test     \
 
 ### Updating DEPS
 
-Occasionally the entries in [DEPS](DEPS) will need to be updated. This is done on demand
-when there is a request to do this, often due to downstream breakages. There is
-a script `utils/roll_deps.sh` provided, which will generate a patch with the
-updated DEPS values. This will still need to be tested in your checkout to
-confirm that there are no integration issues that need to be resolved.
+Occasionally the entries in [DEPS](DEPS) will need to be updated. This is done on
+demand when there is a request to do this, often due to downstream breakages.
+To update `DEPS`, run `utils/roll_deps.sh` and confirm that tests pass.
+The script requires Chromium's
+[`depot_tools`](https://chromium.googlesource.com/chromium/tools/depot_tools).
 
 ## Library
 

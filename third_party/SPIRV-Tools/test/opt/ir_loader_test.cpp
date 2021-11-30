@@ -115,7 +115,7 @@ TEST(IrBuilder, RoundTripFunctionPointer) {
       "%float = OpTypeFloat 32\n"
       "%4 = OpTypeFunction %float %float\n"
       "%_ptr_Function_4 = OpTypePointer Function %4\n"
-      "%ptr_to_function = OpConstFunctionPointerINTEL %_ptr_Function_4 "
+      "%ptr_to_function = OpConstantFunctionPointerINTEL %_ptr_Function_4 "
       "%some_function\n"
       "%some_function = OpFunction %float Const %4\n"
       "%6 = OpFunctionParameter %float\n"
