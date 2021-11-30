@@ -83,26 +83,10 @@ bool SpirvShader::IsStatement(spv::Op op)
 	case spv::OpRayQueryTerminateKHR:
 	case spv::OpRayQueryGenerateIntersectionKHR:
 	case spv::OpRayQueryConfirmIntersectionKHR:
-	case spv::OpWritePackedPrimitiveIndices4x8NV:
-	case spv::OpIgnoreIntersectionNV:
-	case spv::OpTerminateRayNV:
-	case spv::OpTraceNV:
-	case spv::OpTraceMotionNV:
-	case spv::OpTraceRayMotionNV:
-	case spv::OpExecuteCallableNV:
-	case spv::OpCooperativeMatrixStoreNV:
 	case spv::OpBeginInvocationInterlockEXT:
 	case spv::OpEndInvocationInterlockEXT:
 	case spv::OpDemoteToHelperInvocationEXT:
-	case spv::OpSamplerImageAddressingModeNV:
-	case spv::OpSubgroupBlockWriteINTEL:
-	case spv::OpSubgroupImageBlockWriteINTEL:
-	case spv::OpSubgroupImageMediaBlockWriteINTEL:
 	case spv::OpAssumeTrueKHR:
-	case spv::OpRestoreMemoryINTEL:
-	case spv::OpLoopControlINTEL:
-	case spv::OpConstantCompositeContinuedINTEL:
-	case spv::OpSpecConstantCompositeContinuedINTEL:
 		return true;
 	}
 }
