@@ -79,7 +79,6 @@ bool SpirvShader::IsStatement(spv::Op op)
 	case spv::OpExecuteCallableKHR:
 	case spv::OpIgnoreIntersectionKHR:
 	case spv::OpTerminateRayKHR:
-	case spv::OpTypeRayQueryKHR:
 	case spv::OpRayQueryInitializeKHR:
 	case spv::OpRayQueryTerminateKHR:
 	case spv::OpRayQueryGenerateIntersectionKHR:
@@ -90,9 +89,7 @@ bool SpirvShader::IsStatement(spv::Op op)
 	case spv::OpTraceNV:
 	case spv::OpTraceMotionNV:
 	case spv::OpTraceRayMotionNV:
-	case spv::OpTypeAccelerationStructureKHR:
 	case spv::OpExecuteCallableNV:
-	case spv::OpTypeCooperativeMatrixNV:
 	case spv::OpCooperativeMatrixStoreNV:
 	case spv::OpBeginInvocationInterlockEXT:
 	case spv::OpEndInvocationInterlockEXT:
@@ -102,23 +99,8 @@ bool SpirvShader::IsStatement(spv::Op op)
 	case spv::OpSubgroupImageBlockWriteINTEL:
 	case spv::OpSubgroupImageMediaBlockWriteINTEL:
 	case spv::OpAssumeTrueKHR:
-	case spv::OpTypeVmeImageINTEL:
-	case spv::OpTypeAvcImePayloadINTEL:
-	case spv::OpTypeAvcRefPayloadINTEL:
-	case spv::OpTypeAvcSicPayloadINTEL:
-	case spv::OpTypeAvcMcePayloadINTEL:
-	case spv::OpTypeAvcMceResultINTEL:
-	case spv::OpTypeAvcImeResultINTEL:
-	case spv::OpTypeAvcImeResultSingleReferenceStreamoutINTEL:
-	case spv::OpTypeAvcImeResultDualReferenceStreamoutINTEL:
-	case spv::OpTypeAvcImeSingleReferenceStreaminINTEL:
-	case spv::OpTypeAvcImeDualReferenceStreaminINTEL:
-	case spv::OpTypeAvcRefResultINTEL:
-	case spv::OpTypeAvcSicResultINTEL:
 	case spv::OpRestoreMemoryINTEL:
 	case spv::OpLoopControlINTEL:
-	case spv::OpTypeBufferSurfaceINTEL:
-	case spv::OpTypeStructContinuedINTEL:
 	case spv::OpConstantCompositeContinuedINTEL:
 	case spv::OpSpecConstantCompositeContinuedINTEL:
 		return true;
