@@ -1489,6 +1489,87 @@ TEST_F(ConvertToHalfTest, RemoveRelaxDec) {
   EXPECT_EQ(Pass::Status::SuccessWithChange, std::get<1>(result));
 }
 
+TEST_F(ConvertToHalfTest, HandleNonRelaxedPhi) {
+  // See https://github.com/KhronosGroup/SPIRV-Tools/issues/4452
+
+  // This test is a case with a non-relaxed phi with a relaxed operand.
+  // A convert must be inserted at the end of the block associated with
+  // the operand.
+  const std::string test =
+      R"(
+; CHECK: [[fcvt:%\w+]] = OpFConvert %v3float {{%\w+}}
+; CHECK-NEXT: OpSelectionMerge {{%\w+}} None
+; CHECK: {{%\w+}} = OpPhi %v3float [[fcvt]] {{%\w+}} {{%\w+}} {{%\w+}}
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %output_color
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+               OpName %main "main"
+               OpName %MaterialParams "MaterialParams"
+               OpMemberName %MaterialParams 0 "foo"
+               OpName %materialParams "materialParams"
+               OpName %output_color "output_color"
+               OpMemberDecorate %MaterialParams 0 Offset 0
+               OpDecorate %MaterialParams Block
+               OpDecorate %materialParams DescriptorSet 0
+               OpDecorate %materialParams Binding 5
+               OpDecorate %output_color Location 0
+               OpDecorate %57 RelaxedPrecision
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+%MaterialParams = OpTypeStruct %float
+%_ptr_Uniform_MaterialParams = OpTypePointer Uniform %MaterialParams
+%materialParams = OpVariable %_ptr_Uniform_MaterialParams Uniform
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_ptr_Uniform_float = OpTypePointer Uniform %float
+    %float_0 = OpConstant %float 0
+       %bool = OpTypeBool
+    %v4float = OpTypeVector %float 4
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%output_color = OpVariable %_ptr_Output_v4float Output
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+%_ptr_Output_float = OpTypePointer Output %float
+     %uint_1 = OpConstant %uint 1
+     %uint_2 = OpConstant %uint 2
+  %float_0_5 = OpConstant %float 0.5
+         %61 = OpConstantComposite %v3float %float_0_5 %float_0_5 %float_0_5
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+         %55 = OpAccessChain %_ptr_Uniform_float %materialParams %int_0
+         %56 = OpLoad %float %55
+         %57 = OpCompositeConstruct %v3float %56 %56 %56
+         %31 = OpFOrdGreaterThan %bool %56 %float_0
+               OpSelectionMerge %33 None
+               OpBranchConditional %31 %32 %33
+         %32 = OpLabel
+         %37 = OpFMul %v3float %57 %61
+               OpBranch %33
+         %33 = OpLabel
+         %58 = OpPhi %v3float %57 %5 %37 %32
+         %45 = OpAccessChain %_ptr_Output_float %output_color %uint_0
+         %46 = OpCompositeExtract %float %58 0
+               OpStore %45 %46
+         %48 = OpAccessChain %_ptr_Output_float %output_color %uint_1
+         %49 = OpCompositeExtract %float %58 1
+               OpStore %48 %49
+         %51 = OpAccessChain %_ptr_Output_float %output_color %uint_2
+         %52 = OpCompositeExtract %float %58 2
+               OpStore %51 %52
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  auto result = SinglePassRunAndMatch<ConvertToHalfPass>(test, true);
+  EXPECT_EQ(Pass::Status::SuccessWithChange, std::get<1>(result));
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

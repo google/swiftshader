@@ -32,6 +32,40 @@ using ::testing::Eq;
 using ::testing::HasSubstr;
 using ::testing::Values;
 
+using DecorationTest = spvtest::ValidateBase<bool>;
+
+TEST_F(DecorationTest, WorkgroupSizeShader) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpDecorate %ones BuiltIn WorkgroupSize
+%int = OpTypeInt 32 0
+%int3 = OpTypeVector %int 3
+%int_1 = OpConstant %int 1
+%ones = OpConstantComposite %int3 %int_1 %int_1 %int_1
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(DecorationTest, WorkgroupSizeKernel) {
+  const std::string text = R"(
+OpCapability Kernel
+OpCapability Linkage
+OpMemoryModel Logical OpenCL
+OpDecorate %var BuiltIn WorkgroupSize
+%int = OpTypeInt 32 0
+%int3 = OpTypeVector %int 3
+%ptr = OpTypePointer Input %int3
+%var = OpVariable %ptr Input
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
 using MemberOnlyDecorations = spvtest::ValidateBase<std::string>;
 
 TEST_P(MemberOnlyDecorations, MemberDecoration) {
