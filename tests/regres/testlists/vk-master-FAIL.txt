@@ -1,11 +1,5 @@
 dEQP-VK.api.driver_properties.conformance_version
 dEQP-VK.fragment_operations.early_fragment.discard_early_fragment_tests_stencil
-dEQP-VK.graphicsfuzz.stable-colorgrid-modulo-float-mat-determinant-clamp
-dEQP-VK.graphicsfuzz.stable-mergesort-clamped-conditional-bit-shift
-dEQP-VK.graphicsfuzz.stable-quicksort-conditional-bitwise-or-clamp
-dEQP-VK.graphicsfuzz.stable-rects-vec4-clamp-conditional-min-mix
-dEQP-VK.graphicsfuzz.stable-triangle-clamp-conditional-mix
-dEQP-VK.graphicsfuzz.stable-triangle-nested-conditional-clamped-float
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16b16a16_snorm
