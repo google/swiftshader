@@ -921,13 +921,13 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 
 			if(!atomic)
 			{
-				return V(jit->builder->CreateAlignedLoad(V(ptr), llvm::MaybeAlign(alignment), isVolatile));
+				return V(jit->builder->CreateAlignedLoad(elTy, V(ptr), llvm::MaybeAlign(alignment), isVolatile));
 			}
 			else if(elTy->isIntegerTy() || elTy->isPointerTy())
 			{
 				// Integers and pointers can be atomically loaded by setting
 				// the ordering constraint on the load instruction.
-				auto load = jit->builder->CreateAlignedLoad(V(ptr), llvm::MaybeAlign(alignment), isVolatile);
+				auto load = jit->builder->CreateAlignedLoad(elTy, V(ptr), llvm::MaybeAlign(alignment), isVolatile);
 				load->setAtomic(atomicOrdering(atomic, memoryOrder));
 				return V(load);
 			}
@@ -939,7 +939,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
 				auto elAsIntTy = llvm::IntegerType::get(*jit->context, size * 8);
 				auto ptrCast = jit->builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
-				auto load = jit->builder->CreateAlignedLoad(ptrCast, llvm::MaybeAlign(alignment), isVolatile);
+				auto load = jit->builder->CreateAlignedLoad(elAsIntTy, ptrCast, llvm::MaybeAlign(alignment), isVolatile);
 				load->setAtomic(atomicOrdering(atomic, memoryOrder));
 				auto loadCast = jit->builder->CreateBitCast(load, elTy);
 				return V(loadCast);
@@ -963,7 +963,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				                                   jit->builder->CreatePointerCast(V(out), i8PtrTy),
 				                                   llvm::ConstantInt::get(intTy, uint64_t(atomicOrdering(true, memoryOrder))),
 				                               });
-				return V(jit->builder->CreateLoad(V(out)));
+				return V(jit->builder->CreateLoad(T(type), V(out)));
 			}
 		}
 	default:
@@ -1130,7 +1130,7 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 			jit->builder->SetInsertPoint(thenBlock);
 
 			// Insert __msan_unpoison call in conditional block
-			auto elPtr = jit->builder->CreateGEP(V(ptr), idx);
+			auto elPtr = jit->builder->CreateGEP(elVecTy, V(ptr), idx);
 			jit->builder->CreateCall(func, { jit->builder->CreatePointerCast(elPtr, voidPtrTy),
 			                                 llvm::ConstantInt::get(sizetTy, size) });
 
@@ -1155,7 +1155,7 @@ static llvm::Value *createGather(llvm::Value *base, llvm::Type *elTy, llvm::Valu
 	auto elVecTy = llvm::VectorType::get(elTy, numEls, false);
 	auto elPtrVecTy = llvm::VectorType::get(elPtrTy, numEls, false);
 	auto i8Base = jit->builder->CreatePointerCast(base, i8PtrTy);
-	auto i8Ptrs = jit->builder->CreateGEP(i8Base, offsets);
+	auto i8Ptrs = jit->builder->CreateGEP(i8Ty, i8Base, offsets);
 	auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
 	auto i1Mask = jit->builder->CreateIntCast(mask, llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
 	auto passthrough = zeroMaskedLanes ? llvm::Constant::getNullValue(elVecTy) : llvm::UndefValue::get(elVecTy);
@@ -1223,7 +1223,7 @@ static void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offs
 	auto elPtrVecTy = llvm::VectorType::get(elPtrTy, numEls, false);
 
 	auto i8Base = jit->builder->CreatePointerCast(base, i8PtrTy);
-	auto i8Ptrs = jit->builder->CreateGEP(i8Base, offsets);
+	auto i8Ptrs = jit->builder->CreateGEP(i8Ty, i8Base, offsets);
 	auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
 	auto i1Mask = jit->builder->CreateIntCast(mask, llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
 
@@ -1300,7 +1300,7 @@ Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedInd
 	// effective address correctly.
 	if(asInternalType(type) == Type_LLVM)
 	{
-		return V(jit->builder->CreateGEP(V(ptr), V(index)));
+		return V(jit->builder->CreateGEP(T(type), V(ptr), V(index)));
 	}
 
 	// For emulated types we have to multiply the index by the intended
@@ -1310,7 +1310,7 @@ Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedInd
 	// Cast to a byte pointer, apply the byte offset, and cast back to the
 	// original pointer type.
 	return createBitCast(
-	    V(jit->builder->CreateGEP(V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::type()), 0)))), V(index))),
+	    V(jit->builder->CreateGEP(T(Byte::type()), V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::type()), 0)))), V(index))),
 	    T(llvm::PointerType::get(T(type), 0)));
 }
 
@@ -4202,7 +4202,7 @@ void promoteFunctionToCoroutine()
 		jit->builder->SetInsertPoint(resumeBlock);
 		auto promiseAlignment = llvm::ConstantInt::get(i32Ty, 4);  // TODO: Get correct alignment.
 		auto promisePtr = jit->builder->CreateCall(coro_promise, { handle, promiseAlignment, llvm::ConstantInt::get(i1Ty, 0) });
-		auto promise = jit->builder->CreateLoad(jit->builder->CreatePointerCast(promisePtr, promisePtrTy));
+		auto promise = jit->builder->CreateLoad(promiseTy, jit->builder->CreatePointerCast(promisePtr, promisePtrTy));
 		jit->builder->CreateStore(promise, outPtr);
 		jit->builder->CreateCall(coro_resume, { handle });
 		jit->builder->CreateRet(llvm::ConstantInt::getTrue(i1Ty));
