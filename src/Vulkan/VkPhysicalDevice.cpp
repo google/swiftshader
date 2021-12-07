@@ -482,7 +482,7 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits()
 		1 << (vk::MAX_IMAGE_LEVELS_CUBE - 1),        // maxImageDimensionCube
 		vk::MAX_IMAGE_ARRAY_LAYERS,                  // maxImageArrayLayers
 		65536,                                       // maxTexelBufferElements
-		16384,                                       // maxUniformBufferRange
+		65536,                                       // maxUniformBufferRange
 		vk::MAX_MEMORY_ALLOCATION_SIZE,              // maxStorageBufferRange
 		vk::MAX_PUSH_CONSTANT_SIZE,                  // maxPushConstantsSize
 		4096,                                        // maxMemoryAllocationCount
