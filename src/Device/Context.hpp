@@ -194,10 +194,7 @@ struct GraphicsState
 private:
 	inline bool hasDynamicState(VkDynamicState dynamicState) const { return (dynamicStateFlags & (1 << dynamicState)) != 0; }
 
-	VkBlendFactor sourceBlendFactor(int index) const;
-	VkBlendFactor destBlendFactor(int index) const;
-	VkBlendFactor sourceBlendFactorAlpha(int index) const;
-	VkBlendFactor destBlendFactorAlpha(int index) const;
+	VkBlendFactor blendFactor(VkBlendOp blendOperation, VkBlendFactor blendFactor) const;
 	VkBlendOp blendOperation(VkBlendOp blendOperation, VkBlendFactor sourceBlendFactor, VkBlendFactor destBlendFactor, vk::Format format) const;
 
 	bool alphaBlendActive(int index, const Attachments &attachments, bool fragmentContainsKill) const;

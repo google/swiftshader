@@ -701,11 +701,11 @@ BlendState GraphicsState::getBlendState(int index, const Attachments &attachment
 	{
 		vk::Format format = attachments.colorBuffer[index]->getFormat(VK_IMAGE_ASPECT_COLOR_BIT);
 
-		activeBlendState.sourceBlendFactor = sourceBlendFactor(index);
-		activeBlendState.destBlendFactor = destBlendFactor(index);
+		activeBlendState.sourceBlendFactor = blendFactor(state.blendOperation, state.sourceBlendFactor);
+		activeBlendState.destBlendFactor = blendFactor(state.blendOperation, state.destBlendFactor);
 		activeBlendState.blendOperation = blendOperation(state.blendOperation, state.sourceBlendFactor, state.destBlendFactor, format);
-		activeBlendState.sourceBlendFactorAlpha = sourceBlendFactorAlpha(index);
-		activeBlendState.destBlendFactorAlpha = destBlendFactorAlpha(index);
+		activeBlendState.sourceBlendFactorAlpha = blendFactor(state.blendOperationAlpha, state.sourceBlendFactorAlpha);
+		activeBlendState.destBlendFactorAlpha = blendFactor(state.blendOperationAlpha, state.destBlendFactorAlpha);
 		activeBlendState.blendOperationAlpha = blendOperation(state.blendOperationAlpha, state.sourceBlendFactorAlpha, state.destBlendFactorAlpha, format);
 	}
 
@@ -734,18 +734,14 @@ bool GraphicsState::alphaBlendActive(int index, const Attachments &attachments, 
 	return colorBlend || alphaBlend;
 }
 
-VkBlendFactor GraphicsState::sourceBlendFactor(int index) const
+VkBlendFactor GraphicsState::blendFactor(VkBlendOp blendOperation, VkBlendFactor blendFactor) const
 {
-	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
-
-	if(!blendState[index].alphaBlendEnable) return VK_BLEND_FACTOR_ONE;
-
-	switch(blendState[index].blendOperation)
+	switch(blendOperation)
 	{
 	case VK_BLEND_OP_ADD:
 	case VK_BLEND_OP_SUBTRACT:
 	case VK_BLEND_OP_REVERSE_SUBTRACT:
-		return blendState[index].sourceBlendFactor;
+		return blendFactor;
 	case VK_BLEND_OP_MIN:
 	case VK_BLEND_OP_MAX:
 	case VK_BLEND_OP_MULTIPLY_EXT:
@@ -766,116 +762,8 @@ VkBlendFactor GraphicsState::sourceBlendFactor(int index) const
 		return VK_BLEND_FACTOR_ONE;
 	default:
 		ASSERT(false);
+		return blendFactor;
 	}
-
-	return blendState[index].sourceBlendFactor;
-}
-
-VkBlendFactor GraphicsState::destBlendFactor(int index) const
-{
-	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
-
-	if(!blendState[index].alphaBlendEnable) return VK_BLEND_FACTOR_ONE;
-
-	switch(blendState[index].blendOperation)
-	{
-	case VK_BLEND_OP_ADD:
-	case VK_BLEND_OP_SUBTRACT:
-	case VK_BLEND_OP_REVERSE_SUBTRACT:
-		return blendState[index].destBlendFactor;
-	case VK_BLEND_OP_MIN:
-	case VK_BLEND_OP_MAX:
-	case VK_BLEND_OP_MULTIPLY_EXT:
-	case VK_BLEND_OP_SCREEN_EXT:
-	case VK_BLEND_OP_OVERLAY_EXT:
-	case VK_BLEND_OP_DARKEN_EXT:
-	case VK_BLEND_OP_LIGHTEN_EXT:
-	case VK_BLEND_OP_COLORDODGE_EXT:
-	case VK_BLEND_OP_COLORBURN_EXT:
-	case VK_BLEND_OP_HARDLIGHT_EXT:
-	case VK_BLEND_OP_SOFTLIGHT_EXT:
-	case VK_BLEND_OP_DIFFERENCE_EXT:
-	case VK_BLEND_OP_EXCLUSION_EXT:
-	case VK_BLEND_OP_HSL_HUE_EXT:
-	case VK_BLEND_OP_HSL_SATURATION_EXT:
-	case VK_BLEND_OP_HSL_COLOR_EXT:
-	case VK_BLEND_OP_HSL_LUMINOSITY_EXT:
-		return VK_BLEND_FACTOR_ONE;
-	default:
-		ASSERT(false);
-	}
-
-	return blendState[index].destBlendFactor;
-}
-
-VkBlendFactor GraphicsState::sourceBlendFactorAlpha(int index) const
-{
-	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
-
-	switch(blendState[index].blendOperationAlpha)
-	{
-	case VK_BLEND_OP_ADD:
-	case VK_BLEND_OP_SUBTRACT:
-	case VK_BLEND_OP_REVERSE_SUBTRACT:
-		return blendState[index].sourceBlendFactorAlpha;
-	case VK_BLEND_OP_MIN:
-	case VK_BLEND_OP_MAX:
-	case VK_BLEND_OP_MULTIPLY_EXT:
-	case VK_BLEND_OP_SCREEN_EXT:
-	case VK_BLEND_OP_OVERLAY_EXT:
-	case VK_BLEND_OP_DARKEN_EXT:
-	case VK_BLEND_OP_LIGHTEN_EXT:
-	case VK_BLEND_OP_COLORDODGE_EXT:
-	case VK_BLEND_OP_COLORBURN_EXT:
-	case VK_BLEND_OP_HARDLIGHT_EXT:
-	case VK_BLEND_OP_SOFTLIGHT_EXT:
-	case VK_BLEND_OP_DIFFERENCE_EXT:
-	case VK_BLEND_OP_EXCLUSION_EXT:
-	case VK_BLEND_OP_HSL_HUE_EXT:
-	case VK_BLEND_OP_HSL_SATURATION_EXT:
-	case VK_BLEND_OP_HSL_COLOR_EXT:
-	case VK_BLEND_OP_HSL_LUMINOSITY_EXT:
-		return VK_BLEND_FACTOR_ONE;
-	default:
-		ASSERT(false);
-	}
-
-	return blendState[index].sourceBlendFactorAlpha;
-}
-
-VkBlendFactor GraphicsState::destBlendFactorAlpha(int index) const
-{
-	ASSERT((index >= 0) && (index < sw::MAX_COLOR_BUFFERS));
-
-	switch(blendState[index].blendOperationAlpha)
-	{
-	case VK_BLEND_OP_ADD:
-	case VK_BLEND_OP_SUBTRACT:
-	case VK_BLEND_OP_REVERSE_SUBTRACT:
-		return blendState[index].destBlendFactorAlpha;
-	case VK_BLEND_OP_MIN:
-	case VK_BLEND_OP_MAX:
-	case VK_BLEND_OP_MULTIPLY_EXT:
-	case VK_BLEND_OP_SCREEN_EXT:
-	case VK_BLEND_OP_OVERLAY_EXT:
-	case VK_BLEND_OP_DARKEN_EXT:
-	case VK_BLEND_OP_LIGHTEN_EXT:
-	case VK_BLEND_OP_COLORDODGE_EXT:
-	case VK_BLEND_OP_COLORBURN_EXT:
-	case VK_BLEND_OP_HARDLIGHT_EXT:
-	case VK_BLEND_OP_SOFTLIGHT_EXT:
-	case VK_BLEND_OP_DIFFERENCE_EXT:
-	case VK_BLEND_OP_EXCLUSION_EXT:
-	case VK_BLEND_OP_HSL_HUE_EXT:
-	case VK_BLEND_OP_HSL_SATURATION_EXT:
-	case VK_BLEND_OP_HSL_COLOR_EXT:
-	case VK_BLEND_OP_HSL_LUMINOSITY_EXT:
-		return VK_BLEND_FACTOR_ONE;
-	default:
-		ASSERT(false);
-	}
-
-	return blendState[index].destBlendFactorAlpha;
 }
 
 VkBlendOp GraphicsState::blendOperation(VkBlendOp blendOperation, VkBlendFactor sourceBlendFactor, VkBlendFactor destBlendFactor, vk::Format format) const
