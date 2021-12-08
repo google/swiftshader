@@ -1231,6 +1231,18 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceBlendOperationAdv
 
 void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFormatProperties)
 {
+	VkFormatProperties3KHR formatProperties3 = {};
+	GetFormatProperties(format, &formatProperties3);
+
+	// VkFormatFeatureFlags2KHR is a 64-bit extension of the 32-bit VkFormatFeatureFlags,
+	// so when querying the legacy flags just return the lower 32-bit portion.
+	pFormatProperties->linearTilingFeatures = static_cast<VkFormatFeatureFlags>(formatProperties3.linearTilingFeatures);
+	pFormatProperties->optimalTilingFeatures = static_cast<VkFormatFeatureFlags>(formatProperties3.optimalTilingFeatures);
+	pFormatProperties->bufferFeatures = static_cast<VkFormatFeatureFlags>(formatProperties3.bufferFeatures);
+}
+
+void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties3KHR *pFormatProperties)
+{
 	pFormatProperties->linearTilingFeatures = 0;   // Unsupported format
 	pFormatProperties->optimalTilingFeatures = 0;  // Unsupported format
 	pFormatProperties->bufferFeatures = 0;         // Unsupported format
@@ -1442,7 +1454,8 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 	case VK_FORMAT_B8G8R8A8_UNORM:
 	case VK_FORMAT_B8G8R8A8_SRGB:
 		pFormatProperties->optimalTilingFeatures |=
-		    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
+		    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT |
+		    VK_FORMAT_FEATURE_2_STORAGE_WRITE_WITHOUT_FORMAT_BIT_KHR;
 		pFormatProperties->bufferFeatures |=
 		    VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;
 		break;
@@ -1513,6 +1526,20 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 	case VK_FORMAT_D32_SFLOAT_S8_UINT:  // Note: either VK_FORMAT_D24_UNORM_S8_UINT or VK_FORMAT_D32_SFLOAT_S8_UINT must be supported
 		pFormatProperties->optimalTilingFeatures |=
 		    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		break;
+	default:
+		break;
+	}
+
+	switch(format)
+	{
+	case VK_FORMAT_D16_UNORM:
+	case VK_FORMAT_D32_SFLOAT:          // Note: either VK_FORMAT_D32_SFLOAT or VK_FORMAT_X8_D24_UNORM_PACK32 must be supported
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:  // Note: either VK_FORMAT_D24_UNORM_S8_UINT or VK_FORMAT_D32_SFLOAT_S8_UINT must be supported
+		pFormatProperties->linearTilingFeatures |=
+		    VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT_KHR;
+		pFormatProperties->optimalTilingFeatures |=
+		    VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT_KHR;
 		break;
 	default:
 		break;
@@ -1652,8 +1679,8 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 
 	if(pFormatProperties->optimalTilingFeatures)
 	{
-		pFormatProperties->linearTilingFeatures = VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
-		                                          VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
+		pFormatProperties->linearTilingFeatures |= VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+		                                           VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
 
 		if(!format.isCompressed())
 		{

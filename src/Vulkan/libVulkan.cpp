@@ -428,6 +428,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_EXT_PIPELINE_CREATION_FEEDBACK_EXTENSION_NAME, VK_EXT_PIPELINE_CREATION_FEEDBACK_SPEC_VERSION } },
 	{ { VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME, VK_KHR_COPY_COMMANDS_2_SPEC_VERSION } },
 	{ { VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME, VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_SPEC_VERSION } },
+	{ { VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME, VK_KHR_FORMAT_FEATURE_FLAGS_2_SPEC_VERSION } },
 };
 
 static uint32_t numSupportedExtensions(const ExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
@@ -3344,11 +3345,24 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice
 	TRACE("(VkPhysicalDevice physicalDevice = %p, VkFormat format = %d, VkFormatProperties2* pFormatProperties = %p)",
 	      physicalDevice, format, pFormatProperties);
 
-	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pFormatProperties->pNext);
-	while(extInfo)
+	VkBaseOutStructure *extensionProperties = reinterpret_cast<VkBaseOutStructure *>(pFormatProperties->pNext);
+	while(extensionProperties)
 	{
-		UNSUPPORTED("pFormatProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
-		extInfo = extInfo->pNext;
+		switch(extensionProperties->sType)
+		{
+		case VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3_KHR:
+			{
+				auto *properties3 = reinterpret_cast<VkFormatProperties3KHR *>(extensionProperties);
+				vk::Cast(physicalDevice)->GetFormatProperties(format, properties3);
+			}
+			break;
+		default:
+			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
+			UNSUPPORTED("pFormatProperties->pNext sType = %s", vk::Stringify(extensionProperties->sType).c_str());
+			break;
+		}
+
+		extensionProperties = extensionProperties->pNext;
 	}
 
 	vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &(pFormatProperties->formatProperties));
