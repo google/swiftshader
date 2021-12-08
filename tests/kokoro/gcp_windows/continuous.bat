@@ -33,7 +33,6 @@ cd %SRC% || goto :error
 SET SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1
 
 build\%BUILD_TYPE%\ReactorUnitTests.exe || goto :error
-build\%BUILD_TYPE%\gles-unittests.exe || goto :error
 build\%BUILD_TYPE%\system-unittests.exe || goto :error
 build\%BUILD_TYPE%\vk-unittests.exe || goto :error
 

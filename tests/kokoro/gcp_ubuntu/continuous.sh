@@ -42,7 +42,6 @@ cmake --build . -- -j $(nproc)
 cd .. # Some tests must be run from project root
 
 build/ReactorUnitTests
-build/gles-unittests
 build/system-unittests
 build/vk-unittests
 

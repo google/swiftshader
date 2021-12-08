@@ -39,7 +39,6 @@ cmake --build . -- -j$(sysctl -n hw.logicalcpu)
 cd .. # Some tests must be run from project root
 
 build/ReactorUnitTests
-build/gles-unittests
 build/system-unittests
 build/vk-unittests
 
