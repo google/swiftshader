@@ -154,7 +154,6 @@ option_if_not_defined(SWIFTSHADER_BUILD_WSI_DIRECTFB "Build the DirectFB WSI sup
 option_if_not_defined(SWIFTSHADER_BUILD_WSI_D2D "Build the Direct-to-Display WSI support" FALSE)
 option_if_not_defined(SWIFTSHADER_BUILD_PVR "Build the PowerVR examples" TRUE)
 option_if_not_defined(SWIFTSHADER_GET_PVR "Check out the PowerVR submodule" FALSE)
-option_if_not_defined(SWIFTSHADER_BUILD_ANGLE "Build angle" FALSE)
 
 option_if_not_defined(SWIFTSHADER_USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" TRUE)
 
@@ -277,10 +276,6 @@ endif()
 if(SWIFTSHADER_BUILD_CPPDAP)
     InitSubmodule(json ${THIRD_PARTY_DIR}/json)
     InitSubmodule(cppdap ${THIRD_PARTY_DIR}/cppdap)
-endif()
-
-if(SWIFTSHADER_BUILD_ANGLE)
-    InitSubmodule(angle ${THIRD_PARTY_DIR}/angle/angle)
 endif()
 
 ###########################################################
@@ -544,8 +539,6 @@ else()
 
     set_cpp_flag("-DNDEBUG" RELEASE)
     set_cpp_flag("-DNDEBUG" RELWITHDEBINFO)
-    set_cpp_flag("-DANGLE_DISABLE_TRACE" RELEASE)
-    set_cpp_flag("-DANGLE_DISABLE_TRACE" RELWITHDEBINFO)
 
     # Put each variable and function in its own section so that when linking
     # with -gc-sections unused functions and variables are removed.
@@ -857,16 +850,6 @@ if(SWIFTSHADER_BUILD_VULKAN)
 
 endif()
 
-if(SWIFTSHADER_BUILD_ANGLE)
-    add_subdirectory(${THIRD_PARTY_DIR}/angle)
-
-    # Make angle depend on vk_swiftshader so we can test SWANGLE
-    if (TARGET vk_swiftshader)
-        add_dependencies(angle vk_swiftshader)
-    endif()
-endif()
-
-
 ###########################################################
 # Sample programs and tests
 ###########################################################
@@ -994,13 +977,6 @@ if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     foreach(pvr_target ${PVR_TARGET_OTHER} ${PVR_VULKAN_TARGET_OTHER} ${PVR_GLES_TARGET_OTHER})
         set_target_properties(${pvr_target} PROPERTIES FOLDER Samples/PowerVR-Build)
     endforeach()
-
-    # Make angle target depend on PowerVR GL examples
-    if (TARGET angle)
-        foreach(pvr_target ${PVR_GLES_TARGET})
-            add_dependencies(angle ${pvr_target})
-        endforeach()
-    endif()
 endif()
 
 if(BUILD_VULKAN_WRAPPER)
