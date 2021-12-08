@@ -419,6 +419,8 @@ SpirvShader::SpirvShader(
 				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
 				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
 				case spv::CapabilityStencilExportEXT: capabilities.StencilExportEXT = true; break;
+				case spv::CapabilityVulkanMemoryModel: capabilities.VulkanMemoryModel = true; break;
+				case spv::CapabilityVulkanMemoryModelDeviceScope: capabilities.VulkanMemoryModelDeviceScope = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}
@@ -428,7 +430,11 @@ SpirvShader::SpirvShader(
 			break;
 
 		case spv::OpMemoryModel:
-			break;  // Memory model does not affect our code generation until we decide to do Vulkan Memory Model support.
+			{
+				addressingModel = static_cast<spv::AddressingModel>(insn.word(1));
+				memoryModel = static_cast<spv::MemoryModel>(insn.word(2));
+			}
+			break;
 
 		case spv::OpFunction:
 			{
@@ -745,7 +751,7 @@ SpirvShader::SpirvShader(
 
 		case spv::OpExtension:
 			{
-				auto ext = insn.string(1);
+				const char *ext = insn.string(1);
 				// Part of core SPIR-V 1.3. Vulkan 1.1 implementations must also accept the pre-1.3
 				// extension per Appendix A, `Vulkan Environment for SPIR-V`.
 				if(!strcmp(ext, "SPV_KHR_storage_buffer_storage_class")) break;
@@ -756,6 +762,7 @@ SpirvShader::SpirvShader(
 				if(!strcmp(ext, "SPV_KHR_multiview")) break;
 				if(!strcmp(ext, "SPV_EXT_shader_stencil_export")) break;
 				if(!strcmp(ext, "SPV_KHR_float_controls")) break;
+				if(!strcmp(ext, "SPV_KHR_vulkan_memory_model")) break;
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 			}
 			break;

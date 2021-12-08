@@ -225,6 +225,34 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 		imageOperands &= ~spv::ImageOperandsSignExtendMask;
 	}
 
+	[[maybe_unused]] spv::Scope scope = spv::ScopeCrossDevice;  // "Whilst the CrossDevice scope is defined in SPIR-V, it is disallowed in Vulkan."
+
+	if(imageOperands & spv::ImageOperandsMakeTexelAvailableMask)
+	{
+		scope = static_cast<spv::Scope>(insn.word(operandsIndex));
+		operandsIndex += 1;
+		imageOperands &= ~spv::ImageOperandsMakeTexelAvailableMask;
+	}
+
+	if(imageOperands & spv::ImageOperandsMakeTexelVisibleMask)
+	{
+		scope = static_cast<spv::Scope>(insn.word(operandsIndex));
+		operandsIndex += 1;
+		imageOperands &= ~spv::ImageOperandsMakeTexelVisibleMask;
+	}
+
+	if(imageOperands & spv::ImageOperandsNonPrivateTexelMask)
+	{
+		imageOperands &= ~spv::ImageOperandsNonPrivateTexelMask;
+	}
+
+	if(imageOperands & spv::ImageOperandsVolatileTexelMask)
+	{
+		UNIMPLEMENTED("b/176819536");
+		imageOperands &= ~spv::ImageOperandsVolatileTexelMask;
+	}
+
+	// There should be no remaining image operands.
 	if(imageOperands != 0)
 	{
 		UNSUPPORTED("Image operands 0x%08X", imageOperands);

@@ -680,6 +680,8 @@ public:
 		bool DeviceGroup : 1;
 		bool MultiView : 1;
 		bool StencilExportEXT : 1;
+		bool VulkanMemoryModel : 1;
+		bool VulkanMemoryModelDeviceScope : 1;
 	};
 
 	const Capabilities &getUsedCapabilities() const
@@ -885,17 +887,20 @@ private:
 
 	Function::ID entryPoint;
 	spv::ExecutionModel executionModel = spv::ExecutionModelMax;  // Invalid prior to OpEntryPoint parsing.
-
 	ExecutionModes executionModes = {};
-	Analysis analysis = {};
 	Capabilities capabilities = {};
+	spv::AddressingModel addressingModel = spv::AddressingModelLogical;
+	spv::MemoryModel memoryModel = spv::MemoryModelSimple;
+	HandleMap<Extension> extensionsByID;
+	std::unordered_set<uint32_t> extensionsImported;
+
+	Analysis analysis = {};
+	mutable bool imageWriteEmitted = false;
+
 	HandleMap<Type> types;
 	HandleMap<Object> defs;
 	HandleMap<Function> functions;
 	std::unordered_map<StringID, String> strings;
-	HandleMap<Extension> extensionsByID;
-	std::unordered_set<uint32_t> extensionsImported;
-	mutable bool imageWriteEmitted = false;
 
 	// DeclareType creates a Type for the given OpTypeX instruction, storing
 	// it into the types map. It is called from the analysis pass (constructor).

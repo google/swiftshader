@@ -623,8 +623,8 @@ SpirvShader::EmitResult SpirvShader::EmitControlBarrier(InsnIterator insn, EmitS
 {
 	auto executionScope = spv::Scope(GetConstScalarInt(insn.word(1)));
 	auto semantics = spv::MemorySemanticsMask(GetConstScalarInt(insn.word(3)));
-	// TODO: We probably want to consider the memory scope here. For now,
-	// just always emit the full fence.
+	// TODO(b/176819536): We probably want to consider the memory scope here.
+	// For now, just always emit the full fence.
 	Fence(semantics);
 
 	switch(executionScope)
@@ -711,15 +711,6 @@ void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState 
 	{
 		SPIRV_SHADER_DBG("StorePhi({0}.{1}): {2}", objectId, i, As<SIMD::UInt>(storage[i]));
 	}
-}
-
-void SpirvShader::Fence(spv::MemorySemanticsMask semantics) const
-{
-	if(semantics == spv::MemorySemanticsMaskNone)
-	{
-		return;  // no-op
-	}
-	rr::Fence(MemoryOrder(semantics));
 }
 
 void SpirvShader::Yield(YieldResult res) const

@@ -268,9 +268,9 @@ static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 template<typename T>
 static void getPhysicalDeviceVulkanMemoryModelFeatures(T *features)
 {
-	features->vulkanMemoryModel = VK_FALSE;
-	features->vulkanMemoryModelDeviceScope = VK_FALSE;
-	features->vulkanMemoryModelAvailabilityVisibilityChains = VK_FALSE;
+	features->vulkanMemoryModel = VK_TRUE;
+	features->vulkanMemoryModelDeviceScope = VK_TRUE;
+	features->vulkanMemoryModelAvailabilityVisibilityChains = VK_TRUE;
 }
 
 template<typename T>

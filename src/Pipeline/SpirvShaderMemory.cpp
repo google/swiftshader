@@ -279,8 +279,8 @@ SpirvShader::EmitResult SpirvShader::EmitCopyMemory(InsnIterator insn, EmitState
 SpirvShader::EmitResult SpirvShader::EmitMemoryBarrier(InsnIterator insn, EmitState *state) const
 {
 	auto semantics = spv::MemorySemanticsMask(GetConstScalarInt(insn.word(2)));
-	// TODO: We probably want to consider the memory scope here. For now,
-	// just always emit the full fence.
+	// TODO(b/176819536): We probably want to consider the memory scope here.
+	// For now, just always emit the full fence.
 	Fence(semantics);
 	return EmitResult::Continue;
 }
@@ -421,13 +421,21 @@ SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, Int arrayIndex, EmitS
 	}
 }
 
+void SpirvShader::Fence(spv::MemorySemanticsMask semantics) const
+{
+	if(semantics != spv::MemorySemanticsMaskNone)
+	{
+		rr::Fence(MemoryOrder(semantics));
+	}
+}
+
 std::memory_order SpirvShader::MemoryOrder(spv::MemorySemanticsMask memorySemantics)
 {
-	auto control = static_cast<uint32_t>(memorySemantics) & static_cast<uint32_t>(
-	                                                            spv::MemorySemanticsAcquireMask |
-	                                                            spv::MemorySemanticsReleaseMask |
-	                                                            spv::MemorySemanticsAcquireReleaseMask |
-	                                                            spv::MemorySemanticsSequentiallyConsistentMask);
+	uint32_t control = static_cast<uint32_t>(memorySemantics) & static_cast<uint32_t>(
+	                                                                spv::MemorySemanticsAcquireMask |
+	                                                                spv::MemorySemanticsReleaseMask |
+	                                                                spv::MemorySemanticsAcquireReleaseMask |
+	                                                                spv::MemorySemanticsSequentiallyConsistentMask);
 	switch(control)
 	{
 	case spv::MemorySemanticsMaskNone: return std::memory_order_relaxed;
@@ -437,7 +445,7 @@ std::memory_order SpirvShader::MemoryOrder(spv::MemorySemanticsMask memorySemant
 	case spv::MemorySemanticsSequentiallyConsistentMask: return std::memory_order_acq_rel;  // Vulkan 1.1: "SequentiallyConsistent is treated as AcquireRelease"
 	default:
 		// "it is invalid for more than one of these four bits to be set:
-		// Acquire, Release, AcquireRelease, or SequentiallyConsistent."
+		//  Acquire, Release, AcquireRelease, or SequentiallyConsistent."
 		UNREACHABLE("MemorySemanticsMask: %x", int(control));
 		return std::memory_order_acq_rel;
 	}
