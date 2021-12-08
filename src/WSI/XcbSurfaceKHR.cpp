@@ -115,6 +115,8 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 
 		// TODO: Convert image if not RGB888.
 		int stride = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+		int bytesPerPixel = static_cast<int>(image->getImage()->getFormat(VK_IMAGE_ASPECT_COLOR_BIT).bytes());
+		int width = stride / bytesPerPixel;
 		auto buffer = reinterpret_cast<uint8_t *>(image->getImageMemory()->getOffsetPointer(0));
 		size_t bufferSize = extent.height * stride;
 		libXCB->xcb_put_image(
@@ -122,7 +124,7 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 		    XCB_IMAGE_FORMAT_Z_PIXMAP,
 		    window,
 		    it->second,
-		    extent.width,
+		    width,
 		    extent.height,
 		    0, 0,  // dst x, y
 		    0,     // left_pad
