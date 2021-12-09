@@ -44,6 +44,9 @@ bool Format::isUnsignedNormalized() const
 	case VK_FORMAT_R16G16_UNORM:
 	case VK_FORMAT_R16G16B16_UNORM:
 	case VK_FORMAT_R16G16B16A16_UNORM:
+	case VK_FORMAT_D16_UNORM:
+	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 		return true;
 	default:
 		// sRGB encoded formats are also unsigned normalized.
