@@ -736,10 +736,52 @@ func copyFileIfDifferent(dst, src string) error {
 	return nil
 }
 
-// updatedEQPFiles copies the lists of tests in dEQP to the same lists in
-// SwiftShader, and sets the SHA in deqp.json to the latest dEQP revision
+// updateLocalDeqpFiles sets the SHA in deqp.json to the latest dEQP revision,
+// then it uses getOrBuildDEQP to checkout that revision and copy over its testlists
 func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 	out := []string{}
+	// Update deqp.json
+	deqpJsonPath := path.Join(test.checkoutDir, deqpConfigRelPath)
+	if !util.IsFile(deqpJsonPath) {
+		return nil, fmt.Errorf("Failed to locate %s while trying to update the dEQP SHA", deqpConfigRelPath)
+	}
+	file, err := os.Open(deqpJsonPath)
+	if err != nil {
+		return nil, cause.Wrap(err, "Couldn't open dEQP config file")
+	}
+	defer file.Close()
+
+	cfg := struct {
+		Remote  string   `json:"remote"`
+		Branch  string   `json:"branch"`
+		SHA     string   `json:"sha"`
+		Patches []string `json:"patches"`
+	}{}
+	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
+		return nil, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
+	}
+
+	hash, err := git.FetchRefHash("HEAD", cfg.Remote)
+	if err != nil {
+		return nil, cause.Wrap(err, "Failed to fetch dEQP ref")
+	}
+	cfg.SHA = hash.String()
+	log.Println("New dEQP revision: %s", cfg.SHA)
+
+	newFile, err := os.Create(deqpJsonPath)
+	if err != nil {
+		return nil, cause.Wrap(err, "Failed to open %s for encoding", deqpConfigRelPath)
+	}
+	defer newFile.Close()
+
+	encoder := json.NewEncoder(newFile)
+	// Make the encoder create a new-line and space-based indents for each field
+	encoder.SetIndent("", "    ")
+	if err := encoder.Encode(&cfg); err != nil {
+		return nil, cause.Wrap(err, "Failed to re-encode %s", deqpConfigRelPath)
+	}
+	out = append(out, deqpJsonPath)
+
 	// Use getOrBuildDEQP as it'll prevent us from copying data from a revision of dEQP that has build errors.
 	deqpBuild, err := r.getOrBuildDEQP(test)
 
@@ -778,49 +820,6 @@ func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 		}
 		out = append(out, swsFile)
 	}
-
-	// Update deqp.json
-	p := path.Join(test.checkoutDir, deqpConfigRelPath)
-	if !util.IsFile(p) {
-		return nil, fmt.Errorf("Failed to locate %s while trying to update the dEQP SHA", deqpConfigRelPath)
-	}
-	file, err := os.Open(p)
-	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't open dEQP config file")
-	}
-	defer file.Close()
-
-	cfg := struct {
-		Remote  string   `json:"remote"`
-		Branch  string   `json:"branch"`
-		SHA     string   `json:"sha"`
-		Patches []string `json:"patches"`
-	}{}
-	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
-		return nil, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
-	}
-
-	hash, err := git.FetchRefHash("HEAD", cfg.Remote)
-	if err != nil {
-		return nil, cause.Wrap(err, "Failed to fetch dEQP ref")
-	}
-	cfg.SHA = hash.String()
-	log.Println("New dEQP revision: %s", cfg.SHA)
-
-	newFile, err := os.Create(p)
-	if err != nil {
-		return nil, cause.Wrap(err, "Failed to open %s for encoding", deqpConfigRelPath)
-	}
-	defer newFile.Close()
-
-	encoder := json.NewEncoder(newFile)
-	// Make the encoder create a new-line and space-based indents for each field
-	encoder.SetIndent("", "    ")
-	if err := encoder.Encode(&cfg); err != nil {
-		return nil, cause.Wrap(err, "Failed to re-encode %s", deqpConfigRelPath)
-	}
-	out = append(out, p)
-
 	return out, nil
 }
 
