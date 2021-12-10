@@ -96,6 +96,7 @@ private:
 	Int4 computeFilterOffset(Float &lod);
 	void sRGBtoLinearFF00(Short4 &c);
 
+	bool hasNormalizedFormat() const;
 	bool hasFloatTexture() const;
 	bool hasUnnormalizedIntegerTexture() const;
 	bool hasUnsignedTextureComponent(int component) const;
