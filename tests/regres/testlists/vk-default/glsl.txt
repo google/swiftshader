@@ -17232,3 +17232,5 @@ dEQP-VK.glsl.shader_clock.compute.clockRealtimeEXT
 dEQP-VK.glsl.shader_clock.compute.clockRealtime2x32EXT
 dEQP-VK.glsl.combined_operations.notxor
 dEQP-VK.glsl.combined_operations.negintdivand
+dEQP-VK.glsl.crash_test.divbyzero_frag
+dEQP-VK.glsl.crash_test.divbyzero_comp

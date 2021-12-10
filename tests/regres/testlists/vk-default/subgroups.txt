@@ -20865,6 +20865,7 @@ dEQP-VK.subgroups.ballot_mask.ext_shader_subgroup_ballot.ray_tracing.gl_subgroup
 dEQP-VK.subgroups.ballot_mask.ext_shader_subgroup_ballot.ray_tracing.gl_subgroupgtmaskarb
 dEQP-VK.subgroups.ballot_mask.ext_shader_subgroup_ballot.ray_tracing.gl_subgrouplemaskarb
 dEQP-VK.subgroups.ballot_mask.ext_shader_subgroup_ballot.ray_tracing.gl_subgroupltmaskarb
+dEQP-VK.subgroups.multiple_dispatches.uniform_subgroup_size
 dEQP-VK.subgroups.size_control.generic.subgroup_size_properties
 dEQP-VK.subgroups.size_control.graphics.allow_varying_subgroup_size
 dEQP-VK.subgroups.size_control.graphics.required_subgroup_size_max
