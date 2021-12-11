@@ -1,7 +1,7 @@
 dEQP-VK.api.buffer_memory_requirements.create_no_flags.ext_mem_flags_excluded.method1.video_usage_bits
-dEQP-VK.api.buffer_memory_requirements.create_no_flags.ext_mem_flags_excluded.mothod2.video_usage_bits
+dEQP-VK.api.buffer_memory_requirements.create_no_flags.ext_mem_flags_excluded.method2.video_usage_bits
 dEQP-VK.api.buffer_memory_requirements.create_no_flags.ext_mem_flags_included.method1.video_usage_bits
-dEQP-VK.api.buffer_memory_requirements.create_no_flags.ext_mem_flags_included.mothod2.video_usage_bits
+dEQP-VK.api.buffer_memory_requirements.create_no_flags.ext_mem_flags_included.method2.video_usage_bits
 dEQP-VK.api.info.format_properties.r10x6g10x6b10x6a10x6_unorm_4pack16
 dEQP-VK.spirv_assembly.instruction.compute.function_control.const_dont_inline
 dEQP-VK.spirv_assembly.instruction.compute.function_control.dont_inline

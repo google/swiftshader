@@ -1,5 +1,6 @@
 dEQP-VK.api.driver_properties.conformance_version
 dEQP-VK.fragment_operations.early_fragment.discard_early_fragment_tests_stencil
+dEQP-VK.pipeline.multisample_interpolation.reinterpolation_consistency.interpolate_at_centroid
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16b16a16_snorm
