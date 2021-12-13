@@ -1973,6 +1973,9 @@ dEQP-VK.transform_feedback.simple.host_query_reset_triangle_strip_with_adjacency
 dEQP-VK.transform_feedback.simple.query_triangle_strip_with_adjacency_14_508_64bits
 dEQP-VK.transform_feedback.simple.query_copy_triangle_strip_with_adjacency_14_508_64bits
 dEQP-VK.transform_feedback.simple.host_query_reset_triangle_strip_with_adjacency_14_508_64bits
+dEQP-VK.transform_feedback.simple.depth_clip_control_vertex
+dEQP-VK.transform_feedback.simple.depth_clip_control_geometry
+dEQP-VK.transform_feedback.simple.depth_clip_control_tese
 dEQP-VK.transform_feedback.simple.streams_1
 dEQP-VK.transform_feedback.simple.streams_3
 dEQP-VK.transform_feedback.simple.streams_6
