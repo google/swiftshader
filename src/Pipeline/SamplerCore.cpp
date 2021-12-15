@@ -452,9 +452,8 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 	int componentCount = textureComponentCount();
 	bool gather = (state.textureFilter == FILTER_GATHER);
 
-	Pointer<Byte> mipmap;
-	Pointer<Byte> buffer;
-	selectMipmap(texture, mipmap, buffer, lod, secondLOD);
+	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
+	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
 	Short4 uuuu = address(u, state.addressingModeU, mipmap);
 	Short4 vvvv = address(v, state.addressingModeV, mipmap);
@@ -654,9 +653,8 @@ Vector4s SamplerCore::sample3D(Pointer<Byte> &texture, Float4 &u_, Float4 &v_, F
 
 	int componentCount = textureComponentCount();
 
-	Pointer<Byte> mipmap;
-	Pointer<Byte> buffer;
-	selectMipmap(texture, mipmap, buffer, lod, secondLOD);
+	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
+	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
 	Short4 uuuu = address(u_, state.addressingModeU, mipmap);
 	Short4 vvvv = address(v_, state.addressingModeV, mipmap);
@@ -898,9 +896,8 @@ Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	int componentCount = textureComponentCount();
 	bool gather = (state.textureFilter == FILTER_GATHER);
 
-	Pointer<Byte> mipmap;
-	Pointer<Byte> buffer;
-	selectMipmap(texture, mipmap, buffer, lod, secondLOD);
+	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
+	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
 	Int4 x0, x1, y0, y1;
 	Float4 fu, fv;
@@ -991,9 +988,8 @@ Vector4f SamplerCore::sampleFloat3D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 
 	int componentCount = textureComponentCount();
 
-	Pointer<Byte> mipmap;
-	Pointer<Byte> buffer;
-	selectMipmap(texture, mipmap, buffer, lod, secondLOD);
+	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
+	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
 	Int4 x0, x1, y0, y1, z0, z1;
 	Float4 fu, fv, fw;
@@ -2134,32 +2130,28 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 	return out;
 }
 
-void SamplerCore::selectMipmap(const Pointer<Byte> &texture, Pointer<Byte> &mipmap, Pointer<Byte> &buffer, const Float &lod, bool secondLOD)
+Pointer<Byte> SamplerCore::selectMipmap(const Pointer<Byte> &texture, const Float &lod, bool secondLOD)
 {
 	Pointer<Byte> mipmap0 = texture + OFFSET(Texture, mipmap[0]);
 
 	if(state.mipmapFilter == MIPMAP_NONE)
 	{
-		mipmap = mipmap0;
+		return mipmap0;
 	}
-	else
+
+	Int ilod;
+
+	if(state.mipmapFilter == MIPMAP_POINT)
 	{
-		Int ilod;
-
-		if(state.mipmapFilter == MIPMAP_POINT)
-		{
-			// TODO: Preferred formula is ceil(lod + 0.5) - 1
-			ilod = RoundInt(lod);
-		}
-		else  // MIPMAP_LINEAR
-		{
-			ilod = Int(lod);
-		}
-
-		mipmap = mipmap0 + ilod * sizeof(Mipmap) + secondLOD * sizeof(Mipmap);
+		// TODO: Preferred formula is ceil(lod + 0.5) - 1
+		ilod = RoundInt(lod);
+	}
+	else  // MIPMAP_LINEAR
+	{
+		ilod = Int(lod);
 	}
 
-	buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
+	return mipmap0 + ilod * sizeof(Mipmap) + secondLOD * sizeof(Mipmap);
 }
 
 Int4 SamplerCore::computeFilterOffset(Float &lod)

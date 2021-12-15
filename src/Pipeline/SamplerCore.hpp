@@ -88,7 +88,7 @@ private:
 	Vector4s sampleTexel(UInt index[4], Pointer<Byte> buffer);
 	Vector4f sampleTexel(Int4 &u, Int4 &v, Int4 &w, Float4 &dRef, const Int4 &sample, Pointer<Byte> &mipmap, Pointer<Byte> buffer, SamplerFunction function);
 	Vector4f replaceBorderTexel(const Vector4f &c, Int4 valid);
-	void selectMipmap(const Pointer<Byte> &texture, Pointer<Byte> &mipmap, Pointer<Byte> &buffer, const Float &lod, bool secondLOD);
+	Pointer<Byte> selectMipmap(const Pointer<Byte> &texture, const Float &lod, bool secondLOD);
 	Short4 address(const Float4 &uvw, AddressingMode addressingMode, Pointer<Byte> &mipmap);
 	Short4 computeLayerIndex(const Float4 &a, Pointer<Byte> &mipmap);
 	void address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Int4 &offset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function);
