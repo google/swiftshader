@@ -30,10 +30,8 @@ struct LibX11exports
 	int (*XWidthOfScreen)(Screen *screen);
 	int (*XHeightOfScreen)(Screen *screen);
 	int (*XPlanesOfScreen)(Screen *screen);
-	GC (*XDefaultGC)(Display *display, int screen_number);
-	int (*XDefaultDepth)(Display *display, int screen_number);
-	Status (*XMatchVisualInfo)(Display *display, int screen, int depth, int screen_class, XVisualInfo *vinfo_return);
-	Visual *(*XDefaultVisual)(Display *display, int screen_number);
+	GC (*XCreateGC)(Display *display, Drawable d, unsigned long valuemask, XGCValues *values);
+	int (*XFreeGC)(Display *display, GC gc);
 	int (*(*XSetErrorHandler)(int (*handler)(Display*, XErrorEvent*)))(Display*, XErrorEvent*);
 	int (*XSync)(Display *display, Bool discard);
 	XImage *(*XCreateImage)(Display *display, Visual *visual, unsigned int depth, int format, int offset, char *data, unsigned int width, unsigned int height, int bitmap_pad, int bytes_per_line);

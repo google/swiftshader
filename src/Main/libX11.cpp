@@ -24,10 +24,8 @@ LibX11exports::LibX11exports(void *libX11, void *libXext)
 	XWidthOfScreen = (int (*)(Screen*))getProcAddress(libX11, "XWidthOfScreen");
 	XHeightOfScreen = (int (*)(Screen*))getProcAddress(libX11, "XHeightOfScreen");
 	XPlanesOfScreen = (int (*)(Screen*))getProcAddress(libX11, "XPlanesOfScreen");
-	XDefaultGC = (GC (*)(Display*, int))getProcAddress(libX11, "XDefaultGC");
-	XDefaultDepth = (int (*)(Display*, int))getProcAddress(libX11, "XDefaultDepth");
-	XMatchVisualInfo = (Status (*)(Display*, int, int, int, XVisualInfo*))getProcAddress(libX11, "XMatchVisualInfo");
-	XDefaultVisual = (Visual *(*)(Display*, int screen_number))getProcAddress(libX11, "XDefaultVisual");
+	XCreateGC = (GC (*)(Display *, Drawable, unsigned long, XGCValues *))getProcAddress(libX11, "XCreateGC");
+	XFreeGC = (int (*)(Display *, GC))getProcAddress(libX11, "XFreeGC");
 	XSetErrorHandler = (int (*(*)(int (*)(Display*, XErrorEvent*)))(Display*, XErrorEvent*))getProcAddress(libX11, "XSetErrorHandler");
 	XSync = (int (*)(Display*, Bool))getProcAddress(libX11, "XSync");
 	XCreateImage = (XImage *(*)(Display*, Visual*, unsigned int, int, int, char*, unsigned int, unsigned int, int, int))getProcAddress(libX11, "XCreateImage");
