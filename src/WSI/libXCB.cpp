@@ -18,15 +18,23 @@
 
 #include <memory>
 
-LibXcbExports::LibXcbExports(void *lib)
+LibXcbExports::LibXcbExports(void *libxcb, void *libshm)
 {
-	getFuncAddress(lib, "xcb_create_gc", &xcb_create_gc);
-	getFuncAddress(lib, "xcb_flush", &xcb_flush);
-	getFuncAddress(lib, "xcb_free_gc", &xcb_free_gc);
-	getFuncAddress(lib, "xcb_generate_id", &xcb_generate_id);
-	getFuncAddress(lib, "xcb_get_geometry", &xcb_get_geometry);
-	getFuncAddress(lib, "xcb_get_geometry_reply", &xcb_get_geometry_reply);
-	getFuncAddress(lib, "xcb_put_image", &xcb_put_image);
+	getFuncAddress(libxcb, "xcb_create_gc", &xcb_create_gc);
+	getFuncAddress(libxcb, "xcb_flush", &xcb_flush);
+	getFuncAddress(libxcb, "xcb_free_gc", &xcb_free_gc);
+	getFuncAddress(libxcb, "xcb_generate_id", &xcb_generate_id);
+	getFuncAddress(libxcb, "xcb_get_geometry", &xcb_get_geometry);
+	getFuncAddress(libxcb, "xcb_get_geometry_reply", &xcb_get_geometry_reply);
+	getFuncAddress(libxcb, "xcb_put_image", &xcb_put_image);
+	getFuncAddress(libxcb, "xcb_copy_area", &xcb_copy_area);
+	getFuncAddress(libxcb, "xcb_free_pixmap", &xcb_free_pixmap);
+
+	getFuncAddress(libshm, "xcb_shm_query_version", &xcb_shm_query_version);
+	getFuncAddress(libshm, "xcb_shm_query_version_reply", &xcb_shm_query_version_reply);
+	getFuncAddress(libshm, "xcb_shm_attach", &xcb_shm_attach);
+	getFuncAddress(libshm, "xcb_shm_detach", &xcb_shm_detach);
+	getFuncAddress(libshm, "xcb_shm_create_pixmap", &xcb_shm_create_pixmap);
 }
 
 LibXcbExports *LibXCB::operator->()
@@ -37,17 +45,27 @@ LibXcbExports *LibXCB::operator->()
 LibXcbExports *LibXCB::loadExports()
 {
 	static LibXcbExports exports = [] {
+		void *libxcb = nullptr;
+		void *libshm = nullptr;
 		if(getProcAddress(RTLD_DEFAULT, "xcb_create_gc"))  // Search the global scope for pre-loaded XCB library.
 		{
-			return LibXcbExports(RTLD_DEFAULT);
+			libxcb = RTLD_DEFAULT;
+		}
+		else
+                {
+			libxcb = loadLibrary("libxcb.so.1");
 		}
 
-		if(void *lib = loadLibrary("libxcb.so.1"))
+		if(getProcAddress(RTLD_DEFAULT, "xcb_shm_query_version"))  // Search the global scope for pre-loaded XCB library.
 		{
-			return LibXcbExports(lib);
+			libshm = RTLD_DEFAULT;
+		}
+		else
+                {
+			libshm = loadLibrary("libxcb-shm.so.0");
 		}
 
-		return LibXcbExports();
+		return LibXcbExports(libxcb, libshm);
 	}();
 
 	return exports.xcb_create_gc ? &exports : nullptr;

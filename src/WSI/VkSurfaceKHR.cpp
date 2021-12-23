@@ -61,6 +61,7 @@ VkResult PresentImage::allocateAndBindImageMemory(VkDevice device, const VkMemor
 	VkResult status = vkAllocateMemory(device, &allocateInfo, nullptr, &deviceMemory);
 	if(status != VK_SUCCESS)
 	{
+		release();
 		return status;
 	}
 

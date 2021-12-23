@@ -42,6 +42,7 @@ void SwapchainKHR::destroy(const VkAllocationCallbacks *pAllocator)
 		{
 			surface->detachImage(&currentImage);
 			currentImage.release();
+			surface->releaseImageMemory(&currentImage);
 		}
 	}
 
@@ -139,10 +140,21 @@ VkResult SwapchainKHR::createImages(VkDevice device, const VkSwapchainCreateInfo
 		}
 
 		allocInfo.allocationSize = currentImage.getImage()->getMemoryRequirements().size;
+		void* memory = vk::Cast(pCreateInfo->surface)->allocateImageMemory(&currentImage, allocInfo);
+
+		VkImportMemoryHostPointerInfoEXT importMemoryHostPointerInfo = {};
+		if (memory)
+		{
+			importMemoryHostPointerInfo.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT;
+			importMemoryHostPointerInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
+			importMemoryHostPointerInfo.pHostPointer = memory;
+			allocInfo.pNext = &importMemoryHostPointerInfo;
+		}
 
 		status = currentImage.allocateAndBindImageMemory(device, allocInfo);
 		if(status != VK_SUCCESS)
 		{
+			vk::Cast(pCreateInfo->surface)->releaseImageMemory(&currentImage);
 			return status;
 		}
 
@@ -213,6 +225,7 @@ VkResult SwapchainKHR::present(uint32_t index)
 	{
 		surface->detachImage(&image);
 		image.release();
+		surface->releaseImageMemory(&image);
 	}
 
 	return result;

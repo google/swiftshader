@@ -20,6 +20,7 @@
 
 #include <vulkan/vulkan_xcb.h>
 #include <xcb/xcb.h>
+#include <xcb/shm.h>
 
 #include <unordered_map>
 
@@ -37,6 +38,8 @@ public:
 
 	VkResult getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
 
+	virtual void* allocateImageMemory(PresentImage *image, const VkMemoryAllocateInfo &allocateInfo) override;
+	virtual void releaseImageMemory(PresentImage *image) override;
 	virtual void attachImage(PresentImage *image) override;
 	virtual void detachImage(PresentImage *image) override;
 	VkResult present(PresentImage *image) override;
@@ -44,7 +47,15 @@ public:
 private:
 	xcb_connection_t *connection;
 	xcb_window_t window;
-	std::unordered_map<PresentImage *, uint32_t> graphicsContexts;
+	bool mitSHM;
+	xcb_gcontext_t gc;
+	struct SHMPixmap {
+  		xcb_shm_seg_t shmseg;
+  		void *shmaddr;
+		xcb_pixmap_t pixmap;
+	};
+	std::unordered_map<PresentImage *, SHMPixmap> pixmaps;
+	// std::unordered_map<PresentImage *, uint32_t> graphicsContexts;
 };
 
 }  // namespace vk

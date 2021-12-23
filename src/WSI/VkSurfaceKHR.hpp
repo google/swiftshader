@@ -87,6 +87,8 @@ public:
 
 	VkResult getPresentRectangles(uint32_t *pRectCount, VkRect2D *pRects) const;
 
+	virtual void* allocateImageMemory(PresentImage *image, const VkMemoryAllocateInfo &allocateInfo) { return nullptr; }
+	virtual void releaseImageMemory(PresentImage *image) {}
 	virtual void attachImage(PresentImage *image) = 0;
 	virtual void detachImage(PresentImage *image) = 0;
 	virtual VkResult present(PresentImage *image) = 0;
