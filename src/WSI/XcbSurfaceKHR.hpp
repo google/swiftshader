@@ -45,14 +45,16 @@ public:
 	VkResult present(PresentImage *image) override;
 
 private:
-	xcb_connection_t *connection;
-	xcb_window_t window;
-	bool mitSHM;
-	xcb_gcontext_t gc;
+	xcb_connection_t *connection = nullptr;
+	xcb_window_t window = XCB_NONE;
+	bool mitSHM = false;
+	xcb_gcontext_t gc = XCB_NONE;
+	int windowDepth = 0;
+	mutable bool surfaceLost = false;
 	struct SHMPixmap {
-  		xcb_shm_seg_t shmseg;
-  		void *shmaddr;
-		xcb_pixmap_t pixmap;
+  		xcb_shm_seg_t shmseg = XCB_NONE;
+  		void *shmaddr = nullptr;
+		xcb_pixmap_t pixmap = XCB_NONE;
 	};
 	std::unordered_map<PresentImage *, SHMPixmap> pixmaps;
 	// std::unordered_map<PresentImage *, uint32_t> graphicsContexts;

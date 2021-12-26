@@ -50,14 +50,28 @@ XcbSurfaceKHR::XcbSurfaceKHR(const VkXcbSurfaceCreateInfoKHR *pCreateInfo, void 
 {
 	ASSERT(isSupported());
 
-	xcb_shm_query_version_cookie_t cookie = libXCB->xcb_shm_query_version(connection);
-	xcb_shm_query_version_reply_t* reply = libXCB->xcb_shm_query_version_reply(connection, cookie, nullptr);
-	mitSHM = reply && reply->shared_pixmaps;
-	free(reply);
-
 	gc = libXCB->xcb_generate_id(connection);
 	uint32_t values[2] = { 0, 0xffffffff };
 	libXCB->xcb_create_gc(connection, gc, window, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND, values);
+
+	auto shmCookie = libXCB->xcb_shm_query_version(connection);
+	auto geomCookie = libXCB->xcb_get_geometry(connection, window);
+
+	if (auto *reply = libXCB->xcb_shm_query_version_reply(connection, shmCookie, nullptr))
+	{
+		mitSHM = reply && reply->shared_pixmaps;
+		free(reply);
+	}
+
+	if (auto *reply = libXCB->xcb_get_geometry_reply(connection, geomCookie, nullptr))
+	{
+		windowDepth = reply->depth;
+		free(reply);
+	}
+	else
+	{
+		surfaceLost = true;
+	}
 }
 
 void XcbSurfaceKHR::destroySurface(const VkAllocationCallbacks *pAllocator)
@@ -72,12 +86,18 @@ size_t XcbSurfaceKHR::ComputeRequiredAllocationSize(const VkXcbSurfaceCreateInfo
 
 VkResult XcbSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
 {
+	if (surfaceLost)
+	{
+		return VK_ERROR_SURFACE_LOST_KHR;
+	}
+
 	setCommonSurfaceCapabilities(pSurfaceCapabilities);
 
 	VkExtent2D extent;
 	int depth;
 	if(!getWindowSizeAndDepth(connection, window, &extent, &depth))
 	{
+		surfaceLost = true;
 		return VK_ERROR_SURFACE_LOST_KHR;
 	}
 
@@ -103,7 +123,6 @@ void* XcbSurfaceKHR::allocateImageMemory(PresentImage *image, const VkMemoryAllo
 	int bytesPerPixel = static_cast<int>(image->getImage()->getFormat(VK_IMAGE_ASPECT_COLOR_BIT).bytes());
 	int width = stride / bytesPerPixel;
 	int height = allocateInfo.allocationSize / stride;
-	int depth = 32;
 
 	pixmap.pixmap = libXCB->xcb_generate_id(connection);
 	libXCB->xcb_shm_create_pixmap(
@@ -111,7 +130,7 @@ void* XcbSurfaceKHR::allocateImageMemory(PresentImage *image, const VkMemoryAllo
 		pixmap.pixmap,
 		window,
 		width, height,
-		depth,
+		windowDepth,
 		pixmap.shmseg,
 		0);
 
@@ -143,8 +162,10 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 {
 	VkExtent2D windowExtent;
 	int depth;
-	if(!getWindowSizeAndDepth(connection, window, &windowExtent, &depth))
+	// TODO(penghuang): getWindowSizeAndDepth() call needs a sync IPC, try to remove it.
+	if(surfaceLost || !getWindowSizeAndDepth(connection, window, &windowExtent, &depth))
 	{
+		surfaceLost = true;
 		return VK_ERROR_SURFACE_LOST_KHR;
 	}
 
@@ -175,7 +196,6 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 			bufferSize,  // data_len
 			buffer       // data
 		);
-		libXCB->xcb_flush(connection);
 	}
 	else
 	{
@@ -190,8 +210,8 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 			0, 0,  // dst x, y
 			extent.width,
 			extent.height);
-		libXCB->xcb_flush(connection);
 	}
+	libXCB->xcb_flush(connection);
 
 	return VK_SUCCESS;
 }
