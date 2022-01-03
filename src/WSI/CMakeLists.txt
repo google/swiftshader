@@ -32,15 +32,6 @@ if(WIN32)
         Win32SurfaceKHR.hpp
     )
 elseif(LINUX)
-    if(X11)
-        list(APPEND WSI_SRC_FILES
-            XlibSurfaceKHR.cpp
-            XlibSurfaceKHR.hpp
-            libX11.cpp
-            libX11.hpp
-        )
-    endif()
-
     if(XCB)
         list(APPEND WSI_SRC_FILES
             XcbSurfaceKHR.cpp
