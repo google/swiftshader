@@ -2340,10 +2340,8 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 					break;
 				case ADDRESSING_MIRRORONCE:
 					{
-						Float4 half = As<Float4>(Int4(halfBits));
 						Float4 one = As<Float4>(Int4(oneBits));
-						Float4 two = As<Float4>(Int4(twoBits));
-						coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
+						coord = Min(Abs(coord), one);
 					}
 					break;
 				case ADDRESSING_BORDER:

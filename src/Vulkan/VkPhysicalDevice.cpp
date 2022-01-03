@@ -304,7 +304,7 @@ static void getPhysicalDeviceBufferDeviceAddressFeatures(T *features)
 template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
-	features->samplerMirrorClampToEdge = VK_FALSE;
+	features->samplerMirrorClampToEdge = VK_TRUE;
 	features->drawIndirectCount = VK_FALSE;
 	getPhysicalDevice8BitStorageFeaturesKHR(features);
 	getPhysicalDeviceShaderAtomicInt64Features(features);
