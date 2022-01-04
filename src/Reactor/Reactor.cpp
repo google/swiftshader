@@ -4668,7 +4668,7 @@ RValue<Float4> RcpApprox(RValue<Float4> x, bool exactAtPow2 = false);
 RValue<Float> RcpApprox(RValue<Float> x, bool exactAtPow2 = false);
 
 template<typename T>
-static RValue<T> DoRcp(RValue<T> x, Precision p, bool finite, bool exactAtPow2)
+static RValue<T> DoRcp(RValue<T> x, Precision p, bool exactAtPow2)
 {
 #if defined(__i386__) || defined(__x86_64__)  // On x86, 1/x is fast enough, except for lower precision
 	bool approx = HasRcpApprox() && (p != Precision::Full);
@@ -4693,25 +4693,19 @@ static RValue<T> DoRcp(RValue<T> x, Precision p, bool finite, bool exactAtPow2)
 		rcp = T(1.0f) / x;
 	}
 
-	if(finite)
-	{
-		constexpr int big = 0x7F7FFFFF;
-		rcp = Min(rcp, T((float &)big));
-	}
-
 	return rcp;
 }
 
-RValue<Float4> Rcp(RValue<Float4> x, Precision p, bool finite, bool exactAtPow2)
+RValue<Float4> Rcp(RValue<Float4> x, Precision p, bool exactAtPow2)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return DoRcp(x, p, finite, exactAtPow2);
+	return DoRcp(x, p, exactAtPow2);
 }
 
-RValue<Float> Rcp(RValue<Float> x, Precision p, bool finite, bool exactAtPow2)
+RValue<Float> Rcp(RValue<Float> x, Precision p, bool exactAtPow2)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return DoRcp(x, p, finite, exactAtPow2);
+	return DoRcp(x, p, exactAtPow2);
 }
 
 // Functions implemented by backends

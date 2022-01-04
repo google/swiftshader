@@ -25,12 +25,6 @@ Float4 Reciprocal(RValue<Float4> x, bool pp = false, bool finite = false, bool e
 		rcp = (rcp + rcp) - (x * rcp * rcp);
 	}
 
-	if(finite)
-	{
-		int big = 0x7F7FFFFF;
-		rcp = Min(rcp, Float4((float &)big));
-	}
-
 	return rcp;
 }
 
@@ -50,7 +44,7 @@ Float4 SinOrCos(RValue<Float4> x, bool sin)
 	Float4 s1 = y * (y2 * (y2 * (y2 * Float4(-0.0046075748f) + Float4(0.0796819754f)) + Float4(-0.645963615f)) + Float4(1.5707963235f));
 	Float4 c2 = (c1 * c1) - (s1 * s1);
 	Float4 s2 = Float4(2.0f) * s1 * c1;
-	Float4 r = Reciprocal(s2 * s2 + c2 * c2, false, true, false);
+	Float4 r = Reciprocal(s2 * s2 + c2 * c2);
 
 	if(sin)
 	{
