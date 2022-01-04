@@ -8,7 +8,7 @@ Marl is a C++ 11 library that provides a fluent interface for running tasks acro
 
 Marl uses a combination of fibers and threads to allow efficient execution of tasks that can block, while keeping a fixed number of hardware threads.
 
-Marl supports Windows, macOS, Linux, FreeBSD, Fuchsia, Android and iOS (arm, aarch64, mips64, ppc64, x86 and x64).
+Marl supports Windows, macOS, Linux, FreeBSD, Fuchsia, Android and iOS (arm, aarch64, mips64, ppc64, rv64, x86 and x64).
 
 Marl has no dependencies on other libraries (with an exception on googletest for building the optional unit tests).
 
