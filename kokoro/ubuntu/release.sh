@@ -19,7 +19,9 @@ set -e # Fail on any error.
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$( cd "${SCRIPT_DIR}/../.." >/dev/null 2>&1 && pwd )"
 
+# --privileged is required for some sanitizer builds, as they seem to require PTRACE privileges
 docker run --rm -i \
+  --privileged \
   --volume "${ROOT_DIR}:${ROOT_DIR}" \
   --volume "${KOKORO_ARTIFACTS_DIR}:/mnt/artifacts" \
   --workdir "${ROOT_DIR}" \
