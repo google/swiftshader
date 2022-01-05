@@ -2266,9 +2266,7 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 	}
 	else
 	{
-		const int halfBits = 0x3EFFFFFF;  // Value just under 0.5f
-		const int oneBits = 0x3F7FFFFF;   // Value just under 1.0f
-		const int twoBits = 0x3FFFFFFF;   // Value just under 2.0f
+		const int oneBits = 0x3F7FFFFF;  // Value just under 1.0f
 
 		Float4 coord = uvw;
 
@@ -2332,10 +2330,10 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 					break;
 				case ADDRESSING_MIRROR:
 					{
-						Float4 half = As<Float4>(Int4(halfBits));
 						Float4 one = As<Float4>(Int4(oneBits));
-						Float4 two = As<Float4>(Int4(twoBits));
-						coord = one - Abs(two * Frac(coord * half) - one);
+						coord = coord * Float4(0.5f);
+						coord = Float4(2.0f) * Abs(coord - Round(coord));
+						coord = Min(coord, one);
 					}
 					break;
 				case ADDRESSING_MIRRORONCE:
