@@ -4318,6 +4318,7 @@ void Nucleus::createCoroutine(Type *YieldType, const std::vector<Type *> &Params
 	auto promisePtrTy = promiseTy->getPointerTo();
 
 	jit->function = rr::createFunction("coroutine_begin", handleTy, T(Params));
+	jit->function->addFnAttr("coroutine.presplit", "0");
 	jit->coroutine.await = rr::createFunction("coroutine_await", boolTy, { handleTy, promisePtrTy });
 	jit->coroutine.destroy = rr::createFunction("coroutine_destroy", voidTy, { handleTy });
 	jit->coroutine.yieldType = promiseTy;
