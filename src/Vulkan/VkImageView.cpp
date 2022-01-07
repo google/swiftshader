@@ -17,6 +17,7 @@
 #include "VkImage.hpp"
 #include "VkStructConversion.hpp"
 #include "System/Math.hpp"
+#include "System/Types.hpp"
 
 #include <climits>
 
@@ -321,24 +322,24 @@ Format ImageView::getFormat(Usage usage) const
 	return imageFormat.getAspectFormat(subresourceRange.aspectMask);
 }
 
-int ImageView::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
+uint32_t ImageView::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
 {
-	return getImage(usage)->rowPitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel);
+	return sw::assert_cast<uint32_t>(getImage(usage)->rowPitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel));
 }
 
-int ImageView::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
+uint32_t ImageView::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
 {
-	return getImage(usage)->slicePitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel);
+	return sw::assert_cast<uint32_t>(getImage(usage)->slicePitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel));
 }
 
-int ImageView::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
+uint32_t ImageView::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
 {
-	return getImage(usage)->getMipLevelSize(aspect, subresourceRange.baseMipLevel + mipLevel);
+	return sw::assert_cast<uint32_t>(getImage(usage)->getMipLevelSize(aspect, subresourceRange.baseMipLevel + mipLevel));
 }
 
-int ImageView::layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage) const
+uint32_t ImageView::layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage) const
 {
-	return static_cast<int>(getImage(usage)->getLayerSize(aspect));
+	return sw::assert_cast<uint32_t>(getImage(usage)->getLayerSize(aspect));
 }
 
 VkExtent2D ImageView::getMipLevelExtent(uint32_t mipLevel) const
@@ -352,12 +353,12 @@ VkExtent2D ImageView::getMipLevelExtent(uint32_t mipLevel, VkImageAspectFlagBits
 	return Extent2D(image->getMipLevelExtent(aspect, subresourceRange.baseMipLevel + mipLevel));
 }
 
-int ImageView::getDepthOrLayerCount(uint32_t mipLevel) const
+uint32_t ImageView::getDepthOrLayerCount(uint32_t mipLevel) const
 {
 	VkExtent3D extent = image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
 	                                             subresourceRange.baseMipLevel + mipLevel);
-	int layers = subresourceRange.layerCount;
-	int depthOrLayers = layers > 1 ? layers : extent.depth;
+	uint32_t layers = subresourceRange.layerCount;
+	uint32_t depthOrLayers = layers > 1 ? layers : extent.depth;
 
 	// For cube images the number of whole cubes is returned
 	if(viewType == VK_IMAGE_VIEW_TYPE_CUBE ||

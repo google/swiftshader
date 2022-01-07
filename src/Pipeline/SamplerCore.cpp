@@ -480,8 +480,8 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 		if(!gather)  // Blend
 		{
 			// Fractions
-			UShort4 f0u = As<UShort4>(uuuu0) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, width)));
-			UShort4 f0v = As<UShort4>(vvvv0) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height)));
+			UShort4 f0u = As<UShort4>(uuuu0) * UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, width)));
+			UShort4 f0v = As<UShort4>(vvvv0) * UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, height)));
 
 			UShort4 f1u = ~f0u;
 			UShort4 f1v = ~f0v;
@@ -687,9 +687,9 @@ Vector4s SamplerCore::sample3D(Pointer<Byte> &texture, Float4 &u_, Float4 &v_, F
 		}
 
 		// Fractions
-		UShort4 f0u = As<UShort4>(u[0][0][0]) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, width)));
-		UShort4 f0v = As<UShort4>(v[0][0][0]) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height)));
-		UShort4 f0s = As<UShort4>(s[0][0][0]) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, depth)));
+		UShort4 f0u = As<UShort4>(u[0][0][0]) * UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, width)));
+		UShort4 f0v = As<UShort4>(v[0][0][0]) * UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, height)));
+		UShort4 f0s = As<UShort4>(s[0][0][0]) * UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, depth)));
 
 		UShort4 f1u = ~f0u;
 		UShort4 f1v = ~f0v;
@@ -906,7 +906,7 @@ Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU);
 	address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV);
 
-	Int4 pitchP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, pitchP), 16);
+	Int4 pitchP = As<Int4>(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, pitchP), 16));
 	y0 *= pitchP;
 
 	Int4 z;
@@ -999,8 +999,8 @@ Vector4f SamplerCore::sampleFloat3D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV);
 	address(w, z0, z1, fw, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW);
 
-	Int4 pitchP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, pitchP), 16);
-	Int4 sliceP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, sliceP), 16);
+	Int4 pitchP = As<Int4>(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, pitchP), 16));
+	Int4 sliceP = As<Int4>(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, sliceP), 16));
 	y0 *= pitchP;
 	z0 *= sliceP;
 
@@ -1315,22 +1315,22 @@ Short4 SamplerCore::applyOffset(Short4 &uvw, Int4 &offset, const Int4 &whd, Addr
 
 void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, const Short4 &layerIndex, Vector4i &offset, const Int4 &sample, const Pointer<Byte> &mipmap)
 {
-	uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, width))));
+	uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, width))));
 
 	if(function.offset)
 	{
-		uuuu = applyOffset(uuuu, offset.x, *Pointer<Int4>(mipmap + OFFSET(Mipmap, width)), state.addressingModeU);
+		uuuu = applyOffset(uuuu, offset.x, *Pointer<UInt4>(mipmap + OFFSET(Mipmap, width)), state.addressingModeU);
 	}
 
 	UInt4 indices = Int4(uuuu);
 
 	if(state.is2D() || state.is3D() || state.isCube())
 	{
-		vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height))));
+		vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, height))));
 
 		if(function.offset)
 		{
-			vvvv = applyOffset(vvvv, offset.y, *Pointer<Int4>(mipmap + OFFSET(Mipmap, height)), state.addressingModeV);
+			vvvv = applyOffset(vvvv, offset.y, *Pointer<UInt4>(mipmap + OFFSET(Mipmap, height)), state.addressingModeV);
 		}
 
 		Short4 uv0uv1 = As<Short4>(UnpackLow(uuuu, vvvv));
@@ -2245,7 +2245,7 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 		return;
 	}
 
-	Int4 dim = *Pointer<Int4>(mipmap + whd, 16);
+	Int4 dim = As<Int4>(*Pointer<UInt4>(mipmap + whd, 16));
 	Int4 maxXYZ = dim - Int4(1);
 
 	if(function == Fetch)  // Unnormalized coordinates

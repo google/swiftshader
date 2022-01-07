@@ -103,13 +103,13 @@ public:
 	VkImageViewType getType() const { return viewType; }
 	Format getFormat(Usage usage = RAW) const;
 	Format getFormat(VkImageAspectFlagBits aspect) const { return image->getFormat(aspect); }
-	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
-	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
-	int getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
-	int layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage = RAW) const;
+	uint32_t rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
+	uint32_t slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
+	uint32_t getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
+	uint32_t layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage = RAW) const;
 	VkExtent2D getMipLevelExtent(uint32_t mipLevel) const;
 	VkExtent2D getMipLevelExtent(uint32_t mipLevel, VkImageAspectFlagBits aspect) const;
-	int getDepthOrLayerCount(uint32_t mipLevel) const;
+	uint32_t getDepthOrLayerCount(uint32_t mipLevel) const;
 
 	int getSampleCount() const
 	{

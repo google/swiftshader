@@ -1776,6 +1776,11 @@ Short4::Short4(RValue<Int> cast)
 	storeValue(swizzle);
 }
 
+Short4::Short4(RValue<UInt4> cast)
+    : Short4(As<Int4>(cast))
+{
+}
+
 //	Short4::Short4(RValue<Float> cast)
 //	{
 //	}
@@ -2003,6 +2008,11 @@ RValue<Short4> Insert(RValue<Short4> val, RValue<Short> element, int i)
 RValue<Short> Extract(RValue<Short4> val, int i)
 {
 	return RValue<Short>(Nucleus::createExtractElement(val.value(), Short::type(), i));
+}
+
+UShort4::UShort4(RValue<UInt4> cast)
+    : UShort4(As<Int4>(cast))
+{
 }
 
 UShort4::UShort4(RValue<Int4> cast)
