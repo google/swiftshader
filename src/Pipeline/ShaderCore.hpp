@@ -207,10 +207,6 @@ Float4 arccosh(RValue<Float4> x, bool pp = false);  // Limited to x >= 1
 Float4 arcsinh(RValue<Float4> x, bool pp = false);
 Float4 arctanh(RValue<Float4> x, bool pp = false);  // Limited to ]-1, 1[ range
 
-Float4 dot2(const Vector4f &v0, const Vector4f &v1);
-Float4 dot3(const Vector4f &v0, const Vector4f &v1);
-Float4 dot4(const Vector4f &v0, const Vector4f &v1);
-
 void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
@@ -252,7 +248,7 @@ rr::RValue<sw::SIMD::UInt> NthBit32(rr::RValue<sw::SIMD::UInt> const &bits);
 // Returns bitCount number of of 1's starting from the LSB.
 rr::RValue<sw::SIMD::UInt> Bitmask32(rr::RValue<sw::SIMD::UInt> const &bitCount);
 
-// Performs a fused-multiply add, returning a * b + c.
+// Computes `a * b + c`, which may be fused into one operation to produce a higher-precision result.
 rr::RValue<sw::SIMD::Float> FMA(
     rr::RValue<sw::SIMD::Float> const &a,
     rr::RValue<sw::SIMD::Float> const &b,
