@@ -75,9 +75,8 @@ constexpr float SUBPIXEL_PRECISION_FACTOR = static_cast<float>(1 << SUBPIXEL_PRE
 constexpr int SUBPIXEL_PRECISION_MASK = 0xFFFFFFFF >> (32 - SUBPIXEL_PRECISION_BITS);
 
 // TODO: The heap size should be configured based on available RAM.
-// FIXME(angleproject:6444): Remove the 15 bytes of padding.
-constexpr VkDeviceSize PHYSICAL_DEVICE_HEAP_SIZE = 0x80000000ull + 15;  // 0x80000000 = 2 GiB
-constexpr VkDeviceSize MAX_MEMORY_ALLOCATION_SIZE = 0x40000000ull;      // 0x40000000 = 1 GiB
+constexpr VkDeviceSize PHYSICAL_DEVICE_HEAP_SIZE = 0x80000000ull;   // 0x80000000 = 2 GiB
+constexpr VkDeviceSize MAX_MEMORY_ALLOCATION_SIZE = 0x40000000ull;  // 0x40000000 = 1 GiB
 
 // Memory offset calculations in 32-bit SIMD elements limit us to addressing at most 4 GiB.
 // Signed arithmetic further restricts it to 2 GiB.
