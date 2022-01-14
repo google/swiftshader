@@ -169,7 +169,7 @@ SpirvShader::SpirvShader(
 				auto decoration = static_cast<spv::Decoration>(insn.word(2));
 
 				// We assume these are for HLSL semantics, ignore them (b/214576937).
-				ASSERT(decoration == spv::DecorationUserSemantic);
+				ASSERT(decoration == spv::DecorationUserSemantic || decoration == spv::DecorationUserTypeGOOGLE);
 			}
 			break;
 
@@ -178,7 +178,7 @@ SpirvShader::SpirvShader(
 				auto decoration = static_cast<spv::Decoration>(insn.word(3));
 
 				// We assume these are for HLSL semantics, ignore them (b/214576937).
-				ASSERT(decoration == spv::DecorationUserSemantic);
+				ASSERT(decoration == spv::DecorationUserSemantic || decoration == spv::DecorationUserTypeGOOGLE);
 			}
 			break;
 
@@ -778,6 +778,7 @@ SpirvShader::SpirvShader(
 				if(!strcmp(ext, "SPV_KHR_vulkan_memory_model")) break;
 				if(!strcmp(ext, "SPV_GOOGLE_decorate_string")) break;
 				if(!strcmp(ext, "SPV_GOOGLE_hlsl_functionality1")) break;
+				if(!strcmp(ext, "SPV_GOOGLE_user_type")) break;
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 			}
 			break;
