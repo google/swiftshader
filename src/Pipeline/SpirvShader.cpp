@@ -777,6 +777,7 @@ SpirvShader::SpirvShader(
 				if(!strcmp(ext, "SPV_KHR_float_controls")) break;
 				if(!strcmp(ext, "SPV_KHR_vulkan_memory_model")) break;
 				if(!strcmp(ext, "SPV_GOOGLE_decorate_string")) break;
+				if(!strcmp(ext, "SPV_GOOGLE_hlsl_functionality1")) break;
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 			}
 			break;
