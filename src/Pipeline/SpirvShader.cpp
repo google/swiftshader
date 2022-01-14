@@ -165,8 +165,21 @@ SpirvShader::SpirvShader(
 			break;
 
 		case spv::OpDecorateString:
+			{
+				auto decoration = static_cast<spv::Decoration>(insn.word(2));
+
+				// We assume these are for HLSL semantics, ignore them (b/214576937).
+				ASSERT(decoration == spv::DecorationUserSemantic);
+			}
+			break;
+
 		case spv::OpMemberDecorateString:
-			// We assume these are for HLSL semantics, ignore them.
+			{
+				auto decoration = static_cast<spv::Decoration>(insn.word(3));
+
+				// We assume these are for HLSL semantics, ignore them (b/214576937).
+				ASSERT(decoration == spv::DecorationUserSemantic);
+			}
 			break;
 
 		case spv::OpDecorationGroup:
@@ -763,6 +776,7 @@ SpirvShader::SpirvShader(
 				if(!strcmp(ext, "SPV_EXT_shader_stencil_export")) break;
 				if(!strcmp(ext, "SPV_KHR_float_controls")) break;
 				if(!strcmp(ext, "SPV_KHR_vulkan_memory_model")) break;
+				if(!strcmp(ext, "SPV_GOOGLE_decorate_string")) break;
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 			}
 			break;
