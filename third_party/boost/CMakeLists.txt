@@ -15,9 +15,9 @@
 # Boost is downloaded if necessary
 
 # From https://www.boost.org/users/download/
-set(BOOST_VER 1.70.0)
-set(BOOST_HASH_TARGZ "882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9")
-set(BOOST_HASH_ZIP   "48f379b2e90dd1084429aae87d6bdbde9670139fa7569ee856c8c86dd366039d")
+set(BOOST_VER 1.78.0)
+set(BOOST_HASH_TARGZ "94ced8b72956591c4775ae2207a9763d3600b30d9d7446562c552f0a14a63be7")
+set(BOOST_HASH_ZIP   "f22143b5528e081123c3c5ed437e92f648fe69748e95fa6e2bd41484e2986cc3")
 
 string(REPLACE "." "_" BOOST_VER_FNAME ${BOOST_VER})
 set(BOOST_PARENT_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -32,9 +32,9 @@ function(DownloadBoost)
         set(BOOST_HASH ${BOOST_HASH_ZIP})
     endif()
 
-    # Note: bintray.com has rate limiting, so use the sourceforge mirror
-    # set(BOOST_URL https://dl.bintray.com/boostorg/release/${BOOST_VER}/source/boost_${BOOST_VER_FNAME}.${BOOST_EXT})
-    set(BOOST_URL https://iweb.dl.sourceforge.net/project/boost/boost/${BOOST_VER}/boost_${BOOST_VER_FNAME}.${BOOST_EXT})
+    # set(BOOST_URL https://dl.bintray.com/boostorg/release/${BOOST_VER}/source/boost_${BOOST_VER_FNAME}.${BOOST_EXT})  # Note: bintray.com has rate limiting
+    # set(BOOST_URL https://iweb.dl.sourceforge.net/project/boost/boost/${BOOST_VER}/boost_${BOOST_VER_FNAME}.${BOOST_EXT})  # Note: iweb.dl.sourceforge.net no longer available
+    set(BOOST_URL https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VER}/source/boost_${BOOST_VER_FNAME}.${BOOST_EXT})
 
     if (NOT TARGET Boost::boost)
         if(NOT EXISTS ${BOOST_DIR})
@@ -43,7 +43,7 @@ function(DownloadBoost)
           Downloading and extracting boost:
             ")
 
-            set(BOOST_ARCHIVE ${CMAKE_BINARY_DIR}/temp/boost_archive)
+            set(BOOST_ARCHIVE ${CMAKE_BINARY_DIR}/temp/boost_${BOOST_VER_FNAME}.${BOOST_EXT})
             message(STATUS "Downloading ${BOOST_URL} to ${BOOST_ARCHIVE}...")
             file(DOWNLOAD ${BOOST_URL} ${BOOST_ARCHIVE} EXPECTED_HASH SHA256=${BOOST_HASH})
             message(STATUS "Extracting ${BOOST_ARCHIVE} to ${BOOST_DIR}...")
