@@ -18,9 +18,15 @@ REM uncomment the line below.
 REM choco upgrade cmake -y --limit-output --no-progress
 cmake --version
 
+rem To use ninja with CMake requires VC env vars
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+rem That batch file turned echo off, so turn it back on
+@echo on
+
+rem Note that we need to specify the C and C++ compiler only because Cygwin is in PATH and CMake finds GCC and picks that over MSVC
 cmake .. ^
     -G "%CMAKE_GENERATOR_TYPE%" ^
-    -Thost=x64 ^
+    -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_CXX_COMPILER="cl.exe" ^
     "-DREACTOR_BACKEND=%REACTOR_BACKEND%" ^
     "-DSWIFTSHADER_LLVM_VERSION=%LLVM_VERSION%" ^
     "-DREACTOR_VERIFY_LLVM_IR=1" ^
@@ -32,22 +38,22 @@ REM Run the unit tests. Some must be run from project root
 cd %SRC% || goto :error
 SET SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1
 
-build\%BUILD_TYPE%\ReactorUnitTests.exe || goto :error
-build\%BUILD_TYPE%\system-unittests.exe || goto :error
-build\%BUILD_TYPE%\vk-unittests.exe || goto :error
+build\ReactorUnitTests.exe || goto :error
+build\system-unittests.exe || goto :error
+build\vk-unittests.exe || goto :error
 
 REM Incrementally build and run rr::Print unit tests
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_ENABLE_PRINT=1" .. || goto :error
 cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
-%BUILD_TYPE%\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.Print* || goto :error
+ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.Print* || goto :error
 cmake "-DREACTOR_ENABLE_PRINT=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_ASM_FILE and run unit test
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_EMIT_ASM_FILE=1" .. || goto :error
 cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
-%BUILD_TYPE%\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.EmitAsm || goto :error
+ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.EmitAsm || goto :error
 cmake "-DREACTOR_EMIT_ASM_FILE=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_DEBUG_INFO to ensure it builds
