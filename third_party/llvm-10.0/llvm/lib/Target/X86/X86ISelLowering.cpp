@@ -7122,6 +7122,9 @@ static bool getFauxShuffleMask(SDValue N, const APInt &DemandedElts,
                                SmallVectorImpl<SDValue> &Ops,
                                SelectionDAG &DAG, unsigned Depth,
                                bool ResolveKnownElts) {
+  if (Depth > SelectionDAG::MaxRecursionDepth)
+    return false;
+
   Mask.clear();
   Ops.clear();
 
