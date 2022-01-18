@@ -28,6 +28,9 @@
 
 using namespace rr;
 
+using float4 = float[4];
+using int4 = int[4];
+
 static std::string testName()
 {
 	auto info = ::testing::UnitTest::GetInstance()->current_test_info();
@@ -1181,6 +1184,60 @@ TEST(ReactorUnitTests, Branching)
 	int result = routine();
 
 	EXPECT_EQ(result, 1000402222);
+}
+
+TEST(ReactorUnitTests, FAbs)
+{
+	Function<Void(Pointer<Float4>, Pointer<Float4>)> function;
+	{
+		Pointer<Float4> x = function.Arg<0>();
+		Pointer<Float4> y = function.Arg<1>();
+
+		*y = Abs(*x);
+	}
+
+	auto routine = function(testName().c_str());
+	auto callable = (void (*)(float4 *, float4 *))routine->getEntry();
+
+	float input[] = { 1.0f, -1.0f, -0.0f, 0.0f };
+
+	for(float x : input)
+	{
+		float4 v_in = { x, x, x, x };
+		float4 v_out;
+
+		callable(&v_in, &v_out);
+
+		float expected = fabs(x);
+		EXPECT_FLOAT_EQ(v_out[0], expected);
+	}
+}
+
+TEST(ReactorUnitTests, Abs)
+{
+	Function<Void(Pointer<Int4>, Pointer<Int4>)> function;
+	{
+		Pointer<Int4> x = function.Arg<0>();
+		Pointer<Int4> y = function.Arg<1>();
+
+		*y = Abs(*x);
+	}
+
+	auto routine = function(testName().c_str());
+	auto callable = (void (*)(int4 *, int4 *))routine->getEntry();
+
+	int input[] = { 1, -1, 0, (int)0x80000000 };
+
+	for(int x : input)
+	{
+		int4 v_in = { x, x, x, x };
+		int4 v_out;
+
+		callable(&v_in, &v_out);
+
+		float expected = abs(x);
+		EXPECT_EQ(v_out[0], expected);
+	}
 }
 
 TEST(ReactorUnitTests, MinMax)
@@ -2708,9 +2765,6 @@ struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_F
 		}
 	}
 };
-
-using float4 = float[4];
-using int4 = int[4];
 
 // TODO: Move to Reactor.hpp
 template<>

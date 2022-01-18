@@ -127,14 +127,6 @@ llvm::Value *lowerPMOV(llvm::Value *op, llvm::Type *dstType, bool sext)
 	return sext ? jit->builder->CreateSExt(v, dstTy)
 	            : jit->builder->CreateZExt(v, dstTy);
 }
-
-llvm::Value *lowerPABS(llvm::Value *v)
-{
-	llvm::Value *zero = llvm::Constant::getNullValue(v->getType());
-	llvm::Value *cmp = jit->builder->CreateICmp(llvm::ICmpInst::ICMP_SGT, v, zero);
-	llvm::Value *neg = jit->builder->CreateNeg(v);
-	return jit->builder->CreateSelect(cmp, v, neg);
-}
 #endif  // defined(__i386__) || defined(__x86_64__)
 
 #if !defined(__i386__) && !defined(__x86_64__)
@@ -2705,6 +2697,17 @@ RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y)
 	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGT(x.value(), y.value()), Int4::type()));
 }
 
+RValue<Int4> Abs(RValue<Int4> x)
+{
+#if LLVM_VERSION_MAJOR >= 12
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::abs, { V(x.value())->getType() });
+	return RValue<Int4>(V(jit->builder->CreateCall(func, { V(x.value()), llvm::ConstantInt::getFalse(*jit->context) })));
+#else
+	auto negative = x >> 31;
+	return (x ^ negative) - negative;
+#endif
+}
+
 RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
@@ -3154,6 +3157,12 @@ Float4::Float4(RValue<Float> rhs)
 	Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
 
 	storeValue(replicate);
+}
+
+RValue<Float4> Abs(RValue<Float4> x)
+{
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::fabs, { V(x.value())->getType() });
+	return RValue<Float4>(V(jit->builder->CreateCall(func, V(x.value()))));
 }
 
 RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y)
@@ -3793,11 +3802,6 @@ RValue<Float4> floorps(RValue<Float4> val)
 RValue<Float4> ceilps(RValue<Float4> val)
 {
 	return roundps(val, 2);
-}
-
-RValue<Int4> pabsd(RValue<Int4> x)
-{
-	return RValue<Int4>(V(lowerPABS(V(x.value()))));
 }
 
 RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y)

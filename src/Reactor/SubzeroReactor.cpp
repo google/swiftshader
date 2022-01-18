@@ -165,7 +165,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retT
 
 // Wrapper for calls on C functions with Ice types
 template<typename Return, typename... CArgs, typename... RArgs>
-Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(CArgs...), RArgs &&... args)
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(CArgs...), RArgs &&...args)
 {
 	static_assert(sizeof...(CArgs) == sizeof...(RArgs), "Expected number of args don't match");
 
@@ -3554,6 +3554,13 @@ RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y)
 	return RValue<Int4>(Nucleus::createICmpSGT(x.value(), y.value()));
 }
 
+RValue<Int4> Abs(RValue<Int4> x)
+{
+	// TODO: Optimize.
+	auto negative = x >> 31;
+	return (x ^ negative) - negative;
+}
+
 RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
@@ -3925,6 +3932,16 @@ Float4::Float4(RValue<Float> rhs)
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
 
 	storeValue(replicate);
+}
+
+RValue<Float4> Abs(RValue<Float4> x)
+{
+	// TODO: Optimize.
+	Value *vector = Nucleus::createBitCast(x.value(), Int4::type());
+	int64_t constantVector[4] = { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, Int4::type()));
+
+	return As<Float4>(result);
 }
 
 RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y)

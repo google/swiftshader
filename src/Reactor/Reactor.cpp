@@ -2182,13 +2182,6 @@ RValue<Short8> operator&(RValue<Short8> lhs, RValue<Short8> rhs)
 	return RValue<Short8>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
-RValue<Int4> Abs(RValue<Int4> x)
-{
-	// TODO: Optimize.
-	auto negative = x >> 31;
-	return (x ^ negative) - negative;
-}
-
 UShort8::UShort8(unsigned short c)
 {
 	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
@@ -4222,16 +4215,6 @@ RValue<Float4> operator+(RValue<Float4> val)
 RValue<Float4> operator-(RValue<Float4> val)
 {
 	return RValue<Float4>(Nucleus::createFNeg(val.value()));
-}
-
-RValue<Float4> Abs(RValue<Float4> x)
-{
-	// TODO: Optimize.
-	Value *vector = Nucleus::createBitCast(x.value(), Int4::type());
-	int64_t constantVector[4] = { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
-	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, Int4::type()));
-
-	return As<Float4>(result);
 }
 
 RValue<Float4> Insert(RValue<Float4> x, RValue<Float> element, int i)
