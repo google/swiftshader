@@ -17,6 +17,8 @@
 
 #include "benchmark/benchmark.h"
 
+using namespace rr;
+
 BENCHMARK_MAIN();
 
 class Coroutines : public benchmark::Fixture
@@ -30,8 +32,6 @@ public:
 BENCHMARK_DEFINE_F(Coroutines, Fibonacci)
 (benchmark::State &state)
 {
-	using namespace rr;
-
 	if(!Caps.CoroutinesSupported)
 	{
 		state.SkipWithError("Coroutines are not supported");
@@ -68,3 +68,81 @@ BENCHMARK_DEFINE_F(Coroutines, Fibonacci)
 }
 
 BENCHMARK_REGISTER_F(Coroutines, Fibonacci)->RangeMultiplier(8)->Range(1, 0x1000000)->ArgName("iterations");
+
+// Macro that creates a lambda wrapper around the input overloaded function,
+// creating a non-overload based on the args. This is useful for passing
+// overloaded functions as template arguments.
+// See https://stackoverflow.com/questions/25871381/c-overloaded-function-as-template-argument
+#define LIFT(fname)                                          \
+	[](auto &&...args) -> decltype(auto) {                   \
+		return fname(std::forward<decltype(args)>(args)...); \
+	}
+
+template<typename Func, class... Args>
+static void Transcedental1(benchmark::State &state, Func func, Args &&...args)
+{
+	FunctionT<float(float)> function;
+	{
+		Float a = function.Arg<0>();
+		Float4 v{ a };
+		Float4 r = func(v, args...);
+		Return(Float(r.x));
+	}
+
+	auto routine = function("one");
+
+	for(auto _ : state)
+	{
+		routine(1.f);
+	}
+}
+
+template<typename Func, class... Args>
+static void Transcedental2(benchmark::State &state, Func func, Args &&...args)
+{
+	FunctionT<float(float, float)> function;
+	{
+		Float a = function.Arg<0>();
+		Float b = function.Arg<1>();
+		Float4 v1{ a };
+		Float4 v2{ b };
+		Float4 r = func(v1, v2, args...);
+		Return(Float(r.x));
+	}
+
+	auto routine = function("two");
+
+	for(auto _ : state)
+	{
+		routine(0.456f, 0.789f);
+	}
+}
+
+BENCHMARK_CAPTURE(Transcedental1, rr_Sin, Sin);
+BENCHMARK_CAPTURE(Transcedental1, rr_Cos, Cos);
+BENCHMARK_CAPTURE(Transcedental1, rr_Tan, Tan);
+
+BENCHMARK_CAPTURE(Transcedental1, rr_Asin_fullp, Asin, Precision::Full);
+BENCHMARK_CAPTURE(Transcedental1, rr_Asin_relaxedp, Asin, Precision::Relaxed);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acos_fullp, Acos, Precision::Full);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acos_relaxedp, Acos, Precision::Relaxed);
+
+BENCHMARK_CAPTURE(Transcedental1, rr_Atan, Atan);
+BENCHMARK_CAPTURE(Transcedental1, rr_Sinh, Sinh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Cosh, Cosh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Tanh, Tanh);
+
+BENCHMARK_CAPTURE(Transcedental1, rr_Asinh, Asinh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acosh, Acosh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Atanh, Atanh);
+BENCHMARK_CAPTURE(Transcedental2, rr_Atan2, Atan2);
+
+BENCHMARK_CAPTURE(Transcedental2, rr_Pow, Pow);
+BENCHMARK_CAPTURE(Transcedental1, rr_Exp, Exp);
+BENCHMARK_CAPTURE(Transcedental1, rr_Log, Log);
+BENCHMARK_CAPTURE(Transcedental1, rr_Exp2, LIFT(Exp2));
+BENCHMARK_CAPTURE(Transcedental1, rr_Log2, LIFT(Log2));
+
+BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_true, LIFT(Rcp_pp), true);
+BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_false, LIFT(Rcp_pp), false);
+BENCHMARK_CAPTURE(Transcedental1, rr_RcpSqrt_pp, LIFT(RcpSqrt_pp));
