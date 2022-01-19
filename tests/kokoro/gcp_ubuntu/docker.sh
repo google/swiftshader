@@ -98,20 +98,20 @@ cmake .. "-DREACTOR_EMIT_ASM_FILE=0"
 cd ..
 build/ReactorUnitTests --gtest_filter=ReactorUnitTests.EmitAsm
 
-status "Building with REACTOR_EMIT_DEBUG_INFO"
+#status "Building with REACTOR_EMIT_DEBUG_INFO"
+#
+#cd build
+#cmake .. "-DREACTOR_EMIT_DEBUG_INFO=1"
+#cmake --build . --target ReactorUnitTests -- -j $(nproc)
+#cmake .. "-DREACTOR_EMIT_DEBUG_INFO=0"
+#cd ..
 
-cd build
-cmake .. "-DREACTOR_EMIT_DEBUG_INFO=1"
-cmake --build . --target ReactorUnitTests -- -j $(nproc)
-cmake .. "-DREACTOR_EMIT_DEBUG_INFO=0"
-cd ..
-
-status "Building with REACTOR_EMIT_PRINT_LOCATION"
-
-cd build
-cmake .. "-DREACTOR_EMIT_PRINT_LOCATION=1"
-cmake --build . --target ReactorUnitTests -- -j $(nproc)
-cmake .. "-DREACTOR_EMIT_PRINT_LOCATION=0"
-cd ..
+#status "Building with REACTOR_EMIT_PRINT_LOCATION"
+#
+#cd build
+#cmake .. "-DREACTOR_EMIT_PRINT_LOCATION=1"
+#cmake --build . --target ReactorUnitTests -- -j $(nproc)
+#cmake .. "-DREACTOR_EMIT_PRINT_LOCATION=0"
+#cd ..
 
 status "Done"

@@ -57,16 +57,16 @@ ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.EmitAsm || goto :error
 cmake "-DREACTOR_EMIT_ASM_FILE=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_DEBUG_INFO to ensure it builds
-cd %SRC%\build || goto :error
-cmake "-DREACTOR_EMIT_DEBUG_INFO=1" .. || goto :error
-cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
-cmake "-DREACTOR_EMIT_DEBUG_INFO=0" .. || goto :error
+REM cd %SRC%\build || goto :error
+REM cmake "-DREACTOR_EMIT_DEBUG_INFO=1" .. || goto :error
+REM cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
+REM cmake "-DREACTOR_EMIT_DEBUG_INFO=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_PRINT_LOCATION to ensure it builds
-cd %SRC%\build || goto :error
-cmake "-DREACTOR_EMIT_PRINT_LOCATION=1" .. || goto :error
-cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
-cmake "-DREACTOR_EMIT_PRINT_LOCATION=0" .. || goto :error
+REM cd %SRC%\build || goto :error
+REM cmake "-DREACTOR_EMIT_PRINT_LOCATION=1" .. || goto :error
+REM cmake --build . --config %BUILD_TYPE% --target ReactorUnitTests || goto :error
+REM cmake "-DREACTOR_EMIT_PRINT_LOCATION=0" .. || goto :error
 
 exit /b 0
 
