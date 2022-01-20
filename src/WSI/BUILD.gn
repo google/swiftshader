@@ -33,7 +33,7 @@ swiftshader_source_set("WSI") {
     "VkSwapchainKHR.hpp",
   ]
 
-  if (is_linux || is_chromeos) {
+  if (is_linux) {
     sources += [
       "XcbSurfaceKHR.cpp",
       "XcbSurfaceKHR.hpp",
