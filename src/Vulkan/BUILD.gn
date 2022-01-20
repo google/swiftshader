@@ -18,9 +18,13 @@ import("vulkan.gni")
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_libvulkan_private_config") {
-  if (is_linux || is_chromeos) {
+  if (is_linux) {
     defines = [
       "VK_USE_PLATFORM_XCB_KHR",
+      "VK_EXPORT=__attribute__((visibility(\"default\")))",
+    ]
+  } else if (is_chromeos) {
+    defines = [
       "VK_EXPORT=__attribute__((visibility(\"default\")))",
     ]
   } else if (is_fuchsia) {
