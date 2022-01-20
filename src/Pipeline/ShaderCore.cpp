@@ -162,7 +162,7 @@ static Float4 Reciprocal(RValue<Float4> x, bool pp = false, bool finite = false,
 	return rcp;
 }
 
-static Float4 SinOrCos(RValue<Float4> x, bool sin)
+[[maybe_unused]] static Float4 SinOrCos(RValue<Float4> x, bool sin)
 {
 	// Reduce to [-0.5, 0.5] range
 	Float4 y = x * Float4(1.59154943e-1f);  // 1/2pi
@@ -206,19 +206,47 @@ static Float4 Atan_01(Float4 x)
 	return (x + x * (x2 * (a2 + x2 * (a4 + x2 * (a6 + x2 * (a8 + x2 * (a10 + x2 * (a12 + x2 * (a14 + x2 * a16)))))))));
 }
 
+// Polynomal approximation of order 5 for sin(x * 2 * pi) in the range [-1/4, 1/4]
+static Float4 Sin5(Float4 x)
+{
+	// A * x^5 + B * x^3 + C * x
+	// Exact at x = 0, 1/12, 1/6, 1/4, and their negatives, which correspond to x * 2 * pi = 0, pi/6, pi/3, pi/2
+	const Float4 A = (36288 - 20736 * sqrt(3)) / 5;
+	const Float4 B = 288 * sqrt(3) - 540;
+	const Float4 C = (47 - 9 * sqrt(3)) / 5;
+
+	Float4 x2 = x * x;
+
+	return ((A * x2 + B) * x2 + C) * x;
+}
+
 Float4 Sin(RValue<Float4> x)
 {
-	return SinOrCos(x, true);
+	const Float4 q = 0.25f;
+	const Float4 pi2 = 1 / (2 * 3.1415926535f);
+
+	// Range reduction and mirroring
+	Float4 x_2 = q - x * pi2;
+	Float4 z = q - Abs(x_2 - Round(x_2));
+
+	return Sin5(z);
 }
 
 Float4 Cos(RValue<Float4> x)
 {
-	return SinOrCos(x, false);
+	const Float4 q = 0.25f;
+	const Float4 pi2 = 1 / (2 * 3.1415926535f);
+
+	// Phase shift, range reduction, and mirroring
+	Float4 x_2 = x * pi2;
+	Float4 z = q - Abs(x_2 - Round(x_2));
+
+	return Sin5(z);
 }
 
 Float4 Tan(RValue<Float4> x)
 {
-	return SinOrCos(x, true) / SinOrCos(x, false);
+	return sw::Sin(x) / sw::Cos(x);
 }
 
 static Float4 Asin_4_terms(RValue<Float4> x)
