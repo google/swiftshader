@@ -14,14 +14,11 @@
 
 #include "Configurator.hpp"
 
-#include <fstream>
-#include <iostream>
-
-using namespace std;
-
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <fstream>
+#include <iostream>
 
 #if defined(__unix__)
 #	include <unistd.h>
@@ -29,7 +26,7 @@ using namespace std;
 
 namespace sw {
 
-Configurator::Configurator(string iniPath)
+Configurator::Configurator(const std::string &iniPath)
 {
 	path = iniPath;
 
@@ -49,11 +46,11 @@ bool Configurator::readFile()
 	}
 #endif
 
-	fstream file(path.c_str(), ios::in);
+	std::fstream file(path.c_str(), std::ios::in);
 	if(file.fail()) return false;
 
-	string line;
-	string keyName;
+	std::string line;
+	std::string keyName;
 
 	while(getline(file, line))
 	{
@@ -71,17 +68,17 @@ bool Configurator::readFile()
 				return false;
 			}
 
-			string::size_type pLeft = line.find_first_of(";#[=");
+			std::string::size_type pLeft = line.find_first_of(";#[=");
 
-			if(pLeft != string::npos)
+			if(pLeft != std::string::npos)
 			{
 				switch(line[pLeft])
 				{
 				case '[':
 					{
-						string::size_type pRight = line.find_last_of("]");
+						std::string::size_type pRight = line.find_last_of("]");
 
-						if(pRight != string::npos && pRight > pLeft)
+						if(pRight != std::string::npos && pRight > pLeft)
 						{
 							keyName = line.substr(pLeft + 1, pRight - pLeft - 1);
 							addKeyName(keyName);
@@ -90,8 +87,8 @@ bool Configurator::readFile()
 					break;
 				case '=':
 					{
-						string valueName = line.substr(0, pLeft);
-						string value = line.substr(pLeft + 1);
+						std::string valueName = line.substr(0, pLeft);
+						std::string value = line.substr(pLeft + 1);
 						addValue(keyName, valueName, value);
 					}
 					break;
@@ -114,7 +111,7 @@ bool Configurator::readFile()
 	return false;
 }
 
-void Configurator::writeFile(std::string title)
+void Configurator::writeFile(const std::string &title)
 {
 #if defined(__unix__)
 	if(access(path.c_str(), W_OK) != 0)
@@ -123,28 +120,28 @@ void Configurator::writeFile(std::string title)
 	}
 #endif
 
-	fstream file(path.c_str(), ios::out);
+	std::fstream file(path.c_str(), std::ios::out);
 	if(file.fail()) return;
 
-	file << "; " << title << endl
-	     << endl;
+	file << "; " << title << std::endl
+	     << std::endl;
 
 	for(unsigned int keyID = 0; keyID < sections.size(); keyID++)
 	{
-		file << "[" << names[keyID] << "]" << endl;
+		file << "[" << names[keyID] << "]" << std::endl;
 
 		for(unsigned int valueID = 0; valueID < sections[keyID].names.size(); valueID++)
 		{
-			file << sections[keyID].names[valueID] << "=" << sections[keyID].values[valueID] << endl;
+			file << sections[keyID].names[valueID] << "=" << sections[keyID].values[valueID] << std::endl;
 		}
 
-		file << endl;
+		file << std::endl;
 	}
 
 	file.close();
 }
 
-int Configurator::findKey(string keyName) const
+int Configurator::findKey(const std::string &keyName) const
 {
 	for(unsigned int keyID = 0; keyID < names.size(); keyID++)
 	{
@@ -157,7 +154,7 @@ int Configurator::findKey(string keyName) const
 	return -1;
 }
 
-int Configurator::findValue(unsigned int keyID, string valueName) const
+int Configurator::findValue(unsigned int keyID, const std::string &valueName) const
 {
 	if(!sections.size() || keyID >= sections.size())
 	{
@@ -175,14 +172,14 @@ int Configurator::findValue(unsigned int keyID, string valueName) const
 	return -1;
 }
 
-unsigned int Configurator::addKeyName(string keyName)
+unsigned int Configurator::addKeyName(const std::string &keyName)
 {
 	names.resize(names.size() + 1, keyName);
 	sections.resize(sections.size() + 1);
 	return (unsigned int)names.size() - 1;
 }
 
-void Configurator::addValue(string const keyName, string const valueName, string const value)
+void Configurator::addValue(const std::string &keyName, const std::string &valueName, const std::string &value)
 {
 	int keyID = findKey(keyName);
 
@@ -204,7 +201,7 @@ void Configurator::addValue(string const keyName, string const valueName, string
 	}
 }
 
-string Configurator::getValue(string keyName, string valueName, string defaultValue) const
+std::string Configurator::getValue(const std::string &keyName, const std::string &valueName, const std::string &defaultValue) const
 {
 	int keyID = findKey(keyName);
 	if(keyID == -1) return defaultValue;
@@ -214,7 +211,7 @@ string Configurator::getValue(string keyName, string valueName, string defaultVa
 	return sections[keyID].values[valueID];
 }
 
-int Configurator::getInteger(string keyName, string valueName, int defaultValue) const
+int Configurator::getInteger(const std::string &keyName, const std::string &valueName, int defaultValue) const
 {
 	char svalue[256];
 
@@ -223,12 +220,12 @@ int Configurator::getInteger(string keyName, string valueName, int defaultValue)
 	return atoi(getValue(keyName, valueName, svalue).c_str());
 }
 
-bool Configurator::getBoolean(string keyName, string valueName, bool defaultValue) const
+bool Configurator::getBoolean(const std::string &keyName, const std::string &valueName, bool defaultValue) const
 {
 	return getInteger(keyName, valueName, (int)defaultValue) != 0;
 }
 
-double Configurator::getFloat(string keyName, string valueName, double defaultValue) const
+double Configurator::getFloat(const std::string &keyName, const std::string &valueName, double defaultValue) const
 {
 	char svalue[256];
 
@@ -237,13 +234,13 @@ double Configurator::getFloat(string keyName, string valueName, double defaultVa
 	return atof(getValue(keyName, valueName, svalue).c_str());
 }
 
-unsigned int Configurator::getFormatted(string keyName, string valueName, char *format,
+unsigned int Configurator::getFormatted(const std::string &keyName, const std::string &valueName, char *format,
                                         void *v1, void *v2, void *v3, void *v4,
                                         void *v5, void *v6, void *v7, void *v8,
                                         void *v9, void *v10, void *v11, void *v12,
                                         void *v13, void *v14, void *v15, void *v16)
 {
-	string value = getValue(keyName, valueName);
+	std::string value = getValue(keyName, valueName);
 
 	if(!value.length()) return false;
 

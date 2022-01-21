@@ -25,30 +25,30 @@ namespace sw {
 class Configurator
 {
 public:
-	Configurator(std::string iniPath = "");
+	Configurator(const std::string &iniPath = "");
 
 	~Configurator();
 
-	std::string getValue(std::string sectionName, std::string valueName, std::string defaultValue = "") const;
-	int getInteger(std::string sectionName, std::string valueName, int defaultValue = 0) const;
-	bool getBoolean(std::string sectionName, std::string valueName, bool defaultValue = false) const;
-	double getFloat(std::string sectionName, std::string valueName, double defaultValue = 0.0) const;
-	unsigned int getFormatted(std::string sectionName, std::string valueName, char *format,
+	std::string getValue(const std::string &sectionName, const std::string &valueName, const std::string &defaultValue = "") const;
+	int getInteger(const std::string &sectionName, const std::string &valueName, int defaultValue = 0) const;
+	bool getBoolean(const std::string &sectionName, const std::string &valueName, bool defaultValue = false) const;
+	double getFloat(const std::string &sectionName, const std::string &valueName, double defaultValue = 0.0) const;
+	unsigned int getFormatted(const std::string &sectionName, const std::string &valueName, char *format,
 	                          void *v1 = 0, void *v2 = 0, void *v3 = 0, void *v4 = 0,
 	                          void *v5 = 0, void *v6 = 0, void *v7 = 0, void *v8 = 0,
 	                          void *v9 = 0, void *v10 = 0, void *v11 = 0, void *v12 = 0,
 	                          void *v13 = 0, void *v14 = 0, void *v15 = 0, void *v16 = 0);
 
-	void addValue(std::string sectionName, std::string valueName, std::string value);
+	void addValue(const std::string &sectionName, const std::string &valueName, const std::string &value);
 
-	void writeFile(std::string title = "Configuration File");
+	void writeFile(const std::string &title = "Configuration File");
 
 private:
 	bool readFile();
 
-	unsigned int addKeyName(std::string sectionName);
-	int findKey(std::string sectionName) const;
-	int findValue(unsigned int sectionID, std::string valueName) const;
+	unsigned int addKeyName(const std::string &sectionName);
+	int findKey(const std::string &sectionName) const;
+	int findValue(unsigned int sectionID, const std::string &valueName) const;
 
 	std::string path;
 

@@ -48,6 +48,7 @@
 #include "Reactor/Nucleus.hpp"
 #include "System/CPUID.hpp"
 #include "System/Debug.hpp"
+#include "System/SwiftConfig.hpp"
 #include "WSI/HeadlessSurfaceKHR.hpp"
 #include "WSI/VkSwapchainKHR.hpp"
 
@@ -136,12 +137,16 @@ std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 
 	static Scheduler scheduler;  // TODO(b/208256248): Avoid exit-time destructor.
 
+	const sw::Configuration &config = sw::getConfiguration();
+	int threadCount = config.threadCount;
+
 	marl::lock lock(scheduler.mutex);
 	auto sptr = scheduler.weakptr.lock();
 	if(!sptr)
 	{
 		marl::Scheduler::Config cfg;
-		cfg.setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
+		cfg.setWorkerThreadCount(threadCount == 0 ? std::min<size_t>(marl::Thread::numLogicalCPUs(), 16)
+		                                          : threadCount);
 		cfg.setWorkerThreadInitializer([](int) {
 			sw::CPUID::setFlushToZero(true);
 			sw::CPUID::setDenormalsAreZero(true);

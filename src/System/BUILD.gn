@@ -26,6 +26,7 @@ swiftshader_source_set("System_headers") {
     "Memory.hpp",
     "Socket.cpp",
     "Socket.hpp",
+    "SwiftConfig.hpp",
     "Timer.hpp",
   ]
   if (is_linux || is_chromeos || is_android) {
@@ -44,6 +45,7 @@ swiftshader_source_set("System") {
     "Half.cpp",
     "Math.cpp",
     "Memory.cpp",
+    "SwiftConfig.cpp",
     "Timer.cpp",
   ]
   if (is_linux || is_chromeos || is_android) {

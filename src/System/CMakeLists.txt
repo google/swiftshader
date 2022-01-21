@@ -37,6 +37,8 @@ set(SYSTEM_SRC_FILES
     Socket.cpp
     Socket.hpp
     Synchronization.hpp
+    SwiftConfig.cpp
+    SwiftConfig.hpp
     Timer.cpp
     Timer.hpp
     Types.hpp
