@@ -15,51 +15,40 @@
 #ifndef sw_Configurator_hpp
 #define sw_Configurator_hpp
 
+#include <optional>
 #include <string>
-#include <vector>
-
-#include <stdlib.h>
+#include <unordered_map>
 
 namespace sw {
 
 class Configurator
 {
 public:
-	Configurator(const std::string &iniPath = "");
+	// Construct a Configurator given a configuration file.
+	explicit Configurator(const std::string &filePath);
 
-	~Configurator();
+	// Construct a Configurator given an in-memory stream.
+	explicit Configurator(std::istream &str);
 
-	std::string getValue(const std::string &sectionName, const std::string &valueName, const std::string &defaultValue = "") const;
-	int getInteger(const std::string &sectionName, const std::string &valueName, int defaultValue = 0) const;
-	bool getBoolean(const std::string &sectionName, const std::string &valueName, bool defaultValue = false) const;
-	double getFloat(const std::string &sectionName, const std::string &valueName, double defaultValue = 0.0) const;
-	unsigned int getFormatted(const std::string &sectionName, const std::string &valueName, char *format,
-	                          void *v1 = 0, void *v2 = 0, void *v3 = 0, void *v4 = 0,
-	                          void *v5 = 0, void *v6 = 0, void *v7 = 0, void *v8 = 0,
-	                          void *v9 = 0, void *v10 = 0, void *v11 = 0, void *v12 = 0,
-	                          void *v13 = 0, void *v14 = 0, void *v15 = 0, void *v16 = 0);
+	void writeFile(const std::string &filePath, const std::string &title = "Configuration File");
 
-	void addValue(const std::string &sectionName, const std::string &valueName, const std::string &value);
+	int getInteger(const std::string &sectionName, const std::string &keyName, int defaultValue = 0) const;
+	bool getBoolean(const std::string &sectionName, const std::string &keyName, bool defaultValue = false) const;
+	double getFloat(const std::string &sectionName, const std::string &keyName, double defaultValue = 0.0) const;
 
-	void writeFile(const std::string &title = "Configuration File");
+	std::string getValue(const std::string &sectionName, const std::string &keyName, const std::string &defaultValue = "") const;
+	void addValue(const std::string &sectionName, const std::string &keyName, const std::string &value);
 
 private:
-	bool readFile();
+	bool readConfiguration(std::istream &str);
 
-	unsigned int addKeyName(const std::string &sectionName);
-	int findKey(const std::string &sectionName) const;
-	int findValue(unsigned int sectionID, const std::string &valueName) const;
-
-	std::string path;
+	std::optional<std::string> getValueIfExists(const std::string &sectionName, const std::string &keyName) const;
 
 	struct Section
 	{
-		std::vector<std::string> names;
-		std::vector<std::string> values;
+		std::unordered_map<std::string, std::string> keyValuePairs;
 	};
-
-	std::vector<Section> sections;
-	std::vector<std::string> names;
+	std::unordered_map<std::string, Section> sections;
 };
 
 }  // namespace sw

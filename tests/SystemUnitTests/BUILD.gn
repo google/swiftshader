@@ -26,6 +26,7 @@ test("swiftshader_system_unittests") {
 
   sources = [
     "//gpu/swiftshader_tests_main.cc",
+    "ConfiguratorTests.cpp",
     "LRUCacheTests.cpp",
     "unittests.cpp",
     "SynchronizationTests.cpp",
