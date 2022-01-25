@@ -520,7 +520,7 @@ func (r *regres) getOrBuildDEQP(test *test) (deqpBuild, error) {
 
 		if err := shell.Shell(buildTimeout, r.cmake, buildDir,
 			"-DDEQP_TARGET=default",
-			"-DCMAKE_BUILD_TYPE=RelWithAsserts",
+			"-DCMAKE_BUILD_TYPE=Release",
 			".."); err != nil {
 			return deqpBuild{}, cause.Wrap(err, "Couldn't generate build rules for deqp %v @ %v", cfg.Remote, cfg.SHA)
 		}
