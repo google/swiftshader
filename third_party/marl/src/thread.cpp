@@ -129,6 +129,10 @@ Thread::Affinity::Affinity(std::initializer_list<Core> list,
   }
 }
 
+Thread::Affinity::Affinity(const containers::vector<Core, 32>& coreList,
+                           Allocator* allocator)
+    : cores(coreList, allocator) {}
+
 Thread::Affinity Thread::Affinity::all(
     Allocator* allocator /* = Allocator::Default */) {
   Thread::Affinity affinity(allocator);

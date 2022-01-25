@@ -99,6 +99,9 @@ class Thread {
 
     MARL_EXPORT Affinity(std::initializer_list<Core>, Allocator* allocator);
 
+    MARL_EXPORT Affinity(const containers::vector<Core, 32>&,
+                         Allocator* allocator);
+
     // count() returns the number of enabled cores in the affinity.
     MARL_EXPORT size_t count() const;
 

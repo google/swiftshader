@@ -100,6 +100,20 @@ TEST_F(WithoutBoundScheduler, ThreadAffinityAllCountNonzero) {
   }
 }
 
+TEST_F(WithoutBoundScheduler, ThreadAffinityFromVector) {
+  marl::containers::vector<marl::Thread::Core, 32> cores(allocator);
+  cores.push_back(core(10));
+  cores.push_back(core(20));
+  cores.push_back(core(30));
+  cores.push_back(core(40));
+  auto affinity = marl::Thread::Affinity(cores, allocator);
+  EXPECT_EQ(affinity.count(), cores.size());
+  EXPECT_EQ(affinity[0], core(10));
+  EXPECT_EQ(affinity[1], core(20));
+  EXPECT_EQ(affinity[2], core(30));
+  EXPECT_EQ(affinity[3], core(40));
+}
+
 TEST_F(WithoutBoundScheduler, ThreadAffinityPolicyOneOf) {
   auto all = marl::Thread::Affinity(
       {
