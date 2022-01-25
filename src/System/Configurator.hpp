@@ -16,6 +16,7 @@
 #define sw_Configurator_hpp
 
 #include <optional>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 
@@ -32,7 +33,8 @@ public:
 
 	void writeFile(const std::string &filePath, const std::string &title = "Configuration File");
 
-	int getInteger(const std::string &sectionName, const std::string &keyName, int defaultValue = 0) const;
+	template<typename T>
+	int getInteger(const std::string &sectionName, const std::string &keyName, T defaultValue = 0) const;
 	bool getBoolean(const std::string &sectionName, const std::string &keyName, bool defaultValue = false) const;
 	double getFloat(const std::string &sectionName, const std::string &keyName, double defaultValue = 0.0) const;
 
@@ -50,6 +52,24 @@ private:
 	};
 	std::unordered_map<std::string, Section> sections;
 };
+
+template<typename T>
+int Configurator::getInteger(const std::string &sectionName, const std::string &keyName, T defaultValue) const
+{
+	static_assert(std::is_integral_v<T>, "getInteger must be used with integral types");
+
+	auto strValue = getValueIfExists(sectionName, keyName);
+	if(!strValue)
+		return defaultValue;
+
+	std::stringstream ss{ *strValue };
+	if(strValue->find("0x") != std::string::npos)
+		ss >> std::hex;
+
+	T val = 0;
+	ss >> val;
+	return val;
+}
 
 }  // namespace sw
 

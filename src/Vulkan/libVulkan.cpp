@@ -137,20 +137,12 @@ std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 
 	static Scheduler scheduler;  // TODO(b/208256248): Avoid exit-time destructor.
 
-	const sw::Configuration &config = sw::getConfiguration();
-	int threadCount = config.threadCount;
-
 	marl::lock lock(scheduler.mutex);
 	auto sptr = scheduler.weakptr.lock();
 	if(!sptr)
 	{
-		marl::Scheduler::Config cfg;
-		cfg.setWorkerThreadCount(threadCount == 0 ? std::min<size_t>(marl::Thread::numLogicalCPUs(), 16)
-		                                          : threadCount);
-		cfg.setWorkerThreadInitializer([](int) {
-			sw::CPUID::setFlushToZero(true);
-			sw::CPUID::setDenormalsAreZero(true);
-		});
+		const sw::Configuration &config = sw::getConfiguration();
+		marl::Scheduler::Config cfg = sw::getSchedulerConfiguration(config);
 		sptr = std::make_shared<marl::Scheduler>(cfg);
 		scheduler.weakptr = sptr;
 	}

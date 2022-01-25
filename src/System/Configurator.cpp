@@ -18,7 +18,6 @@
 #include <algorithm>
 #include <fstream>
 #include <istream>
-#include <sstream>
 
 namespace {
 inline std::string trimSpaces(const std::string &str)
@@ -175,25 +174,6 @@ std::string Configurator::getValue(const std::string &sectionName, const std::st
 void Configurator::addValue(const std::string &sectionName, const std::string &keyName, const std::string &value)
 {
 	sections[sectionName].keyValuePairs[keyName] = value;
-}
-
-int Configurator::getInteger(const std::string &sectionName, const std::string &keyName, int defaultValue) const
-{
-	auto strValue = getValueIfExists(sectionName, keyName);
-	if(!strValue)
-	{
-		return defaultValue;
-	}
-
-	std::stringstream ss{ *strValue };
-	if(strValue->find("0x") != std::string::npos)
-	{
-		ss >> std::hex;
-	}
-
-	int val = 0;
-	ss >> val;
-	return val;
 }
 
 bool Configurator::getBoolean(const std::string &sectionName, const std::string &keyName, bool defaultValue) const
