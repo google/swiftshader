@@ -19,10 +19,6 @@
 #include "System/Types.hpp"
 #include "Vulkan/VkFormat.hpp"
 
-namespace vk {
-class Image;
-}
-
 namespace sw {
 
 struct Mipmap

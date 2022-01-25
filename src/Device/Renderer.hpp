@@ -15,7 +15,6 @@
 #ifndef sw_Renderer_hpp
 #define sw_Renderer_hpp
 
-#include "Blitter.hpp"
 #include "PixelProcessor.hpp"
 #include "Primitive.hpp"
 #include "SetupProcessor.hpp"
@@ -28,9 +27,6 @@
 #include "marl/ticket.h"
 
 #include <atomic>
-#include <list>
-#include <mutex>
-#include <thread>
 
 namespace vk {
 

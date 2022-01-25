@@ -17,6 +17,7 @@
 
 #include "VkImageView.hpp"
 #include "VkSampler.hpp"
+#include "Device/Blitter.hpp"
 #include "Pipeline/Constants.hpp"
 #include "Reactor/Routine.hpp"
 #include "System/LRUCache.hpp"
@@ -31,9 +32,6 @@
 
 namespace marl {
 class Scheduler;
-}
-namespace sw {
-class Blitter;
 }
 
 namespace vk {

@@ -29,7 +29,6 @@ namespace vk {
 
 class Image;
 class ImageView;
-class Buffer;
 
 }  // namespace vk
 
