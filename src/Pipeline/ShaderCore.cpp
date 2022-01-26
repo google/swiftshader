@@ -668,16 +668,6 @@ rr::RValue<sw::SIMD::UInt> Bitmask32(rr::RValue<sw::SIMD::UInt> const &bitCount)
 	return NthBit32(bitCount) - sw::SIMD::UInt(1);
 }
 
-// Computes `a * b + c`, which may be fused into one operation to produce a higher-precision result.
-rr::RValue<sw::SIMD::Float> FMA(
-    rr::RValue<sw::SIMD::Float> const &a,
-    rr::RValue<sw::SIMD::Float> const &b,
-    rr::RValue<sw::SIMD::Float> const &c)
-{
-	// TODO(b/214591655): Use FMA when available.
-	return a * b + c;
-}
-
 // Returns the exponent of the floating point number f.
 // Assumes IEEE 754
 rr::RValue<sw::SIMD::Int> Exponent(rr::RValue<sw::SIMD::Float> f)

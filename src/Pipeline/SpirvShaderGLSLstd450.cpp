@@ -505,7 +505,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto c = Operand(this, state, insn.word(7));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, FMA(a.Float(i), b.Float(i), c.Float(i)));
+				dst.move(i, MulAdd(a.Float(i), b.Float(i), c.Float(i)));
 			}
 		}
 		break;
