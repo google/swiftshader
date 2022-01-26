@@ -2343,6 +2343,9 @@ RValue<Float4> operator%=(Float4 &lhs, RValue<Float4> rhs);
 RValue<Float4> operator+(RValue<Float4> val);
 RValue<Float4> operator-(RValue<Float4> val);
 
+// Computes `x * y + z`, which may be fused into one operation to produce a higher-precision result.
+RValue<Float4> MulAdd(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z);
+
 RValue<Float4> Abs(RValue<Float4> x);
 RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y);
 RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y);

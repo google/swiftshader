@@ -3934,6 +3934,12 @@ Float4::Float4(RValue<Float> rhs)
 	storeValue(replicate);
 }
 
+RValue<Float4> MulAdd(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
+{
+	// TODO(b/214591655): Use FMA when available.
+	return x * y + z;
+}
+
 RValue<Float4> Abs(RValue<Float4> x)
 {
 	// TODO: Optimize.
