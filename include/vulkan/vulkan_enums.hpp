@@ -1,4 +1,4 @@
-// Copyright 2015-2021 The Khronos Group Inc.
+// Copyright 2015-2022 The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
@@ -58,6 +58,7 @@ namespace VULKAN_HPP_NAMESPACE
     eErrorInvalidExternalHandle                  = VK_ERROR_INVALID_EXTERNAL_HANDLE,
     eErrorFragmentation                          = VK_ERROR_FRAGMENTATION,
     eErrorInvalidOpaqueCaptureAddress            = VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS,
+    ePipelineCompileRequired                     = VK_PIPELINE_COMPILE_REQUIRED,
     eErrorSurfaceLostKHR                         = VK_ERROR_SURFACE_LOST_KHR,
     eErrorNativeWindowInUseKHR                   = VK_ERROR_NATIVE_WINDOW_IN_USE_KHR,
     eSuboptimalKHR                               = VK_SUBOPTIMAL_KHR,
@@ -66,7 +67,7 @@ namespace VULKAN_HPP_NAMESPACE
     eErrorValidationFailedEXT                    = VK_ERROR_VALIDATION_FAILED_EXT,
     eErrorInvalidShaderNV                        = VK_ERROR_INVALID_SHADER_NV,
     eErrorInvalidDrmFormatModifierPlaneLayoutEXT = VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT,
-    eErrorNotPermittedEXT                        = VK_ERROR_NOT_PERMITTED_EXT,
+    eErrorNotPermittedKHR                        = VK_ERROR_NOT_PERMITTED_KHR,
 #if defined( VK_USE_PLATFORM_WIN32_KHR )
     eErrorFullScreenExclusiveModeLostEXT = VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT,
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
@@ -74,13 +75,14 @@ namespace VULKAN_HPP_NAMESPACE
     eThreadDoneKHR                       = VK_THREAD_DONE_KHR,
     eOperationDeferredKHR                = VK_OPERATION_DEFERRED_KHR,
     eOperationNotDeferredKHR             = VK_OPERATION_NOT_DEFERRED_KHR,
-    ePipelineCompileRequiredEXT          = VK_PIPELINE_COMPILE_REQUIRED_EXT,
     eErrorFragmentationEXT               = VK_ERROR_FRAGMENTATION_EXT,
     eErrorInvalidDeviceAddressEXT        = VK_ERROR_INVALID_DEVICE_ADDRESS_EXT,
     eErrorInvalidExternalHandleKHR       = VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR,
     eErrorInvalidOpaqueCaptureAddressKHR = VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS_KHR,
+    eErrorNotPermittedEXT                = VK_ERROR_NOT_PERMITTED_EXT,
     eErrorOutOfPoolMemoryKHR             = VK_ERROR_OUT_OF_POOL_MEMORY_KHR,
-    eErrorPipelineCompileRequiredEXT     = VK_ERROR_PIPELINE_COMPILE_REQUIRED_EXT
+    eErrorPipelineCompileRequiredEXT     = VK_ERROR_PIPELINE_COMPILE_REQUIRED_EXT,
+    ePipelineCompileRequiredEXT          = VK_PIPELINE_COMPILE_REQUIRED_EXT
   };
 
   VULKAN_HPP_INLINE std::string to_string( Result value )
@@ -110,6 +112,7 @@ namespace VULKAN_HPP_NAMESPACE
       case Result::eErrorInvalidExternalHandle: return "ErrorInvalidExternalHandle";
       case Result::eErrorFragmentation: return "ErrorFragmentation";
       case Result::eErrorInvalidOpaqueCaptureAddress: return "ErrorInvalidOpaqueCaptureAddress";
+      case Result::ePipelineCompileRequired: return "PipelineCompileRequired";
       case Result::eErrorSurfaceLostKHR: return "ErrorSurfaceLostKHR";
       case Result::eErrorNativeWindowInUseKHR: return "ErrorNativeWindowInUseKHR";
       case Result::eSuboptimalKHR: return "SuboptimalKHR";
@@ -118,7 +121,7 @@ namespace VULKAN_HPP_NAMESPACE
       case Result::eErrorValidationFailedEXT: return "ErrorValidationFailedEXT";
       case Result::eErrorInvalidShaderNV: return "ErrorInvalidShaderNV";
       case Result::eErrorInvalidDrmFormatModifierPlaneLayoutEXT: return "ErrorInvalidDrmFormatModifierPlaneLayoutEXT";
-      case Result::eErrorNotPermittedEXT: return "ErrorNotPermittedEXT";
+      case Result::eErrorNotPermittedKHR: return "ErrorNotPermittedKHR";
 #if defined( VK_USE_PLATFORM_WIN32_KHR )
       case Result::eErrorFullScreenExclusiveModeLostEXT: return "ErrorFullScreenExclusiveModeLostEXT";
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
@@ -126,7 +129,6 @@ namespace VULKAN_HPP_NAMESPACE
       case Result::eThreadDoneKHR: return "ThreadDoneKHR";
       case Result::eOperationDeferredKHR: return "OperationDeferredKHR";
       case Result::eOperationNotDeferredKHR: return "OperationNotDeferredKHR";
-      case Result::ePipelineCompileRequiredEXT: return "PipelineCompileRequiredEXT";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -303,17 +305,77 @@ namespace VULKAN_HPP_NAMESPACE
     eBufferOpaqueCaptureAddressCreateInfo      = VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO,
     eMemoryOpaqueCaptureAddressAllocateInfo    = VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO,
     eDeviceMemoryOpaqueCaptureAddressInfo      = VK_STRUCTURE_TYPE_DEVICE_MEMORY_OPAQUE_CAPTURE_ADDRESS_INFO,
-    eSwapchainCreateInfoKHR                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-    ePresentInfoKHR                            = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-    eDeviceGroupPresentCapabilitiesKHR         = VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_CAPABILITIES_KHR,
-    eImageSwapchainCreateInfoKHR               = VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR,
-    eBindImageMemorySwapchainInfoKHR           = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR,
-    eAcquireNextImageInfoKHR                   = VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR,
-    eDeviceGroupPresentInfoKHR                 = VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR,
-    eDeviceGroupSwapchainCreateInfoKHR         = VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR,
-    eDisplayModeCreateInfoKHR                  = VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR,
-    eDisplaySurfaceCreateInfoKHR               = VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR,
-    eDisplayPresentInfoKHR                     = VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR,
+    ePhysicalDeviceVulkan13Features            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+    ePhysicalDeviceVulkan13Properties          = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES,
+    ePipelineCreationFeedbackCreateInfo        = VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO,
+    ePhysicalDeviceShaderTerminateInvocationFeatures =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES,
+    ePhysicalDeviceToolProperties = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TOOL_PROPERTIES,
+    ePhysicalDeviceShaderDemoteToHelperInvocationFeatures =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES,
+    ePhysicalDevicePrivateDataFeatures = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES,
+    eDevicePrivateDataCreateInfo       = VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO,
+    ePrivateDataSlotCreateInfo         = VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO,
+    ePhysicalDevicePipelineCreationCacheControlFeatures =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES,
+    eMemoryBarrier2                         = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+    eBufferMemoryBarrier2                   = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+    eImageMemoryBarrier2                    = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+    eDependencyInfo                         = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+    eSubmitInfo2                            = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+    eSemaphoreSubmitInfo                    = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+    eCommandBufferSubmitInfo                = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+    ePhysicalDeviceSynchronization2Features = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
+    ePhysicalDeviceZeroInitializeWorkgroupMemoryFeatures =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES,
+    ePhysicalDeviceImageRobustnessFeatures       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES,
+    eCopyBufferInfo2                             = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2,
+    eCopyImageInfo2                              = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2,
+    eCopyBufferToImageInfo2                      = VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2,
+    eCopyImageToBufferInfo2                      = VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2,
+    eBlitImageInfo2                              = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
+    eResolveImageInfo2                           = VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2,
+    eBufferCopy2                                 = VK_STRUCTURE_TYPE_BUFFER_COPY_2,
+    eImageCopy2                                  = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
+    eImageBlit2                                  = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
+    eBufferImageCopy2                            = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2,
+    eImageResolve2                               = VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2,
+    ePhysicalDeviceSubgroupSizeControlProperties = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES,
+    ePipelineShaderStageRequiredSubgroupSizeCreateInfo =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO,
+    ePhysicalDeviceSubgroupSizeControlFeatures  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES,
+    ePhysicalDeviceInlineUniformBlockFeatures   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES,
+    ePhysicalDeviceInlineUniformBlockProperties = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_PROPERTIES,
+    eWriteDescriptorSetInlineUniformBlock       = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK,
+    eDescriptorPoolInlineUniformBlockCreateInfo = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_INLINE_UNIFORM_BLOCK_CREATE_INFO,
+    ePhysicalDeviceTextureCompressionAstcHdrFeatures =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES,
+    eRenderingInfo                          = VK_STRUCTURE_TYPE_RENDERING_INFO,
+    eRenderingAttachmentInfo                = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    ePipelineRenderingCreateInfo            = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+    ePhysicalDeviceDynamicRenderingFeatures = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
+    eCommandBufferInheritanceRenderingInfo  = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO,
+    ePhysicalDeviceShaderIntegerDotProductFeatures =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES,
+    ePhysicalDeviceShaderIntegerDotProductProperties =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES,
+    ePhysicalDeviceTexelBufferAlignmentProperties = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES,
+    eFormatProperties3                            = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3,
+    ePhysicalDeviceMaintenance4Features           = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES,
+    ePhysicalDeviceMaintenance4Properties         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES,
+    eDeviceBufferMemoryRequirements               = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
+    eDeviceImageMemoryRequirements                = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS,
+    eSwapchainCreateInfoKHR                       = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+    ePresentInfoKHR                               = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+    eDeviceGroupPresentCapabilitiesKHR            = VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_CAPABILITIES_KHR,
+    eImageSwapchainCreateInfoKHR                  = VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR,
+    eBindImageMemorySwapchainInfoKHR              = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR,
+    eAcquireNextImageInfoKHR                      = VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR,
+    eDeviceGroupPresentInfoKHR                    = VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR,
+    eDeviceGroupSwapchainCreateInfoKHR            = VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR,
+    eDisplayModeCreateInfoKHR                     = VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR,
+    eDisplaySurfaceCreateInfoKHR                  = VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR,
+    eDisplayPresentInfoKHR                        = VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR,
 #if defined( VK_USE_PLATFORM_XLIB_KHR )
     eXlibSurfaceCreateInfoKHR = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
@@ -336,23 +398,24 @@ namespace VULKAN_HPP_NAMESPACE
     eDebugMarkerObjectTagInfoEXT  = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_TAG_INFO_EXT,
     eDebugMarkerMarkerInfoEXT     = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
-    eVideoProfileKHR                     = VK_STRUCTURE_TYPE_VIDEO_PROFILE_KHR,
-    eVideoCapabilitiesKHR                = VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR,
-    eVideoPictureResourceKHR             = VK_STRUCTURE_TYPE_VIDEO_PICTURE_RESOURCE_KHR,
-    eVideoGetMemoryPropertiesKHR         = VK_STRUCTURE_TYPE_VIDEO_GET_MEMORY_PROPERTIES_KHR,
-    eVideoBindMemoryKHR                  = VK_STRUCTURE_TYPE_VIDEO_BIND_MEMORY_KHR,
-    eVideoSessionCreateInfoKHR           = VK_STRUCTURE_TYPE_VIDEO_SESSION_CREATE_INFO_KHR,
-    eVideoSessionParametersCreateInfoKHR = VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_CREATE_INFO_KHR,
-    eVideoSessionParametersUpdateInfoKHR = VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_UPDATE_INFO_KHR,
-    eVideoBeginCodingInfoKHR             = VK_STRUCTURE_TYPE_VIDEO_BEGIN_CODING_INFO_KHR,
-    eVideoEndCodingInfoKHR               = VK_STRUCTURE_TYPE_VIDEO_END_CODING_INFO_KHR,
-    eVideoCodingControlInfoKHR           = VK_STRUCTURE_TYPE_VIDEO_CODING_CONTROL_INFO_KHR,
-    eVideoReferenceSlotKHR               = VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_KHR,
-    eVideoQueueFamilyProperties2KHR      = VK_STRUCTURE_TYPE_VIDEO_QUEUE_FAMILY_PROPERTIES_2_KHR,
-    eVideoProfilesKHR                    = VK_STRUCTURE_TYPE_VIDEO_PROFILES_KHR,
-    ePhysicalDeviceVideoFormatInfoKHR    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR,
-    eVideoFormatPropertiesKHR            = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR,
-    eVideoDecodeInfoKHR                  = VK_STRUCTURE_TYPE_VIDEO_DECODE_INFO_KHR,
+    eVideoProfileKHR                            = VK_STRUCTURE_TYPE_VIDEO_PROFILE_KHR,
+    eVideoCapabilitiesKHR                       = VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR,
+    eVideoPictureResourceKHR                    = VK_STRUCTURE_TYPE_VIDEO_PICTURE_RESOURCE_KHR,
+    eVideoGetMemoryPropertiesKHR                = VK_STRUCTURE_TYPE_VIDEO_GET_MEMORY_PROPERTIES_KHR,
+    eVideoBindMemoryKHR                         = VK_STRUCTURE_TYPE_VIDEO_BIND_MEMORY_KHR,
+    eVideoSessionCreateInfoKHR                  = VK_STRUCTURE_TYPE_VIDEO_SESSION_CREATE_INFO_KHR,
+    eVideoSessionParametersCreateInfoKHR        = VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_CREATE_INFO_KHR,
+    eVideoSessionParametersUpdateInfoKHR        = VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_UPDATE_INFO_KHR,
+    eVideoBeginCodingInfoKHR                    = VK_STRUCTURE_TYPE_VIDEO_BEGIN_CODING_INFO_KHR,
+    eVideoEndCodingInfoKHR                      = VK_STRUCTURE_TYPE_VIDEO_END_CODING_INFO_KHR,
+    eVideoCodingControlInfoKHR                  = VK_STRUCTURE_TYPE_VIDEO_CODING_CONTROL_INFO_KHR,
+    eVideoReferenceSlotKHR                      = VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_KHR,
+    eVideoQueueFamilyProperties2KHR             = VK_STRUCTURE_TYPE_VIDEO_QUEUE_FAMILY_PROPERTIES_2_KHR,
+    eVideoProfilesKHR                           = VK_STRUCTURE_TYPE_VIDEO_PROFILES_KHR,
+    ePhysicalDeviceVideoFormatInfoKHR           = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR,
+    eVideoFormatPropertiesKHR                   = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR,
+    eQueueFamilyQueryResultStatusProperties2KHR = VK_STRUCTURE_TYPE_QUEUE_FAMILY_QUERY_RESULT_STATUS_PROPERTIES_2_KHR,
+    eVideoDecodeInfoKHR                         = VK_STRUCTURE_TYPE_VIDEO_DECODE_INFO_KHR,
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
     eDedicatedAllocationImageCreateInfoNV         = VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV,
     eDedicatedAllocationBufferCreateInfoNV        = VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_BUFFER_CREATE_INFO_NV,
@@ -377,6 +440,8 @@ namespace VULKAN_HPP_NAMESPACE
     eVideoEncodeH264NaluSliceEXT                = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_NALU_SLICE_EXT,
     eVideoEncodeH264EmitPictureParametersEXT    = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_EMIT_PICTURE_PARAMETERS_EXT,
     eVideoEncodeH264ProfileEXT                  = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_EXT,
+    eVideoEncodeH264RateControlInfoEXT          = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_INFO_EXT,
+    eVideoEncodeH264RateControlLayerInfoEXT     = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_LAYER_INFO_EXT,
     eVideoEncodeH265CapabilitiesEXT             = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_EXT,
     eVideoEncodeH265SessionCreateInfoEXT        = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_CREATE_INFO_EXT,
     eVideoEncodeH265SessionParametersCreateInfoEXT =
@@ -388,6 +453,8 @@ namespace VULKAN_HPP_NAMESPACE
     eVideoEncodeH265EmitPictureParametersEXT    = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_EMIT_PICTURE_PARAMETERS_EXT,
     eVideoEncodeH265ProfileEXT                  = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_EXT,
     eVideoEncodeH265ReferenceListsEXT           = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_REFERENCE_LISTS_EXT,
+    eVideoEncodeH265RateControlInfoEXT          = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_INFO_EXT,
+    eVideoEncodeH265RateControlLayerInfoEXT     = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_LAYER_INFO_EXT,
     eVideoDecodeH264CapabilitiesEXT             = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_EXT,
     eVideoDecodeH264SessionCreateInfoEXT        = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_CREATE_INFO_EXT,
     eVideoDecodeH264PictureInfoEXT              = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PICTURE_INFO_EXT,
@@ -399,6 +466,12 @@ namespace VULKAN_HPP_NAMESPACE
     eVideoDecodeH264DpbSlotInfoEXT              = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_DPB_SLOT_INFO_EXT,
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
     eTextureLodGatherFormatPropertiesAMD = VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD,
+    eRenderingFragmentShadingRateAttachmentInfoKHR =
+      VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR,
+    eRenderingFragmentDensityMapAttachmentInfoEXT =
+      VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_INFO_EXT,
+    eAttachmentSampleCountInfoAMD      = VK_STRUCTURE_TYPE_ATTACHMENT_SAMPLE_COUNT_INFO_AMD,
+    eMultiviewPerViewAttributesInfoNVX = VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_ATTRIBUTES_INFO_NVX,
 #if defined( VK_USE_PLATFORM_GGP )
     eStreamDescriptorSurfaceCreateInfoGGP = VK_STRUCTURE_TYPE_STREAM_DESCRIPTOR_SURFACE_CREATE_INFO_GGP,
 #endif /*VK_USE_PLATFORM_GGP*/
@@ -414,8 +487,6 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_VI_NN )
     eViSurfaceCreateInfoNN = VK_STRUCTURE_TYPE_VI_SURFACE_CREATE_INFO_NN,
 #endif /*VK_USE_PLATFORM_VI_NN*/
-    ePhysicalDeviceTextureCompressionAstcHdrFeaturesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT,
     eImageViewAstcDecodeModeEXT          = VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT,
     ePhysicalDeviceAstcDecodeFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT,
 #if defined( VK_USE_PLATFORM_WIN32_KHR )
@@ -507,12 +578,6 @@ namespace VULKAN_HPP_NAMESPACE
     eAndroidHardwareBufferFormatProperties2ANDROID =
       VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_2_ANDROID,
 #endif /*VK_USE_PLATFORM_ANDROID_KHR*/
-    ePhysicalDeviceInlineUniformBlockFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT,
-    ePhysicalDeviceInlineUniformBlockPropertiesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_PROPERTIES_EXT,
-    eWriteDescriptorSetInlineUniformBlockEXT = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK_EXT,
-    eDescriptorPoolInlineUniformBlockCreateInfoEXT =
-      VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_INLINE_UNIFORM_BLOCK_CREATE_INFO_EXT,
     eSampleLocationsInfoEXT                     = VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT,
     eRenderPassSampleLocationsBeginInfoEXT      = VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT,
     ePipelineSampleLocationsStateCreateInfoEXT  = VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT,
@@ -591,9 +656,8 @@ namespace VULKAN_HPP_NAMESPACE
     ePhysicalDeviceImageViewImageFormatInfoEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_IMAGE_FORMAT_INFO_EXT,
     eFilterCubicImageViewImageFormatPropertiesEXT =
       VK_STRUCTURE_TYPE_FILTER_CUBIC_IMAGE_VIEW_IMAGE_FORMAT_PROPERTIES_EXT,
-    eDeviceQueueGlobalPriorityCreateInfoEXT = VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_EXT,
-    eImportMemoryHostPointerInfoEXT         = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-    eMemoryHostPointerPropertiesEXT         = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+    eImportMemoryHostPointerInfoEXT = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+    eMemoryHostPointerPropertiesEXT = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
     ePhysicalDeviceExternalMemoryHostPropertiesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT,
     ePhysicalDeviceShaderClockFeaturesKHR  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR,
@@ -610,6 +674,10 @@ namespace VULKAN_HPP_NAMESPACE
     eVideoDecodeH265PictureInfoEXT              = VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PICTURE_INFO_EXT,
     eVideoDecodeH265DpbSlotInfoEXT              = VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_DPB_SLOT_INFO_EXT,
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    eDeviceQueueGlobalPriorityCreateInfoKHR = VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR,
+    ePhysicalDeviceGlobalPriorityQueryFeaturesKHR =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR,
+    eQueueFamilyGlobalPriorityPropertiesKHR  = VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR,
     eDeviceMemoryOverallocationCreateInfoAMD = VK_STRUCTURE_TYPE_DEVICE_MEMORY_OVERALLOCATION_CREATE_INFO_AMD,
     ePhysicalDeviceVertexAttributeDivisorPropertiesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT,
@@ -620,7 +688,6 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_GGP )
     ePresentFrameTokenGGP = VK_STRUCTURE_TYPE_PRESENT_FRAME_TOKEN_GGP,
 #endif /*VK_USE_PLATFORM_GGP*/
-    ePipelineCreationFeedbackCreateInfoEXT = VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT,
     ePhysicalDeviceComputeShaderDerivativesFeaturesNV =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_NV,
     ePhysicalDeviceMeshShaderFeaturesNV   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV,
@@ -648,8 +715,6 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_FUCHSIA )
     eImagepipeSurfaceCreateInfoFUCHSIA = VK_STRUCTURE_TYPE_IMAGEPIPE_SURFACE_CREATE_INFO_FUCHSIA,
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
-    ePhysicalDeviceShaderTerminateInvocationFeaturesKHR =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES_KHR,
 #if defined( VK_USE_PLATFORM_METAL_EXT )
     eMetalSurfaceCreateInfoEXT = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT,
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
@@ -657,13 +722,7 @@ namespace VULKAN_HPP_NAMESPACE
     ePhysicalDeviceFragmentDensityMapPropertiesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT,
     eRenderPassFragmentDensityMapCreateInfoEXT = VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT,
-    ePhysicalDeviceSubgroupSizeControlPropertiesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT,
-    ePipelineShaderStageRequiredSubgroupSizeCreateInfoEXT =
-      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT,
-    ePhysicalDeviceSubgroupSizeControlFeaturesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES_EXT,
-    eFragmentShadingRateAttachmentInfoKHR = VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR,
+    eFragmentShadingRateAttachmentInfoKHR      = VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR,
     ePipelineFragmentShadingRateStateCreateInfoKHR =
       VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR,
     ePhysicalDeviceFragmentShadingRatePropertiesKHR =
@@ -684,7 +743,6 @@ namespace VULKAN_HPP_NAMESPACE
     ePhysicalDeviceBufferDeviceAddressFeaturesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT,
     eBufferDeviceAddressCreateInfoEXT            = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT,
-    ePhysicalDeviceToolPropertiesEXT             = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TOOL_PROPERTIES_EXT,
     eValidationFeaturesEXT                       = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
     ePhysicalDevicePresentWaitFeaturesKHR        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_FEATURES_KHR,
     ePhysicalDeviceCooperativeMatrixFeaturesNV   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV,
@@ -722,8 +780,6 @@ namespace VULKAN_HPP_NAMESPACE
     ePipelineExecutableStatisticKHR              = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR,
     ePipelineExecutableInternalRepresentationKHR = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INTERNAL_REPRESENTATION_KHR,
     ePhysicalDeviceShaderAtomicFloat2FeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT,
-    ePhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES_EXT,
     ePhysicalDeviceDeviceGeneratedCommandsPropertiesNV =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV,
     eGraphicsShaderGroupCreateInfoNV           = VK_STRUCTURE_TYPE_GRAPHICS_SHADER_GROUP_CREATE_INFO_NV,
@@ -738,14 +794,8 @@ namespace VULKAN_HPP_NAMESPACE
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INHERITED_VIEWPORT_SCISSOR_FEATURES_NV,
     eCommandBufferInheritanceViewportScissorInfoNV =
       VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_VIEWPORT_SCISSOR_INFO_NV,
-    ePhysicalDeviceShaderIntegerDotProductFeaturesKHR =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES_KHR,
-    ePhysicalDeviceShaderIntegerDotProductPropertiesKHR =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES_KHR,
     ePhysicalDeviceTexelBufferAlignmentFeaturesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT,
-    ePhysicalDeviceTexelBufferAlignmentPropertiesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT,
     eCommandBufferInheritanceRenderPassTransformInfoQCOM =
       VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM,
     eRenderPassTransformBeginInfoQCOM            = VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM,
@@ -761,31 +811,17 @@ namespace VULKAN_HPP_NAMESPACE
     ePipelineLibraryCreateInfoKHR               = VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR,
     ePresentIdKHR                               = VK_STRUCTURE_TYPE_PRESENT_ID_KHR,
     ePhysicalDevicePresentIdFeaturesKHR         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_FEATURES_KHR,
-    ePhysicalDevicePrivateDataFeaturesEXT       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES_EXT,
-    eDevicePrivateDataCreateInfoEXT             = VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO_EXT,
-    ePrivateDataSlotCreateInfoEXT               = VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO_EXT,
-    ePhysicalDevicePipelineCreationCacheControlFeaturesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT,
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
-    eVideoEncodeInfoKHR            = VK_STRUCTURE_TYPE_VIDEO_ENCODE_INFO_KHR,
-    eVideoEncodeRateControlInfoKHR = VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR,
+    eVideoEncodeInfoKHR                 = VK_STRUCTURE_TYPE_VIDEO_ENCODE_INFO_KHR,
+    eVideoEncodeRateControlInfoKHR      = VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR,
+    eVideoEncodeRateControlLayerInfoKHR = VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR,
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
     ePhysicalDeviceDiagnosticsConfigFeaturesNV = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV,
     eDeviceDiagnosticsConfigCreateInfoNV       = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV,
-    eMemoryBarrier2KHR                         = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2_KHR,
-    eBufferMemoryBarrier2KHR                   = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2_KHR,
-    eImageMemoryBarrier2KHR                    = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2_KHR,
-    eDependencyInfoKHR                         = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR,
-    eSubmitInfo2KHR                            = VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR,
-    eSemaphoreSubmitInfoKHR                    = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR,
-    eCommandBufferSubmitInfoKHR                = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR,
-    ePhysicalDeviceSynchronization2FeaturesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR,
     eQueueFamilyCheckpointProperties2NV        = VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV,
     eCheckpointData2NV                         = VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV,
     ePhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR,
-    ePhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES_KHR,
     ePhysicalDeviceFragmentShadingRateEnumsPropertiesNV =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV,
     ePhysicalDeviceFragmentShadingRateEnumsFeaturesNV =
@@ -803,22 +839,12 @@ namespace VULKAN_HPP_NAMESPACE
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT,
     ePhysicalDeviceFragmentDensityMap2PropertiesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT,
-    eCopyCommandTransformInfoQCOM             = VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM,
-    ePhysicalDeviceImageRobustnessFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT,
+    eCopyCommandTransformInfoQCOM = VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM,
     ePhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR,
-    eCopyBufferInfo2KHR                       = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2_KHR,
-    eCopyImageInfo2KHR                        = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2_KHR,
-    eCopyBufferToImageInfo2KHR                = VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2_KHR,
-    eCopyImageToBufferInfo2KHR                = VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2_KHR,
-    eBlitImageInfo2KHR                        = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2_KHR,
-    eResolveImageInfo2KHR                     = VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2_KHR,
-    eBufferCopy2KHR                           = VK_STRUCTURE_TYPE_BUFFER_COPY_2_KHR,
-    eImageCopy2KHR                            = VK_STRUCTURE_TYPE_IMAGE_COPY_2_KHR,
-    eImageBlit2KHR                            = VK_STRUCTURE_TYPE_IMAGE_BLIT_2_KHR,
-    eBufferImageCopy2KHR                      = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2_KHR,
-    eImageResolve2KHR                         = VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR,
-    ePhysicalDevice4444FormatsFeaturesEXT     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT,
+    ePhysicalDevice4444FormatsFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT,
+    ePhysicalDeviceRasterizationOrderAttachmentAccessFeaturesARM =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_ARM,
     ePhysicalDeviceRgba10X6FormatsFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RGBA10X6_FORMATS_FEATURES_EXT,
 #if defined( VK_USE_PLATFORM_DIRECTFB_EXT )
     eDirectfbSurfaceCreateInfoEXT = VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT,
@@ -828,12 +854,14 @@ namespace VULKAN_HPP_NAMESPACE
     eMutableDescriptorTypeCreateInfoVALVE = VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_VALVE,
     ePhysicalDeviceVertexInputDynamicStateFeaturesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT,
-    eVertexInputBindingDescription2EXT   = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
-    eVertexInputAttributeDescription2EXT = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-    ePhysicalDeviceDrmPropertiesEXT      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT,
+    eVertexInputBindingDescription2EXT         = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
+    eVertexInputAttributeDescription2EXT       = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
+    ePhysicalDeviceDrmPropertiesEXT            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT,
+    ePhysicalDeviceDepthClipControlFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT,
+    ePipelineViewportDepthClipControlCreateInfoEXT =
+      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLIP_CONTROL_CREATE_INFO_EXT,
     ePhysicalDevicePrimitiveTopologyListRestartFeaturesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT,
-    eFormatProperties3KHR = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3_KHR,
 #if defined( VK_USE_PLATFORM_FUCHSIA )
     eImportMemoryZirconHandleInfoFUCHSIA     = VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA,
     eMemoryZirconHandlePropertiesFUCHSIA     = VK_STRUCTURE_TYPE_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA,
@@ -862,11 +890,10 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_SCREEN_QNX )
     eScreenSurfaceCreateInfoQNX = VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX,
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
-    ePhysicalDeviceColorWriteEnableFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT,
-    ePipelineColorWriteCreateInfoEXT           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT,
-    ePhysicalDeviceGlobalPriorityQueryFeaturesEXT =
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_EXT,
-    eQueueFamilyGlobalPriorityPropertiesEXT      = VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_EXT,
+    ePhysicalDeviceColorWriteEnableFeaturesEXT   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT,
+    ePipelineColorWriteCreateInfoEXT             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT,
+    ePhysicalDeviceImageViewMinLodFeaturesEXT    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_MIN_LOD_FEATURES_EXT,
+    eImageViewMinLodCreateInfoEXT                = VK_STRUCTURE_TYPE_IMAGE_VIEW_MIN_LOD_CREATE_INFO_EXT,
     ePhysicalDeviceMultiDrawFeaturesEXT          = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_FEATURES_EXT,
     ePhysicalDeviceMultiDrawPropertiesEXT        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT,
     ePhysicalDeviceBorderColorSwizzleFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT,
@@ -874,24 +901,41 @@ namespace VULKAN_HPP_NAMESPACE
       VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT,
     ePhysicalDevicePageableDeviceLocalMemoryFeaturesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT,
-    ePhysicalDeviceMaintenance4FeaturesKHR   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR,
-    ePhysicalDeviceMaintenance4PropertiesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES_KHR,
-    eDeviceBufferMemoryRequirementsKHR       = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR,
-    eDeviceImageMemoryRequirementsKHR        = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS_KHR,
-    eAttachmentDescription2KHR               = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2_KHR,
-    eAttachmentDescriptionStencilLayoutKHR   = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_STENCIL_LAYOUT_KHR,
-    eAttachmentReference2KHR                 = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR,
-    eAttachmentReferenceStencilLayoutKHR     = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_STENCIL_LAYOUT_KHR,
-    eBindBufferMemoryDeviceGroupInfoKHR      = VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_DEVICE_GROUP_INFO_KHR,
-    eBindBufferMemoryInfoKHR                 = VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO_KHR,
-    eBindImageMemoryDeviceGroupInfoKHR       = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_DEVICE_GROUP_INFO_KHR,
-    eBindImageMemoryInfoKHR                  = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO_KHR,
-    eBindImagePlaneMemoryInfoKHR             = VK_STRUCTURE_TYPE_BIND_IMAGE_PLANE_MEMORY_INFO_KHR,
-    eBufferDeviceAddressInfoEXT              = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_EXT,
-    eBufferDeviceAddressInfoKHR              = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR,
-    eBufferMemoryRequirementsInfo2KHR        = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR,
-    eBufferOpaqueCaptureAddressCreateInfoKHR = VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO_KHR,
-    eDebugReportCreateInfoEXT                = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
+    ePhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_FEATURES_QCOM,
+    ePhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_PROPERTIES_QCOM,
+    eSubpassFragmentDensityMapOffsetEndInfoQCOM = VK_STRUCTURE_TYPE_SUBPASS_FRAGMENT_DENSITY_MAP_OFFSET_END_INFO_QCOM,
+    ePhysicalDeviceLinearColorAttachmentFeaturesNV =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINEAR_COLOR_ATTACHMENT_FEATURES_NV,
+    eAttachmentDescription2KHR                = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2_KHR,
+    eAttachmentDescriptionStencilLayoutKHR    = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_STENCIL_LAYOUT_KHR,
+    eAttachmentReference2KHR                  = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR,
+    eAttachmentReferenceStencilLayoutKHR      = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_STENCIL_LAYOUT_KHR,
+    eAttachmentSampleCountInfoNV              = VK_STRUCTURE_TYPE_ATTACHMENT_SAMPLE_COUNT_INFO_NV,
+    eBindBufferMemoryDeviceGroupInfoKHR       = VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_DEVICE_GROUP_INFO_KHR,
+    eBindBufferMemoryInfoKHR                  = VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO_KHR,
+    eBindImageMemoryDeviceGroupInfoKHR        = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_DEVICE_GROUP_INFO_KHR,
+    eBindImageMemoryInfoKHR                   = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO_KHR,
+    eBindImagePlaneMemoryInfoKHR              = VK_STRUCTURE_TYPE_BIND_IMAGE_PLANE_MEMORY_INFO_KHR,
+    eBlitImageInfo2KHR                        = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2_KHR,
+    eBufferCopy2KHR                           = VK_STRUCTURE_TYPE_BUFFER_COPY_2_KHR,
+    eBufferDeviceAddressInfoEXT               = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_EXT,
+    eBufferDeviceAddressInfoKHR               = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR,
+    eBufferImageCopy2KHR                      = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2_KHR,
+    eBufferMemoryBarrier2KHR                  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2_KHR,
+    eBufferMemoryRequirementsInfo2KHR         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR,
+    eBufferOpaqueCaptureAddressCreateInfoKHR  = VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO_KHR,
+    eCommandBufferInheritanceRenderingInfoKHR = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO_KHR,
+    eCommandBufferSubmitInfoKHR               = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR,
+    eCopyBufferInfo2KHR                       = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2_KHR,
+    eCopyBufferToImageInfo2KHR                = VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2_KHR,
+    eCopyImageInfo2KHR                        = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2_KHR,
+    eCopyImageToBufferInfo2KHR                = VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2_KHR,
+    eDebugReportCreateInfoEXT                 = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
+    eDependencyInfoKHR                        = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR,
+    eDescriptorPoolInlineUniformBlockCreateInfoEXT =
+      VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_INLINE_UNIFORM_BLOCK_CREATE_INFO_EXT,
     eDescriptorSetLayoutBindingFlagsCreateInfoEXT =
       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT,
     eDescriptorSetLayoutSupportKHR = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT_KHR,
@@ -900,12 +944,16 @@ namespace VULKAN_HPP_NAMESPACE
     eDescriptorSetVariableDescriptorCountLayoutSupportEXT =
       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT_EXT,
     eDescriptorUpdateTemplateCreateInfoKHR     = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR,
+    eDeviceBufferMemoryRequirementsKHR         = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR,
     eDeviceGroupBindSparseInfoKHR              = VK_STRUCTURE_TYPE_DEVICE_GROUP_BIND_SPARSE_INFO_KHR,
     eDeviceGroupCommandBufferBeginInfoKHR      = VK_STRUCTURE_TYPE_DEVICE_GROUP_COMMAND_BUFFER_BEGIN_INFO_KHR,
     eDeviceGroupDeviceCreateInfoKHR            = VK_STRUCTURE_TYPE_DEVICE_GROUP_DEVICE_CREATE_INFO_KHR,
     eDeviceGroupRenderPassBeginInfoKHR         = VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO_KHR,
     eDeviceGroupSubmitInfoKHR                  = VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO_KHR,
+    eDeviceImageMemoryRequirementsKHR          = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS_KHR,
     eDeviceMemoryOpaqueCaptureAddressInfoKHR   = VK_STRUCTURE_TYPE_DEVICE_MEMORY_OPAQUE_CAPTURE_ADDRESS_INFO_KHR,
+    eDevicePrivateDataCreateInfoEXT            = VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO_EXT,
+    eDeviceQueueGlobalPriorityCreateInfoEXT    = VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_EXT,
     eExportFenceCreateInfoKHR                  = VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO_KHR,
     eExportMemoryAllocateInfoKHR               = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_KHR,
     eExportSemaphoreCreateInfoKHR              = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO_KHR,
@@ -916,16 +964,22 @@ namespace VULKAN_HPP_NAMESPACE
     eExternalMemoryImageCreateInfoKHR          = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_KHR,
     eExternalSemaphorePropertiesKHR            = VK_STRUCTURE_TYPE_EXTERNAL_SEMAPHORE_PROPERTIES_KHR,
     eFormatProperties2KHR                      = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2_KHR,
+    eFormatProperties3KHR                      = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3_KHR,
     eFramebufferAttachmentsCreateInfoKHR       = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO_KHR,
     eFramebufferAttachmentImageInfoKHR         = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO_KHR,
+    eImageBlit2KHR                             = VK_STRUCTURE_TYPE_IMAGE_BLIT_2_KHR,
+    eImageCopy2KHR                             = VK_STRUCTURE_TYPE_IMAGE_COPY_2_KHR,
     eImageFormatListCreateInfoKHR              = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR,
     eImageFormatProperties2KHR                 = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2_KHR,
+    eImageMemoryBarrier2KHR                    = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2_KHR,
     eImageMemoryRequirementsInfo2KHR           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR,
     eImagePlaneMemoryRequirementsInfoKHR       = VK_STRUCTURE_TYPE_IMAGE_PLANE_MEMORY_REQUIREMENTS_INFO_KHR,
+    eImageResolve2KHR                          = VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR,
     eImageSparseMemoryRequirementsInfo2KHR     = VK_STRUCTURE_TYPE_IMAGE_SPARSE_MEMORY_REQUIREMENTS_INFO_2_KHR,
     eImageStencilUsageCreateInfoEXT            = VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO_EXT,
     eImageViewUsageCreateInfoKHR               = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO_KHR,
     eMemoryAllocateFlagsInfoKHR                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR,
+    eMemoryBarrier2KHR                         = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2_KHR,
     eMemoryDedicatedAllocateInfoKHR            = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR,
     eMemoryDedicatedRequirementsKHR            = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR,
     eMemoryOpaqueCaptureAddressAllocateInfoKHR = VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO_KHR,
@@ -940,25 +994,37 @@ namespace VULKAN_HPP_NAMESPACE
     ePhysicalDeviceDescriptorIndexingFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT,
     ePhysicalDeviceDescriptorIndexingPropertiesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES_EXT,
-    ePhysicalDeviceDriverPropertiesKHR        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR,
-    ePhysicalDeviceExternalBufferInfoKHR      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_BUFFER_INFO_KHR,
-    ePhysicalDeviceExternalFenceInfoKHR       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FENCE_INFO_KHR,
-    ePhysicalDeviceExternalImageFormatInfoKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO_KHR,
-    ePhysicalDeviceExternalSemaphoreInfoKHR   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SEMAPHORE_INFO_KHR,
-    ePhysicalDeviceFeatures2KHR               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
-    ePhysicalDeviceFloat16Int8FeaturesKHR     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT16_INT8_FEATURES_KHR,
-    ePhysicalDeviceFloatControlsPropertiesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_KHR,
-    ePhysicalDeviceGroupPropertiesKHR         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES_KHR,
-    ePhysicalDeviceHostQueryResetFeaturesEXT  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT,
-    ePhysicalDeviceIdPropertiesKHR            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR,
+    ePhysicalDeviceDriverPropertiesKHR         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR,
+    ePhysicalDeviceDynamicRenderingFeaturesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+    ePhysicalDeviceExternalBufferInfoKHR       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_BUFFER_INFO_KHR,
+    ePhysicalDeviceExternalFenceInfoKHR        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FENCE_INFO_KHR,
+    ePhysicalDeviceExternalImageFormatInfoKHR  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO_KHR,
+    ePhysicalDeviceExternalSemaphoreInfoKHR    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SEMAPHORE_INFO_KHR,
+    ePhysicalDeviceFeatures2KHR                = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
+    ePhysicalDeviceFloat16Int8FeaturesKHR      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT16_INT8_FEATURES_KHR,
+    ePhysicalDeviceFloatControlsPropertiesKHR  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_KHR,
+    ePhysicalDeviceGlobalPriorityQueryFeaturesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_EXT,
+    ePhysicalDeviceGroupPropertiesKHR        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES_KHR,
+    ePhysicalDeviceHostQueryResetFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT,
+    ePhysicalDeviceIdPropertiesKHR           = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR,
     ePhysicalDeviceImagelessFramebufferFeaturesKHR =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES_KHR,
-    ePhysicalDeviceImageFormatInfo2KHR        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2_KHR,
-    ePhysicalDeviceMaintenance3PropertiesKHR  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES_KHR,
-    ePhysicalDeviceMemoryProperties2KHR       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2_KHR,
-    ePhysicalDeviceMultiviewFeaturesKHR       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
-    ePhysicalDeviceMultiviewPropertiesKHR     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES_KHR,
+    ePhysicalDeviceImageFormatInfo2KHR           = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2_KHR,
+    ePhysicalDeviceImageRobustnessFeaturesEXT    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT,
+    ePhysicalDeviceInlineUniformBlockFeaturesEXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT,
+    ePhysicalDeviceInlineUniformBlockPropertiesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_PROPERTIES_EXT,
+    ePhysicalDeviceMaintenance3PropertiesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES_KHR,
+    ePhysicalDeviceMaintenance4FeaturesKHR   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR,
+    ePhysicalDeviceMaintenance4PropertiesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES_KHR,
+    ePhysicalDeviceMemoryProperties2KHR      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2_KHR,
+    ePhysicalDeviceMultiviewFeaturesKHR      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
+    ePhysicalDeviceMultiviewPropertiesKHR    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES_KHR,
+    ePhysicalDevicePipelineCreationCacheControlFeaturesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT,
     ePhysicalDevicePointClippingPropertiesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_POINT_CLIPPING_PROPERTIES_KHR,
+    ePhysicalDevicePrivateDataFeaturesEXT     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES_EXT,
     ePhysicalDeviceProperties2KHR             = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
     ePhysicalDeviceSamplerFilterMinmaxPropertiesEXT =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES_EXT,
@@ -968,44 +1034,76 @@ namespace VULKAN_HPP_NAMESPACE
     ePhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES_KHR,
     ePhysicalDeviceShaderAtomicInt64FeaturesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES_KHR,
+    ePhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES_EXT,
     ePhysicalDeviceShaderDrawParameterFeatures  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES,
     ePhysicalDeviceShaderFloat16Int8FeaturesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES_KHR,
+    ePhysicalDeviceShaderIntegerDotProductFeaturesKHR =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES_KHR,
+    ePhysicalDeviceShaderIntegerDotProductPropertiesKHR =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES_KHR,
     ePhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR,
-    ePhysicalDeviceSparseImageFormatInfo2KHR      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SPARSE_IMAGE_FORMAT_INFO_2_KHR,
+    ePhysicalDeviceShaderTerminateInvocationFeaturesKHR =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES_KHR,
+    ePhysicalDeviceSparseImageFormatInfo2KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SPARSE_IMAGE_FORMAT_INFO_2_KHR,
+    ePhysicalDeviceSubgroupSizeControlFeaturesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES_EXT,
+    ePhysicalDeviceSubgroupSizeControlPropertiesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT,
+    ePhysicalDeviceSynchronization2FeaturesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR,
+    ePhysicalDeviceTexelBufferAlignmentPropertiesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT,
+    ePhysicalDeviceTextureCompressionAstcHdrFeaturesEXT =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT,
     ePhysicalDeviceTimelineSemaphoreFeaturesKHR   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR,
     ePhysicalDeviceTimelineSemaphorePropertiesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_PROPERTIES_KHR,
+    ePhysicalDeviceToolPropertiesEXT              = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TOOL_PROPERTIES_EXT,
     ePhysicalDeviceUniformBufferStandardLayoutFeaturesKHR =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES_KHR,
     ePhysicalDeviceVariablePointersFeaturesKHR  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES_KHR,
     ePhysicalDeviceVariablePointerFeatures      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES,
     ePhysicalDeviceVariablePointerFeaturesKHR   = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES_KHR,
     ePhysicalDeviceVulkanMemoryModelFeaturesKHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES_KHR,
+    ePhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES_KHR,
+    ePipelineCreationFeedbackCreateInfoEXT = VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT,
+    ePipelineRenderingCreateInfoKHR        = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+    ePipelineShaderStageRequiredSubgroupSizeCreateInfoEXT =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT,
     ePipelineTessellationDomainOriginStateCreateInfoKHR =
       VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_DOMAIN_ORIGIN_STATE_CREATE_INFO_KHR,
-    eQueryPoolCreateInfoINTEL         = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO_INTEL,
-    eQueueFamilyProperties2KHR        = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2_KHR,
-    eRenderPassAttachmentBeginInfoKHR = VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO_KHR,
-    eRenderPassCreateInfo2KHR         = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2_KHR,
+    ePrivateDataSlotCreateInfoEXT           = VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO_EXT,
+    eQueryPoolCreateInfoINTEL               = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO_INTEL,
+    eQueueFamilyGlobalPriorityPropertiesEXT = VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_EXT,
+    eQueueFamilyProperties2KHR              = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2_KHR,
+    eRenderingAttachmentInfoKHR             = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+    eRenderingInfoKHR                       = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+    eRenderPassAttachmentBeginInfoKHR       = VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO_KHR,
+    eRenderPassCreateInfo2KHR               = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2_KHR,
     eRenderPassInputAttachmentAspectCreateInfoKHR =
       VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO_KHR,
     eRenderPassMultiviewCreateInfoKHR    = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR,
+    eResolveImageInfo2KHR                = VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2_KHR,
     eSamplerReductionModeCreateInfoEXT   = VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT,
     eSamplerYcbcrConversionCreateInfoKHR = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO_KHR,
     eSamplerYcbcrConversionImageFormatPropertiesKHR =
       VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_IMAGE_FORMAT_PROPERTIES_KHR,
     eSamplerYcbcrConversionInfoKHR            = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO_KHR,
     eSemaphoreSignalInfoKHR                   = VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO_KHR,
+    eSemaphoreSubmitInfoKHR                   = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR,
     eSemaphoreTypeCreateInfoKHR               = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO_KHR,
     eSemaphoreWaitInfoKHR                     = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR,
     eSparseImageFormatProperties2KHR          = VK_STRUCTURE_TYPE_SPARSE_IMAGE_FORMAT_PROPERTIES_2_KHR,
     eSparseImageMemoryRequirements2KHR        = VK_STRUCTURE_TYPE_SPARSE_IMAGE_MEMORY_REQUIREMENTS_2_KHR,
+    eSubmitInfo2KHR                           = VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR,
     eSubpassBeginInfoKHR                      = VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO_KHR,
     eSubpassDependency2KHR                    = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2_KHR,
     eSubpassDescription2KHR                   = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2_KHR,
     eSubpassDescriptionDepthStencilResolveKHR = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE_KHR,
     eSubpassEndInfoKHR                        = VK_STRUCTURE_TYPE_SUBPASS_END_INFO_KHR,
-    eTimelineSemaphoreSubmitInfoKHR           = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO_KHR
+    eTimelineSemaphoreSubmitInfoKHR           = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO_KHR,
+    eWriteDescriptorSetInlineUniformBlockEXT  = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK_EXT
   };
 
   VULKAN_HPP_INLINE std::string to_string( StructureType value )
@@ -1193,6 +1291,71 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eBufferOpaqueCaptureAddressCreateInfo: return "BufferOpaqueCaptureAddressCreateInfo";
       case StructureType::eMemoryOpaqueCaptureAddressAllocateInfo: return "MemoryOpaqueCaptureAddressAllocateInfo";
       case StructureType::eDeviceMemoryOpaqueCaptureAddressInfo: return "DeviceMemoryOpaqueCaptureAddressInfo";
+      case StructureType::ePhysicalDeviceVulkan13Features: return "PhysicalDeviceVulkan13Features";
+      case StructureType::ePhysicalDeviceVulkan13Properties: return "PhysicalDeviceVulkan13Properties";
+      case StructureType::ePipelineCreationFeedbackCreateInfo: return "PipelineCreationFeedbackCreateInfo";
+      case StructureType::ePhysicalDeviceShaderTerminateInvocationFeatures:
+        return "PhysicalDeviceShaderTerminateInvocationFeatures";
+      case StructureType::ePhysicalDeviceToolProperties: return "PhysicalDeviceToolProperties";
+      case StructureType::ePhysicalDeviceShaderDemoteToHelperInvocationFeatures:
+        return "PhysicalDeviceShaderDemoteToHelperInvocationFeatures";
+      case StructureType::ePhysicalDevicePrivateDataFeatures: return "PhysicalDevicePrivateDataFeatures";
+      case StructureType::eDevicePrivateDataCreateInfo: return "DevicePrivateDataCreateInfo";
+      case StructureType::ePrivateDataSlotCreateInfo: return "PrivateDataSlotCreateInfo";
+      case StructureType::ePhysicalDevicePipelineCreationCacheControlFeatures:
+        return "PhysicalDevicePipelineCreationCacheControlFeatures";
+      case StructureType::eMemoryBarrier2: return "MemoryBarrier2";
+      case StructureType::eBufferMemoryBarrier2: return "BufferMemoryBarrier2";
+      case StructureType::eImageMemoryBarrier2: return "ImageMemoryBarrier2";
+      case StructureType::eDependencyInfo: return "DependencyInfo";
+      case StructureType::eSubmitInfo2: return "SubmitInfo2";
+      case StructureType::eSemaphoreSubmitInfo: return "SemaphoreSubmitInfo";
+      case StructureType::eCommandBufferSubmitInfo: return "CommandBufferSubmitInfo";
+      case StructureType::ePhysicalDeviceSynchronization2Features: return "PhysicalDeviceSynchronization2Features";
+      case StructureType::ePhysicalDeviceZeroInitializeWorkgroupMemoryFeatures:
+        return "PhysicalDeviceZeroInitializeWorkgroupMemoryFeatures";
+      case StructureType::ePhysicalDeviceImageRobustnessFeatures: return "PhysicalDeviceImageRobustnessFeatures";
+      case StructureType::eCopyBufferInfo2: return "CopyBufferInfo2";
+      case StructureType::eCopyImageInfo2: return "CopyImageInfo2";
+      case StructureType::eCopyBufferToImageInfo2: return "CopyBufferToImageInfo2";
+      case StructureType::eCopyImageToBufferInfo2: return "CopyImageToBufferInfo2";
+      case StructureType::eBlitImageInfo2: return "BlitImageInfo2";
+      case StructureType::eResolveImageInfo2: return "ResolveImageInfo2";
+      case StructureType::eBufferCopy2: return "BufferCopy2";
+      case StructureType::eImageCopy2: return "ImageCopy2";
+      case StructureType::eImageBlit2: return "ImageBlit2";
+      case StructureType::eBufferImageCopy2: return "BufferImageCopy2";
+      case StructureType::eImageResolve2: return "ImageResolve2";
+      case StructureType::ePhysicalDeviceSubgroupSizeControlProperties:
+        return "PhysicalDeviceSubgroupSizeControlProperties";
+      case StructureType::ePipelineShaderStageRequiredSubgroupSizeCreateInfo:
+        return "PipelineShaderStageRequiredSubgroupSizeCreateInfo";
+      case StructureType::ePhysicalDeviceSubgroupSizeControlFeatures:
+        return "PhysicalDeviceSubgroupSizeControlFeatures";
+      case StructureType::ePhysicalDeviceInlineUniformBlockFeatures: return "PhysicalDeviceInlineUniformBlockFeatures";
+      case StructureType::ePhysicalDeviceInlineUniformBlockProperties:
+        return "PhysicalDeviceInlineUniformBlockProperties";
+      case StructureType::eWriteDescriptorSetInlineUniformBlock: return "WriteDescriptorSetInlineUniformBlock";
+      case StructureType::eDescriptorPoolInlineUniformBlockCreateInfo:
+        return "DescriptorPoolInlineUniformBlockCreateInfo";
+      case StructureType::ePhysicalDeviceTextureCompressionAstcHdrFeatures:
+        return "PhysicalDeviceTextureCompressionAstcHdrFeatures";
+      case StructureType::eRenderingInfo: return "RenderingInfo";
+      case StructureType::eRenderingAttachmentInfo: return "RenderingAttachmentInfo";
+      case StructureType::ePipelineRenderingCreateInfo: return "PipelineRenderingCreateInfo";
+      case StructureType::ePhysicalDeviceDynamicRenderingFeatures: return "PhysicalDeviceDynamicRenderingFeatures";
+      case StructureType::eCommandBufferInheritanceRenderingInfo: return "CommandBufferInheritanceRenderingInfo";
+      case StructureType::ePhysicalDeviceShaderIntegerDotProductFeatures:
+        return "PhysicalDeviceShaderIntegerDotProductFeatures";
+      case StructureType::ePhysicalDeviceShaderIntegerDotProductProperties:
+        return "PhysicalDeviceShaderIntegerDotProductProperties";
+      case StructureType::ePhysicalDeviceTexelBufferAlignmentProperties:
+        return "PhysicalDeviceTexelBufferAlignmentProperties";
+      case StructureType::eFormatProperties3: return "FormatProperties3";
+      case StructureType::ePhysicalDeviceMaintenance4Features: return "PhysicalDeviceMaintenance4Features";
+      case StructureType::ePhysicalDeviceMaintenance4Properties: return "PhysicalDeviceMaintenance4Properties";
+      case StructureType::eDeviceBufferMemoryRequirements: return "DeviceBufferMemoryRequirements";
+      case StructureType::eDeviceImageMemoryRequirements: return "DeviceImageMemoryRequirements";
       case StructureType::eSwapchainCreateInfoKHR: return "SwapchainCreateInfoKHR";
       case StructureType::ePresentInfoKHR: return "PresentInfoKHR";
       case StructureType::eDeviceGroupPresentCapabilitiesKHR: return "DeviceGroupPresentCapabilitiesKHR";
@@ -1242,6 +1405,8 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eVideoProfilesKHR: return "VideoProfilesKHR";
       case StructureType::ePhysicalDeviceVideoFormatInfoKHR: return "PhysicalDeviceVideoFormatInfoKHR";
       case StructureType::eVideoFormatPropertiesKHR: return "VideoFormatPropertiesKHR";
+      case StructureType::eQueueFamilyQueryResultStatusProperties2KHR:
+        return "QueueFamilyQueryResultStatusProperties2KHR";
       case StructureType::eVideoDecodeInfoKHR: return "VideoDecodeInfoKHR";
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
       case StructureType::eDedicatedAllocationImageCreateInfoNV: return "DedicatedAllocationImageCreateInfoNV";
@@ -1270,6 +1435,8 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eVideoEncodeH264NaluSliceEXT: return "VideoEncodeH264NaluSliceEXT";
       case StructureType::eVideoEncodeH264EmitPictureParametersEXT: return "VideoEncodeH264EmitPictureParametersEXT";
       case StructureType::eVideoEncodeH264ProfileEXT: return "VideoEncodeH264ProfileEXT";
+      case StructureType::eVideoEncodeH264RateControlInfoEXT: return "VideoEncodeH264RateControlInfoEXT";
+      case StructureType::eVideoEncodeH264RateControlLayerInfoEXT: return "VideoEncodeH264RateControlLayerInfoEXT";
       case StructureType::eVideoEncodeH265CapabilitiesEXT: return "VideoEncodeH265CapabilitiesEXT";
       case StructureType::eVideoEncodeH265SessionCreateInfoEXT: return "VideoEncodeH265SessionCreateInfoEXT";
       case StructureType::eVideoEncodeH265SessionParametersCreateInfoEXT:
@@ -1282,6 +1449,8 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eVideoEncodeH265EmitPictureParametersEXT: return "VideoEncodeH265EmitPictureParametersEXT";
       case StructureType::eVideoEncodeH265ProfileEXT: return "VideoEncodeH265ProfileEXT";
       case StructureType::eVideoEncodeH265ReferenceListsEXT: return "VideoEncodeH265ReferenceListsEXT";
+      case StructureType::eVideoEncodeH265RateControlInfoEXT: return "VideoEncodeH265RateControlInfoEXT";
+      case StructureType::eVideoEncodeH265RateControlLayerInfoEXT: return "VideoEncodeH265RateControlLayerInfoEXT";
       case StructureType::eVideoDecodeH264CapabilitiesEXT: return "VideoDecodeH264CapabilitiesEXT";
       case StructureType::eVideoDecodeH264SessionCreateInfoEXT: return "VideoDecodeH264SessionCreateInfoEXT";
       case StructureType::eVideoDecodeH264PictureInfoEXT: return "VideoDecodeH264PictureInfoEXT";
@@ -1294,6 +1463,12 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eVideoDecodeH264DpbSlotInfoEXT: return "VideoDecodeH264DpbSlotInfoEXT";
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
       case StructureType::eTextureLodGatherFormatPropertiesAMD: return "TextureLodGatherFormatPropertiesAMD";
+      case StructureType::eRenderingFragmentShadingRateAttachmentInfoKHR:
+        return "RenderingFragmentShadingRateAttachmentInfoKHR";
+      case StructureType::eRenderingFragmentDensityMapAttachmentInfoEXT:
+        return "RenderingFragmentDensityMapAttachmentInfoEXT";
+      case StructureType::eAttachmentSampleCountInfoAMD: return "AttachmentSampleCountInfoAMD";
+      case StructureType::eMultiviewPerViewAttributesInfoNVX: return "MultiviewPerViewAttributesInfoNVX";
 #if defined( VK_USE_PLATFORM_GGP )
       case StructureType::eStreamDescriptorSurfaceCreateInfoGGP: return "StreamDescriptorSurfaceCreateInfoGGP";
 #endif /*VK_USE_PLATFORM_GGP*/
@@ -1310,8 +1485,6 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_VI_NN )
       case StructureType::eViSurfaceCreateInfoNN: return "ViSurfaceCreateInfoNN";
 #endif /*VK_USE_PLATFORM_VI_NN*/
-      case StructureType::ePhysicalDeviceTextureCompressionAstcHdrFeaturesEXT:
-        return "PhysicalDeviceTextureCompressionAstcHdrFeaturesEXT";
       case StructureType::eImageViewAstcDecodeModeEXT: return "ImageViewAstcDecodeModeEXT";
       case StructureType::ePhysicalDeviceAstcDecodeFeaturesEXT: return "PhysicalDeviceAstcDecodeFeaturesEXT";
 #if defined( VK_USE_PLATFORM_WIN32_KHR )
@@ -1411,13 +1584,6 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eAndroidHardwareBufferFormatProperties2ANDROID:
         return "AndroidHardwareBufferFormatProperties2ANDROID";
 #endif /*VK_USE_PLATFORM_ANDROID_KHR*/
-      case StructureType::ePhysicalDeviceInlineUniformBlockFeaturesEXT:
-        return "PhysicalDeviceInlineUniformBlockFeaturesEXT";
-      case StructureType::ePhysicalDeviceInlineUniformBlockPropertiesEXT:
-        return "PhysicalDeviceInlineUniformBlockPropertiesEXT";
-      case StructureType::eWriteDescriptorSetInlineUniformBlockEXT: return "WriteDescriptorSetInlineUniformBlockEXT";
-      case StructureType::eDescriptorPoolInlineUniformBlockCreateInfoEXT:
-        return "DescriptorPoolInlineUniformBlockCreateInfoEXT";
       case StructureType::eSampleLocationsInfoEXT: return "SampleLocationsInfoEXT";
       case StructureType::eRenderPassSampleLocationsBeginInfoEXT: return "RenderPassSampleLocationsBeginInfoEXT";
       case StructureType::ePipelineSampleLocationsStateCreateInfoEXT:
@@ -1512,7 +1678,6 @@ namespace VULKAN_HPP_NAMESPACE
         return "PhysicalDeviceImageViewImageFormatInfoEXT";
       case StructureType::eFilterCubicImageViewImageFormatPropertiesEXT:
         return "FilterCubicImageViewImageFormatPropertiesEXT";
-      case StructureType::eDeviceQueueGlobalPriorityCreateInfoEXT: return "DeviceQueueGlobalPriorityCreateInfoEXT";
       case StructureType::eImportMemoryHostPointerInfoEXT: return "ImportMemoryHostPointerInfoEXT";
       case StructureType::eMemoryHostPointerPropertiesEXT: return "MemoryHostPointerPropertiesEXT";
       case StructureType::ePhysicalDeviceExternalMemoryHostPropertiesEXT:
@@ -1532,6 +1697,10 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eVideoDecodeH265PictureInfoEXT: return "VideoDecodeH265PictureInfoEXT";
       case StructureType::eVideoDecodeH265DpbSlotInfoEXT: return "VideoDecodeH265DpbSlotInfoEXT";
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+      case StructureType::eDeviceQueueGlobalPriorityCreateInfoKHR: return "DeviceQueueGlobalPriorityCreateInfoKHR";
+      case StructureType::ePhysicalDeviceGlobalPriorityQueryFeaturesKHR:
+        return "PhysicalDeviceGlobalPriorityQueryFeaturesKHR";
+      case StructureType::eQueueFamilyGlobalPriorityPropertiesKHR: return "QueueFamilyGlobalPriorityPropertiesKHR";
       case StructureType::eDeviceMemoryOverallocationCreateInfoAMD: return "DeviceMemoryOverallocationCreateInfoAMD";
       case StructureType::ePhysicalDeviceVertexAttributeDivisorPropertiesEXT:
         return "PhysicalDeviceVertexAttributeDivisorPropertiesEXT";
@@ -1542,7 +1711,6 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_GGP )
       case StructureType::ePresentFrameTokenGGP: return "PresentFrameTokenGGP";
 #endif /*VK_USE_PLATFORM_GGP*/
-      case StructureType::ePipelineCreationFeedbackCreateInfoEXT: return "PipelineCreationFeedbackCreateInfoEXT";
       case StructureType::ePhysicalDeviceComputeShaderDerivativesFeaturesNV:
         return "PhysicalDeviceComputeShaderDerivativesFeaturesNV";
       case StructureType::ePhysicalDeviceMeshShaderFeaturesNV: return "PhysicalDeviceMeshShaderFeaturesNV";
@@ -1570,8 +1738,6 @@ namespace VULKAN_HPP_NAMESPACE
 #if defined( VK_USE_PLATFORM_FUCHSIA )
       case StructureType::eImagepipeSurfaceCreateInfoFUCHSIA: return "ImagepipeSurfaceCreateInfoFUCHSIA";
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
-      case StructureType::ePhysicalDeviceShaderTerminateInvocationFeaturesKHR:
-        return "PhysicalDeviceShaderTerminateInvocationFeaturesKHR";
 #if defined( VK_USE_PLATFORM_METAL_EXT )
       case StructureType::eMetalSurfaceCreateInfoEXT: return "MetalSurfaceCreateInfoEXT";
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
@@ -1581,12 +1747,6 @@ namespace VULKAN_HPP_NAMESPACE
         return "PhysicalDeviceFragmentDensityMapPropertiesEXT";
       case StructureType::eRenderPassFragmentDensityMapCreateInfoEXT:
         return "RenderPassFragmentDensityMapCreateInfoEXT";
-      case StructureType::ePhysicalDeviceSubgroupSizeControlPropertiesEXT:
-        return "PhysicalDeviceSubgroupSizeControlPropertiesEXT";
-      case StructureType::ePipelineShaderStageRequiredSubgroupSizeCreateInfoEXT:
-        return "PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT";
-      case StructureType::ePhysicalDeviceSubgroupSizeControlFeaturesEXT:
-        return "PhysicalDeviceSubgroupSizeControlFeaturesEXT";
       case StructureType::eFragmentShadingRateAttachmentInfoKHR: return "FragmentShadingRateAttachmentInfoKHR";
       case StructureType::ePipelineFragmentShadingRateStateCreateInfoKHR:
         return "PipelineFragmentShadingRateStateCreateInfoKHR";
@@ -1608,7 +1768,6 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::ePhysicalDeviceBufferDeviceAddressFeaturesEXT:
         return "PhysicalDeviceBufferDeviceAddressFeaturesEXT";
       case StructureType::eBufferDeviceAddressCreateInfoEXT: return "BufferDeviceAddressCreateInfoEXT";
-      case StructureType::ePhysicalDeviceToolPropertiesEXT: return "PhysicalDeviceToolPropertiesEXT";
       case StructureType::eValidationFeaturesEXT: return "ValidationFeaturesEXT";
       case StructureType::ePhysicalDevicePresentWaitFeaturesKHR: return "PhysicalDevicePresentWaitFeaturesKHR";
       case StructureType::ePhysicalDeviceCooperativeMatrixFeaturesNV:
@@ -1658,8 +1817,6 @@ namespace VULKAN_HPP_NAMESPACE
         return "PipelineExecutableInternalRepresentationKHR";
       case StructureType::ePhysicalDeviceShaderAtomicFloat2FeaturesEXT:
         return "PhysicalDeviceShaderAtomicFloat2FeaturesEXT";
-      case StructureType::ePhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT:
-        return "PhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT";
       case StructureType::ePhysicalDeviceDeviceGeneratedCommandsPropertiesNV:
         return "PhysicalDeviceDeviceGeneratedCommandsPropertiesNV";
       case StructureType::eGraphicsShaderGroupCreateInfoNV: return "GraphicsShaderGroupCreateInfoNV";
@@ -1675,14 +1832,8 @@ namespace VULKAN_HPP_NAMESPACE
         return "PhysicalDeviceInheritedViewportScissorFeaturesNV";
       case StructureType::eCommandBufferInheritanceViewportScissorInfoNV:
         return "CommandBufferInheritanceViewportScissorInfoNV";
-      case StructureType::ePhysicalDeviceShaderIntegerDotProductFeaturesKHR:
-        return "PhysicalDeviceShaderIntegerDotProductFeaturesKHR";
-      case StructureType::ePhysicalDeviceShaderIntegerDotProductPropertiesKHR:
-        return "PhysicalDeviceShaderIntegerDotProductPropertiesKHR";
       case StructureType::ePhysicalDeviceTexelBufferAlignmentFeaturesEXT:
         return "PhysicalDeviceTexelBufferAlignmentFeaturesEXT";
-      case StructureType::ePhysicalDeviceTexelBufferAlignmentPropertiesEXT:
-        return "PhysicalDeviceTexelBufferAlignmentPropertiesEXT";
       case StructureType::eCommandBufferInheritanceRenderPassTransformInfoQCOM:
         return "CommandBufferInheritanceRenderPassTransformInfoQCOM";
       case StructureType::eRenderPassTransformBeginInfoQCOM: return "RenderPassTransformBeginInfoQCOM";
@@ -1700,33 +1851,18 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::ePipelineLibraryCreateInfoKHR: return "PipelineLibraryCreateInfoKHR";
       case StructureType::ePresentIdKHR: return "PresentIdKHR";
       case StructureType::ePhysicalDevicePresentIdFeaturesKHR: return "PhysicalDevicePresentIdFeaturesKHR";
-      case StructureType::ePhysicalDevicePrivateDataFeaturesEXT: return "PhysicalDevicePrivateDataFeaturesEXT";
-      case StructureType::eDevicePrivateDataCreateInfoEXT: return "DevicePrivateDataCreateInfoEXT";
-      case StructureType::ePrivateDataSlotCreateInfoEXT: return "PrivateDataSlotCreateInfoEXT";
-      case StructureType::ePhysicalDevicePipelineCreationCacheControlFeaturesEXT:
-        return "PhysicalDevicePipelineCreationCacheControlFeaturesEXT";
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
       case StructureType::eVideoEncodeInfoKHR: return "VideoEncodeInfoKHR";
       case StructureType::eVideoEncodeRateControlInfoKHR: return "VideoEncodeRateControlInfoKHR";
+      case StructureType::eVideoEncodeRateControlLayerInfoKHR: return "VideoEncodeRateControlLayerInfoKHR";
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
       case StructureType::ePhysicalDeviceDiagnosticsConfigFeaturesNV:
         return "PhysicalDeviceDiagnosticsConfigFeaturesNV";
       case StructureType::eDeviceDiagnosticsConfigCreateInfoNV: return "DeviceDiagnosticsConfigCreateInfoNV";
-      case StructureType::eMemoryBarrier2KHR: return "MemoryBarrier2KHR";
-      case StructureType::eBufferMemoryBarrier2KHR: return "BufferMemoryBarrier2KHR";
-      case StructureType::eImageMemoryBarrier2KHR: return "ImageMemoryBarrier2KHR";
-      case StructureType::eDependencyInfoKHR: return "DependencyInfoKHR";
-      case StructureType::eSubmitInfo2KHR: return "SubmitInfo2KHR";
-      case StructureType::eSemaphoreSubmitInfoKHR: return "SemaphoreSubmitInfoKHR";
-      case StructureType::eCommandBufferSubmitInfoKHR: return "CommandBufferSubmitInfoKHR";
-      case StructureType::ePhysicalDeviceSynchronization2FeaturesKHR:
-        return "PhysicalDeviceSynchronization2FeaturesKHR";
       case StructureType::eQueueFamilyCheckpointProperties2NV: return "QueueFamilyCheckpointProperties2NV";
       case StructureType::eCheckpointData2NV: return "CheckpointData2NV";
       case StructureType::ePhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR:
         return "PhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR";
-      case StructureType::ePhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR:
-        return "PhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR";
       case StructureType::ePhysicalDeviceFragmentShadingRateEnumsPropertiesNV:
         return "PhysicalDeviceFragmentShadingRateEnumsPropertiesNV";
       case StructureType::ePhysicalDeviceFragmentShadingRateEnumsFeaturesNV:
@@ -1745,21 +1881,11 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::ePhysicalDeviceFragmentDensityMap2PropertiesEXT:
         return "PhysicalDeviceFragmentDensityMap2PropertiesEXT";
       case StructureType::eCopyCommandTransformInfoQCOM: return "CopyCommandTransformInfoQCOM";
-      case StructureType::ePhysicalDeviceImageRobustnessFeaturesEXT: return "PhysicalDeviceImageRobustnessFeaturesEXT";
       case StructureType::ePhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR:
         return "PhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR";
-      case StructureType::eCopyBufferInfo2KHR: return "CopyBufferInfo2KHR";
-      case StructureType::eCopyImageInfo2KHR: return "CopyImageInfo2KHR";
-      case StructureType::eCopyBufferToImageInfo2KHR: return "CopyBufferToImageInfo2KHR";
-      case StructureType::eCopyImageToBufferInfo2KHR: return "CopyImageToBufferInfo2KHR";
-      case StructureType::eBlitImageInfo2KHR: return "BlitImageInfo2KHR";
-      case StructureType::eResolveImageInfo2KHR: return "ResolveImageInfo2KHR";
-      case StructureType::eBufferCopy2KHR: return "BufferCopy2KHR";
-      case StructureType::eImageCopy2KHR: return "ImageCopy2KHR";
-      case StructureType::eImageBlit2KHR: return "ImageBlit2KHR";
-      case StructureType::eBufferImageCopy2KHR: return "BufferImageCopy2KHR";
-      case StructureType::eImageResolve2KHR: return "ImageResolve2KHR";
       case StructureType::ePhysicalDevice4444FormatsFeaturesEXT: return "PhysicalDevice4444FormatsFeaturesEXT";
+      case StructureType::ePhysicalDeviceRasterizationOrderAttachmentAccessFeaturesARM:
+        return "PhysicalDeviceRasterizationOrderAttachmentAccessFeaturesARM";
       case StructureType::ePhysicalDeviceRgba10X6FormatsFeaturesEXT: return "PhysicalDeviceRgba10X6FormatsFeaturesEXT";
 #if defined( VK_USE_PLATFORM_DIRECTFB_EXT )
       case StructureType::eDirectfbSurfaceCreateInfoEXT: return "DirectfbSurfaceCreateInfoEXT";
@@ -1772,9 +1898,12 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::eVertexInputBindingDescription2EXT: return "VertexInputBindingDescription2EXT";
       case StructureType::eVertexInputAttributeDescription2EXT: return "VertexInputAttributeDescription2EXT";
       case StructureType::ePhysicalDeviceDrmPropertiesEXT: return "PhysicalDeviceDrmPropertiesEXT";
+      case StructureType::ePhysicalDeviceDepthClipControlFeaturesEXT:
+        return "PhysicalDeviceDepthClipControlFeaturesEXT";
+      case StructureType::ePipelineViewportDepthClipControlCreateInfoEXT:
+        return "PipelineViewportDepthClipControlCreateInfoEXT";
       case StructureType::ePhysicalDevicePrimitiveTopologyListRestartFeaturesEXT:
         return "PhysicalDevicePrimitiveTopologyListRestartFeaturesEXT";
-      case StructureType::eFormatProperties3KHR: return "FormatProperties3KHR";
 #if defined( VK_USE_PLATFORM_FUCHSIA )
       case StructureType::eImportMemoryZirconHandleInfoFUCHSIA: return "ImportMemoryZirconHandleInfoFUCHSIA";
       case StructureType::eMemoryZirconHandlePropertiesFUCHSIA: return "MemoryZirconHandlePropertiesFUCHSIA";
@@ -1810,9 +1939,8 @@ namespace VULKAN_HPP_NAMESPACE
       case StructureType::ePhysicalDeviceColorWriteEnableFeaturesEXT:
         return "PhysicalDeviceColorWriteEnableFeaturesEXT";
       case StructureType::ePipelineColorWriteCreateInfoEXT: return "PipelineColorWriteCreateInfoEXT";
-      case StructureType::ePhysicalDeviceGlobalPriorityQueryFeaturesEXT:
-        return "PhysicalDeviceGlobalPriorityQueryFeaturesEXT";
-      case StructureType::eQueueFamilyGlobalPriorityPropertiesEXT: return "QueueFamilyGlobalPriorityPropertiesEXT";
+      case StructureType::ePhysicalDeviceImageViewMinLodFeaturesEXT: return "PhysicalDeviceImageViewMinLodFeaturesEXT";
+      case StructureType::eImageViewMinLodCreateInfoEXT: return "ImageViewMinLodCreateInfoEXT";
       case StructureType::ePhysicalDeviceMultiDrawFeaturesEXT: return "PhysicalDeviceMultiDrawFeaturesEXT";
       case StructureType::ePhysicalDeviceMultiDrawPropertiesEXT: return "PhysicalDeviceMultiDrawPropertiesEXT";
       case StructureType::ePhysicalDeviceBorderColorSwizzleFeaturesEXT:
@@ -1821,10 +1949,14 @@ namespace VULKAN_HPP_NAMESPACE
         return "SamplerBorderColorComponentMappingCreateInfoEXT";
       case StructureType::ePhysicalDevicePageableDeviceLocalMemoryFeaturesEXT:
         return "PhysicalDevicePageableDeviceLocalMemoryFeaturesEXT";
-      case StructureType::ePhysicalDeviceMaintenance4FeaturesKHR: return "PhysicalDeviceMaintenance4FeaturesKHR";
-      case StructureType::ePhysicalDeviceMaintenance4PropertiesKHR: return "PhysicalDeviceMaintenance4PropertiesKHR";
-      case StructureType::eDeviceBufferMemoryRequirementsKHR: return "DeviceBufferMemoryRequirementsKHR";
-      case StructureType::eDeviceImageMemoryRequirementsKHR: return "DeviceImageMemoryRequirementsKHR";
+      case StructureType::ePhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM:
+        return "PhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM";
+      case StructureType::ePhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM:
+        return "PhysicalDeviceFragmentDensityMapOffsetPropertiesQCOM";
+      case StructureType::eSubpassFragmentDensityMapOffsetEndInfoQCOM:
+        return "SubpassFragmentDensityMapOffsetEndInfoQCOM";
+      case StructureType::ePhysicalDeviceLinearColorAttachmentFeaturesNV:
+        return "PhysicalDeviceLinearColorAttachmentFeaturesNV";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -1859,6 +1991,7 @@ namespace VULKAN_HPP_NAMESPACE
     eCommandPool              = VK_OBJECT_TYPE_COMMAND_POOL,
     eSamplerYcbcrConversion   = VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION,
     eDescriptorUpdateTemplate = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE,
+    ePrivateDataSlot          = VK_OBJECT_TYPE_PRIVATE_DATA_SLOT,
     eSurfaceKHR               = VK_OBJECT_TYPE_SURFACE_KHR,
     eSwapchainKHR             = VK_OBJECT_TYPE_SWAPCHAIN_KHR,
     eDisplayKHR               = VK_OBJECT_TYPE_DISPLAY_KHR,
@@ -1877,11 +2010,11 @@ namespace VULKAN_HPP_NAMESPACE
     ePerformanceConfigurationINTEL = VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL,
     eDeferredOperationKHR          = VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR,
     eIndirectCommandsLayoutNV      = VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV,
-    ePrivateDataSlotEXT            = VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT,
 #if defined( VK_USE_PLATFORM_FUCHSIA )
     eBufferCollectionFUCHSIA = VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA,
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
     eDescriptorUpdateTemplateKHR = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR,
+    ePrivateDataSlotEXT          = VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT,
     eSamplerYcbcrConversionKHR   = VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR
   };
 
@@ -1917,6 +2050,7 @@ namespace VULKAN_HPP_NAMESPACE
       case ObjectType::eCommandPool: return "CommandPool";
       case ObjectType::eSamplerYcbcrConversion: return "SamplerYcbcrConversion";
       case ObjectType::eDescriptorUpdateTemplate: return "DescriptorUpdateTemplate";
+      case ObjectType::ePrivateDataSlot: return "PrivateDataSlot";
       case ObjectType::eSurfaceKHR: return "SurfaceKHR";
       case ObjectType::eSwapchainKHR: return "SwapchainKHR";
       case ObjectType::eDisplayKHR: return "DisplayKHR";
@@ -1935,7 +2069,6 @@ namespace VULKAN_HPP_NAMESPACE
       case ObjectType::ePerformanceConfigurationINTEL: return "PerformanceConfigurationINTEL";
       case ObjectType::eDeferredOperationKHR: return "DeferredOperationKHR";
       case ObjectType::eIndirectCommandsLayoutNV: return "IndirectCommandsLayoutNV";
-      case ObjectType::ePrivateDataSlotEXT: return "PrivateDataSlotEXT";
 #if defined( VK_USE_PLATFORM_FUCHSIA )
       case ObjectType::eBufferCollectionFUCHSIA: return "BufferCollectionFUCHSIA";
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
@@ -2202,6 +2335,26 @@ namespace VULKAN_HPP_NAMESPACE
     eG16B16R163Plane422Unorm                 = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM,
     eG16B16R162Plane422Unorm                 = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM,
     eG16B16R163Plane444Unorm                 = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM,
+    eG8B8R82Plane444Unorm                    = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM,
+    eG10X6B10X6R10X62Plane444Unorm3Pack16    = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16,
+    eG12X4B12X4R12X42Plane444Unorm3Pack16    = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16,
+    eG16B16R162Plane444Unorm                 = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM,
+    eA4R4G4B4UnormPack16                     = VK_FORMAT_A4R4G4B4_UNORM_PACK16,
+    eA4B4G4R4UnormPack16                     = VK_FORMAT_A4B4G4R4_UNORM_PACK16,
+    eAstc4x4SfloatBlock                      = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK,
+    eAstc5x4SfloatBlock                      = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK,
+    eAstc5x5SfloatBlock                      = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK,
+    eAstc6x5SfloatBlock                      = VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK,
+    eAstc6x6SfloatBlock                      = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK,
+    eAstc8x5SfloatBlock                      = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK,
+    eAstc8x6SfloatBlock                      = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK,
+    eAstc8x8SfloatBlock                      = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK,
+    eAstc10x5SfloatBlock                     = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK,
+    eAstc10x6SfloatBlock                     = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK,
+    eAstc10x8SfloatBlock                     = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK,
+    eAstc10x10SfloatBlock                    = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK,
+    eAstc12x10SfloatBlock                    = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK,
+    eAstc12x12SfloatBlock                    = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK,
     ePvrtc12BppUnormBlockIMG                 = VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG,
     ePvrtc14BppUnormBlockIMG                 = VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG,
     ePvrtc22BppUnormBlockIMG                 = VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG,
@@ -2210,6 +2363,14 @@ namespace VULKAN_HPP_NAMESPACE
     ePvrtc14BppSrgbBlockIMG                  = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG,
     ePvrtc22BppSrgbBlockIMG                  = VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG,
     ePvrtc24BppSrgbBlockIMG                  = VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG,
+    eA4B4G4R4UnormPack16EXT                  = VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT,
+    eA4R4G4B4UnormPack16EXT                  = VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT,
+    eAstc10x10SfloatBlockEXT                 = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT,
+    eAstc10x5SfloatBlockEXT                  = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT,
+    eAstc10x6SfloatBlockEXT                  = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT,
+    eAstc10x8SfloatBlockEXT                  = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT,
+    eAstc12x10SfloatBlockEXT                 = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT,
+    eAstc12x12SfloatBlockEXT                 = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT,
     eAstc4x4SfloatBlockEXT                   = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT,
     eAstc5x4SfloatBlockEXT                   = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT,
     eAstc5x5SfloatBlockEXT                   = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT,
@@ -2218,18 +2379,6 @@ namespace VULKAN_HPP_NAMESPACE
     eAstc8x5SfloatBlockEXT                   = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT,
     eAstc8x6SfloatBlockEXT                   = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT,
     eAstc8x8SfloatBlockEXT                   = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT,
-    eAstc10x5SfloatBlockEXT                  = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT,
-    eAstc10x6SfloatBlockEXT                  = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT,
-    eAstc10x8SfloatBlockEXT                  = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT,
-    eAstc10x10SfloatBlockEXT                 = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT,
-    eAstc12x10SfloatBlockEXT                 = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT,
-    eAstc12x12SfloatBlockEXT                 = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT,
-    eG8B8R82Plane444UnormEXT                 = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT,
-    eG10X6B10X6R10X62Plane444Unorm3Pack16EXT = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT,
-    eG12X4B12X4R12X42Plane444Unorm3Pack16EXT = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT,
-    eG16B16R162Plane444UnormEXT              = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT,
-    eA4R4G4B4UnormPack16EXT                  = VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT,
-    eA4B4G4R4UnormPack16EXT                  = VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT,
     eB10X6G10X6R10X6G10X6422Unorm4Pack16KHR  = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR,
     eB12X4G12X4R12X4G12X4422Unorm4Pack16KHR  = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR,
     eB16G16R16G16422UnormKHR                 = VK_FORMAT_B16G16R16G16_422_UNORM_KHR,
@@ -2237,24 +2386,28 @@ namespace VULKAN_HPP_NAMESPACE
     eG10X6B10X6G10X6R10X6422Unorm4Pack16KHR  = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR,
     eG10X6B10X6R10X62Plane420Unorm3Pack16KHR = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR,
     eG10X6B10X6R10X62Plane422Unorm3Pack16KHR = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR,
+    eG10X6B10X6R10X62Plane444Unorm3Pack16EXT = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT,
     eG10X6B10X6R10X63Plane420Unorm3Pack16KHR = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR,
     eG10X6B10X6R10X63Plane422Unorm3Pack16KHR = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR,
     eG10X6B10X6R10X63Plane444Unorm3Pack16KHR = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR,
     eG12X4B12X4G12X4R12X4422Unorm4Pack16KHR  = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR,
     eG12X4B12X4R12X42Plane420Unorm3Pack16KHR = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR,
     eG12X4B12X4R12X42Plane422Unorm3Pack16KHR = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR,
+    eG12X4B12X4R12X42Plane444Unorm3Pack16EXT = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT,
     eG12X4B12X4R12X43Plane420Unorm3Pack16KHR = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR,
     eG12X4B12X4R12X43Plane422Unorm3Pack16KHR = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR,
     eG12X4B12X4R12X43Plane444Unorm3Pack16KHR = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR,
     eG16B16G16R16422UnormKHR                 = VK_FORMAT_G16B16G16R16_422_UNORM_KHR,
     eG16B16R162Plane420UnormKHR              = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM_KHR,
     eG16B16R162Plane422UnormKHR              = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM_KHR,
+    eG16B16R162Plane444UnormEXT              = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT,
     eG16B16R163Plane420UnormKHR              = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM_KHR,
     eG16B16R163Plane422UnormKHR              = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM_KHR,
     eG16B16R163Plane444UnormKHR              = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM_KHR,
     eG8B8G8R8422UnormKHR                     = VK_FORMAT_G8B8G8R8_422_UNORM_KHR,
     eG8B8R82Plane420UnormKHR                 = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM_KHR,
     eG8B8R82Plane422UnormKHR                 = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM_KHR,
+    eG8B8R82Plane444UnormEXT                 = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT,
     eG8B8R83Plane420UnormKHR                 = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM_KHR,
     eG8B8R83Plane422UnormKHR                 = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM_KHR,
     eG8B8R83Plane444UnormKHR                 = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM_KHR,
@@ -2489,6 +2642,26 @@ namespace VULKAN_HPP_NAMESPACE
       case Format::eG16B16R163Plane422Unorm: return "G16B16R163Plane422Unorm";
       case Format::eG16B16R162Plane422Unorm: return "G16B16R162Plane422Unorm";
       case Format::eG16B16R163Plane444Unorm: return "G16B16R163Plane444Unorm";
+      case Format::eG8B8R82Plane444Unorm: return "G8B8R82Plane444Unorm";
+      case Format::eG10X6B10X6R10X62Plane444Unorm3Pack16: return "G10X6B10X6R10X62Plane444Unorm3Pack16";
+      case Format::eG12X4B12X4R12X42Plane444Unorm3Pack16: return "G12X4B12X4R12X42Plane444Unorm3Pack16";
+      case Format::eG16B16R162Plane444Unorm: return "G16B16R162Plane444Unorm";
+      case Format::eA4R4G4B4UnormPack16: return "A4R4G4B4UnormPack16";
+      case Format::eA4B4G4R4UnormPack16: return "A4B4G4R4UnormPack16";
+      case Format::eAstc4x4SfloatBlock: return "Astc4x4SfloatBlock";
+      case Format::eAstc5x4SfloatBlock: return "Astc5x4SfloatBlock";
+      case Format::eAstc5x5SfloatBlock: return "Astc5x5SfloatBlock";
+      case Format::eAstc6x5SfloatBlock: return "Astc6x5SfloatBlock";
+      case Format::eAstc6x6SfloatBlock: return "Astc6x6SfloatBlock";
+      case Format::eAstc8x5SfloatBlock: return "Astc8x5SfloatBlock";
+      case Format::eAstc8x6SfloatBlock: return "Astc8x6SfloatBlock";
+      case Format::eAstc8x8SfloatBlock: return "Astc8x8SfloatBlock";
+      case Format::eAstc10x5SfloatBlock: return "Astc10x5SfloatBlock";
+      case Format::eAstc10x6SfloatBlock: return "Astc10x6SfloatBlock";
+      case Format::eAstc10x8SfloatBlock: return "Astc10x8SfloatBlock";
+      case Format::eAstc10x10SfloatBlock: return "Astc10x10SfloatBlock";
+      case Format::eAstc12x10SfloatBlock: return "Astc12x10SfloatBlock";
+      case Format::eAstc12x12SfloatBlock: return "Astc12x12SfloatBlock";
       case Format::ePvrtc12BppUnormBlockIMG: return "Pvrtc12BppUnormBlockIMG";
       case Format::ePvrtc14BppUnormBlockIMG: return "Pvrtc14BppUnormBlockIMG";
       case Format::ePvrtc22BppUnormBlockIMG: return "Pvrtc22BppUnormBlockIMG";
@@ -2497,26 +2670,6 @@ namespace VULKAN_HPP_NAMESPACE
       case Format::ePvrtc14BppSrgbBlockIMG: return "Pvrtc14BppSrgbBlockIMG";
       case Format::ePvrtc22BppSrgbBlockIMG: return "Pvrtc22BppSrgbBlockIMG";
       case Format::ePvrtc24BppSrgbBlockIMG: return "Pvrtc24BppSrgbBlockIMG";
-      case Format::eAstc4x4SfloatBlockEXT: return "Astc4x4SfloatBlockEXT";
-      case Format::eAstc5x4SfloatBlockEXT: return "Astc5x4SfloatBlockEXT";
-      case Format::eAstc5x5SfloatBlockEXT: return "Astc5x5SfloatBlockEXT";
-      case Format::eAstc6x5SfloatBlockEXT: return "Astc6x5SfloatBlockEXT";
-      case Format::eAstc6x6SfloatBlockEXT: return "Astc6x6SfloatBlockEXT";
-      case Format::eAstc8x5SfloatBlockEXT: return "Astc8x5SfloatBlockEXT";
-      case Format::eAstc8x6SfloatBlockEXT: return "Astc8x6SfloatBlockEXT";
-      case Format::eAstc8x8SfloatBlockEXT: return "Astc8x8SfloatBlockEXT";
-      case Format::eAstc10x5SfloatBlockEXT: return "Astc10x5SfloatBlockEXT";
-      case Format::eAstc10x6SfloatBlockEXT: return "Astc10x6SfloatBlockEXT";
-      case Format::eAstc10x8SfloatBlockEXT: return "Astc10x8SfloatBlockEXT";
-      case Format::eAstc10x10SfloatBlockEXT: return "Astc10x10SfloatBlockEXT";
-      case Format::eAstc12x10SfloatBlockEXT: return "Astc12x10SfloatBlockEXT";
-      case Format::eAstc12x12SfloatBlockEXT: return "Astc12x12SfloatBlockEXT";
-      case Format::eG8B8R82Plane444UnormEXT: return "G8B8R82Plane444UnormEXT";
-      case Format::eG10X6B10X6R10X62Plane444Unorm3Pack16EXT: return "G10X6B10X6R10X62Plane444Unorm3Pack16EXT";
-      case Format::eG12X4B12X4R12X42Plane444Unorm3Pack16EXT: return "G12X4B12X4R12X42Plane444Unorm3Pack16EXT";
-      case Format::eG16B16R162Plane444UnormEXT: return "G16B16R162Plane444UnormEXT";
-      case Format::eA4R4G4B4UnormPack16EXT: return "A4R4G4B4UnormPack16EXT";
-      case Format::eA4B4G4R4UnormPack16EXT: return "A4B4G4R4UnormPack16EXT";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -2642,6 +2795,7 @@ namespace VULKAN_HPP_NAMESPACE
     eCornerSampledNV                   = VK_IMAGE_CREATE_CORNER_SAMPLED_BIT_NV,
     eSampleLocationsCompatibleDepthEXT = VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT,
     eSubsampledEXT                     = VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT,
+    eFragmentDensityMapOffsetQCOM      = VK_IMAGE_CREATE_FRAGMENT_DENSITY_MAP_OFFSET_BIT_QCOM,
     e2DArrayCompatibleKHR              = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT_KHR,
     eAliasKHR                          = VK_IMAGE_CREATE_ALIAS_BIT_KHR,
     eBlockTexelViewCompatibleKHR       = VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR,
@@ -2669,6 +2823,7 @@ namespace VULKAN_HPP_NAMESPACE
       case ImageCreateFlagBits::eCornerSampledNV: return "CornerSampledNV";
       case ImageCreateFlagBits::eSampleLocationsCompatibleDepthEXT: return "SampleLocationsCompatibleDepthEXT";
       case ImageCreateFlagBits::eSubsampledEXT: return "SubsampledEXT";
+      case ImageCreateFlagBits::eFragmentDensityMapOffsetQCOM: return "FragmentDensityMapOffsetQCOM";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -2962,6 +3117,7 @@ namespace VULKAN_HPP_NAMESPACE
     eHost                             = VK_PIPELINE_STAGE_HOST_BIT,
     eAllGraphics                      = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
     eAllCommands                      = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+    eNone                             = VK_PIPELINE_STAGE_NONE,
     eTransformFeedbackEXT             = VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
     eConditionalRenderingEXT          = VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT,
     eAccelerationStructureBuildKHR    = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
@@ -2971,8 +3127,8 @@ namespace VULKAN_HPP_NAMESPACE
     eFragmentDensityProcessEXT        = VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT,
     eFragmentShadingRateAttachmentKHR = VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
     eCommandPreprocessNV              = VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV,
-    eNoneKHR                          = VK_PIPELINE_STAGE_NONE_KHR,
     eAccelerationStructureBuildNV     = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV,
+    eNoneKHR                          = VK_PIPELINE_STAGE_NONE_KHR,
     eRayTracingShaderNV               = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV,
     eShadingRateImageNV               = VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV
   };
@@ -2998,6 +3154,7 @@ namespace VULKAN_HPP_NAMESPACE
       case PipelineStageFlagBits::eHost: return "Host";
       case PipelineStageFlagBits::eAllGraphics: return "AllGraphics";
       case PipelineStageFlagBits::eAllCommands: return "AllCommands";
+      case PipelineStageFlagBits::eNone: return "None";
       case PipelineStageFlagBits::eTransformFeedbackEXT: return "TransformFeedbackEXT";
       case PipelineStageFlagBits::eConditionalRenderingEXT: return "ConditionalRenderingEXT";
       case PipelineStageFlagBits::eAccelerationStructureBuildKHR: return "AccelerationStructureBuildKHR";
@@ -3007,7 +3164,6 @@ namespace VULKAN_HPP_NAMESPACE
       case PipelineStageFlagBits::eFragmentDensityProcessEXT: return "FragmentDensityProcessEXT";
       case PipelineStageFlagBits::eFragmentShadingRateAttachmentKHR: return "FragmentShadingRateAttachmentKHR";
       case PipelineStageFlagBits::eCommandPreprocessNV: return "CommandPreprocessNV";
-      case PipelineStageFlagBits::eNoneKHR: return "NoneKHR";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -3034,6 +3190,7 @@ namespace VULKAN_HPP_NAMESPACE
     eMemoryPlane1EXT = VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT,
     eMemoryPlane2EXT = VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT,
     eMemoryPlane3EXT = VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT,
+    eNoneKHR         = VK_IMAGE_ASPECT_NONE_KHR,
     ePlane0KHR       = VK_IMAGE_ASPECT_PLANE_0_BIT_KHR,
     ePlane1KHR       = VK_IMAGE_ASPECT_PLANE_1_BIT_KHR,
     ePlane2KHR       = VK_IMAGE_ASPECT_PLANE_2_BIT_KHR
@@ -3054,6 +3211,7 @@ namespace VULKAN_HPP_NAMESPACE
       case ImageAspectFlagBits::eMemoryPlane1EXT: return "MemoryPlane1EXT";
       case ImageAspectFlagBits::eMemoryPlane2EXT: return "MemoryPlane2EXT";
       case ImageAspectFlagBits::eMemoryPlane3EXT: return "MemoryPlane3EXT";
+      case ImageAspectFlagBits::eNoneKHR: return "NoneKHR";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -3115,6 +3273,7 @@ namespace VULKAN_HPP_NAMESPACE
 
   enum class EventCreateFlagBits : VkEventCreateFlags
   {
+    eDeviceOnly    = VK_EVENT_CREATE_DEVICE_ONLY_BIT,
     eDeviceOnlyKHR = VK_EVENT_CREATE_DEVICE_ONLY_BIT_KHR
   };
 
@@ -3122,7 +3281,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
     switch ( value )
     {
-      case EventCreateFlagBits::eDeviceOnlyKHR: return "DeviceOnlyKHR";
+      case EventCreateFlagBits::eDeviceOnly: return "DeviceOnly";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -3370,6 +3529,8 @@ namespace VULKAN_HPP_NAMESPACE
     eDepthReadOnlyOptimal                  = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL,
     eStencilAttachmentOptimal              = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL,
     eStencilReadOnlyOptimal                = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL,
+    eReadOnlyOptimal                       = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL,
+    eAttachmentOptimal                     = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
     ePresentSrcKHR                         = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
     eVideoDecodeDstKHR = VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR,
@@ -3384,12 +3545,12 @@ namespace VULKAN_HPP_NAMESPACE
     eVideoEncodeSrcKHR = VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR,
     eVideoEncodeDpbKHR = VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR,
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    eReadOnlyOptimalKHR                       = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR,
     eAttachmentOptimalKHR                     = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
     eDepthAttachmentOptimalKHR                = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR,
     eDepthAttachmentStencilReadOnlyOptimalKHR = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR,
     eDepthReadOnlyOptimalKHR                  = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR,
     eDepthReadOnlyStencilAttachmentOptimalKHR = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR,
+    eReadOnlyOptimalKHR                       = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR,
     eShadingRateOptimalNV                     = VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV,
     eStencilAttachmentOptimalKHR              = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR,
     eStencilReadOnlyOptimalKHR                = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR
@@ -3414,6 +3575,8 @@ namespace VULKAN_HPP_NAMESPACE
       case ImageLayout::eDepthReadOnlyOptimal: return "DepthReadOnlyOptimal";
       case ImageLayout::eStencilAttachmentOptimal: return "StencilAttachmentOptimal";
       case ImageLayout::eStencilReadOnlyOptimal: return "StencilReadOnlyOptimal";
+      case ImageLayout::eReadOnlyOptimal: return "ReadOnlyOptimal";
+      case ImageLayout::eAttachmentOptimal: return "AttachmentOptimal";
       case ImageLayout::ePresentSrcKHR: return "PresentSrcKHR";
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
       case ImageLayout::eVideoDecodeDstKHR: return "VideoDecodeDstKHR";
@@ -3428,8 +3591,6 @@ namespace VULKAN_HPP_NAMESPACE
       case ImageLayout::eVideoEncodeSrcKHR: return "VideoEncodeSrcKHR";
       case ImageLayout::eVideoEncodeDpbKHR: return "VideoEncodeDpbKHR";
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
-      case ImageLayout::eReadOnlyOptimalKHR: return "ReadOnlyOptimalKHR";
-      case ImageLayout::eAttachmentOptimalKHR: return "AttachmentOptimalKHR";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -3754,6 +3915,21 @@ namespace VULKAN_HPP_NAMESPACE
     eStencilCompareMask             = VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
     eStencilWriteMask               = VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
     eStencilReference               = VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+    eCullMode                       = VK_DYNAMIC_STATE_CULL_MODE,
+    eFrontFace                      = VK_DYNAMIC_STATE_FRONT_FACE,
+    ePrimitiveTopology              = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
+    eViewportWithCount              = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
+    eScissorWithCount               = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
+    eVertexInputBindingStride       = VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE,
+    eDepthTestEnable                = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,
+    eDepthWriteEnable               = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE,
+    eDepthCompareOp                 = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,
+    eDepthBoundsTestEnable          = VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE,
+    eStencilTestEnable              = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
+    eStencilOp                      = VK_DYNAMIC_STATE_STENCIL_OP,
+    eRasterizerDiscardEnable        = VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE,
+    eDepthBiasEnable                = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE,
+    ePrimitiveRestartEnable         = VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
     eViewportWScalingNV             = VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV,
     eDiscardRectangleEXT            = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_EXT,
     eSampleLocationsEXT             = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT,
@@ -3763,25 +3939,25 @@ namespace VULKAN_HPP_NAMESPACE
     eExclusiveScissorNV             = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV,
     eFragmentShadingRateKHR         = VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR,
     eLineStippleEXT                 = VK_DYNAMIC_STATE_LINE_STIPPLE_EXT,
-    eCullModeEXT                    = VK_DYNAMIC_STATE_CULL_MODE_EXT,
-    eFrontFaceEXT                   = VK_DYNAMIC_STATE_FRONT_FACE_EXT,
-    ePrimitiveTopologyEXT           = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
-    eViewportWithCountEXT           = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT_EXT,
-    eScissorWithCountEXT            = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT_EXT,
-    eVertexInputBindingStrideEXT    = VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
-    eDepthTestEnableEXT             = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
-    eDepthWriteEnableEXT            = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
-    eDepthCompareOpEXT              = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
-    eDepthBoundsTestEnableEXT       = VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT,
-    eStencilTestEnableEXT           = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
-    eStencilOpEXT                   = VK_DYNAMIC_STATE_STENCIL_OP_EXT,
     eVertexInputEXT                 = VK_DYNAMIC_STATE_VERTEX_INPUT_EXT,
     ePatchControlPointsEXT          = VK_DYNAMIC_STATE_PATCH_CONTROL_POINTS_EXT,
-    eRasterizerDiscardEnableEXT     = VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
-    eDepthBiasEnableEXT             = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
     eLogicOpEXT                     = VK_DYNAMIC_STATE_LOGIC_OP_EXT,
+    eColorWriteEnableEXT            = VK_DYNAMIC_STATE_COLOR_WRITE_ENABLE_EXT,
+    eCullModeEXT                    = VK_DYNAMIC_STATE_CULL_MODE_EXT,
+    eDepthBiasEnableEXT             = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
+    eDepthBoundsTestEnableEXT       = VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT,
+    eDepthCompareOpEXT              = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
+    eDepthTestEnableEXT             = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
+    eDepthWriteEnableEXT            = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
+    eFrontFaceEXT                   = VK_DYNAMIC_STATE_FRONT_FACE_EXT,
     ePrimitiveRestartEnableEXT      = VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT,
-    eColorWriteEnableEXT            = VK_DYNAMIC_STATE_COLOR_WRITE_ENABLE_EXT
+    ePrimitiveTopologyEXT           = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
+    eRasterizerDiscardEnableEXT     = VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
+    eScissorWithCountEXT            = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT_EXT,
+    eStencilOpEXT                   = VK_DYNAMIC_STATE_STENCIL_OP_EXT,
+    eStencilTestEnableEXT           = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
+    eVertexInputBindingStrideEXT    = VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
+    eViewportWithCountEXT           = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT_EXT
   };
 
   VULKAN_HPP_INLINE std::string to_string( DynamicState value )
@@ -3797,6 +3973,21 @@ namespace VULKAN_HPP_NAMESPACE
       case DynamicState::eStencilCompareMask: return "StencilCompareMask";
       case DynamicState::eStencilWriteMask: return "StencilWriteMask";
       case DynamicState::eStencilReference: return "StencilReference";
+      case DynamicState::eCullMode: return "CullMode";
+      case DynamicState::eFrontFace: return "FrontFace";
+      case DynamicState::ePrimitiveTopology: return "PrimitiveTopology";
+      case DynamicState::eViewportWithCount: return "ViewportWithCount";
+      case DynamicState::eScissorWithCount: return "ScissorWithCount";
+      case DynamicState::eVertexInputBindingStride: return "VertexInputBindingStride";
+      case DynamicState::eDepthTestEnable: return "DepthTestEnable";
+      case DynamicState::eDepthWriteEnable: return "DepthWriteEnable";
+      case DynamicState::eDepthCompareOp: return "DepthCompareOp";
+      case DynamicState::eDepthBoundsTestEnable: return "DepthBoundsTestEnable";
+      case DynamicState::eStencilTestEnable: return "StencilTestEnable";
+      case DynamicState::eStencilOp: return "StencilOp";
+      case DynamicState::eRasterizerDiscardEnable: return "RasterizerDiscardEnable";
+      case DynamicState::eDepthBiasEnable: return "DepthBiasEnable";
+      case DynamicState::ePrimitiveRestartEnable: return "PrimitiveRestartEnable";
       case DynamicState::eViewportWScalingNV: return "ViewportWScalingNV";
       case DynamicState::eDiscardRectangleEXT: return "DiscardRectangleEXT";
       case DynamicState::eSampleLocationsEXT: return "SampleLocationsEXT";
@@ -3806,24 +3997,9 @@ namespace VULKAN_HPP_NAMESPACE
       case DynamicState::eExclusiveScissorNV: return "ExclusiveScissorNV";
       case DynamicState::eFragmentShadingRateKHR: return "FragmentShadingRateKHR";
       case DynamicState::eLineStippleEXT: return "LineStippleEXT";
-      case DynamicState::eCullModeEXT: return "CullModeEXT";
-      case DynamicState::eFrontFaceEXT: return "FrontFaceEXT";
-      case DynamicState::ePrimitiveTopologyEXT: return "PrimitiveTopologyEXT";
-      case DynamicState::eViewportWithCountEXT: return "ViewportWithCountEXT";
-      case DynamicState::eScissorWithCountEXT: return "ScissorWithCountEXT";
-      case DynamicState::eVertexInputBindingStrideEXT: return "VertexInputBindingStrideEXT";
-      case DynamicState::eDepthTestEnableEXT: return "DepthTestEnableEXT";
-      case DynamicState::eDepthWriteEnableEXT: return "DepthWriteEnableEXT";
-      case DynamicState::eDepthCompareOpEXT: return "DepthCompareOpEXT";
-      case DynamicState::eDepthBoundsTestEnableEXT: return "DepthBoundsTestEnableEXT";
-      case DynamicState::eStencilTestEnableEXT: return "StencilTestEnableEXT";
-      case DynamicState::eStencilOpEXT: return "StencilOpEXT";
       case DynamicState::eVertexInputEXT: return "VertexInputEXT";
       case DynamicState::ePatchControlPointsEXT: return "PatchControlPointsEXT";
-      case DynamicState::eRasterizerDiscardEnableEXT: return "RasterizerDiscardEnableEXT";
-      case DynamicState::eDepthBiasEnableEXT: return "DepthBiasEnableEXT";
       case DynamicState::eLogicOpEXT: return "LogicOpEXT";
-      case DynamicState::ePrimitiveRestartEnableEXT: return "PrimitiveRestartEnableEXT";
       case DynamicState::eColorWriteEnableEXT: return "ColorWriteEnableEXT";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
@@ -3891,17 +4067,21 @@ namespace VULKAN_HPP_NAMESPACE
 
   enum class PipelineCreateFlagBits : VkPipelineCreateFlags
   {
-    eDisableOptimization                    = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT,
-    eAllowDerivatives                       = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT,
-    eDerivative                             = VK_PIPELINE_CREATE_DERIVATIVE_BIT,
-    eViewIndexFromDeviceIndex               = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT,
-    eDispatchBase                           = VK_PIPELINE_CREATE_DISPATCH_BASE_BIT,
-    eRayTracingNoNullAnyHitShadersKHR       = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_ANY_HIT_SHADERS_BIT_KHR,
-    eRayTracingNoNullClosestHitShadersKHR   = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_CLOSEST_HIT_SHADERS_BIT_KHR,
-    eRayTracingNoNullMissShadersKHR         = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_MISS_SHADERS_BIT_KHR,
-    eRayTracingNoNullIntersectionShadersKHR = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR,
-    eRayTracingSkipTrianglesKHR             = VK_PIPELINE_CREATE_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR,
-    eRayTracingSkipAabbsKHR                 = VK_PIPELINE_CREATE_RAY_TRACING_SKIP_AABBS_BIT_KHR,
+    eDisableOptimization                       = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT,
+    eAllowDerivatives                          = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT,
+    eDerivative                                = VK_PIPELINE_CREATE_DERIVATIVE_BIT,
+    eViewIndexFromDeviceIndex                  = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT,
+    eDispatchBase                              = VK_PIPELINE_CREATE_DISPATCH_BASE_BIT,
+    eFailOnPipelineCompileRequired             = VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT,
+    eEarlyReturnOnFailure                      = VK_PIPELINE_CREATE_EARLY_RETURN_ON_FAILURE_BIT,
+    eRenderingFragmentShadingRateAttachmentKHR = VK_PIPELINE_CREATE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
+    eRenderingFragmentDensityMapAttachmentEXT  = VK_PIPELINE_CREATE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXT,
+    eRayTracingNoNullAnyHitShadersKHR          = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_ANY_HIT_SHADERS_BIT_KHR,
+    eRayTracingNoNullClosestHitShadersKHR      = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_CLOSEST_HIT_SHADERS_BIT_KHR,
+    eRayTracingNoNullMissShadersKHR            = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_MISS_SHADERS_BIT_KHR,
+    eRayTracingNoNullIntersectionShadersKHR    = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR,
+    eRayTracingSkipTrianglesKHR                = VK_PIPELINE_CREATE_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR,
+    eRayTracingSkipAabbsKHR                    = VK_PIPELINE_CREATE_RAY_TRACING_SKIP_AABBS_BIT_KHR,
     eRayTracingShaderGroupHandleCaptureReplayKHR =
       VK_PIPELINE_CREATE_RAY_TRACING_SHADER_GROUP_HANDLE_CAPTURE_REPLAY_BIT_KHR,
     eDeferCompileNV                    = VK_PIPELINE_CREATE_DEFER_COMPILE_BIT_NV,
@@ -3909,11 +4089,15 @@ namespace VULKAN_HPP_NAMESPACE
     eCaptureInternalRepresentationsKHR = VK_PIPELINE_CREATE_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR,
     eIndirectBindableNV                = VK_PIPELINE_CREATE_INDIRECT_BINDABLE_BIT_NV,
     eLibraryKHR                        = VK_PIPELINE_CREATE_LIBRARY_BIT_KHR,
-    eFailOnPipelineCompileRequiredEXT  = VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT,
-    eEarlyReturnOnFailureEXT           = VK_PIPELINE_CREATE_EARLY_RETURN_ON_FAILURE_BIT_EXT,
     eRayTracingAllowMotionNV           = VK_PIPELINE_CREATE_RAY_TRACING_ALLOW_MOTION_BIT_NV,
     eDispatchBaseKHR                   = VK_PIPELINE_CREATE_DISPATCH_BASE_KHR,
-    eViewIndexFromDeviceIndexKHR       = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT_KHR
+    eEarlyReturnOnFailureEXT           = VK_PIPELINE_CREATE_EARLY_RETURN_ON_FAILURE_BIT_EXT,
+    eFailOnPipelineCompileRequiredEXT  = VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT,
+    eViewIndexFromDeviceIndexKHR       = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT_KHR,
+    eVkPipelineRasterizationStateCreateFragmentDensityMapAttachmentEXT =
+      VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXT,
+    eVkPipelineRasterizationStateCreateFragmentShadingRateAttachmentKHR =
+      VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR
   };
 
   VULKAN_HPP_INLINE std::string to_string( PipelineCreateFlagBits value )
@@ -3925,6 +4109,12 @@ namespace VULKAN_HPP_NAMESPACE
       case PipelineCreateFlagBits::eDerivative: return "Derivative";
       case PipelineCreateFlagBits::eViewIndexFromDeviceIndex: return "ViewIndexFromDeviceIndex";
       case PipelineCreateFlagBits::eDispatchBase: return "DispatchBase";
+      case PipelineCreateFlagBits::eFailOnPipelineCompileRequired: return "FailOnPipelineCompileRequired";
+      case PipelineCreateFlagBits::eEarlyReturnOnFailure: return "EarlyReturnOnFailure";
+      case PipelineCreateFlagBits::eRenderingFragmentShadingRateAttachmentKHR:
+        return "RenderingFragmentShadingRateAttachmentKHR";
+      case PipelineCreateFlagBits::eRenderingFragmentDensityMapAttachmentEXT:
+        return "RenderingFragmentDensityMapAttachmentEXT";
       case PipelineCreateFlagBits::eRayTracingNoNullAnyHitShadersKHR: return "RayTracingNoNullAnyHitShadersKHR";
       case PipelineCreateFlagBits::eRayTracingNoNullClosestHitShadersKHR: return "RayTracingNoNullClosestHitShadersKHR";
       case PipelineCreateFlagBits::eRayTracingNoNullMissShadersKHR: return "RayTracingNoNullMissShadersKHR";
@@ -3939,8 +4129,6 @@ namespace VULKAN_HPP_NAMESPACE
       case PipelineCreateFlagBits::eCaptureInternalRepresentationsKHR: return "CaptureInternalRepresentationsKHR";
       case PipelineCreateFlagBits::eIndirectBindableNV: return "IndirectBindableNV";
       case PipelineCreateFlagBits::eLibraryKHR: return "LibraryKHR";
-      case PipelineCreateFlagBits::eFailOnPipelineCompileRequiredEXT: return "FailOnPipelineCompileRequiredEXT";
-      case PipelineCreateFlagBits::eEarlyReturnOnFailureEXT: return "EarlyReturnOnFailureEXT";
       case PipelineCreateFlagBits::eRayTracingAllowMotionNV: return "RayTracingAllowMotionNV";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
@@ -3948,6 +4136,8 @@ namespace VULKAN_HPP_NAMESPACE
 
   enum class PipelineShaderStageCreateFlagBits : VkPipelineShaderStageCreateFlags
   {
+    eAllowVaryingSubgroupSize    = VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT,
+    eRequireFullSubgroups        = VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT,
     eAllowVaryingSubgroupSizeEXT = VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT_EXT,
     eRequireFullSubgroupsEXT     = VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT
   };
@@ -3956,8 +4146,8 @@ namespace VULKAN_HPP_NAMESPACE
   {
     switch ( value )
     {
-      case PipelineShaderStageCreateFlagBits::eAllowVaryingSubgroupSizeEXT: return "AllowVaryingSubgroupSizeEXT";
-      case PipelineShaderStageCreateFlagBits::eRequireFullSubgroupsEXT: return "RequireFullSubgroupsEXT";
+      case PipelineShaderStageCreateFlagBits::eAllowVaryingSubgroupSize: return "AllowVaryingSubgroupSize";
+      case PipelineShaderStageCreateFlagBits::eRequireFullSubgroups: return "RequireFullSubgroups";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -4110,24 +4300,6 @@ namespace VULKAN_HPP_NAMESPACE
       case VertexInputRate::eInstance: return "Instance";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
-  }
-
-  enum class PipelineColorBlendStateCreateFlagBits : VkPipelineColorBlendStateCreateFlags
-  {
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( PipelineColorBlendStateCreateFlagBits )
-  {
-    return "(void)";
-  }
-
-  enum class PipelineDepthStencilStateCreateFlagBits : VkPipelineDepthStencilStateCreateFlags
-  {
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( PipelineDepthStencilStateCreateFlagBits )
-  {
-    return "(void)";
   }
 
   enum class PipelineDynamicStateCreateFlagBits : VkPipelineDynamicStateCreateFlags
@@ -4355,10 +4527,11 @@ namespace VULKAN_HPP_NAMESPACE
     eUniformBufferDynamic     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
     eStorageBufferDynamic     = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
     eInputAttachment          = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-    eInlineUniformBlockEXT    = VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT,
+    eInlineUniformBlock       = VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK,
     eAccelerationStructureKHR = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
     eAccelerationStructureNV  = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV,
-    eMutableVALVE             = VK_DESCRIPTOR_TYPE_MUTABLE_VALVE
+    eMutableVALVE             = VK_DESCRIPTOR_TYPE_MUTABLE_VALVE,
+    eInlineUniformBlockEXT    = VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT
   };
 
   VULKAN_HPP_INLINE std::string to_string( DescriptorType value )
@@ -4376,7 +4549,7 @@ namespace VULKAN_HPP_NAMESPACE
       case DescriptorType::eUniformBufferDynamic: return "UniformBufferDynamic";
       case DescriptorType::eStorageBufferDynamic: return "StorageBufferDynamic";
       case DescriptorType::eInputAttachment: return "InputAttachment";
-      case DescriptorType::eInlineUniformBlockEXT: return "InlineUniformBlockEXT";
+      case DescriptorType::eInlineUniformBlock: return "InlineUniformBlock";
       case DescriptorType::eAccelerationStructureKHR: return "AccelerationStructureKHR";
       case DescriptorType::eAccelerationStructureNV: return "AccelerationStructureNV";
       case DescriptorType::eMutableVALVE: return "MutableVALVE";
@@ -4412,6 +4585,7 @@ namespace VULKAN_HPP_NAMESPACE
     eHostWrite                            = VK_ACCESS_HOST_WRITE_BIT,
     eMemoryRead                           = VK_ACCESS_MEMORY_READ_BIT,
     eMemoryWrite                          = VK_ACCESS_MEMORY_WRITE_BIT,
+    eNone                                 = VK_ACCESS_NONE,
     eTransformFeedbackWriteEXT            = VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT,
     eTransformFeedbackCounterReadEXT      = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
     eTransformFeedbackCounterWriteEXT     = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
@@ -4423,9 +4597,9 @@ namespace VULKAN_HPP_NAMESPACE
     eFragmentShadingRateAttachmentReadKHR = VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR,
     eCommandPreprocessReadNV              = VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_NV,
     eCommandPreprocessWriteNV             = VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV,
-    eNoneKHR                              = VK_ACCESS_NONE_KHR,
     eAccelerationStructureReadNV          = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV,
     eAccelerationStructureWriteNV         = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV,
+    eNoneKHR                              = VK_ACCESS_NONE_KHR,
     eShadingRateImageReadNV               = VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV
   };
 
@@ -4450,6 +4624,7 @@ namespace VULKAN_HPP_NAMESPACE
       case AccessFlagBits::eHostWrite: return "HostWrite";
       case AccessFlagBits::eMemoryRead: return "MemoryRead";
       case AccessFlagBits::eMemoryWrite: return "MemoryWrite";
+      case AccessFlagBits::eNone: return "None";
       case AccessFlagBits::eTransformFeedbackWriteEXT: return "TransformFeedbackWriteEXT";
       case AccessFlagBits::eTransformFeedbackCounterReadEXT: return "TransformFeedbackCounterReadEXT";
       case AccessFlagBits::eTransformFeedbackCounterWriteEXT: return "TransformFeedbackCounterWriteEXT";
@@ -4461,7 +4636,6 @@ namespace VULKAN_HPP_NAMESPACE
       case AccessFlagBits::eFragmentShadingRateAttachmentReadKHR: return "FragmentShadingRateAttachmentReadKHR";
       case AccessFlagBits::eCommandPreprocessReadNV: return "CommandPreprocessReadNV";
       case AccessFlagBits::eCommandPreprocessWriteNV: return "CommandPreprocessWriteNV";
-      case AccessFlagBits::eNoneKHR: return "NoneKHR";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -4504,7 +4678,9 @@ namespace VULKAN_HPP_NAMESPACE
   {
     eStore    = VK_ATTACHMENT_STORE_OP_STORE,
     eDontCare = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+    eNone     = VK_ATTACHMENT_STORE_OP_NONE,
     eNoneEXT  = VK_ATTACHMENT_STORE_OP_NONE_EXT,
+    eNoneKHR  = VK_ATTACHMENT_STORE_OP_NONE_KHR,
     eNoneQCOM = VK_ATTACHMENT_STORE_OP_NONE_QCOM
   };
 
@@ -4514,7 +4690,7 @@ namespace VULKAN_HPP_NAMESPACE
     {
       case AttachmentStoreOp::eStore: return "Store";
       case AttachmentStoreOp::eDontCare: return "DontCare";
-      case AttachmentStoreOp::eNoneEXT: return "NoneEXT";
+      case AttachmentStoreOp::eNone: return "None";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -4594,7 +4770,13 @@ namespace VULKAN_HPP_NAMESPACE
     ePerViewAttributesNVX    = VK_SUBPASS_DESCRIPTION_PER_VIEW_ATTRIBUTES_BIT_NVX,
     ePerViewPositionXOnlyNVX = VK_SUBPASS_DESCRIPTION_PER_VIEW_POSITION_X_ONLY_BIT_NVX,
     eFragmentRegionQCOM      = VK_SUBPASS_DESCRIPTION_FRAGMENT_REGION_BIT_QCOM,
-    eShaderResolveQCOM       = VK_SUBPASS_DESCRIPTION_SHADER_RESOLVE_BIT_QCOM
+    eShaderResolveQCOM       = VK_SUBPASS_DESCRIPTION_SHADER_RESOLVE_BIT_QCOM,
+    eRasterizationOrderAttachmentColorAccessARM =
+      VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_COLOR_ACCESS_BIT_ARM,
+    eRasterizationOrderAttachmentDepthAccessARM =
+      VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_ARM,
+    eRasterizationOrderAttachmentStencilAccessARM =
+      VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_ARM
   };
 
   VULKAN_HPP_INLINE std::string to_string( SubpassDescriptionFlagBits value )
@@ -4605,6 +4787,12 @@ namespace VULKAN_HPP_NAMESPACE
       case SubpassDescriptionFlagBits::ePerViewPositionXOnlyNVX: return "PerViewPositionXOnlyNVX";
       case SubpassDescriptionFlagBits::eFragmentRegionQCOM: return "FragmentRegionQCOM";
       case SubpassDescriptionFlagBits::eShaderResolveQCOM: return "ShaderResolveQCOM";
+      case SubpassDescriptionFlagBits::eRasterizationOrderAttachmentColorAccessARM:
+        return "RasterizationOrderAttachmentColorAccessARM";
+      case SubpassDescriptionFlagBits::eRasterizationOrderAttachmentDepthAccessARM:
+        return "RasterizationOrderAttachmentDepthAccessARM";
+      case SubpassDescriptionFlagBits::eRasterizationOrderAttachmentStencilAccessARM:
+        return "RasterizationOrderAttachmentStencilAccessARM";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -5175,7 +5363,9 @@ namespace VULKAN_HPP_NAMESPACE
     eVerisiliconProprietary  = VK_DRIVER_ID_VERISILICON_PROPRIETARY,
     eMesaTurnip              = VK_DRIVER_ID_MESA_TURNIP,
     eMesaV3Dv                = VK_DRIVER_ID_MESA_V3DV,
-    eMesaPanvk               = VK_DRIVER_ID_MESA_PANVK
+    eMesaPanvk               = VK_DRIVER_ID_MESA_PANVK,
+    eSamsungProprietary      = VK_DRIVER_ID_SAMSUNG_PROPRIETARY,
+    eMesaVenus               = VK_DRIVER_ID_MESA_VENUS
   };
   using DriverIdKHR = DriverId;
 
@@ -5203,6 +5393,8 @@ namespace VULKAN_HPP_NAMESPACE
       case DriverId::eMesaTurnip: return "MesaTurnip";
       case DriverId::eMesaV3Dv: return "MesaV3Dv";
       case DriverId::eMesaPanvk: return "MesaPanvk";
+      case DriverId::eSamsungProprietary: return "SamsungProprietary";
+      case DriverId::eMesaVenus: return "MesaVenus";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -5317,6 +5509,388 @@ namespace VULKAN_HPP_NAMESPACE
     switch ( value )
     {
       case SemaphoreWaitFlagBits::eAny: return "Any";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  //=== VK_VERSION_1_3 ===
+
+  enum class PipelineCreationFeedbackFlagBits : VkPipelineCreationFeedbackFlags
+  {
+    eValid                       = VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT,
+    eApplicationPipelineCacheHit = VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT,
+    eBasePipelineAcceleration    = VK_PIPELINE_CREATION_FEEDBACK_BASE_PIPELINE_ACCELERATION_BIT
+  };
+  using PipelineCreationFeedbackFlagBitsEXT = PipelineCreationFeedbackFlagBits;
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineCreationFeedbackFlagBits value )
+  {
+    switch ( value )
+    {
+      case PipelineCreationFeedbackFlagBits::eValid: return "Valid";
+      case PipelineCreationFeedbackFlagBits::eApplicationPipelineCacheHit: return "ApplicationPipelineCacheHit";
+      case PipelineCreationFeedbackFlagBits::eBasePipelineAcceleration: return "BasePipelineAcceleration";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class ToolPurposeFlagBits : VkToolPurposeFlags
+  {
+    eValidation         = VK_TOOL_PURPOSE_VALIDATION_BIT,
+    eProfiling          = VK_TOOL_PURPOSE_PROFILING_BIT,
+    eTracing            = VK_TOOL_PURPOSE_TRACING_BIT,
+    eAdditionalFeatures = VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT,
+    eModifyingFeatures  = VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT,
+    eDebugReportingEXT  = VK_TOOL_PURPOSE_DEBUG_REPORTING_BIT_EXT,
+    eDebugMarkersEXT    = VK_TOOL_PURPOSE_DEBUG_MARKERS_BIT_EXT
+  };
+  using ToolPurposeFlagBitsEXT = ToolPurposeFlagBits;
+
+  VULKAN_HPP_INLINE std::string to_string( ToolPurposeFlagBits value )
+  {
+    switch ( value )
+    {
+      case ToolPurposeFlagBits::eValidation: return "Validation";
+      case ToolPurposeFlagBits::eProfiling: return "Profiling";
+      case ToolPurposeFlagBits::eTracing: return "Tracing";
+      case ToolPurposeFlagBits::eAdditionalFeatures: return "AdditionalFeatures";
+      case ToolPurposeFlagBits::eModifyingFeatures: return "ModifyingFeatures";
+      case ToolPurposeFlagBits::eDebugReportingEXT: return "DebugReportingEXT";
+      case ToolPurposeFlagBits::eDebugMarkersEXT: return "DebugMarkersEXT";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class PrivateDataSlotCreateFlagBits : VkPrivateDataSlotCreateFlags
+  {
+  };
+  using PrivateDataSlotCreateFlagBitsEXT = PrivateDataSlotCreateFlagBits;
+
+  VULKAN_HPP_INLINE std::string to_string( PrivateDataSlotCreateFlagBits )
+  {
+    return "(void)";
+  }
+
+  enum class PipelineStageFlagBits2 : VkPipelineStageFlags2
+  {
+    eNone                         = VK_PIPELINE_STAGE_2_NONE,
+    eTopOfPipe                    = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,
+    eDrawIndirect                 = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+    eVertexInput                  = VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT,
+    eVertexShader                 = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT,
+    eTessellationControlShader    = VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT,
+    eTessellationEvaluationShader = VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT,
+    eGeometryShader               = VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT,
+    eFragmentShader               = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+    eEarlyFragmentTests           = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
+    eLateFragmentTests            = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+    eColorAttachmentOutput        = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+    eComputeShader                = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+    eAllTransfer                  = VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT,
+    eBottomOfPipe                 = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
+    eHost                         = VK_PIPELINE_STAGE_2_HOST_BIT,
+    eAllGraphics                  = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+    eAllCommands                  = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+    eCopy                         = VK_PIPELINE_STAGE_2_COPY_BIT,
+    eResolve                      = VK_PIPELINE_STAGE_2_RESOLVE_BIT,
+    eBlit                         = VK_PIPELINE_STAGE_2_BLIT_BIT,
+    eClear                        = VK_PIPELINE_STAGE_2_CLEAR_BIT,
+    eIndexInput                   = VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT,
+    eVertexAttributeInput         = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT,
+    ePreRasterizationShaders      = VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT,
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    eVideoDecodeKHR = VK_PIPELINE_STAGE_2_VIDEO_DECODE_BIT_KHR,
+    eVideoEncodeKHR = VK_PIPELINE_STAGE_2_VIDEO_ENCODE_BIT_KHR,
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    eTransformFeedbackEXT             = VK_PIPELINE_STAGE_2_TRANSFORM_FEEDBACK_BIT_EXT,
+    eConditionalRenderingEXT          = VK_PIPELINE_STAGE_2_CONDITIONAL_RENDERING_BIT_EXT,
+    eCommandPreprocessNV              = VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_NV,
+    eFragmentShadingRateAttachmentKHR = VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
+    eAccelerationStructureBuildKHR    = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+    eRayTracingShaderKHR              = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR,
+    eFragmentDensityProcessEXT        = VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT,
+    eTaskShaderNV                     = VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_NV,
+    eMeshShaderNV                     = VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_NV,
+    eSubpassShadingHUAWEI             = VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HUAWEI,
+    eInvocationMaskHUAWEI             = VK_PIPELINE_STAGE_2_INVOCATION_MASK_BIT_HUAWEI,
+    eAccelerationStructureBuildNV     = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_NV,
+    eRayTracingShaderNV               = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_NV,
+    eShadingRateImageNV               = VK_PIPELINE_STAGE_2_SHADING_RATE_IMAGE_BIT_NV,
+    eTransfer                         = VK_PIPELINE_STAGE_2_TRANSFER_BIT
+  };
+  using PipelineStageFlagBits2KHR = PipelineStageFlagBits2;
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineStageFlagBits2 value )
+  {
+    switch ( value )
+    {
+      case PipelineStageFlagBits2::eNone: return "None";
+      case PipelineStageFlagBits2::eTopOfPipe: return "TopOfPipe";
+      case PipelineStageFlagBits2::eDrawIndirect: return "DrawIndirect";
+      case PipelineStageFlagBits2::eVertexInput: return "VertexInput";
+      case PipelineStageFlagBits2::eVertexShader: return "VertexShader";
+      case PipelineStageFlagBits2::eTessellationControlShader: return "TessellationControlShader";
+      case PipelineStageFlagBits2::eTessellationEvaluationShader: return "TessellationEvaluationShader";
+      case PipelineStageFlagBits2::eGeometryShader: return "GeometryShader";
+      case PipelineStageFlagBits2::eFragmentShader: return "FragmentShader";
+      case PipelineStageFlagBits2::eEarlyFragmentTests: return "EarlyFragmentTests";
+      case PipelineStageFlagBits2::eLateFragmentTests: return "LateFragmentTests";
+      case PipelineStageFlagBits2::eColorAttachmentOutput: return "ColorAttachmentOutput";
+      case PipelineStageFlagBits2::eComputeShader: return "ComputeShader";
+      case PipelineStageFlagBits2::eAllTransfer: return "AllTransfer";
+      case PipelineStageFlagBits2::eBottomOfPipe: return "BottomOfPipe";
+      case PipelineStageFlagBits2::eHost: return "Host";
+      case PipelineStageFlagBits2::eAllGraphics: return "AllGraphics";
+      case PipelineStageFlagBits2::eAllCommands: return "AllCommands";
+      case PipelineStageFlagBits2::eCopy: return "Copy";
+      case PipelineStageFlagBits2::eResolve: return "Resolve";
+      case PipelineStageFlagBits2::eBlit: return "Blit";
+      case PipelineStageFlagBits2::eClear: return "Clear";
+      case PipelineStageFlagBits2::eIndexInput: return "IndexInput";
+      case PipelineStageFlagBits2::eVertexAttributeInput: return "VertexAttributeInput";
+      case PipelineStageFlagBits2::ePreRasterizationShaders: return "PreRasterizationShaders";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+      case PipelineStageFlagBits2::eVideoDecodeKHR: return "VideoDecodeKHR";
+      case PipelineStageFlagBits2::eVideoEncodeKHR: return "VideoEncodeKHR";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+      case PipelineStageFlagBits2::eTransformFeedbackEXT: return "TransformFeedbackEXT";
+      case PipelineStageFlagBits2::eConditionalRenderingEXT: return "ConditionalRenderingEXT";
+      case PipelineStageFlagBits2::eCommandPreprocessNV: return "CommandPreprocessNV";
+      case PipelineStageFlagBits2::eFragmentShadingRateAttachmentKHR: return "FragmentShadingRateAttachmentKHR";
+      case PipelineStageFlagBits2::eAccelerationStructureBuildKHR: return "AccelerationStructureBuildKHR";
+      case PipelineStageFlagBits2::eRayTracingShaderKHR: return "RayTracingShaderKHR";
+      case PipelineStageFlagBits2::eFragmentDensityProcessEXT: return "FragmentDensityProcessEXT";
+      case PipelineStageFlagBits2::eTaskShaderNV: return "TaskShaderNV";
+      case PipelineStageFlagBits2::eMeshShaderNV: return "MeshShaderNV";
+      case PipelineStageFlagBits2::eSubpassShadingHUAWEI: return "SubpassShadingHUAWEI";
+      case PipelineStageFlagBits2::eInvocationMaskHUAWEI: return "InvocationMaskHUAWEI";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class AccessFlagBits2 : VkAccessFlags2
+  {
+    eNone                        = VK_ACCESS_2_NONE,
+    eIndirectCommandRead         = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT,
+    eIndexRead                   = VK_ACCESS_2_INDEX_READ_BIT,
+    eVertexAttributeRead         = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT,
+    eUniformRead                 = VK_ACCESS_2_UNIFORM_READ_BIT,
+    eInputAttachmentRead         = VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT,
+    eShaderRead                  = VK_ACCESS_2_SHADER_READ_BIT,
+    eShaderWrite                 = VK_ACCESS_2_SHADER_WRITE_BIT,
+    eColorAttachmentRead         = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT,
+    eColorAttachmentWrite        = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+    eDepthStencilAttachmentRead  = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+    eDepthStencilAttachmentWrite = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+    eTransferRead                = VK_ACCESS_2_TRANSFER_READ_BIT,
+    eTransferWrite               = VK_ACCESS_2_TRANSFER_WRITE_BIT,
+    eHostRead                    = VK_ACCESS_2_HOST_READ_BIT,
+    eHostWrite                   = VK_ACCESS_2_HOST_WRITE_BIT,
+    eMemoryRead                  = VK_ACCESS_2_MEMORY_READ_BIT,
+    eMemoryWrite                 = VK_ACCESS_2_MEMORY_WRITE_BIT,
+    eShaderSampledRead           = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
+    eShaderStorageRead           = VK_ACCESS_2_SHADER_STORAGE_READ_BIT,
+    eShaderStorageWrite          = VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT,
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    eVideoDecodeReadKHR  = VK_ACCESS_2_VIDEO_DECODE_READ_BIT_KHR,
+    eVideoDecodeWriteKHR = VK_ACCESS_2_VIDEO_DECODE_WRITE_BIT_KHR,
+    eVideoEncodeReadKHR  = VK_ACCESS_2_VIDEO_ENCODE_READ_BIT_KHR,
+    eVideoEncodeWriteKHR = VK_ACCESS_2_VIDEO_ENCODE_WRITE_BIT_KHR,
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    eTransformFeedbackWriteEXT            = VK_ACCESS_2_TRANSFORM_FEEDBACK_WRITE_BIT_EXT,
+    eTransformFeedbackCounterReadEXT      = VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
+    eTransformFeedbackCounterWriteEXT     = VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
+    eConditionalRenderingReadEXT          = VK_ACCESS_2_CONDITIONAL_RENDERING_READ_BIT_EXT,
+    eCommandPreprocessReadNV              = VK_ACCESS_2_COMMAND_PREPROCESS_READ_BIT_NV,
+    eCommandPreprocessWriteNV             = VK_ACCESS_2_COMMAND_PREPROCESS_WRITE_BIT_NV,
+    eFragmentShadingRateAttachmentReadKHR = VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR,
+    eAccelerationStructureReadKHR         = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR,
+    eAccelerationStructureWriteKHR        = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR,
+    eFragmentDensityMapReadEXT            = VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT,
+    eColorAttachmentReadNoncoherentEXT    = VK_ACCESS_2_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT,
+    eInvocationMaskReadHUAWEI             = VK_ACCESS_2_INVOCATION_MASK_READ_BIT_HUAWEI,
+    eAccelerationStructureReadNV          = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_NV,
+    eAccelerationStructureWriteNV         = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_NV,
+    eShadingRateImageReadNV               = VK_ACCESS_2_SHADING_RATE_IMAGE_READ_BIT_NV
+  };
+  using AccessFlagBits2KHR = AccessFlagBits2;
+
+  VULKAN_HPP_INLINE std::string to_string( AccessFlagBits2 value )
+  {
+    switch ( value )
+    {
+      case AccessFlagBits2::eNone: return "None";
+      case AccessFlagBits2::eIndirectCommandRead: return "IndirectCommandRead";
+      case AccessFlagBits2::eIndexRead: return "IndexRead";
+      case AccessFlagBits2::eVertexAttributeRead: return "VertexAttributeRead";
+      case AccessFlagBits2::eUniformRead: return "UniformRead";
+      case AccessFlagBits2::eInputAttachmentRead: return "InputAttachmentRead";
+      case AccessFlagBits2::eShaderRead: return "ShaderRead";
+      case AccessFlagBits2::eShaderWrite: return "ShaderWrite";
+      case AccessFlagBits2::eColorAttachmentRead: return "ColorAttachmentRead";
+      case AccessFlagBits2::eColorAttachmentWrite: return "ColorAttachmentWrite";
+      case AccessFlagBits2::eDepthStencilAttachmentRead: return "DepthStencilAttachmentRead";
+      case AccessFlagBits2::eDepthStencilAttachmentWrite: return "DepthStencilAttachmentWrite";
+      case AccessFlagBits2::eTransferRead: return "TransferRead";
+      case AccessFlagBits2::eTransferWrite: return "TransferWrite";
+      case AccessFlagBits2::eHostRead: return "HostRead";
+      case AccessFlagBits2::eHostWrite: return "HostWrite";
+      case AccessFlagBits2::eMemoryRead: return "MemoryRead";
+      case AccessFlagBits2::eMemoryWrite: return "MemoryWrite";
+      case AccessFlagBits2::eShaderSampledRead: return "ShaderSampledRead";
+      case AccessFlagBits2::eShaderStorageRead: return "ShaderStorageRead";
+      case AccessFlagBits2::eShaderStorageWrite: return "ShaderStorageWrite";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+      case AccessFlagBits2::eVideoDecodeReadKHR: return "VideoDecodeReadKHR";
+      case AccessFlagBits2::eVideoDecodeWriteKHR: return "VideoDecodeWriteKHR";
+      case AccessFlagBits2::eVideoEncodeReadKHR: return "VideoEncodeReadKHR";
+      case AccessFlagBits2::eVideoEncodeWriteKHR: return "VideoEncodeWriteKHR";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+      case AccessFlagBits2::eTransformFeedbackWriteEXT: return "TransformFeedbackWriteEXT";
+      case AccessFlagBits2::eTransformFeedbackCounterReadEXT: return "TransformFeedbackCounterReadEXT";
+      case AccessFlagBits2::eTransformFeedbackCounterWriteEXT: return "TransformFeedbackCounterWriteEXT";
+      case AccessFlagBits2::eConditionalRenderingReadEXT: return "ConditionalRenderingReadEXT";
+      case AccessFlagBits2::eCommandPreprocessReadNV: return "CommandPreprocessReadNV";
+      case AccessFlagBits2::eCommandPreprocessWriteNV: return "CommandPreprocessWriteNV";
+      case AccessFlagBits2::eFragmentShadingRateAttachmentReadKHR: return "FragmentShadingRateAttachmentReadKHR";
+      case AccessFlagBits2::eAccelerationStructureReadKHR: return "AccelerationStructureReadKHR";
+      case AccessFlagBits2::eAccelerationStructureWriteKHR: return "AccelerationStructureWriteKHR";
+      case AccessFlagBits2::eFragmentDensityMapReadEXT: return "FragmentDensityMapReadEXT";
+      case AccessFlagBits2::eColorAttachmentReadNoncoherentEXT: return "ColorAttachmentReadNoncoherentEXT";
+      case AccessFlagBits2::eInvocationMaskReadHUAWEI: return "InvocationMaskReadHUAWEI";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class SubmitFlagBits : VkSubmitFlags
+  {
+    eProtected = VK_SUBMIT_PROTECTED_BIT
+  };
+  using SubmitFlagBitsKHR = SubmitFlagBits;
+
+  VULKAN_HPP_INLINE std::string to_string( SubmitFlagBits value )
+  {
+    switch ( value )
+    {
+      case SubmitFlagBits::eProtected: return "Protected";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class RenderingFlagBits : VkRenderingFlags
+  {
+    eContentsSecondaryCommandBuffers = VK_RENDERING_CONTENTS_SECONDARY_COMMAND_BUFFERS_BIT,
+    eSuspending                      = VK_RENDERING_SUSPENDING_BIT,
+    eResuming                        = VK_RENDERING_RESUMING_BIT
+  };
+  using RenderingFlagBitsKHR = RenderingFlagBits;
+
+  VULKAN_HPP_INLINE std::string to_string( RenderingFlagBits value )
+  {
+    switch ( value )
+    {
+      case RenderingFlagBits::eContentsSecondaryCommandBuffers: return "ContentsSecondaryCommandBuffers";
+      case RenderingFlagBits::eSuspending: return "Suspending";
+      case RenderingFlagBits::eResuming: return "Resuming";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class FormatFeatureFlagBits2 : VkFormatFeatureFlags2
+  {
+    eSampledImage                            = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_BIT,
+    eStorageImage                            = VK_FORMAT_FEATURE_2_STORAGE_IMAGE_BIT,
+    eStorageImageAtomic                      = VK_FORMAT_FEATURE_2_STORAGE_IMAGE_ATOMIC_BIT,
+    eUniformTexelBuffer                      = VK_FORMAT_FEATURE_2_UNIFORM_TEXEL_BUFFER_BIT,
+    eStorageTexelBuffer                      = VK_FORMAT_FEATURE_2_STORAGE_TEXEL_BUFFER_BIT,
+    eStorageTexelBufferAtomic                = VK_FORMAT_FEATURE_2_STORAGE_TEXEL_BUFFER_ATOMIC_BIT,
+    eVertexBuffer                            = VK_FORMAT_FEATURE_2_VERTEX_BUFFER_BIT,
+    eColorAttachment                         = VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BIT,
+    eColorAttachmentBlend                    = VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BLEND_BIT,
+    eDepthStencilAttachment                  = VK_FORMAT_FEATURE_2_DEPTH_STENCIL_ATTACHMENT_BIT,
+    eBlitSrc                                 = VK_FORMAT_FEATURE_2_BLIT_SRC_BIT,
+    eBlitDst                                 = VK_FORMAT_FEATURE_2_BLIT_DST_BIT,
+    eSampledImageFilterLinear                = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
+    eSampledImageFilterCubic                 = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_CUBIC_BIT,
+    eTransferSrc                             = VK_FORMAT_FEATURE_2_TRANSFER_SRC_BIT,
+    eTransferDst                             = VK_FORMAT_FEATURE_2_TRANSFER_DST_BIT,
+    eSampledImageFilterMinmax                = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_MINMAX_BIT,
+    eMidpointChromaSamples                   = VK_FORMAT_FEATURE_2_MIDPOINT_CHROMA_SAMPLES_BIT,
+    eSampledImageYcbcrConversionLinearFilter = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT,
+    eSampledImageYcbcrConversionSeparateReconstructionFilter =
+      VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_SEPARATE_RECONSTRUCTION_FILTER_BIT,
+    eSampledImageYcbcrConversionChromaReconstructionExplicit =
+      VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT,
+    eSampledImageYcbcrConversionChromaReconstructionExplicitForceable =
+      VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT,
+    eDisjoint                    = VK_FORMAT_FEATURE_2_DISJOINT_BIT,
+    eCositedChromaSamples        = VK_FORMAT_FEATURE_2_COSITED_CHROMA_SAMPLES_BIT,
+    eStorageReadWithoutFormat    = VK_FORMAT_FEATURE_2_STORAGE_READ_WITHOUT_FORMAT_BIT,
+    eStorageWriteWithoutFormat   = VK_FORMAT_FEATURE_2_STORAGE_WRITE_WITHOUT_FORMAT_BIT,
+    eSampledImageDepthComparison = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT,
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    eVideoDecodeOutputKHR = VK_FORMAT_FEATURE_2_VIDEO_DECODE_OUTPUT_BIT_KHR,
+    eVideoDecodeDpbKHR    = VK_FORMAT_FEATURE_2_VIDEO_DECODE_DPB_BIT_KHR,
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    eAccelerationStructureVertexBufferKHR = VK_FORMAT_FEATURE_2_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR,
+    eFragmentDensityMapEXT                = VK_FORMAT_FEATURE_2_FRAGMENT_DENSITY_MAP_BIT_EXT,
+    eFragmentShadingRateAttachmentKHR     = VK_FORMAT_FEATURE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    eVideoEncodeInputKHR = VK_FORMAT_FEATURE_2_VIDEO_ENCODE_INPUT_BIT_KHR,
+    eVideoEncodeDpbKHR   = VK_FORMAT_FEATURE_2_VIDEO_ENCODE_DPB_BIT_KHR,
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    eLinearColorAttachmentNV    = VK_FORMAT_FEATURE_2_LINEAR_COLOR_ATTACHMENT_BIT_NV,
+    eSampledImageFilterCubicEXT = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_CUBIC_BIT_EXT
+  };
+  using FormatFeatureFlagBits2KHR = FormatFeatureFlagBits2;
+
+  VULKAN_HPP_INLINE std::string to_string( FormatFeatureFlagBits2 value )
+  {
+    switch ( value )
+    {
+      case FormatFeatureFlagBits2::eSampledImage: return "SampledImage";
+      case FormatFeatureFlagBits2::eStorageImage: return "StorageImage";
+      case FormatFeatureFlagBits2::eStorageImageAtomic: return "StorageImageAtomic";
+      case FormatFeatureFlagBits2::eUniformTexelBuffer: return "UniformTexelBuffer";
+      case FormatFeatureFlagBits2::eStorageTexelBuffer: return "StorageTexelBuffer";
+      case FormatFeatureFlagBits2::eStorageTexelBufferAtomic: return "StorageTexelBufferAtomic";
+      case FormatFeatureFlagBits2::eVertexBuffer: return "VertexBuffer";
+      case FormatFeatureFlagBits2::eColorAttachment: return "ColorAttachment";
+      case FormatFeatureFlagBits2::eColorAttachmentBlend: return "ColorAttachmentBlend";
+      case FormatFeatureFlagBits2::eDepthStencilAttachment: return "DepthStencilAttachment";
+      case FormatFeatureFlagBits2::eBlitSrc: return "BlitSrc";
+      case FormatFeatureFlagBits2::eBlitDst: return "BlitDst";
+      case FormatFeatureFlagBits2::eSampledImageFilterLinear: return "SampledImageFilterLinear";
+      case FormatFeatureFlagBits2::eSampledImageFilterCubic: return "SampledImageFilterCubic";
+      case FormatFeatureFlagBits2::eTransferSrc: return "TransferSrc";
+      case FormatFeatureFlagBits2::eTransferDst: return "TransferDst";
+      case FormatFeatureFlagBits2::eSampledImageFilterMinmax: return "SampledImageFilterMinmax";
+      case FormatFeatureFlagBits2::eMidpointChromaSamples: return "MidpointChromaSamples";
+      case FormatFeatureFlagBits2::eSampledImageYcbcrConversionLinearFilter:
+        return "SampledImageYcbcrConversionLinearFilter";
+      case FormatFeatureFlagBits2::eSampledImageYcbcrConversionSeparateReconstructionFilter:
+        return "SampledImageYcbcrConversionSeparateReconstructionFilter";
+      case FormatFeatureFlagBits2::eSampledImageYcbcrConversionChromaReconstructionExplicit:
+        return "SampledImageYcbcrConversionChromaReconstructionExplicit";
+      case FormatFeatureFlagBits2::eSampledImageYcbcrConversionChromaReconstructionExplicitForceable:
+        return "SampledImageYcbcrConversionChromaReconstructionExplicitForceable";
+      case FormatFeatureFlagBits2::eDisjoint: return "Disjoint";
+      case FormatFeatureFlagBits2::eCositedChromaSamples: return "CositedChromaSamples";
+      case FormatFeatureFlagBits2::eStorageReadWithoutFormat: return "StorageReadWithoutFormat";
+      case FormatFeatureFlagBits2::eStorageWriteWithoutFormat: return "StorageWriteWithoutFormat";
+      case FormatFeatureFlagBits2::eSampledImageDepthComparison: return "SampledImageDepthComparison";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+      case FormatFeatureFlagBits2::eVideoDecodeOutputKHR: return "VideoDecodeOutputKHR";
+      case FormatFeatureFlagBits2::eVideoDecodeDpbKHR: return "VideoDecodeDpbKHR";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+      case FormatFeatureFlagBits2::eAccelerationStructureVertexBufferKHR: return "AccelerationStructureVertexBufferKHR";
+      case FormatFeatureFlagBits2::eFragmentDensityMapEXT: return "FragmentDensityMapEXT";
+      case FormatFeatureFlagBits2::eFragmentShadingRateAttachmentKHR: return "FragmentShadingRateAttachmentKHR";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+      case FormatFeatureFlagBits2::eVideoEncodeInputKHR: return "VideoEncodeInputKHR";
+      case FormatFeatureFlagBits2::eVideoEncodeDpbKHR: return "VideoEncodeDpbKHR";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+      case FormatFeatureFlagBits2::eLinearColorAttachmentNV: return "LinearColorAttachmentNV";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -6021,40 +6595,28 @@ namespace VULKAN_HPP_NAMESPACE
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
+
+  enum class VideoEncodeH264RateControlStructureFlagBitsEXT : VkVideoEncodeH264RateControlStructureFlagsEXT
+  {
+    eUnknown = VK_VIDEO_ENCODE_H264_RATE_CONTROL_STRUCTURE_UNKNOWN_EXT,
+    eFlat    = VK_VIDEO_ENCODE_H264_RATE_CONTROL_STRUCTURE_FLAT_BIT_EXT,
+    eDyadic  = VK_VIDEO_ENCODE_H264_RATE_CONTROL_STRUCTURE_DYADIC_BIT_EXT
+  };
+
+  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH264RateControlStructureFlagBitsEXT value )
+  {
+    switch ( value )
+    {
+      case VideoEncodeH264RateControlStructureFlagBitsEXT::eUnknown: return "Unknown";
+      case VideoEncodeH264RateControlStructureFlagBitsEXT::eFlat: return "Flat";
+      case VideoEncodeH264RateControlStructureFlagBitsEXT::eDyadic: return "Dyadic";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
   //=== VK_EXT_video_encode_h265 ===
-
-  enum class VideoEncodeH265CapabilityFlagBitsEXT : VkVideoEncodeH265CapabilityFlagsEXT
-  {
-    eWeightedBiPredImplicit     = VK_VIDEO_ENCODE_H265_CAPABILITY_WEIGHTED_BI_PRED_IMPLICIT_BIT_EXT,
-    eTransform8X8               = VK_VIDEO_ENCODE_H265_CAPABILITY_TRANSFORM_8X8_BIT_EXT,
-    eChromaQpOffset             = VK_VIDEO_ENCODE_H265_CAPABILITY_CHROMA_QP_OFFSET_BIT_EXT,
-    eSecondChromaQpOffset       = VK_VIDEO_ENCODE_H265_CAPABILITY_SECOND_CHROMA_QP_OFFSET_BIT_EXT,
-    eDeblockingFilterDisabled   = VK_VIDEO_ENCODE_H265_CAPABILITY_DEBLOCKING_FILTER_DISABLED_BIT_EXT,
-    eDeblockingFilterEnabled    = VK_VIDEO_ENCODE_H265_CAPABILITY_DEBLOCKING_FILTER_ENABLED_BIT_EXT,
-    eDeblockingFilterPartial    = VK_VIDEO_ENCODE_H265_CAPABILITY_DEBLOCKING_FILTER_PARTIAL_BIT_EXT,
-    eMultipleSlicePerFrame      = VK_VIDEO_ENCODE_H265_CAPABILITY_MULTIPLE_SLICE_PER_FRAME_BIT_EXT,
-    eEvenlyDistributedSliceSize = VK_VIDEO_ENCODE_H265_CAPABILITY_EVENLY_DISTRIBUTED_SLICE_SIZE_BIT_EXT
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH265CapabilityFlagBitsEXT value )
-  {
-    switch ( value )
-    {
-      case VideoEncodeH265CapabilityFlagBitsEXT::eWeightedBiPredImplicit: return "WeightedBiPredImplicit";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eTransform8X8: return "Transform8X8";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eChromaQpOffset: return "ChromaQpOffset";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eSecondChromaQpOffset: return "SecondChromaQpOffset";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterDisabled: return "DeblockingFilterDisabled";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterEnabled: return "DeblockingFilterEnabled";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterPartial: return "DeblockingFilterPartial";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eMultipleSlicePerFrame: return "MultipleSlicePerFrame";
-      case VideoEncodeH265CapabilityFlagBitsEXT::eEvenlyDistributedSliceSize: return "EvenlyDistributedSliceSize";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-  }
 
   enum class VideoEncodeH265InputModeFlagBitsEXT : VkVideoEncodeH265InputModeFlagsEXT
   {
@@ -6110,6 +6672,33 @@ namespace VULKAN_HPP_NAMESPACE
       case VideoEncodeH265CtbSizeFlagBitsEXT::e64: return "64";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
+  }
+
+  enum class VideoEncodeH265RateControlStructureFlagBitsEXT : VkVideoEncodeH265RateControlStructureFlagsEXT
+  {
+    eUnknown = VK_VIDEO_ENCODE_H265_RATE_CONTROL_STRUCTURE_UNKNOWN_EXT,
+    eFlat    = VK_VIDEO_ENCODE_H265_RATE_CONTROL_STRUCTURE_FLAT_BIT_EXT,
+    eDyadic  = VK_VIDEO_ENCODE_H265_RATE_CONTROL_STRUCTURE_DYADIC_BIT_EXT
+  };
+
+  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH265RateControlStructureFlagBitsEXT value )
+  {
+    switch ( value )
+    {
+      case VideoEncodeH265RateControlStructureFlagBitsEXT::eUnknown: return "Unknown";
+      case VideoEncodeH265RateControlStructureFlagBitsEXT::eFlat: return "Flat";
+      case VideoEncodeH265RateControlStructureFlagBitsEXT::eDyadic: return "Dyadic";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class VideoEncodeH265CapabilityFlagBitsEXT : VkVideoEncodeH265CapabilityFlagsEXT
+  {
+  };
+
+  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH265CapabilityFlagBitsEXT )
+  {
+    return "(void)";
   }
 
   enum class VideoEncodeH265CreateFlagBitsEXT : VkVideoEncodeH265CreateFlagsEXT
@@ -6992,28 +7581,6 @@ namespace VULKAN_HPP_NAMESPACE
     }
   }
 
-  //=== VK_EXT_global_priority ===
-
-  enum class QueueGlobalPriorityEXT
-  {
-    eLow      = VK_QUEUE_GLOBAL_PRIORITY_LOW_EXT,
-    eMedium   = VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_EXT,
-    eHigh     = VK_QUEUE_GLOBAL_PRIORITY_HIGH_EXT,
-    eRealtime = VK_QUEUE_GLOBAL_PRIORITY_REALTIME_EXT
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( QueueGlobalPriorityEXT value )
-  {
-    switch ( value )
-    {
-      case QueueGlobalPriorityEXT::eLow: return "Low";
-      case QueueGlobalPriorityEXT::eMedium: return "Medium";
-      case QueueGlobalPriorityEXT::eHigh: return "High";
-      case QueueGlobalPriorityEXT::eRealtime: return "Realtime";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-  }
-
   //=== VK_AMD_pipeline_compiler_control ===
 
   enum class PipelineCompilerControlFlagBitsAMD : VkPipelineCompilerControlFlagsAMD
@@ -7060,6 +7627,29 @@ namespace VULKAN_HPP_NAMESPACE
   }
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
+  //=== VK_KHR_global_priority ===
+
+  enum class QueueGlobalPriorityKHR
+  {
+    eLow      = VK_QUEUE_GLOBAL_PRIORITY_LOW_KHR,
+    eMedium   = VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR,
+    eHigh     = VK_QUEUE_GLOBAL_PRIORITY_HIGH_KHR,
+    eRealtime = VK_QUEUE_GLOBAL_PRIORITY_REALTIME_KHR
+  };
+  using QueueGlobalPriorityEXT = QueueGlobalPriorityKHR;
+
+  VULKAN_HPP_INLINE std::string to_string( QueueGlobalPriorityKHR value )
+  {
+    switch ( value )
+    {
+      case QueueGlobalPriorityKHR::eLow: return "Low";
+      case QueueGlobalPriorityKHR::eMedium: return "Medium";
+      case QueueGlobalPriorityKHR::eHigh: return "High";
+      case QueueGlobalPriorityKHR::eRealtime: return "Realtime";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
   //=== VK_AMD_memory_overallocation_behavior ===
 
   enum class MemoryOverallocationBehaviorAMD
@@ -7076,26 +7666,6 @@ namespace VULKAN_HPP_NAMESPACE
       case MemoryOverallocationBehaviorAMD::eDefault: return "Default";
       case MemoryOverallocationBehaviorAMD::eAllowed: return "Allowed";
       case MemoryOverallocationBehaviorAMD::eDisallowed: return "Disallowed";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-  }
-
-  //=== VK_EXT_pipeline_creation_feedback ===
-
-  enum class PipelineCreationFeedbackFlagBitsEXT : VkPipelineCreationFeedbackFlagsEXT
-  {
-    eValid                       = VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT_EXT,
-    eApplicationPipelineCacheHit = VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT_EXT,
-    eBasePipelineAcceleration    = VK_PIPELINE_CREATION_FEEDBACK_BASE_PIPELINE_ACCELERATION_BIT_EXT
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( PipelineCreationFeedbackFlagBitsEXT value )
-  {
-    switch ( value )
-    {
-      case PipelineCreationFeedbackFlagBitsEXT::eValid: return "Valid";
-      case PipelineCreationFeedbackFlagBitsEXT::eApplicationPipelineCacheHit: return "ApplicationPipelineCacheHit";
-      case PipelineCreationFeedbackFlagBitsEXT::eBasePipelineAcceleration: return "BasePipelineAcceleration";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -7245,34 +7815,6 @@ namespace VULKAN_HPP_NAMESPACE
   VULKAN_HPP_INLINE std::string to_string( ShaderCorePropertiesFlagBitsAMD )
   {
     return "(void)";
-  }
-
-  //=== VK_EXT_tooling_info ===
-
-  enum class ToolPurposeFlagBitsEXT : VkToolPurposeFlagsEXT
-  {
-    eValidation         = VK_TOOL_PURPOSE_VALIDATION_BIT_EXT,
-    eProfiling          = VK_TOOL_PURPOSE_PROFILING_BIT_EXT,
-    eTracing            = VK_TOOL_PURPOSE_TRACING_BIT_EXT,
-    eAdditionalFeatures = VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT_EXT,
-    eModifyingFeatures  = VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT_EXT,
-    eDebugReporting     = VK_TOOL_PURPOSE_DEBUG_REPORTING_BIT_EXT,
-    eDebugMarkers       = VK_TOOL_PURPOSE_DEBUG_MARKERS_BIT_EXT
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( ToolPurposeFlagBitsEXT value )
-  {
-    switch ( value )
-    {
-      case ToolPurposeFlagBitsEXT::eValidation: return "Validation";
-      case ToolPurposeFlagBitsEXT::eProfiling: return "Profiling";
-      case ToolPurposeFlagBitsEXT::eTracing: return "Tracing";
-      case ToolPurposeFlagBitsEXT::eAdditionalFeatures: return "AdditionalFeatures";
-      case ToolPurposeFlagBitsEXT::eModifyingFeatures: return "ModifyingFeatures";
-      case ToolPurposeFlagBitsEXT::eDebugReporting: return "DebugReporting";
-      case ToolPurposeFlagBitsEXT::eDebugMarkers: return "DebugMarkers";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
   }
 
   //=== VK_EXT_validation_features ===
@@ -7602,21 +8144,11 @@ namespace VULKAN_HPP_NAMESPACE
     return "(void)";
   }
 
-  //=== VK_EXT_private_data ===
-
-  enum class PrivateDataSlotCreateFlagBitsEXT : VkPrivateDataSlotCreateFlagsEXT
-  {
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( PrivateDataSlotCreateFlagBitsEXT )
-  {
-    return "(void)";
-  }
-
   //=== VK_EXT_pipeline_creation_cache_control ===
 
   enum class PipelineCacheCreateFlagBits : VkPipelineCacheCreateFlags
   {
+    eExternallySynchronized    = VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT,
     eExternallySynchronizedEXT = VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT_EXT
   };
 
@@ -7624,7 +8156,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
     switch ( value )
     {
-      case PipelineCacheCreateFlagBits::eExternallySynchronizedEXT: return "ExternallySynchronizedEXT";
+      case PipelineCacheCreateFlagBits::eExternallySynchronized: return "ExternallySynchronized";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -7650,8 +8182,8 @@ namespace VULKAN_HPP_NAMESPACE
 
   enum class VideoEncodeRateControlFlagBitsKHR : VkVideoEncodeRateControlFlagsKHR
   {
-    eDefault = VK_VIDEO_ENCODE_RATE_CONTROL_DEFAULT_KHR,
-    eReset   = VK_VIDEO_ENCODE_RATE_CONTROL_RESET_BIT_KHR
+    eDefault   = VK_VIDEO_ENCODE_RATE_CONTROL_DEFAULT_KHR,
+    eReserved0 = VK_VIDEO_ENCODE_RATE_CONTROL_RESERVED_0_BIT_KHR
   };
 
   VULKAN_HPP_INLINE std::string to_string( VideoEncodeRateControlFlagBitsKHR value )
@@ -7659,7 +8191,7 @@ namespace VULKAN_HPP_NAMESPACE
     switch ( value )
     {
       case VideoEncodeRateControlFlagBitsKHR::eDefault: return "Default";
-      case VideoEncodeRateControlFlagBitsKHR::eReset: return "Reset";
+      case VideoEncodeRateControlFlagBitsKHR::eReserved0: return "Reserved0";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -7699,211 +8231,6 @@ namespace VULKAN_HPP_NAMESPACE
       case DeviceDiagnosticsConfigFlagBitsNV::eEnableShaderDebugInfo: return "EnableShaderDebugInfo";
       case DeviceDiagnosticsConfigFlagBitsNV::eEnableResourceTracking: return "EnableResourceTracking";
       case DeviceDiagnosticsConfigFlagBitsNV::eEnableAutomaticCheckpoints: return "EnableAutomaticCheckpoints";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-  }
-
-  //=== VK_KHR_synchronization2 ===
-
-  enum class PipelineStageFlagBits2KHR : VkPipelineStageFlags2KHR
-  {
-    eNone                         = VK_PIPELINE_STAGE_2_NONE_KHR,
-    eTopOfPipe                    = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT_KHR,
-    eDrawIndirect                 = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT_KHR,
-    eVertexInput                  = VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
-    eVertexShader                 = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT_KHR,
-    eTessellationControlShader    = VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT_KHR,
-    eTessellationEvaluationShader = VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT_KHR,
-    eGeometryShader               = VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT_KHR,
-    eFragmentShader               = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR,
-    eEarlyFragmentTests           = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT_KHR,
-    eLateFragmentTests            = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT_KHR,
-    eColorAttachmentOutput        = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-    eComputeShader                = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT_KHR,
-    eAllTransfer                  = VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT_KHR,
-    eBottomOfPipe                 = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT_KHR,
-    eHost                         = VK_PIPELINE_STAGE_2_HOST_BIT_KHR,
-    eAllGraphics                  = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT_KHR,
-    eAllCommands                  = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR,
-    eCopy                         = VK_PIPELINE_STAGE_2_COPY_BIT_KHR,
-    eResolve                      = VK_PIPELINE_STAGE_2_RESOLVE_BIT_KHR,
-    eBlit                         = VK_PIPELINE_STAGE_2_BLIT_BIT_KHR,
-    eClear                        = VK_PIPELINE_STAGE_2_CLEAR_BIT_KHR,
-    eIndexInput                   = VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT_KHR,
-    eVertexAttributeInput         = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT_KHR,
-    ePreRasterizationShaders      = VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT_KHR,
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    eVideoDecode = VK_PIPELINE_STAGE_2_VIDEO_DECODE_BIT_KHR,
-    eVideoEncode = VK_PIPELINE_STAGE_2_VIDEO_ENCODE_BIT_KHR,
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    eTransformFeedbackEXT          = VK_PIPELINE_STAGE_2_TRANSFORM_FEEDBACK_BIT_EXT,
-    eConditionalRenderingEXT       = VK_PIPELINE_STAGE_2_CONDITIONAL_RENDERING_BIT_EXT,
-    eCommandPreprocessNV           = VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_NV,
-    eFragmentShadingRateAttachment = VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
-    eAccelerationStructureBuild    = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
-    eRayTracingShader              = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR,
-    eFragmentDensityProcessEXT     = VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT,
-    eTaskShaderNV                  = VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_NV,
-    eMeshShaderNV                  = VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_NV,
-    eSubpassShadingHUAWEI          = VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HUAWEI,
-    eInvocationMaskHUAWEI          = VK_PIPELINE_STAGE_2_INVOCATION_MASK_BIT_HUAWEI,
-    eAccelerationStructureBuildNV  = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_NV,
-    eRayTracingShaderNV            = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_NV,
-    eShadingRateImageNV            = VK_PIPELINE_STAGE_2_SHADING_RATE_IMAGE_BIT_NV,
-    eTransfer                      = VK_PIPELINE_STAGE_2_TRANSFER_BIT_KHR
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( PipelineStageFlagBits2KHR value )
-  {
-    switch ( value )
-    {
-      case PipelineStageFlagBits2KHR::eNone: return "None";
-      case PipelineStageFlagBits2KHR::eTopOfPipe: return "TopOfPipe";
-      case PipelineStageFlagBits2KHR::eDrawIndirect: return "DrawIndirect";
-      case PipelineStageFlagBits2KHR::eVertexInput: return "VertexInput";
-      case PipelineStageFlagBits2KHR::eVertexShader: return "VertexShader";
-      case PipelineStageFlagBits2KHR::eTessellationControlShader: return "TessellationControlShader";
-      case PipelineStageFlagBits2KHR::eTessellationEvaluationShader: return "TessellationEvaluationShader";
-      case PipelineStageFlagBits2KHR::eGeometryShader: return "GeometryShader";
-      case PipelineStageFlagBits2KHR::eFragmentShader: return "FragmentShader";
-      case PipelineStageFlagBits2KHR::eEarlyFragmentTests: return "EarlyFragmentTests";
-      case PipelineStageFlagBits2KHR::eLateFragmentTests: return "LateFragmentTests";
-      case PipelineStageFlagBits2KHR::eColorAttachmentOutput: return "ColorAttachmentOutput";
-      case PipelineStageFlagBits2KHR::eComputeShader: return "ComputeShader";
-      case PipelineStageFlagBits2KHR::eAllTransfer: return "AllTransfer";
-      case PipelineStageFlagBits2KHR::eBottomOfPipe: return "BottomOfPipe";
-      case PipelineStageFlagBits2KHR::eHost: return "Host";
-      case PipelineStageFlagBits2KHR::eAllGraphics: return "AllGraphics";
-      case PipelineStageFlagBits2KHR::eAllCommands: return "AllCommands";
-      case PipelineStageFlagBits2KHR::eCopy: return "Copy";
-      case PipelineStageFlagBits2KHR::eResolve: return "Resolve";
-      case PipelineStageFlagBits2KHR::eBlit: return "Blit";
-      case PipelineStageFlagBits2KHR::eClear: return "Clear";
-      case PipelineStageFlagBits2KHR::eIndexInput: return "IndexInput";
-      case PipelineStageFlagBits2KHR::eVertexAttributeInput: return "VertexAttributeInput";
-      case PipelineStageFlagBits2KHR::ePreRasterizationShaders: return "PreRasterizationShaders";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-      case PipelineStageFlagBits2KHR::eVideoDecode: return "VideoDecode";
-      case PipelineStageFlagBits2KHR::eVideoEncode: return "VideoEncode";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-      case PipelineStageFlagBits2KHR::eTransformFeedbackEXT: return "TransformFeedbackEXT";
-      case PipelineStageFlagBits2KHR::eConditionalRenderingEXT: return "ConditionalRenderingEXT";
-      case PipelineStageFlagBits2KHR::eCommandPreprocessNV: return "CommandPreprocessNV";
-      case PipelineStageFlagBits2KHR::eFragmentShadingRateAttachment: return "FragmentShadingRateAttachment";
-      case PipelineStageFlagBits2KHR::eAccelerationStructureBuild: return "AccelerationStructureBuild";
-      case PipelineStageFlagBits2KHR::eRayTracingShader: return "RayTracingShader";
-      case PipelineStageFlagBits2KHR::eFragmentDensityProcessEXT: return "FragmentDensityProcessEXT";
-      case PipelineStageFlagBits2KHR::eTaskShaderNV: return "TaskShaderNV";
-      case PipelineStageFlagBits2KHR::eMeshShaderNV: return "MeshShaderNV";
-      case PipelineStageFlagBits2KHR::eSubpassShadingHUAWEI: return "SubpassShadingHUAWEI";
-      case PipelineStageFlagBits2KHR::eInvocationMaskHUAWEI: return "InvocationMaskHUAWEI";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-  }
-
-  enum class AccessFlagBits2KHR : VkAccessFlags2KHR
-  {
-    eNone                        = VK_ACCESS_2_NONE_KHR,
-    eIndirectCommandRead         = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT_KHR,
-    eIndexRead                   = VK_ACCESS_2_INDEX_READ_BIT_KHR,
-    eVertexAttributeRead         = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT_KHR,
-    eUniformRead                 = VK_ACCESS_2_UNIFORM_READ_BIT_KHR,
-    eInputAttachmentRead         = VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT_KHR,
-    eShaderRead                  = VK_ACCESS_2_SHADER_READ_BIT_KHR,
-    eShaderWrite                 = VK_ACCESS_2_SHADER_WRITE_BIT_KHR,
-    eColorAttachmentRead         = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT_KHR,
-    eColorAttachmentWrite        = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT_KHR,
-    eDepthStencilAttachmentRead  = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT_KHR,
-    eDepthStencilAttachmentWrite = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT_KHR,
-    eTransferRead                = VK_ACCESS_2_TRANSFER_READ_BIT_KHR,
-    eTransferWrite               = VK_ACCESS_2_TRANSFER_WRITE_BIT_KHR,
-    eHostRead                    = VK_ACCESS_2_HOST_READ_BIT_KHR,
-    eHostWrite                   = VK_ACCESS_2_HOST_WRITE_BIT_KHR,
-    eMemoryRead                  = VK_ACCESS_2_MEMORY_READ_BIT_KHR,
-    eMemoryWrite                 = VK_ACCESS_2_MEMORY_WRITE_BIT_KHR,
-    eShaderSampledRead           = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT_KHR,
-    eShaderStorageRead           = VK_ACCESS_2_SHADER_STORAGE_READ_BIT_KHR,
-    eShaderStorageWrite          = VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT_KHR,
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    eVideoDecodeRead  = VK_ACCESS_2_VIDEO_DECODE_READ_BIT_KHR,
-    eVideoDecodeWrite = VK_ACCESS_2_VIDEO_DECODE_WRITE_BIT_KHR,
-    eVideoEncodeRead  = VK_ACCESS_2_VIDEO_ENCODE_READ_BIT_KHR,
-    eVideoEncodeWrite = VK_ACCESS_2_VIDEO_ENCODE_WRITE_BIT_KHR,
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    eTransformFeedbackWriteEXT         = VK_ACCESS_2_TRANSFORM_FEEDBACK_WRITE_BIT_EXT,
-    eTransformFeedbackCounterReadEXT   = VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
-    eTransformFeedbackCounterWriteEXT  = VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
-    eConditionalRenderingReadEXT       = VK_ACCESS_2_CONDITIONAL_RENDERING_READ_BIT_EXT,
-    eCommandPreprocessReadNV           = VK_ACCESS_2_COMMAND_PREPROCESS_READ_BIT_NV,
-    eCommandPreprocessWriteNV          = VK_ACCESS_2_COMMAND_PREPROCESS_WRITE_BIT_NV,
-    eFragmentShadingRateAttachmentRead = VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR,
-    eAccelerationStructureRead         = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR,
-    eAccelerationStructureWrite        = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR,
-    eFragmentDensityMapReadEXT         = VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT,
-    eColorAttachmentReadNoncoherentEXT = VK_ACCESS_2_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT,
-    eInvocationMaskReadHUAWEI          = VK_ACCESS_2_INVOCATION_MASK_READ_BIT_HUAWEI,
-    eAccelerationStructureReadNV       = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_NV,
-    eAccelerationStructureWriteNV      = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_NV,
-    eShadingRateImageReadNV            = VK_ACCESS_2_SHADING_RATE_IMAGE_READ_BIT_NV
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( AccessFlagBits2KHR value )
-  {
-    switch ( value )
-    {
-      case AccessFlagBits2KHR::eNone: return "None";
-      case AccessFlagBits2KHR::eIndirectCommandRead: return "IndirectCommandRead";
-      case AccessFlagBits2KHR::eIndexRead: return "IndexRead";
-      case AccessFlagBits2KHR::eVertexAttributeRead: return "VertexAttributeRead";
-      case AccessFlagBits2KHR::eUniformRead: return "UniformRead";
-      case AccessFlagBits2KHR::eInputAttachmentRead: return "InputAttachmentRead";
-      case AccessFlagBits2KHR::eShaderRead: return "ShaderRead";
-      case AccessFlagBits2KHR::eShaderWrite: return "ShaderWrite";
-      case AccessFlagBits2KHR::eColorAttachmentRead: return "ColorAttachmentRead";
-      case AccessFlagBits2KHR::eColorAttachmentWrite: return "ColorAttachmentWrite";
-      case AccessFlagBits2KHR::eDepthStencilAttachmentRead: return "DepthStencilAttachmentRead";
-      case AccessFlagBits2KHR::eDepthStencilAttachmentWrite: return "DepthStencilAttachmentWrite";
-      case AccessFlagBits2KHR::eTransferRead: return "TransferRead";
-      case AccessFlagBits2KHR::eTransferWrite: return "TransferWrite";
-      case AccessFlagBits2KHR::eHostRead: return "HostRead";
-      case AccessFlagBits2KHR::eHostWrite: return "HostWrite";
-      case AccessFlagBits2KHR::eMemoryRead: return "MemoryRead";
-      case AccessFlagBits2KHR::eMemoryWrite: return "MemoryWrite";
-      case AccessFlagBits2KHR::eShaderSampledRead: return "ShaderSampledRead";
-      case AccessFlagBits2KHR::eShaderStorageRead: return "ShaderStorageRead";
-      case AccessFlagBits2KHR::eShaderStorageWrite: return "ShaderStorageWrite";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-      case AccessFlagBits2KHR::eVideoDecodeRead: return "VideoDecodeRead";
-      case AccessFlagBits2KHR::eVideoDecodeWrite: return "VideoDecodeWrite";
-      case AccessFlagBits2KHR::eVideoEncodeRead: return "VideoEncodeRead";
-      case AccessFlagBits2KHR::eVideoEncodeWrite: return "VideoEncodeWrite";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-      case AccessFlagBits2KHR::eTransformFeedbackWriteEXT: return "TransformFeedbackWriteEXT";
-      case AccessFlagBits2KHR::eTransformFeedbackCounterReadEXT: return "TransformFeedbackCounterReadEXT";
-      case AccessFlagBits2KHR::eTransformFeedbackCounterWriteEXT: return "TransformFeedbackCounterWriteEXT";
-      case AccessFlagBits2KHR::eConditionalRenderingReadEXT: return "ConditionalRenderingReadEXT";
-      case AccessFlagBits2KHR::eCommandPreprocessReadNV: return "CommandPreprocessReadNV";
-      case AccessFlagBits2KHR::eCommandPreprocessWriteNV: return "CommandPreprocessWriteNV";
-      case AccessFlagBits2KHR::eFragmentShadingRateAttachmentRead: return "FragmentShadingRateAttachmentRead";
-      case AccessFlagBits2KHR::eAccelerationStructureRead: return "AccelerationStructureRead";
-      case AccessFlagBits2KHR::eAccelerationStructureWrite: return "AccelerationStructureWrite";
-      case AccessFlagBits2KHR::eFragmentDensityMapReadEXT: return "FragmentDensityMapReadEXT";
-      case AccessFlagBits2KHR::eColorAttachmentReadNoncoherentEXT: return "ColorAttachmentReadNoncoherentEXT";
-      case AccessFlagBits2KHR::eInvocationMaskReadHUAWEI: return "InvocationMaskReadHUAWEI";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-  }
-
-  enum class SubmitFlagBitsKHR : VkSubmitFlagsKHR
-  {
-    eProtected = VK_SUBMIT_PROTECTED_BIT_KHR
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( SubmitFlagBitsKHR value )
-  {
-    switch ( value )
-    {
-      case SubmitFlagBitsKHR::eProtected: return "Protected";
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -8000,6 +8327,44 @@ namespace VULKAN_HPP_NAMESPACE
     return "(void)";
   }
 
+  //=== VK_ARM_rasterization_order_attachment_access ===
+
+  enum class PipelineColorBlendStateCreateFlagBits : VkPipelineColorBlendStateCreateFlags
+  {
+    eRasterizationOrderAttachmentAccessARM =
+      VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_ARM
+  };
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineColorBlendStateCreateFlagBits value )
+  {
+    switch ( value )
+    {
+      case PipelineColorBlendStateCreateFlagBits::eRasterizationOrderAttachmentAccessARM:
+        return "RasterizationOrderAttachmentAccessARM";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
+  enum class PipelineDepthStencilStateCreateFlagBits : VkPipelineDepthStencilStateCreateFlags
+  {
+    eRasterizationOrderAttachmentDepthAccessARM =
+      VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_ARM,
+    eRasterizationOrderAttachmentStencilAccessARM =
+      VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_ARM
+  };
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineDepthStencilStateCreateFlagBits value )
+  {
+    switch ( value )
+    {
+      case PipelineDepthStencilStateCreateFlagBits::eRasterizationOrderAttachmentDepthAccessARM:
+        return "RasterizationOrderAttachmentDepthAccessARM";
+      case PipelineDepthStencilStateCreateFlagBits::eRasterizationOrderAttachmentStencilAccessARM:
+        return "RasterizationOrderAttachmentStencilAccessARM";
+      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
+    }
+  }
+
 #if defined( VK_USE_PLATFORM_DIRECTFB_EXT )
   //=== VK_EXT_directfb_surface ===
 
@@ -8050,103 +8415,6 @@ namespace VULKAN_HPP_NAMESPACE
       case ShaderGroupShaderKHR::eClosestHit: return "ClosestHit";
       case ShaderGroupShaderKHR::eAnyHit: return "AnyHit";
       case ShaderGroupShaderKHR::eIntersection: return "Intersection";
-      default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
-    }
-  }
-
-  //=== VK_KHR_format_feature_flags2 ===
-
-  enum class FormatFeatureFlagBits2KHR : VkFormatFeatureFlags2KHR
-  {
-    eSampledImage                            = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_BIT_KHR,
-    eStorageImage                            = VK_FORMAT_FEATURE_2_STORAGE_IMAGE_BIT_KHR,
-    eStorageImageAtomic                      = VK_FORMAT_FEATURE_2_STORAGE_IMAGE_ATOMIC_BIT_KHR,
-    eUniformTexelBuffer                      = VK_FORMAT_FEATURE_2_UNIFORM_TEXEL_BUFFER_BIT_KHR,
-    eStorageTexelBuffer                      = VK_FORMAT_FEATURE_2_STORAGE_TEXEL_BUFFER_BIT_KHR,
-    eStorageTexelBufferAtomic                = VK_FORMAT_FEATURE_2_STORAGE_TEXEL_BUFFER_ATOMIC_BIT_KHR,
-    eVertexBuffer                            = VK_FORMAT_FEATURE_2_VERTEX_BUFFER_BIT_KHR,
-    eColorAttachment                         = VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BIT_KHR,
-    eColorAttachmentBlend                    = VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BLEND_BIT_KHR,
-    eDepthStencilAttachment                  = VK_FORMAT_FEATURE_2_DEPTH_STENCIL_ATTACHMENT_BIT_KHR,
-    eBlitSrc                                 = VK_FORMAT_FEATURE_2_BLIT_SRC_BIT_KHR,
-    eBlitDst                                 = VK_FORMAT_FEATURE_2_BLIT_DST_BIT_KHR,
-    eSampledImageFilterLinear                = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_LINEAR_BIT_KHR,
-    eSampledImageFilterCubicEXT              = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_CUBIC_BIT_EXT,
-    eTransferSrc                             = VK_FORMAT_FEATURE_2_TRANSFER_SRC_BIT_KHR,
-    eTransferDst                             = VK_FORMAT_FEATURE_2_TRANSFER_DST_BIT_KHR,
-    eSampledImageFilterMinmax                = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_MINMAX_BIT_KHR,
-    eMidpointChromaSamples                   = VK_FORMAT_FEATURE_2_MIDPOINT_CHROMA_SAMPLES_BIT_KHR,
-    eSampledImageYcbcrConversionLinearFilter = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT_KHR,
-    eSampledImageYcbcrConversionSeparateReconstructionFilter =
-      VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_SEPARATE_RECONSTRUCTION_FILTER_BIT_KHR,
-    eSampledImageYcbcrConversionChromaReconstructionExplicit =
-      VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT_KHR,
-    eSampledImageYcbcrConversionChromaReconstructionExplicitForceable =
-      VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT_KHR,
-    eDisjoint                    = VK_FORMAT_FEATURE_2_DISJOINT_BIT_KHR,
-    eCositedChromaSamples        = VK_FORMAT_FEATURE_2_COSITED_CHROMA_SAMPLES_BIT_KHR,
-    eStorageReadWithoutFormat    = VK_FORMAT_FEATURE_2_STORAGE_READ_WITHOUT_FORMAT_BIT_KHR,
-    eStorageWriteWithoutFormat   = VK_FORMAT_FEATURE_2_STORAGE_WRITE_WITHOUT_FORMAT_BIT_KHR,
-    eSampledImageDepthComparison = VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT_KHR,
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    eVideoDecodeOutput = VK_FORMAT_FEATURE_2_VIDEO_DECODE_OUTPUT_BIT_KHR,
-    eVideoDecodeDpb    = VK_FORMAT_FEATURE_2_VIDEO_DECODE_DPB_BIT_KHR,
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    eAccelerationStructureVertexBuffer = VK_FORMAT_FEATURE_2_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR,
-    eFragmentDensityMapEXT             = VK_FORMAT_FEATURE_2_FRAGMENT_DENSITY_MAP_BIT_EXT,
-    eFragmentShadingRateAttachment     = VK_FORMAT_FEATURE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    eVideoEncodeInput = VK_FORMAT_FEATURE_2_VIDEO_ENCODE_INPUT_BIT_KHR,
-    eVideoEncodeDpb   = VK_FORMAT_FEATURE_2_VIDEO_ENCODE_DPB_BIT_KHR
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-  };
-
-  VULKAN_HPP_INLINE std::string to_string( FormatFeatureFlagBits2KHR value )
-  {
-    switch ( value )
-    {
-      case FormatFeatureFlagBits2KHR::eSampledImage: return "SampledImage";
-      case FormatFeatureFlagBits2KHR::eStorageImage: return "StorageImage";
-      case FormatFeatureFlagBits2KHR::eStorageImageAtomic: return "StorageImageAtomic";
-      case FormatFeatureFlagBits2KHR::eUniformTexelBuffer: return "UniformTexelBuffer";
-      case FormatFeatureFlagBits2KHR::eStorageTexelBuffer: return "StorageTexelBuffer";
-      case FormatFeatureFlagBits2KHR::eStorageTexelBufferAtomic: return "StorageTexelBufferAtomic";
-      case FormatFeatureFlagBits2KHR::eVertexBuffer: return "VertexBuffer";
-      case FormatFeatureFlagBits2KHR::eColorAttachment: return "ColorAttachment";
-      case FormatFeatureFlagBits2KHR::eColorAttachmentBlend: return "ColorAttachmentBlend";
-      case FormatFeatureFlagBits2KHR::eDepthStencilAttachment: return "DepthStencilAttachment";
-      case FormatFeatureFlagBits2KHR::eBlitSrc: return "BlitSrc";
-      case FormatFeatureFlagBits2KHR::eBlitDst: return "BlitDst";
-      case FormatFeatureFlagBits2KHR::eSampledImageFilterLinear: return "SampledImageFilterLinear";
-      case FormatFeatureFlagBits2KHR::eSampledImageFilterCubicEXT: return "SampledImageFilterCubicEXT";
-      case FormatFeatureFlagBits2KHR::eTransferSrc: return "TransferSrc";
-      case FormatFeatureFlagBits2KHR::eTransferDst: return "TransferDst";
-      case FormatFeatureFlagBits2KHR::eSampledImageFilterMinmax: return "SampledImageFilterMinmax";
-      case FormatFeatureFlagBits2KHR::eMidpointChromaSamples: return "MidpointChromaSamples";
-      case FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionLinearFilter:
-        return "SampledImageYcbcrConversionLinearFilter";
-      case FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionSeparateReconstructionFilter:
-        return "SampledImageYcbcrConversionSeparateReconstructionFilter";
-      case FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionChromaReconstructionExplicit:
-        return "SampledImageYcbcrConversionChromaReconstructionExplicit";
-      case FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionChromaReconstructionExplicitForceable:
-        return "SampledImageYcbcrConversionChromaReconstructionExplicitForceable";
-      case FormatFeatureFlagBits2KHR::eDisjoint: return "Disjoint";
-      case FormatFeatureFlagBits2KHR::eCositedChromaSamples: return "CositedChromaSamples";
-      case FormatFeatureFlagBits2KHR::eStorageReadWithoutFormat: return "StorageReadWithoutFormat";
-      case FormatFeatureFlagBits2KHR::eStorageWriteWithoutFormat: return "StorageWriteWithoutFormat";
-      case FormatFeatureFlagBits2KHR::eSampledImageDepthComparison: return "SampledImageDepthComparison";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-      case FormatFeatureFlagBits2KHR::eVideoDecodeOutput: return "VideoDecodeOutput";
-      case FormatFeatureFlagBits2KHR::eVideoDecodeDpb: return "VideoDecodeDpb";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-      case FormatFeatureFlagBits2KHR::eAccelerationStructureVertexBuffer: return "AccelerationStructureVertexBuffer";
-      case FormatFeatureFlagBits2KHR::eFragmentDensityMapEXT: return "FragmentDensityMapEXT";
-      case FormatFeatureFlagBits2KHR::eFragmentShadingRateAttachment: return "FragmentShadingRateAttachment";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-      case FormatFeatureFlagBits2KHR::eVideoEncodeInput: return "VideoEncodeInput";
-      case FormatFeatureFlagBits2KHR::eVideoEncodeDpb: return "VideoEncodeDpb";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
       default: return "invalid ( " + VULKAN_HPP_NAMESPACE::toHexString( static_cast<uint32_t>( value ) ) + " )";
     }
   }
@@ -8202,6 +8470,3302 @@ namespace VULKAN_HPP_NAMESPACE
   template <ObjectType value>
   struct cpp_type
   {};
+
+  //=====================
+  //=== Format Traits ===
+  //=====================
+
+  // The texel block size in bytes.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t blockSize( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4UnormPack8: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4B4A4UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eB4G4R4A4UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G6B5UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G6R5UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G5B5A1UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G5R5A1UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eA1R5G5B5UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Snorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Srgb: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Snorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Srgb: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Snorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Srgb: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Snorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Srgb: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Snorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Srgb: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SrgbPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Snorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sfloat: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Snorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfloat: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Unorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Snorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uscaled: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sscaled: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uint: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sint: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sfloat: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Unorm: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Snorm: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uscaled: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sscaled: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uint: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sint: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sfloat: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sfloat: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Uint: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sint: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sfloat: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Uint: return 12;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sint: return 12;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sfloat: return 12;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Uint: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sint: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sfloat: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Uint: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sint: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sfloat: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Uint: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sint: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sfloat: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Uint: return 24;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sint: return 24;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sfloat: return 24;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Uint: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sint: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sfloat: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eB10G11R11UfloatPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eE5B9G9R9UfloatPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eD16Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eX8D24UnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eD32Sfloat: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eS8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint: return 5;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbUnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbSrgbBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaUnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaSrgbBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eBc2UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc2SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc3UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc3SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc4UnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HSfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc7UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc7SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8UnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8SrgbBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1UnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1SrgbBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11UnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11SnormBlock: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11SnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8G8R8422Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8G8422Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6B10X6A10X6Unorm4Pack16: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6G10X6R10X6422Unorm4Pack16: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eB10X6G10X6R10X6G10X6422Unorm4Pack16: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4B12X4A12X4Unorm4Pack16: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4G12X4R12X4422Unorm4Pack16: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eB12X4G12X4R12X4G12X4422Unorm4Pack16: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16G16R16422Unorm: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eB16G16R16G16422Unorm: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm: return 6;
+      case VULKAN_HPP_NAMESPACE::Format::eA4R4G4B4UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eA4B4G4R4UnormPack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppUnormBlockIMG: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppSrgbBlockIMG: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return 8;
+
+      default: VULKAN_HPP_ASSERT( false ); return 0;
+    }
+  }
+
+  // The number of texels in a texel block.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t texelsPerBlock( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4UnormPack8: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4B4A4UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB4G4R4A4UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G6B5UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G6R5UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G5B5A1UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G5R5A1UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA1R5G5B5UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UscaledPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SscaledPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UintPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SintPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SrgbPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UscaledPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SscaledPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UintPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SintPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UscaledPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SscaledPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UintPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SintPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB10G11R11UfloatPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eE5B9G9R9UfloatPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD16Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eX8D24UnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD32Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eS8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbUnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbSrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaUnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaSrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc2UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc2SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc3UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc3SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc4UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HSfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc7UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eBc7SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11SnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11SnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4UnormBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SrgbBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4UnormBlock: return 20;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SrgbBlock: return 20;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5UnormBlock: return 25;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SrgbBlock: return 25;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5UnormBlock: return 30;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SrgbBlock: return 30;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6UnormBlock: return 36;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SrgbBlock: return 36;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5UnormBlock: return 40;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SrgbBlock: return 40;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6UnormBlock: return 48;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SrgbBlock: return 48;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8UnormBlock: return 64;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SrgbBlock: return 64;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5UnormBlock: return 50;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SrgbBlock: return 50;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6UnormBlock: return 60;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SrgbBlock: return 60;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8UnormBlock: return 80;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SrgbBlock: return 80;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10UnormBlock: return 100;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SrgbBlock: return 100;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10UnormBlock: return 120;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SrgbBlock: return 120;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12UnormBlock: return 144;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SrgbBlock: return 144;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8G8R8422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8G8422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6B10X6A10X6Unorm4Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6G10X6R10X6422Unorm4Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB10X6G10X6R10X6G10X6422Unorm4Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4B12X4A12X4Unorm4Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4G12X4R12X4422Unorm4Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB12X4G12X4R12X4G12X4422Unorm4Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16G16R16422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eB16G16R16G16422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA4R4G4B4UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eA4B4G4R4UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SfloatBlock: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SfloatBlock: return 20;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SfloatBlock: return 25;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SfloatBlock: return 30;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SfloatBlock: return 36;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SfloatBlock: return 40;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SfloatBlock: return 48;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SfloatBlock: return 64;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SfloatBlock: return 50;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SfloatBlock: return 60;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SfloatBlock: return 80;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return 100;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return 120;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return 144;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppUnormBlockIMG: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppSrgbBlockIMG: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return 1;
+
+      default: VULKAN_HPP_ASSERT( false ); return 0;
+    }
+  }
+
+  // The three-dimensional extent of a texel block.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 std::array<uint8_t, 3> blockExtent( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbUnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbSrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaUnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaSrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc2UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc2SrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc3UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc3SrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc4UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HSfloatBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc7UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eBc7SrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8SrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1SrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8SrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11SnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11SnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4UnormBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SrgbBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4UnormBlock: return { 5, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SrgbBlock: return { 5, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5UnormBlock: return { 5, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SrgbBlock: return { 5, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5UnormBlock: return { 6, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SrgbBlock: return { 6, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6UnormBlock: return { 6, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SrgbBlock: return { 6, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5UnormBlock: return { 8, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SrgbBlock: return { 8, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6UnormBlock: return { 8, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SrgbBlock: return { 8, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8UnormBlock: return { 8, 8, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SrgbBlock: return { 8, 8, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5UnormBlock: return { 10, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SrgbBlock: return { 10, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6UnormBlock: return { 10, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SrgbBlock: return { 10, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8UnormBlock: return { 10, 8, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SrgbBlock: return { 10, 8, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10UnormBlock: return { 10, 10, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SrgbBlock: return { 10, 10, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10UnormBlock: return { 12, 10, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SrgbBlock: return { 12, 10, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12UnormBlock: return { 12, 12, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SrgbBlock: return { 12, 12, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8G8R8422Unorm: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8G8422Unorm: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6G10X6R10X6422Unorm4Pack16: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eB10X6G10X6R10X6G10X6422Unorm4Pack16: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4G12X4R12X4422Unorm4Pack16: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eB12X4G12X4R12X4G12X4422Unorm4Pack16: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16G16R16422Unorm: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eB16G16R16G16422Unorm: return { 2, 1, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SfloatBlock: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SfloatBlock: return { 5, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SfloatBlock: return { 5, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SfloatBlock: return { 6, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SfloatBlock: return { 6, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SfloatBlock: return { 8, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SfloatBlock: return { 8, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SfloatBlock: return { 8, 8, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SfloatBlock: return { 10, 5, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SfloatBlock: return { 10, 6, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SfloatBlock: return { 10, 8, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return { 10, 10, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return { 12, 10, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return { 12, 12, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return { 8, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return { 8, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppUnormBlockIMG: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppSrgbBlockIMG: return { 8, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return { 4, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return { 8, 4, 1 };
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return { 4, 4, 1 };
+
+      default: return { 1, 1, 1 };
+    }
+  }
+
+  // A textual description of the compression scheme, or an empty string if it is not compressed
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 char const * compressionScheme( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbUnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbSrgbBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaUnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaSrgbBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc2UnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc2SrgbBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc3UnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc3SrgbBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc4UnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HSfloatBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc7UnormBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eBc7SrgbBlock: return "BC";
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8UnormBlock: return "ETC2";
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8SrgbBlock: return "ETC2";
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1UnormBlock: return "ETC2";
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1SrgbBlock: return "ETC2";
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8UnormBlock: return "ETC2";
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8SrgbBlock: return "ETC2";
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11UnormBlock: return "EAC";
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11SnormBlock: return "EAC";
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11UnormBlock: return "EAC";
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11SnormBlock: return "EAC";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12UnormBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SrgbBlock: return "ASTC LDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return "ASTC HDR";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return "PVRTC";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return "PVRTC";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return "PVRTC";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppUnormBlockIMG: return "PVRTC";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppSrgbBlockIMG: return "PVRTC";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return "PVRTC";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return "PVRTC";
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return "PVRTC";
+
+      default: return "";
+    }
+  }
+
+  // True, if this format is a compressed one.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 bool isCompressed( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    return ( *VULKAN_HPP_NAMESPACE::compressionScheme( format ) != 0 );
+  }
+
+  // The number of bits into which the format is packed. A single image element in this format
+  // can be stored in the same space as a scalar type of this bit width.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t packed( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4UnormPack8: return 8;
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4B4A4UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eB4G4R4A4UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G6B5UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G6R5UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G5B5A1UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G5R5A1UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eA1R5G5B5UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UnormPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SnormPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UscaledPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SscaledPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UintPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SintPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SrgbPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UnormPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SnormPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UscaledPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SscaledPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UintPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SintPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UnormPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SnormPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UscaledPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SscaledPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UintPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SintPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eB10G11R11UfloatPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eE5B9G9R9UfloatPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eX8D24UnormPack32: return 32;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6B10X6A10X6Unorm4Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6G10X6R10X6422Unorm4Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eB10X6G10X6R10X6G10X6422Unorm4Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4B12X4A12X4Unorm4Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4G12X4R12X4422Unorm4Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eB12X4G12X4R12X4G12X4422Unorm4Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eA4R4G4B4UnormPack16: return 16;
+      case VULKAN_HPP_NAMESPACE::Format::eA4B4G4R4UnormPack16: return 16;
+
+      default: return 0;
+    }
+  }
+
+  // The number of components of this format.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t componentCount( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4UnormPack8: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4B4A4UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB4G4R4A4UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G6B5UnormPack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G6R5UnormPack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR5G5B5A1UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB5G5R5A1UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA1R5G5B5UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8Srgb: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Snorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Srgb: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Snorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Srgb: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Snorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Srgb: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Snorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Srgb: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Snorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Srgb: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SrgbPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SnormPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SscaledPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SintPack32: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Snorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sscaled: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Snorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sscaled: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfloat: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Snorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sscaled: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sfloat: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Snorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sscaled: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sfloat: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sfloat: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sfloat: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sfloat: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sfloat: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Uint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sint: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sfloat: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Uint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sint: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sfloat: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB10G11R11UfloatPack32: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eE5B9G9R9UfloatPack32: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eD16Unorm: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eX8D24UnormPack32: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD32Sfloat: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eS8Uint: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbUnormBlock: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbSrgbBlock: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaUnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaSrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eBc2UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eBc2SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eBc3UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eBc3SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eBc4UnormBlock: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HSfloatBlock: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eBc7UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eBc7SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8UnormBlock: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8SrgbBlock: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11UnormBlock: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11SnormBlock: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11UnormBlock: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11SnormBlock: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12UnormBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SrgbBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8G8R8422Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8G8422Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6B10X6A10X6Unorm4Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6G10X6R10X6422Unorm4Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB10X6G10X6R10X6G10X6422Unorm4Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16: return 1;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4B12X4A12X4Unorm4Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4G12X4R12X4422Unorm4Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB12X4G12X4R12X4G12X4422Unorm4Pack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16G16R16422Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eB16G16R16G16422Unorm: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eA4R4G4B4UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eA4B4G4R4UnormPack16: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppUnormBlockIMG: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppSrgbBlockIMG: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG: return 4;
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return 4;
+
+      default: return 0;
+    }
+  }
+
+  // True, if the components of this format are compressed, otherwise false.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 bool componentsAreCompressed( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbUnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbSrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaUnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc1RgbaSrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc2UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc2SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc3UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc3SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc4UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc4SnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc5UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc5SnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HUfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc6HSfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc7UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eBc7SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A1SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eEtc2R8G8B8A8SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12UnormBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SrgbBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc4x4SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x4SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc5x5SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x5SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc6x6SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x5SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x6SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc8x8SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x5SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x6SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x8SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc10x10SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x10SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::eAstc12x12SfloatBlock:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppUnormBlockIMG:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppUnormBlockIMG:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppUnormBlockIMG:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppUnormBlockIMG:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc12BppSrgbBlockIMG:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc14BppSrgbBlockIMG:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc22BppSrgbBlockIMG:
+      case VULKAN_HPP_NAMESPACE::Format::ePvrtc24BppSrgbBlockIMG: return true;
+      default: return false;
+    }
+  }
+
+  // The number of bits in this component, if not compressed, otherwise 0.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t componentBits( VULKAN_HPP_NAMESPACE::Format format,
+                                                                   uint8_t                      component )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4UnormPack8:
+        switch ( component )
+        {
+          case 0: return 4;
+          case 1: return 4;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR4G4B4A4UnormPack16:
+        switch ( component )
+        {
+          case 0: return 4;
+          case 1: return 4;
+          case 2: return 4;
+          case 3: return 4;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB4G4R4A4UnormPack16:
+        switch ( component )
+        {
+          case 0: return 4;
+          case 1: return 4;
+          case 2: return 4;
+          case 3: return 4;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR5G6B5UnormPack16:
+        switch ( component )
+        {
+          case 0: return 5;
+          case 1: return 6;
+          case 2: return 5;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB5G6R5UnormPack16:
+        switch ( component )
+        {
+          case 0: return 5;
+          case 1: return 6;
+          case 2: return 5;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR5G5B5A1UnormPack16:
+        switch ( component )
+        {
+          case 0: return 5;
+          case 1: return 5;
+          case 2: return 5;
+          case 3: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB5G5R5A1UnormPack16:
+        switch ( component )
+        {
+          case 0: return 5;
+          case 1: return 5;
+          case 2: return 5;
+          case 3: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA1R5G5B5UnormPack16:
+        switch ( component )
+        {
+          case 0: return 1;
+          case 1: return 5;
+          case 2: return 5;
+          case 3: return 5;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8Snorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8Uint:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8Sint:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8Srgb:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Snorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Uint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Sint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8Srgb:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Snorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Uint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Sint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8Srgb:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Snorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Uint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Sint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8Srgb:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Snorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Uint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Sint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR8G8B8A8Srgb:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Snorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sscaled:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Uint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Sint:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8A8Srgb:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UnormPack32:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SnormPack32:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UscaledPack32:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SscaledPack32:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8UintPack32:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SintPack32:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA8B8G8R8SrgbPack32:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UnormPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SnormPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UscaledPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SscaledPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10UintPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2R10G10B10SintPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UnormPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SnormPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UscaledPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SscaledPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10UintPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA2B10G10R10SintPack32:
+        switch ( component )
+        {
+          case 0: return 2;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16Snorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16Uint:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sint:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16Sfloat:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Snorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Uint:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sint:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16Sfloat:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Snorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Uint:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sint:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16Sfloat:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Snorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sscaled:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Uint:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sint:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR16G16B16A16Sfloat:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32Uint:
+        switch ( component )
+        {
+          case 0: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sint:
+        switch ( component )
+        {
+          case 0: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32Sfloat:
+        switch ( component )
+        {
+          case 0: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Uint:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sint:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32Sfloat:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Uint:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          case 2: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sint:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          case 2: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32Sfloat:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          case 2: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Uint:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          case 2: return 32;
+          case 3: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sint:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          case 2: return 32;
+          case 3: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR32G32B32A32Sfloat:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 32;
+          case 2: return 32;
+          case 3: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64Uint:
+        switch ( component )
+        {
+          case 0: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sint:
+        switch ( component )
+        {
+          case 0: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64Sfloat:
+        switch ( component )
+        {
+          case 0: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Uint:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sint:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64Sfloat:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Uint:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          case 2: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sint:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          case 2: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64Sfloat:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          case 2: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Uint:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          case 2: return 64;
+          case 3: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sint:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          case 2: return 64;
+          case 3: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR64G64B64A64Sfloat:
+        switch ( component )
+        {
+          case 0: return 64;
+          case 1: return 64;
+          case 2: return 64;
+          case 3: return 64;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB10G11R11UfloatPack32:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 11;
+          case 2: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eE5B9G9R9UfloatPack32:
+        switch ( component )
+        {
+          case 0: return 9;
+          case 1: return 9;
+          case 2: return 9;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eD16Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eX8D24UnormPack32:
+        switch ( component )
+        {
+          case 0: return 24;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eD32Sfloat:
+        switch ( component )
+        {
+          case 0: return 32;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eS8Uint:
+        switch ( component )
+        {
+          case 0: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eD16UnormS8Uint:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eD24UnormS8Uint:
+        switch ( component )
+        {
+          case 0: return 24;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eD32SfloatS8Uint:
+        switch ( component )
+        {
+          case 0: return 32;
+          case 1: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11UnormBlock:
+        switch ( component )
+        {
+          case 0: return 11;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11SnormBlock:
+        switch ( component )
+        {
+          case 0: return 11;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11UnormBlock:
+        switch ( component )
+        {
+          case 0: return 11;
+          case 1: return 11;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eEacR11G11SnormBlock:
+        switch ( component )
+        {
+          case 0: return 11;
+          case 1: return 11;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8G8R8422Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB8G8R8G8422Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          case 3: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6B10X6A10X6Unorm4Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6G10X6R10X6422Unorm4Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB10X6G10X6R10X6G10X6422Unorm4Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          case 3: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4B12X4A12X4Unorm4Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          case 3: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4G12X4R12X4422Unorm4Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          case 3: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB12X4G12X4R12X4G12X4422Unorm4Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          case 3: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16G16R16422Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eB16G16R16G16422Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          case 3: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 8;
+          case 1: return 8;
+          case 2: return 8;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 10;
+          case 1: return 10;
+          case 2: return 10;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 12;
+          case 1: return 12;
+          case 2: return 12;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 16;
+          case 1: return 16;
+          case 2: return 16;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA4R4G4B4UnormPack16:
+        switch ( component )
+        {
+          case 0: return 4;
+          case 1: return 4;
+          case 2: return 4;
+          case 3: return 4;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eA4B4G4R4UnormPack16:
+        switch ( component )
+        {
+          case 0: return 4;
+          case 1: return 4;
+          case 2: return 4;
+          case 3: return 4;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+
+      default: return 0;
+    }
+  }
+
+  // The plane this component lies in.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t componentPlaneIndex( VULKAN_HPP_NAMESPACE::Format format,
+                                                                         uint8_t                      component )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm:
+        switch ( component )
+        {
+          case 0: return 0;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 0;
+        }
+
+      default: return 0;
+    }
+  }
+
+  // The number of image planes of this format.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t planeCount( VULKAN_HPP_NAMESPACE::Format format )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm: return 3;
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16: return 2;
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm: return 2;
+
+      default: return 1;
+    }
+  }
+
+  // The single-plane format that this plane is compatible with.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 VULKAN_HPP_NAMESPACE::Format
+                                            planeCompatibleFormat( VULKAN_HPP_NAMESPACE::Format format, uint8_t plane )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR8G8Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR8G8Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR16G16Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR16G16Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 2: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR8Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR8G8Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR10X6UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR10X6G10X6Unorm2Pack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR12X4UnormPack16;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR12X4G12X4Unorm2Pack16;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return VULKAN_HPP_NAMESPACE::Format::eR16Unorm;
+          case 1: return VULKAN_HPP_NAMESPACE::Format::eR16G16Unorm;
+          default: VULKAN_HPP_ASSERT( false ); return VULKAN_HPP_NAMESPACE::Format::eUndefined;
+        }
+
+      default: VULKAN_HPP_ASSERT( plane == 0 ); return format;
+    }
+  }
+
+  // The relative height of this plane. A value of k means that this plane is 1/k the height of the overall format.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t planeHeightDivisor( VULKAN_HPP_NAMESPACE::Format format,
+                                                                        uint8_t                      plane )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+
+      default: VULKAN_HPP_ASSERT( plane == 0 ); return 1;
+    }
+  }
+
+  // The relative width of this plane. A value of k means that this plane is 1/k the width of the overall format.
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR_14 uint8_t planeWidthDivisor( VULKAN_HPP_NAMESPACE::Format format,
+                                                                       uint8_t                      plane )
+  {
+    switch ( format )
+    {
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R83Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X63Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane420Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane422Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X43Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane420Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          case 2: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane422Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 2;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R163Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          case 2: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG8B8R82Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG10X6B10X6R10X62Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG12X4B12X4R12X42Plane444Unorm3Pack16:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+      case VULKAN_HPP_NAMESPACE::Format::eG16B16R162Plane444Unorm:
+        switch ( plane )
+        {
+          case 0: return 1;
+          case 1: return 1;
+          default: VULKAN_HPP_ASSERT( false ); return 1;
+        }
+
+      default: VULKAN_HPP_ASSERT( plane == 0 ); return 1;
+    }
+  }
 
   template <typename T>
   struct IndexTypeValue
@@ -8391,16 +11955,16 @@ namespace VULKAN_HPP_NAMESPACE
   {
     enum : VkFlags
     {
-      allFlags = VkFlags( ImageCreateFlagBits::eSparseBinding ) | VkFlags( ImageCreateFlagBits::eSparseResidency ) |
-                 VkFlags( ImageCreateFlagBits::eSparseAliased ) | VkFlags( ImageCreateFlagBits::eMutableFormat ) |
-                 VkFlags( ImageCreateFlagBits::eCubeCompatible ) | VkFlags( ImageCreateFlagBits::eAlias ) |
-                 VkFlags( ImageCreateFlagBits::eSplitInstanceBindRegions ) |
-                 VkFlags( ImageCreateFlagBits::e2DArrayCompatible ) |
-                 VkFlags( ImageCreateFlagBits::eBlockTexelViewCompatible ) |
-                 VkFlags( ImageCreateFlagBits::eExtendedUsage ) | VkFlags( ImageCreateFlagBits::eProtected ) |
-                 VkFlags( ImageCreateFlagBits::eDisjoint ) | VkFlags( ImageCreateFlagBits::eCornerSampledNV ) |
-                 VkFlags( ImageCreateFlagBits::eSampleLocationsCompatibleDepthEXT ) |
-                 VkFlags( ImageCreateFlagBits::eSubsampledEXT )
+      allFlags =
+        VkFlags( ImageCreateFlagBits::eSparseBinding ) | VkFlags( ImageCreateFlagBits::eSparseResidency ) |
+        VkFlags( ImageCreateFlagBits::eSparseAliased ) | VkFlags( ImageCreateFlagBits::eMutableFormat ) |
+        VkFlags( ImageCreateFlagBits::eCubeCompatible ) | VkFlags( ImageCreateFlagBits::eAlias ) |
+        VkFlags( ImageCreateFlagBits::eSplitInstanceBindRegions ) | VkFlags( ImageCreateFlagBits::e2DArrayCompatible ) |
+        VkFlags( ImageCreateFlagBits::eBlockTexelViewCompatible ) | VkFlags( ImageCreateFlagBits::eExtendedUsage ) |
+        VkFlags( ImageCreateFlagBits::eProtected ) | VkFlags( ImageCreateFlagBits::eDisjoint ) |
+        VkFlags( ImageCreateFlagBits::eCornerSampledNV ) |
+        VkFlags( ImageCreateFlagBits::eSampleLocationsCompatibleDepthEXT ) |
+        VkFlags( ImageCreateFlagBits::eSubsampledEXT ) | VkFlags( ImageCreateFlagBits::eFragmentDensityMapOffsetQCOM )
     };
   };
 
@@ -8463,6 +12027,8 @@ namespace VULKAN_HPP_NAMESPACE
       result += "SampleLocationsCompatibleDepthEXT | ";
     if ( value & ImageCreateFlagBits::eSubsampledEXT )
       result += "SubsampledEXT | ";
+    if ( value & ImageCreateFlagBits::eFragmentDensityMapOffsetQCOM )
+      result += "FragmentDensityMapOffsetQCOM | ";
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -8884,13 +12450,14 @@ namespace VULKAN_HPP_NAMESPACE
         VkFlags( PipelineStageFlagBits::eColorAttachmentOutput ) | VkFlags( PipelineStageFlagBits::eComputeShader ) |
         VkFlags( PipelineStageFlagBits::eTransfer ) | VkFlags( PipelineStageFlagBits::eBottomOfPipe ) |
         VkFlags( PipelineStageFlagBits::eHost ) | VkFlags( PipelineStageFlagBits::eAllGraphics ) |
-        VkFlags( PipelineStageFlagBits::eAllCommands ) | VkFlags( PipelineStageFlagBits::eTransformFeedbackEXT ) |
+        VkFlags( PipelineStageFlagBits::eAllCommands ) | VkFlags( PipelineStageFlagBits::eNone ) |
+        VkFlags( PipelineStageFlagBits::eTransformFeedbackEXT ) |
         VkFlags( PipelineStageFlagBits::eConditionalRenderingEXT ) |
         VkFlags( PipelineStageFlagBits::eAccelerationStructureBuildKHR ) |
         VkFlags( PipelineStageFlagBits::eRayTracingShaderKHR ) | VkFlags( PipelineStageFlagBits::eTaskShaderNV ) |
         VkFlags( PipelineStageFlagBits::eMeshShaderNV ) | VkFlags( PipelineStageFlagBits::eFragmentDensityProcessEXT ) |
         VkFlags( PipelineStageFlagBits::eFragmentShadingRateAttachmentKHR ) |
-        VkFlags( PipelineStageFlagBits::eCommandPreprocessNV ) | VkFlags( PipelineStageFlagBits::eNoneKHR )
+        VkFlags( PipelineStageFlagBits::eCommandPreprocessNV )
     };
   };
 
@@ -8998,7 +12565,7 @@ namespace VULKAN_HPP_NAMESPACE
                  VkFlags( ImageAspectFlagBits::ePlane0 ) | VkFlags( ImageAspectFlagBits::ePlane1 ) |
                  VkFlags( ImageAspectFlagBits::ePlane2 ) | VkFlags( ImageAspectFlagBits::eMemoryPlane0EXT ) |
                  VkFlags( ImageAspectFlagBits::eMemoryPlane1EXT ) | VkFlags( ImageAspectFlagBits::eMemoryPlane2EXT ) |
-                 VkFlags( ImageAspectFlagBits::eMemoryPlane3EXT )
+                 VkFlags( ImageAspectFlagBits::eMemoryPlane3EXT ) | VkFlags( ImageAspectFlagBits::eNoneKHR )
     };
   };
 
@@ -9217,7 +12784,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
     enum : VkFlags
     {
-      allFlags = VkFlags( EventCreateFlagBits::eDeviceOnlyKHR )
+      allFlags = VkFlags( EventCreateFlagBits::eDeviceOnly )
     };
   };
 
@@ -9250,8 +12817,8 @@ namespace VULKAN_HPP_NAMESPACE
       return "{}";
 
     std::string result;
-    if ( value & EventCreateFlagBits::eDeviceOnlyKHR )
-      result += "DeviceOnlyKHR | ";
+    if ( value & EventCreateFlagBits::eDeviceOnly )
+      result += "DeviceOnly | ";
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -9632,7 +13199,7 @@ namespace VULKAN_HPP_NAMESPACE
   {
     enum : VkFlags
     {
-      allFlags = VkFlags( PipelineCacheCreateFlagBits::eExternallySynchronizedEXT )
+      allFlags = VkFlags( PipelineCacheCreateFlagBits::eExternallySynchronized )
     };
   };
 
@@ -9666,8 +13233,8 @@ namespace VULKAN_HPP_NAMESPACE
       return "{}";
 
     std::string result;
-    if ( value & PipelineCacheCreateFlagBits::eExternallySynchronizedEXT )
-      result += "ExternallySynchronizedEXT | ";
+    if ( value & PipelineCacheCreateFlagBits::eExternallySynchronized )
+      result += "ExternallySynchronized | ";
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -9777,9 +13344,49 @@ namespace VULKAN_HPP_NAMESPACE
 
   using PipelineColorBlendStateCreateFlags = Flags<PipelineColorBlendStateCreateFlagBits>;
 
-  VULKAN_HPP_INLINE std::string to_string( PipelineColorBlendStateCreateFlags )
+  template <>
+  struct FlagTraits<PipelineColorBlendStateCreateFlagBits>
   {
-    return "{}";
+    enum : VkFlags
+    {
+      allFlags = VkFlags( PipelineColorBlendStateCreateFlagBits::eRasterizationOrderAttachmentAccessARM )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineColorBlendStateCreateFlags operator|(
+    PipelineColorBlendStateCreateFlagBits bit0, PipelineColorBlendStateCreateFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineColorBlendStateCreateFlags( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineColorBlendStateCreateFlags operator&(
+    PipelineColorBlendStateCreateFlagBits bit0, PipelineColorBlendStateCreateFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineColorBlendStateCreateFlags( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineColorBlendStateCreateFlags operator^(
+    PipelineColorBlendStateCreateFlagBits bit0, PipelineColorBlendStateCreateFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineColorBlendStateCreateFlags( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineColorBlendStateCreateFlags
+    operator~( PipelineColorBlendStateCreateFlagBits bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( PipelineColorBlendStateCreateFlags( bits ) );
+  }
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineColorBlendStateCreateFlags value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & PipelineColorBlendStateCreateFlagBits::eRasterizationOrderAttachmentAccessARM )
+      result += "RasterizationOrderAttachmentAccessARM | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
 
   using PipelineCreateFlags = Flags<PipelineCreateFlagBits>;
@@ -9793,6 +13400,10 @@ namespace VULKAN_HPP_NAMESPACE
         VkFlags( PipelineCreateFlagBits::eDisableOptimization ) | VkFlags( PipelineCreateFlagBits::eAllowDerivatives ) |
         VkFlags( PipelineCreateFlagBits::eDerivative ) | VkFlags( PipelineCreateFlagBits::eViewIndexFromDeviceIndex ) |
         VkFlags( PipelineCreateFlagBits::eDispatchBase ) |
+        VkFlags( PipelineCreateFlagBits::eFailOnPipelineCompileRequired ) |
+        VkFlags( PipelineCreateFlagBits::eEarlyReturnOnFailure ) |
+        VkFlags( PipelineCreateFlagBits::eRenderingFragmentShadingRateAttachmentKHR ) |
+        VkFlags( PipelineCreateFlagBits::eRenderingFragmentDensityMapAttachmentEXT ) |
         VkFlags( PipelineCreateFlagBits::eRayTracingNoNullAnyHitShadersKHR ) |
         VkFlags( PipelineCreateFlagBits::eRayTracingNoNullClosestHitShadersKHR ) |
         VkFlags( PipelineCreateFlagBits::eRayTracingNoNullMissShadersKHR ) |
@@ -9803,8 +13414,6 @@ namespace VULKAN_HPP_NAMESPACE
         VkFlags( PipelineCreateFlagBits::eDeferCompileNV ) | VkFlags( PipelineCreateFlagBits::eCaptureStatisticsKHR ) |
         VkFlags( PipelineCreateFlagBits::eCaptureInternalRepresentationsKHR ) |
         VkFlags( PipelineCreateFlagBits::eIndirectBindableNV ) | VkFlags( PipelineCreateFlagBits::eLibraryKHR ) |
-        VkFlags( PipelineCreateFlagBits::eFailOnPipelineCompileRequiredEXT ) |
-        VkFlags( PipelineCreateFlagBits::eEarlyReturnOnFailureEXT ) |
         VkFlags( PipelineCreateFlagBits::eRayTracingAllowMotionNV )
     };
   };
@@ -9849,6 +13458,14 @@ namespace VULKAN_HPP_NAMESPACE
       result += "ViewIndexFromDeviceIndex | ";
     if ( value & PipelineCreateFlagBits::eDispatchBase )
       result += "DispatchBase | ";
+    if ( value & PipelineCreateFlagBits::eFailOnPipelineCompileRequired )
+      result += "FailOnPipelineCompileRequired | ";
+    if ( value & PipelineCreateFlagBits::eEarlyReturnOnFailure )
+      result += "EarlyReturnOnFailure | ";
+    if ( value & PipelineCreateFlagBits::eRenderingFragmentShadingRateAttachmentKHR )
+      result += "RenderingFragmentShadingRateAttachmentKHR | ";
+    if ( value & PipelineCreateFlagBits::eRenderingFragmentDensityMapAttachmentEXT )
+      result += "RenderingFragmentDensityMapAttachmentEXT | ";
     if ( value & PipelineCreateFlagBits::eRayTracingNoNullAnyHitShadersKHR )
       result += "RayTracingNoNullAnyHitShadersKHR | ";
     if ( value & PipelineCreateFlagBits::eRayTracingNoNullClosestHitShadersKHR )
@@ -9873,10 +13490,6 @@ namespace VULKAN_HPP_NAMESPACE
       result += "IndirectBindableNV | ";
     if ( value & PipelineCreateFlagBits::eLibraryKHR )
       result += "LibraryKHR | ";
-    if ( value & PipelineCreateFlagBits::eFailOnPipelineCompileRequiredEXT )
-      result += "FailOnPipelineCompileRequiredEXT | ";
-    if ( value & PipelineCreateFlagBits::eEarlyReturnOnFailureEXT )
-      result += "EarlyReturnOnFailureEXT | ";
     if ( value & PipelineCreateFlagBits::eRayTracingAllowMotionNV )
       result += "RayTracingAllowMotionNV | ";
 
@@ -9885,9 +13498,52 @@ namespace VULKAN_HPP_NAMESPACE
 
   using PipelineDepthStencilStateCreateFlags = Flags<PipelineDepthStencilStateCreateFlagBits>;
 
-  VULKAN_HPP_INLINE std::string to_string( PipelineDepthStencilStateCreateFlags )
+  template <>
+  struct FlagTraits<PipelineDepthStencilStateCreateFlagBits>
   {
-    return "{}";
+    enum : VkFlags
+    {
+      allFlags = VkFlags( PipelineDepthStencilStateCreateFlagBits::eRasterizationOrderAttachmentDepthAccessARM ) |
+                 VkFlags( PipelineDepthStencilStateCreateFlagBits::eRasterizationOrderAttachmentStencilAccessARM )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineDepthStencilStateCreateFlags operator|(
+    PipelineDepthStencilStateCreateFlagBits bit0, PipelineDepthStencilStateCreateFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineDepthStencilStateCreateFlags( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineDepthStencilStateCreateFlags operator&(
+    PipelineDepthStencilStateCreateFlagBits bit0, PipelineDepthStencilStateCreateFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineDepthStencilStateCreateFlags( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineDepthStencilStateCreateFlags operator^(
+    PipelineDepthStencilStateCreateFlagBits bit0, PipelineDepthStencilStateCreateFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineDepthStencilStateCreateFlags( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineDepthStencilStateCreateFlags
+    operator~( PipelineDepthStencilStateCreateFlagBits bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( PipelineDepthStencilStateCreateFlags( bits ) );
+  }
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineDepthStencilStateCreateFlags value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & PipelineDepthStencilStateCreateFlagBits::eRasterizationOrderAttachmentDepthAccessARM )
+      result += "RasterizationOrderAttachmentDepthAccessARM | ";
+    if ( value & PipelineDepthStencilStateCreateFlagBits::eRasterizationOrderAttachmentStencilAccessARM )
+      result += "RasterizationOrderAttachmentStencilAccessARM | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
 
   using PipelineDynamicStateCreateFlags = Flags<PipelineDynamicStateCreateFlagBits>;
@@ -9932,8 +13588,8 @@ namespace VULKAN_HPP_NAMESPACE
   {
     enum : VkFlags
     {
-      allFlags = VkFlags( PipelineShaderStageCreateFlagBits::eAllowVaryingSubgroupSizeEXT ) |
-                 VkFlags( PipelineShaderStageCreateFlagBits::eRequireFullSubgroupsEXT )
+      allFlags = VkFlags( PipelineShaderStageCreateFlagBits::eAllowVaryingSubgroupSize ) |
+                 VkFlags( PipelineShaderStageCreateFlagBits::eRequireFullSubgroups )
     };
   };
 
@@ -9967,10 +13623,10 @@ namespace VULKAN_HPP_NAMESPACE
       return "{}";
 
     std::string result;
-    if ( value & PipelineShaderStageCreateFlagBits::eAllowVaryingSubgroupSizeEXT )
-      result += "AllowVaryingSubgroupSizeEXT | ";
-    if ( value & PipelineShaderStageCreateFlagBits::eRequireFullSubgroupsEXT )
-      result += "RequireFullSubgroupsEXT | ";
+    if ( value & PipelineShaderStageCreateFlagBits::eAllowVaryingSubgroupSize )
+      result += "AllowVaryingSubgroupSize | ";
+    if ( value & PipelineShaderStageCreateFlagBits::eRequireFullSubgroups )
+      result += "RequireFullSubgroups | ";
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -10247,26 +13903,26 @@ namespace VULKAN_HPP_NAMESPACE
   {
     enum : VkFlags
     {
-      allFlags = VkFlags( AccessFlagBits::eIndirectCommandRead ) | VkFlags( AccessFlagBits::eIndexRead ) |
-                 VkFlags( AccessFlagBits::eVertexAttributeRead ) | VkFlags( AccessFlagBits::eUniformRead ) |
-                 VkFlags( AccessFlagBits::eInputAttachmentRead ) | VkFlags( AccessFlagBits::eShaderRead ) |
-                 VkFlags( AccessFlagBits::eShaderWrite ) | VkFlags( AccessFlagBits::eColorAttachmentRead ) |
-                 VkFlags( AccessFlagBits::eColorAttachmentWrite ) |
-                 VkFlags( AccessFlagBits::eDepthStencilAttachmentRead ) |
-                 VkFlags( AccessFlagBits::eDepthStencilAttachmentWrite ) | VkFlags( AccessFlagBits::eTransferRead ) |
-                 VkFlags( AccessFlagBits::eTransferWrite ) | VkFlags( AccessFlagBits::eHostRead ) |
-                 VkFlags( AccessFlagBits::eHostWrite ) | VkFlags( AccessFlagBits::eMemoryRead ) |
-                 VkFlags( AccessFlagBits::eMemoryWrite ) | VkFlags( AccessFlagBits::eTransformFeedbackWriteEXT ) |
-                 VkFlags( AccessFlagBits::eTransformFeedbackCounterReadEXT ) |
-                 VkFlags( AccessFlagBits::eTransformFeedbackCounterWriteEXT ) |
-                 VkFlags( AccessFlagBits::eConditionalRenderingReadEXT ) |
-                 VkFlags( AccessFlagBits::eColorAttachmentReadNoncoherentEXT ) |
-                 VkFlags( AccessFlagBits::eAccelerationStructureReadKHR ) |
-                 VkFlags( AccessFlagBits::eAccelerationStructureWriteKHR ) |
-                 VkFlags( AccessFlagBits::eFragmentDensityMapReadEXT ) |
-                 VkFlags( AccessFlagBits::eFragmentShadingRateAttachmentReadKHR ) |
-                 VkFlags( AccessFlagBits::eCommandPreprocessReadNV ) |
-                 VkFlags( AccessFlagBits::eCommandPreprocessWriteNV ) | VkFlags( AccessFlagBits::eNoneKHR )
+      allFlags =
+        VkFlags( AccessFlagBits::eIndirectCommandRead ) | VkFlags( AccessFlagBits::eIndexRead ) |
+        VkFlags( AccessFlagBits::eVertexAttributeRead ) | VkFlags( AccessFlagBits::eUniformRead ) |
+        VkFlags( AccessFlagBits::eInputAttachmentRead ) | VkFlags( AccessFlagBits::eShaderRead ) |
+        VkFlags( AccessFlagBits::eShaderWrite ) | VkFlags( AccessFlagBits::eColorAttachmentRead ) |
+        VkFlags( AccessFlagBits::eColorAttachmentWrite ) | VkFlags( AccessFlagBits::eDepthStencilAttachmentRead ) |
+        VkFlags( AccessFlagBits::eDepthStencilAttachmentWrite ) | VkFlags( AccessFlagBits::eTransferRead ) |
+        VkFlags( AccessFlagBits::eTransferWrite ) | VkFlags( AccessFlagBits::eHostRead ) |
+        VkFlags( AccessFlagBits::eHostWrite ) | VkFlags( AccessFlagBits::eMemoryRead ) |
+        VkFlags( AccessFlagBits::eMemoryWrite ) | VkFlags( AccessFlagBits::eNone ) |
+        VkFlags( AccessFlagBits::eTransformFeedbackWriteEXT ) |
+        VkFlags( AccessFlagBits::eTransformFeedbackCounterReadEXT ) |
+        VkFlags( AccessFlagBits::eTransformFeedbackCounterWriteEXT ) |
+        VkFlags( AccessFlagBits::eConditionalRenderingReadEXT ) |
+        VkFlags( AccessFlagBits::eColorAttachmentReadNoncoherentEXT ) |
+        VkFlags( AccessFlagBits::eAccelerationStructureReadKHR ) |
+        VkFlags( AccessFlagBits::eAccelerationStructureWriteKHR ) |
+        VkFlags( AccessFlagBits::eFragmentDensityMapReadEXT ) |
+        VkFlags( AccessFlagBits::eFragmentShadingRateAttachmentReadKHR ) |
+        VkFlags( AccessFlagBits::eCommandPreprocessReadNV ) | VkFlags( AccessFlagBits::eCommandPreprocessWriteNV )
     };
   };
 
@@ -10561,7 +14217,10 @@ namespace VULKAN_HPP_NAMESPACE
       allFlags = VkFlags( SubpassDescriptionFlagBits::ePerViewAttributesNVX ) |
                  VkFlags( SubpassDescriptionFlagBits::ePerViewPositionXOnlyNVX ) |
                  VkFlags( SubpassDescriptionFlagBits::eFragmentRegionQCOM ) |
-                 VkFlags( SubpassDescriptionFlagBits::eShaderResolveQCOM )
+                 VkFlags( SubpassDescriptionFlagBits::eShaderResolveQCOM ) |
+                 VkFlags( SubpassDescriptionFlagBits::eRasterizationOrderAttachmentColorAccessARM ) |
+                 VkFlags( SubpassDescriptionFlagBits::eRasterizationOrderAttachmentDepthAccessARM ) |
+                 VkFlags( SubpassDescriptionFlagBits::eRasterizationOrderAttachmentStencilAccessARM )
     };
   };
 
@@ -10603,6 +14262,12 @@ namespace VULKAN_HPP_NAMESPACE
       result += "FragmentRegionQCOM | ";
     if ( value & SubpassDescriptionFlagBits::eShaderResolveQCOM )
       result += "ShaderResolveQCOM | ";
+    if ( value & SubpassDescriptionFlagBits::eRasterizationOrderAttachmentColorAccessARM )
+      result += "RasterizationOrderAttachmentColorAccessARM | ";
+    if ( value & SubpassDescriptionFlagBits::eRasterizationOrderAttachmentDepthAccessARM )
+      result += "RasterizationOrderAttachmentDepthAccessARM | ";
+    if ( value & SubpassDescriptionFlagBits::eRasterizationOrderAttachmentStencilAccessARM )
+      result += "RasterizationOrderAttachmentStencilAccessARM | ";
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -11738,6 +15403,689 @@ namespace VULKAN_HPP_NAMESPACE
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
 
+  //=== VK_VERSION_1_3 ===
+
+  using PipelineCreationFeedbackFlags = Flags<PipelineCreationFeedbackFlagBits>;
+
+  template <>
+  struct FlagTraits<PipelineCreationFeedbackFlagBits>
+  {
+    enum : VkFlags
+    {
+      allFlags = VkFlags( PipelineCreationFeedbackFlagBits::eValid ) |
+                 VkFlags( PipelineCreationFeedbackFlagBits::eApplicationPipelineCacheHit ) |
+                 VkFlags( PipelineCreationFeedbackFlagBits::eBasePipelineAcceleration )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlags
+    operator|( PipelineCreationFeedbackFlagBits bit0, PipelineCreationFeedbackFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineCreationFeedbackFlags( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlags
+    operator&( PipelineCreationFeedbackFlagBits bit0, PipelineCreationFeedbackFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineCreationFeedbackFlags( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlags
+    operator^( PipelineCreationFeedbackFlagBits bit0, PipelineCreationFeedbackFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineCreationFeedbackFlags( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlags
+    operator~( PipelineCreationFeedbackFlagBits bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( PipelineCreationFeedbackFlags( bits ) );
+  }
+
+  using PipelineCreationFeedbackFlagsEXT = PipelineCreationFeedbackFlags;
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineCreationFeedbackFlags value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & PipelineCreationFeedbackFlagBits::eValid )
+      result += "Valid | ";
+    if ( value & PipelineCreationFeedbackFlagBits::eApplicationPipelineCacheHit )
+      result += "ApplicationPipelineCacheHit | ";
+    if ( value & PipelineCreationFeedbackFlagBits::eBasePipelineAcceleration )
+      result += "BasePipelineAcceleration | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
+  using ToolPurposeFlags = Flags<ToolPurposeFlagBits>;
+
+  template <>
+  struct FlagTraits<ToolPurposeFlagBits>
+  {
+    enum : VkFlags
+    {
+      allFlags = VkFlags( ToolPurposeFlagBits::eValidation ) | VkFlags( ToolPurposeFlagBits::eProfiling ) |
+                 VkFlags( ToolPurposeFlagBits::eTracing ) | VkFlags( ToolPurposeFlagBits::eAdditionalFeatures ) |
+                 VkFlags( ToolPurposeFlagBits::eModifyingFeatures ) |
+                 VkFlags( ToolPurposeFlagBits::eDebugReportingEXT ) | VkFlags( ToolPurposeFlagBits::eDebugMarkersEXT )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlags operator|( ToolPurposeFlagBits bit0,
+                                                                     ToolPurposeFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return ToolPurposeFlags( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlags operator&( ToolPurposeFlagBits bit0,
+                                                                     ToolPurposeFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return ToolPurposeFlags( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlags operator^( ToolPurposeFlagBits bit0,
+                                                                     ToolPurposeFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return ToolPurposeFlags( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlags operator~( ToolPurposeFlagBits bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( ToolPurposeFlags( bits ) );
+  }
+
+  using ToolPurposeFlagsEXT = ToolPurposeFlags;
+
+  VULKAN_HPP_INLINE std::string to_string( ToolPurposeFlags value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & ToolPurposeFlagBits::eValidation )
+      result += "Validation | ";
+    if ( value & ToolPurposeFlagBits::eProfiling )
+      result += "Profiling | ";
+    if ( value & ToolPurposeFlagBits::eTracing )
+      result += "Tracing | ";
+    if ( value & ToolPurposeFlagBits::eAdditionalFeatures )
+      result += "AdditionalFeatures | ";
+    if ( value & ToolPurposeFlagBits::eModifyingFeatures )
+      result += "ModifyingFeatures | ";
+    if ( value & ToolPurposeFlagBits::eDebugReportingEXT )
+      result += "DebugReportingEXT | ";
+    if ( value & ToolPurposeFlagBits::eDebugMarkersEXT )
+      result += "DebugMarkersEXT | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
+  using PrivateDataSlotCreateFlags = Flags<PrivateDataSlotCreateFlagBits>;
+
+  using PrivateDataSlotCreateFlagsEXT = PrivateDataSlotCreateFlags;
+
+  VULKAN_HPP_INLINE std::string to_string( PrivateDataSlotCreateFlags )
+  {
+    return "{}";
+  }
+
+  using PipelineStageFlags2 = Flags<PipelineStageFlagBits2>;
+
+  template <>
+  struct FlagTraits<PipelineStageFlagBits2>
+  {
+    enum : VkFlags64
+    {
+      allFlags =
+        VkFlags64( PipelineStageFlagBits2::eNone ) | VkFlags64( PipelineStageFlagBits2::eTopOfPipe ) |
+        VkFlags64( PipelineStageFlagBits2::eDrawIndirect ) | VkFlags64( PipelineStageFlagBits2::eVertexInput ) |
+        VkFlags64( PipelineStageFlagBits2::eVertexShader ) |
+        VkFlags64( PipelineStageFlagBits2::eTessellationControlShader ) |
+        VkFlags64( PipelineStageFlagBits2::eTessellationEvaluationShader ) |
+        VkFlags64( PipelineStageFlagBits2::eGeometryShader ) | VkFlags64( PipelineStageFlagBits2::eFragmentShader ) |
+        VkFlags64( PipelineStageFlagBits2::eEarlyFragmentTests ) |
+        VkFlags64( PipelineStageFlagBits2::eLateFragmentTests ) |
+        VkFlags64( PipelineStageFlagBits2::eColorAttachmentOutput ) |
+        VkFlags64( PipelineStageFlagBits2::eComputeShader ) | VkFlags64( PipelineStageFlagBits2::eAllTransfer ) |
+        VkFlags64( PipelineStageFlagBits2::eBottomOfPipe ) | VkFlags64( PipelineStageFlagBits2::eHost ) |
+        VkFlags64( PipelineStageFlagBits2::eAllGraphics ) | VkFlags64( PipelineStageFlagBits2::eAllCommands ) |
+        VkFlags64( PipelineStageFlagBits2::eCopy ) | VkFlags64( PipelineStageFlagBits2::eResolve ) |
+        VkFlags64( PipelineStageFlagBits2::eBlit ) | VkFlags64( PipelineStageFlagBits2::eClear ) |
+        VkFlags64( PipelineStageFlagBits2::eIndexInput ) | VkFlags64( PipelineStageFlagBits2::eVertexAttributeInput ) |
+        VkFlags64( PipelineStageFlagBits2::ePreRasterizationShaders )
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+        | VkFlags64( PipelineStageFlagBits2::eVideoDecodeKHR ) | VkFlags64( PipelineStageFlagBits2::eVideoEncodeKHR )
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+        | VkFlags64( PipelineStageFlagBits2::eTransformFeedbackEXT ) |
+        VkFlags64( PipelineStageFlagBits2::eConditionalRenderingEXT ) |
+        VkFlags64( PipelineStageFlagBits2::eCommandPreprocessNV ) |
+        VkFlags64( PipelineStageFlagBits2::eFragmentShadingRateAttachmentKHR ) |
+        VkFlags64( PipelineStageFlagBits2::eAccelerationStructureBuildKHR ) |
+        VkFlags64( PipelineStageFlagBits2::eRayTracingShaderKHR ) |
+        VkFlags64( PipelineStageFlagBits2::eFragmentDensityProcessEXT ) |
+        VkFlags64( PipelineStageFlagBits2::eTaskShaderNV ) | VkFlags64( PipelineStageFlagBits2::eMeshShaderNV ) |
+        VkFlags64( PipelineStageFlagBits2::eSubpassShadingHUAWEI ) |
+        VkFlags64( PipelineStageFlagBits2::eInvocationMaskHUAWEI )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2
+    operator|( PipelineStageFlagBits2 bit0, PipelineStageFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineStageFlags2( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2
+    operator&( PipelineStageFlagBits2 bit0, PipelineStageFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineStageFlags2( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2
+    operator^( PipelineStageFlagBits2 bit0, PipelineStageFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return PipelineStageFlags2( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2 operator~( PipelineStageFlagBits2 bits )
+    VULKAN_HPP_NOEXCEPT
+  {
+    return ~( PipelineStageFlags2( bits ) );
+  }
+
+  using PipelineStageFlags2KHR = PipelineStageFlags2;
+
+  VULKAN_HPP_INLINE std::string to_string( PipelineStageFlags2 value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & PipelineStageFlagBits2::eTopOfPipe )
+      result += "TopOfPipe | ";
+    if ( value & PipelineStageFlagBits2::eDrawIndirect )
+      result += "DrawIndirect | ";
+    if ( value & PipelineStageFlagBits2::eVertexInput )
+      result += "VertexInput | ";
+    if ( value & PipelineStageFlagBits2::eVertexShader )
+      result += "VertexShader | ";
+    if ( value & PipelineStageFlagBits2::eTessellationControlShader )
+      result += "TessellationControlShader | ";
+    if ( value & PipelineStageFlagBits2::eTessellationEvaluationShader )
+      result += "TessellationEvaluationShader | ";
+    if ( value & PipelineStageFlagBits2::eGeometryShader )
+      result += "GeometryShader | ";
+    if ( value & PipelineStageFlagBits2::eFragmentShader )
+      result += "FragmentShader | ";
+    if ( value & PipelineStageFlagBits2::eEarlyFragmentTests )
+      result += "EarlyFragmentTests | ";
+    if ( value & PipelineStageFlagBits2::eLateFragmentTests )
+      result += "LateFragmentTests | ";
+    if ( value & PipelineStageFlagBits2::eColorAttachmentOutput )
+      result += "ColorAttachmentOutput | ";
+    if ( value & PipelineStageFlagBits2::eComputeShader )
+      result += "ComputeShader | ";
+    if ( value & PipelineStageFlagBits2::eAllTransfer )
+      result += "AllTransfer | ";
+    if ( value & PipelineStageFlagBits2::eBottomOfPipe )
+      result += "BottomOfPipe | ";
+    if ( value & PipelineStageFlagBits2::eHost )
+      result += "Host | ";
+    if ( value & PipelineStageFlagBits2::eAllGraphics )
+      result += "AllGraphics | ";
+    if ( value & PipelineStageFlagBits2::eAllCommands )
+      result += "AllCommands | ";
+    if ( value & PipelineStageFlagBits2::eCopy )
+      result += "Copy | ";
+    if ( value & PipelineStageFlagBits2::eResolve )
+      result += "Resolve | ";
+    if ( value & PipelineStageFlagBits2::eBlit )
+      result += "Blit | ";
+    if ( value & PipelineStageFlagBits2::eClear )
+      result += "Clear | ";
+    if ( value & PipelineStageFlagBits2::eIndexInput )
+      result += "IndexInput | ";
+    if ( value & PipelineStageFlagBits2::eVertexAttributeInput )
+      result += "VertexAttributeInput | ";
+    if ( value & PipelineStageFlagBits2::ePreRasterizationShaders )
+      result += "PreRasterizationShaders | ";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    if ( value & PipelineStageFlagBits2::eVideoDecodeKHR )
+      result += "VideoDecodeKHR | ";
+    if ( value & PipelineStageFlagBits2::eVideoEncodeKHR )
+      result += "VideoEncodeKHR | ";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    if ( value & PipelineStageFlagBits2::eTransformFeedbackEXT )
+      result += "TransformFeedbackEXT | ";
+    if ( value & PipelineStageFlagBits2::eConditionalRenderingEXT )
+      result += "ConditionalRenderingEXT | ";
+    if ( value & PipelineStageFlagBits2::eCommandPreprocessNV )
+      result += "CommandPreprocessNV | ";
+    if ( value & PipelineStageFlagBits2::eFragmentShadingRateAttachmentKHR )
+      result += "FragmentShadingRateAttachmentKHR | ";
+    if ( value & PipelineStageFlagBits2::eAccelerationStructureBuildKHR )
+      result += "AccelerationStructureBuildKHR | ";
+    if ( value & PipelineStageFlagBits2::eRayTracingShaderKHR )
+      result += "RayTracingShaderKHR | ";
+    if ( value & PipelineStageFlagBits2::eFragmentDensityProcessEXT )
+      result += "FragmentDensityProcessEXT | ";
+    if ( value & PipelineStageFlagBits2::eTaskShaderNV )
+      result += "TaskShaderNV | ";
+    if ( value & PipelineStageFlagBits2::eMeshShaderNV )
+      result += "MeshShaderNV | ";
+    if ( value & PipelineStageFlagBits2::eSubpassShadingHUAWEI )
+      result += "SubpassShadingHUAWEI | ";
+    if ( value & PipelineStageFlagBits2::eInvocationMaskHUAWEI )
+      result += "InvocationMaskHUAWEI | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
+  using AccessFlags2 = Flags<AccessFlagBits2>;
+
+  template <>
+  struct FlagTraits<AccessFlagBits2>
+  {
+    enum : VkFlags64
+    {
+      allFlags =
+        VkFlags64( AccessFlagBits2::eNone ) | VkFlags64( AccessFlagBits2::eIndirectCommandRead ) |
+        VkFlags64( AccessFlagBits2::eIndexRead ) | VkFlags64( AccessFlagBits2::eVertexAttributeRead ) |
+        VkFlags64( AccessFlagBits2::eUniformRead ) | VkFlags64( AccessFlagBits2::eInputAttachmentRead ) |
+        VkFlags64( AccessFlagBits2::eShaderRead ) | VkFlags64( AccessFlagBits2::eShaderWrite ) |
+        VkFlags64( AccessFlagBits2::eColorAttachmentRead ) | VkFlags64( AccessFlagBits2::eColorAttachmentWrite ) |
+        VkFlags64( AccessFlagBits2::eDepthStencilAttachmentRead ) |
+        VkFlags64( AccessFlagBits2::eDepthStencilAttachmentWrite ) | VkFlags64( AccessFlagBits2::eTransferRead ) |
+        VkFlags64( AccessFlagBits2::eTransferWrite ) | VkFlags64( AccessFlagBits2::eHostRead ) |
+        VkFlags64( AccessFlagBits2::eHostWrite ) | VkFlags64( AccessFlagBits2::eMemoryRead ) |
+        VkFlags64( AccessFlagBits2::eMemoryWrite ) | VkFlags64( AccessFlagBits2::eShaderSampledRead ) |
+        VkFlags64( AccessFlagBits2::eShaderStorageRead ) | VkFlags64( AccessFlagBits2::eShaderStorageWrite )
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+        | VkFlags64( AccessFlagBits2::eVideoDecodeReadKHR ) | VkFlags64( AccessFlagBits2::eVideoDecodeWriteKHR ) |
+        VkFlags64( AccessFlagBits2::eVideoEncodeReadKHR ) | VkFlags64( AccessFlagBits2::eVideoEncodeWriteKHR )
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+        | VkFlags64( AccessFlagBits2::eTransformFeedbackWriteEXT ) |
+        VkFlags64( AccessFlagBits2::eTransformFeedbackCounterReadEXT ) |
+        VkFlags64( AccessFlagBits2::eTransformFeedbackCounterWriteEXT ) |
+        VkFlags64( AccessFlagBits2::eConditionalRenderingReadEXT ) |
+        VkFlags64( AccessFlagBits2::eCommandPreprocessReadNV ) |
+        VkFlags64( AccessFlagBits2::eCommandPreprocessWriteNV ) |
+        VkFlags64( AccessFlagBits2::eFragmentShadingRateAttachmentReadKHR ) |
+        VkFlags64( AccessFlagBits2::eAccelerationStructureReadKHR ) |
+        VkFlags64( AccessFlagBits2::eAccelerationStructureWriteKHR ) |
+        VkFlags64( AccessFlagBits2::eFragmentDensityMapReadEXT ) |
+        VkFlags64( AccessFlagBits2::eColorAttachmentReadNoncoherentEXT ) |
+        VkFlags64( AccessFlagBits2::eInvocationMaskReadHUAWEI )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2 operator|( AccessFlagBits2 bit0,
+                                                                 AccessFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return AccessFlags2( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2 operator&( AccessFlagBits2 bit0,
+                                                                 AccessFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return AccessFlags2( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2 operator^( AccessFlagBits2 bit0,
+                                                                 AccessFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return AccessFlags2( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2 operator~( AccessFlagBits2 bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( AccessFlags2( bits ) );
+  }
+
+  using AccessFlags2KHR = AccessFlags2;
+
+  VULKAN_HPP_INLINE std::string to_string( AccessFlags2 value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & AccessFlagBits2::eIndirectCommandRead )
+      result += "IndirectCommandRead | ";
+    if ( value & AccessFlagBits2::eIndexRead )
+      result += "IndexRead | ";
+    if ( value & AccessFlagBits2::eVertexAttributeRead )
+      result += "VertexAttributeRead | ";
+    if ( value & AccessFlagBits2::eUniformRead )
+      result += "UniformRead | ";
+    if ( value & AccessFlagBits2::eInputAttachmentRead )
+      result += "InputAttachmentRead | ";
+    if ( value & AccessFlagBits2::eShaderRead )
+      result += "ShaderRead | ";
+    if ( value & AccessFlagBits2::eShaderWrite )
+      result += "ShaderWrite | ";
+    if ( value & AccessFlagBits2::eColorAttachmentRead )
+      result += "ColorAttachmentRead | ";
+    if ( value & AccessFlagBits2::eColorAttachmentWrite )
+      result += "ColorAttachmentWrite | ";
+    if ( value & AccessFlagBits2::eDepthStencilAttachmentRead )
+      result += "DepthStencilAttachmentRead | ";
+    if ( value & AccessFlagBits2::eDepthStencilAttachmentWrite )
+      result += "DepthStencilAttachmentWrite | ";
+    if ( value & AccessFlagBits2::eTransferRead )
+      result += "TransferRead | ";
+    if ( value & AccessFlagBits2::eTransferWrite )
+      result += "TransferWrite | ";
+    if ( value & AccessFlagBits2::eHostRead )
+      result += "HostRead | ";
+    if ( value & AccessFlagBits2::eHostWrite )
+      result += "HostWrite | ";
+    if ( value & AccessFlagBits2::eMemoryRead )
+      result += "MemoryRead | ";
+    if ( value & AccessFlagBits2::eMemoryWrite )
+      result += "MemoryWrite | ";
+    if ( value & AccessFlagBits2::eShaderSampledRead )
+      result += "ShaderSampledRead | ";
+    if ( value & AccessFlagBits2::eShaderStorageRead )
+      result += "ShaderStorageRead | ";
+    if ( value & AccessFlagBits2::eShaderStorageWrite )
+      result += "ShaderStorageWrite | ";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    if ( value & AccessFlagBits2::eVideoDecodeReadKHR )
+      result += "VideoDecodeReadKHR | ";
+    if ( value & AccessFlagBits2::eVideoDecodeWriteKHR )
+      result += "VideoDecodeWriteKHR | ";
+    if ( value & AccessFlagBits2::eVideoEncodeReadKHR )
+      result += "VideoEncodeReadKHR | ";
+    if ( value & AccessFlagBits2::eVideoEncodeWriteKHR )
+      result += "VideoEncodeWriteKHR | ";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    if ( value & AccessFlagBits2::eTransformFeedbackWriteEXT )
+      result += "TransformFeedbackWriteEXT | ";
+    if ( value & AccessFlagBits2::eTransformFeedbackCounterReadEXT )
+      result += "TransformFeedbackCounterReadEXT | ";
+    if ( value & AccessFlagBits2::eTransformFeedbackCounterWriteEXT )
+      result += "TransformFeedbackCounterWriteEXT | ";
+    if ( value & AccessFlagBits2::eConditionalRenderingReadEXT )
+      result += "ConditionalRenderingReadEXT | ";
+    if ( value & AccessFlagBits2::eCommandPreprocessReadNV )
+      result += "CommandPreprocessReadNV | ";
+    if ( value & AccessFlagBits2::eCommandPreprocessWriteNV )
+      result += "CommandPreprocessWriteNV | ";
+    if ( value & AccessFlagBits2::eFragmentShadingRateAttachmentReadKHR )
+      result += "FragmentShadingRateAttachmentReadKHR | ";
+    if ( value & AccessFlagBits2::eAccelerationStructureReadKHR )
+      result += "AccelerationStructureReadKHR | ";
+    if ( value & AccessFlagBits2::eAccelerationStructureWriteKHR )
+      result += "AccelerationStructureWriteKHR | ";
+    if ( value & AccessFlagBits2::eFragmentDensityMapReadEXT )
+      result += "FragmentDensityMapReadEXT | ";
+    if ( value & AccessFlagBits2::eColorAttachmentReadNoncoherentEXT )
+      result += "ColorAttachmentReadNoncoherentEXT | ";
+    if ( value & AccessFlagBits2::eInvocationMaskReadHUAWEI )
+      result += "InvocationMaskReadHUAWEI | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
+  using SubmitFlags = Flags<SubmitFlagBits>;
+
+  template <>
+  struct FlagTraits<SubmitFlagBits>
+  {
+    enum : VkFlags
+    {
+      allFlags = VkFlags( SubmitFlagBits::eProtected )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlags operator|( SubmitFlagBits bit0,
+                                                                SubmitFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return SubmitFlags( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlags operator&( SubmitFlagBits bit0,
+                                                                SubmitFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return SubmitFlags( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlags operator^( SubmitFlagBits bit0,
+                                                                SubmitFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return SubmitFlags( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlags operator~( SubmitFlagBits bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( SubmitFlags( bits ) );
+  }
+
+  using SubmitFlagsKHR = SubmitFlags;
+
+  VULKAN_HPP_INLINE std::string to_string( SubmitFlags value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & SubmitFlagBits::eProtected )
+      result += "Protected | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
+  using RenderingFlags = Flags<RenderingFlagBits>;
+
+  template <>
+  struct FlagTraits<RenderingFlagBits>
+  {
+    enum : VkFlags
+    {
+      allFlags = VkFlags( RenderingFlagBits::eContentsSecondaryCommandBuffers ) |
+                 VkFlags( RenderingFlagBits::eSuspending ) | VkFlags( RenderingFlagBits::eResuming )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR RenderingFlags operator|( RenderingFlagBits bit0,
+                                                                   RenderingFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return RenderingFlags( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR RenderingFlags operator&( RenderingFlagBits bit0,
+                                                                   RenderingFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return RenderingFlags( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR RenderingFlags operator^( RenderingFlagBits bit0,
+                                                                   RenderingFlagBits bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return RenderingFlags( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR RenderingFlags operator~( RenderingFlagBits bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( RenderingFlags( bits ) );
+  }
+
+  using RenderingFlagsKHR = RenderingFlags;
+
+  VULKAN_HPP_INLINE std::string to_string( RenderingFlags value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & RenderingFlagBits::eContentsSecondaryCommandBuffers )
+      result += "ContentsSecondaryCommandBuffers | ";
+    if ( value & RenderingFlagBits::eSuspending )
+      result += "Suspending | ";
+    if ( value & RenderingFlagBits::eResuming )
+      result += "Resuming | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
+  using FormatFeatureFlags2 = Flags<FormatFeatureFlagBits2>;
+
+  template <>
+  struct FlagTraits<FormatFeatureFlagBits2>
+  {
+    enum : VkFlags64
+    {
+      allFlags =
+        VkFlags64( FormatFeatureFlagBits2::eSampledImage ) | VkFlags64( FormatFeatureFlagBits2::eStorageImage ) |
+        VkFlags64( FormatFeatureFlagBits2::eStorageImageAtomic ) |
+        VkFlags64( FormatFeatureFlagBits2::eUniformTexelBuffer ) |
+        VkFlags64( FormatFeatureFlagBits2::eStorageTexelBuffer ) |
+        VkFlags64( FormatFeatureFlagBits2::eStorageTexelBufferAtomic ) |
+        VkFlags64( FormatFeatureFlagBits2::eVertexBuffer ) | VkFlags64( FormatFeatureFlagBits2::eColorAttachment ) |
+        VkFlags64( FormatFeatureFlagBits2::eColorAttachmentBlend ) |
+        VkFlags64( FormatFeatureFlagBits2::eDepthStencilAttachment ) | VkFlags64( FormatFeatureFlagBits2::eBlitSrc ) |
+        VkFlags64( FormatFeatureFlagBits2::eBlitDst ) | VkFlags64( FormatFeatureFlagBits2::eSampledImageFilterLinear ) |
+        VkFlags64( FormatFeatureFlagBits2::eSampledImageFilterCubic ) |
+        VkFlags64( FormatFeatureFlagBits2::eTransferSrc ) | VkFlags64( FormatFeatureFlagBits2::eTransferDst ) |
+        VkFlags64( FormatFeatureFlagBits2::eSampledImageFilterMinmax ) |
+        VkFlags64( FormatFeatureFlagBits2::eMidpointChromaSamples ) |
+        VkFlags64( FormatFeatureFlagBits2::eSampledImageYcbcrConversionLinearFilter ) |
+        VkFlags64( FormatFeatureFlagBits2::eSampledImageYcbcrConversionSeparateReconstructionFilter ) |
+        VkFlags64( FormatFeatureFlagBits2::eSampledImageYcbcrConversionChromaReconstructionExplicit ) |
+        VkFlags64( FormatFeatureFlagBits2::eSampledImageYcbcrConversionChromaReconstructionExplicitForceable ) |
+        VkFlags64( FormatFeatureFlagBits2::eDisjoint ) | VkFlags64( FormatFeatureFlagBits2::eCositedChromaSamples ) |
+        VkFlags64( FormatFeatureFlagBits2::eStorageReadWithoutFormat ) |
+        VkFlags64( FormatFeatureFlagBits2::eStorageWriteWithoutFormat ) |
+        VkFlags64( FormatFeatureFlagBits2::eSampledImageDepthComparison )
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+        | VkFlags64( FormatFeatureFlagBits2::eVideoDecodeOutputKHR ) |
+        VkFlags64( FormatFeatureFlagBits2::eVideoDecodeDpbKHR )
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+        | VkFlags64( FormatFeatureFlagBits2::eAccelerationStructureVertexBufferKHR ) |
+        VkFlags64( FormatFeatureFlagBits2::eFragmentDensityMapEXT ) |
+        VkFlags64( FormatFeatureFlagBits2::eFragmentShadingRateAttachmentKHR )
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+        | VkFlags64( FormatFeatureFlagBits2::eVideoEncodeInputKHR ) |
+        VkFlags64( FormatFeatureFlagBits2::eVideoEncodeDpbKHR )
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+        | VkFlags64( FormatFeatureFlagBits2::eLinearColorAttachmentNV )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2
+    operator|( FormatFeatureFlagBits2 bit0, FormatFeatureFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return FormatFeatureFlags2( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2
+    operator&( FormatFeatureFlagBits2 bit0, FormatFeatureFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return FormatFeatureFlags2( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2
+    operator^( FormatFeatureFlagBits2 bit0, FormatFeatureFlagBits2 bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return FormatFeatureFlags2( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2 operator~( FormatFeatureFlagBits2 bits )
+    VULKAN_HPP_NOEXCEPT
+  {
+    return ~( FormatFeatureFlags2( bits ) );
+  }
+
+  using FormatFeatureFlags2KHR = FormatFeatureFlags2;
+
+  VULKAN_HPP_INLINE std::string to_string( FormatFeatureFlags2 value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & FormatFeatureFlagBits2::eSampledImage )
+      result += "SampledImage | ";
+    if ( value & FormatFeatureFlagBits2::eStorageImage )
+      result += "StorageImage | ";
+    if ( value & FormatFeatureFlagBits2::eStorageImageAtomic )
+      result += "StorageImageAtomic | ";
+    if ( value & FormatFeatureFlagBits2::eUniformTexelBuffer )
+      result += "UniformTexelBuffer | ";
+    if ( value & FormatFeatureFlagBits2::eStorageTexelBuffer )
+      result += "StorageTexelBuffer | ";
+    if ( value & FormatFeatureFlagBits2::eStorageTexelBufferAtomic )
+      result += "StorageTexelBufferAtomic | ";
+    if ( value & FormatFeatureFlagBits2::eVertexBuffer )
+      result += "VertexBuffer | ";
+    if ( value & FormatFeatureFlagBits2::eColorAttachment )
+      result += "ColorAttachment | ";
+    if ( value & FormatFeatureFlagBits2::eColorAttachmentBlend )
+      result += "ColorAttachmentBlend | ";
+    if ( value & FormatFeatureFlagBits2::eDepthStencilAttachment )
+      result += "DepthStencilAttachment | ";
+    if ( value & FormatFeatureFlagBits2::eBlitSrc )
+      result += "BlitSrc | ";
+    if ( value & FormatFeatureFlagBits2::eBlitDst )
+      result += "BlitDst | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageFilterLinear )
+      result += "SampledImageFilterLinear | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageFilterCubic )
+      result += "SampledImageFilterCubic | ";
+    if ( value & FormatFeatureFlagBits2::eTransferSrc )
+      result += "TransferSrc | ";
+    if ( value & FormatFeatureFlagBits2::eTransferDst )
+      result += "TransferDst | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageFilterMinmax )
+      result += "SampledImageFilterMinmax | ";
+    if ( value & FormatFeatureFlagBits2::eMidpointChromaSamples )
+      result += "MidpointChromaSamples | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageYcbcrConversionLinearFilter )
+      result += "SampledImageYcbcrConversionLinearFilter | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageYcbcrConversionSeparateReconstructionFilter )
+      result += "SampledImageYcbcrConversionSeparateReconstructionFilter | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageYcbcrConversionChromaReconstructionExplicit )
+      result += "SampledImageYcbcrConversionChromaReconstructionExplicit | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageYcbcrConversionChromaReconstructionExplicitForceable )
+      result += "SampledImageYcbcrConversionChromaReconstructionExplicitForceable | ";
+    if ( value & FormatFeatureFlagBits2::eDisjoint )
+      result += "Disjoint | ";
+    if ( value & FormatFeatureFlagBits2::eCositedChromaSamples )
+      result += "CositedChromaSamples | ";
+    if ( value & FormatFeatureFlagBits2::eStorageReadWithoutFormat )
+      result += "StorageReadWithoutFormat | ";
+    if ( value & FormatFeatureFlagBits2::eStorageWriteWithoutFormat )
+      result += "StorageWriteWithoutFormat | ";
+    if ( value & FormatFeatureFlagBits2::eSampledImageDepthComparison )
+      result += "SampledImageDepthComparison | ";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    if ( value & FormatFeatureFlagBits2::eVideoDecodeOutputKHR )
+      result += "VideoDecodeOutputKHR | ";
+    if ( value & FormatFeatureFlagBits2::eVideoDecodeDpbKHR )
+      result += "VideoDecodeDpbKHR | ";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    if ( value & FormatFeatureFlagBits2::eAccelerationStructureVertexBufferKHR )
+      result += "AccelerationStructureVertexBufferKHR | ";
+    if ( value & FormatFeatureFlagBits2::eFragmentDensityMapEXT )
+      result += "FragmentDensityMapEXT | ";
+    if ( value & FormatFeatureFlagBits2::eFragmentShadingRateAttachmentKHR )
+      result += "FragmentShadingRateAttachmentKHR | ";
+#if defined( VK_ENABLE_BETA_EXTENSIONS )
+    if ( value & FormatFeatureFlagBits2::eVideoEncodeInputKHR )
+      result += "VideoEncodeInputKHR | ";
+    if ( value & FormatFeatureFlagBits2::eVideoEncodeDpbKHR )
+      result += "VideoEncodeDpbKHR | ";
+#endif /*VK_ENABLE_BETA_EXTENSIONS*/
+    if ( value & FormatFeatureFlagBits2::eLinearColorAttachmentNV )
+      result += "LinearColorAttachmentNV | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
   //=== VK_KHR_surface ===
 
   using CompositeAlphaFlagsKHR = Flags<CompositeAlphaFlagBitsKHR>;
@@ -12839,6 +17187,60 @@ namespace VULKAN_HPP_NAMESPACE
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
+
+  using VideoEncodeH264RateControlStructureFlagsEXT = Flags<VideoEncodeH264RateControlStructureFlagBitsEXT>;
+
+  template <>
+  struct FlagTraits<VideoEncodeH264RateControlStructureFlagBitsEXT>
+  {
+    enum : VkFlags
+    {
+      allFlags = VkFlags( VideoEncodeH264RateControlStructureFlagBitsEXT::eUnknown ) |
+                 VkFlags( VideoEncodeH264RateControlStructureFlagBitsEXT::eFlat ) |
+                 VkFlags( VideoEncodeH264RateControlStructureFlagBitsEXT::eDyadic )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH264RateControlStructureFlagsEXT
+    operator|( VideoEncodeH264RateControlStructureFlagBitsEXT bit0,
+               VideoEncodeH264RateControlStructureFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return VideoEncodeH264RateControlStructureFlagsEXT( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH264RateControlStructureFlagsEXT
+    operator&( VideoEncodeH264RateControlStructureFlagBitsEXT bit0,
+               VideoEncodeH264RateControlStructureFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return VideoEncodeH264RateControlStructureFlagsEXT( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH264RateControlStructureFlagsEXT
+    operator^( VideoEncodeH264RateControlStructureFlagBitsEXT bit0,
+               VideoEncodeH264RateControlStructureFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return VideoEncodeH264RateControlStructureFlagsEXT( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH264RateControlStructureFlagsEXT
+    operator~( VideoEncodeH264RateControlStructureFlagBitsEXT bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( VideoEncodeH264RateControlStructureFlagsEXT( bits ) );
+  }
+
+  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH264RateControlStructureFlagsEXT value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & VideoEncodeH264RateControlStructureFlagBitsEXT::eFlat )
+      result += "Flat | ";
+    if ( value & VideoEncodeH264RateControlStructureFlagBitsEXT::eDyadic )
+      result += "Dyadic | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
@@ -12846,73 +17248,9 @@ namespace VULKAN_HPP_NAMESPACE
 
   using VideoEncodeH265CapabilityFlagsEXT = Flags<VideoEncodeH265CapabilityFlagBitsEXT>;
 
-  template <>
-  struct FlagTraits<VideoEncodeH265CapabilityFlagBitsEXT>
+  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH265CapabilityFlagsEXT )
   {
-    enum : VkFlags
-    {
-      allFlags = VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eWeightedBiPredImplicit ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eTransform8X8 ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eChromaQpOffset ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eSecondChromaQpOffset ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterDisabled ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterEnabled ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterPartial ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eMultipleSlicePerFrame ) |
-                 VkFlags( VideoEncodeH265CapabilityFlagBitsEXT::eEvenlyDistributedSliceSize )
-    };
-  };
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265CapabilityFlagsEXT operator|(
-    VideoEncodeH265CapabilityFlagBitsEXT bit0, VideoEncodeH265CapabilityFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return VideoEncodeH265CapabilityFlagsEXT( bit0 ) | bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265CapabilityFlagsEXT operator&(
-    VideoEncodeH265CapabilityFlagBitsEXT bit0, VideoEncodeH265CapabilityFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return VideoEncodeH265CapabilityFlagsEXT( bit0 ) & bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265CapabilityFlagsEXT operator^(
-    VideoEncodeH265CapabilityFlagBitsEXT bit0, VideoEncodeH265CapabilityFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return VideoEncodeH265CapabilityFlagsEXT( bit0 ) ^ bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265CapabilityFlagsEXT
-    operator~( VideoEncodeH265CapabilityFlagBitsEXT bits ) VULKAN_HPP_NOEXCEPT
-  {
-    return ~( VideoEncodeH265CapabilityFlagsEXT( bits ) );
-  }
-
-  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH265CapabilityFlagsEXT value )
-  {
-    if ( !value )
-      return "{}";
-
-    std::string result;
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eWeightedBiPredImplicit )
-      result += "WeightedBiPredImplicit | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eTransform8X8 )
-      result += "Transform8X8 | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eChromaQpOffset )
-      result += "ChromaQpOffset | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eSecondChromaQpOffset )
-      result += "SecondChromaQpOffset | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterDisabled )
-      result += "DeblockingFilterDisabled | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterEnabled )
-      result += "DeblockingFilterEnabled | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eDeblockingFilterPartial )
-      result += "DeblockingFilterPartial | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eMultipleSlicePerFrame )
-      result += "MultipleSlicePerFrame | ";
-    if ( value & VideoEncodeH265CapabilityFlagBitsEXT::eEvenlyDistributedSliceSize )
-      result += "EvenlyDistributedSliceSize | ";
-
-    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+    return "{}";
   }
 
   using VideoEncodeH265InputModeFlagsEXT = Flags<VideoEncodeH265InputModeFlagBitsEXT>;
@@ -13078,6 +17416,60 @@ namespace VULKAN_HPP_NAMESPACE
       result += "32 | ";
     if ( value & VideoEncodeH265CtbSizeFlagBitsEXT::e64 )
       result += "64 | ";
+
+    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
+  }
+
+  using VideoEncodeH265RateControlStructureFlagsEXT = Flags<VideoEncodeH265RateControlStructureFlagBitsEXT>;
+
+  template <>
+  struct FlagTraits<VideoEncodeH265RateControlStructureFlagBitsEXT>
+  {
+    enum : VkFlags
+    {
+      allFlags = VkFlags( VideoEncodeH265RateControlStructureFlagBitsEXT::eUnknown ) |
+                 VkFlags( VideoEncodeH265RateControlStructureFlagBitsEXT::eFlat ) |
+                 VkFlags( VideoEncodeH265RateControlStructureFlagBitsEXT::eDyadic )
+    };
+  };
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265RateControlStructureFlagsEXT
+    operator|( VideoEncodeH265RateControlStructureFlagBitsEXT bit0,
+               VideoEncodeH265RateControlStructureFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return VideoEncodeH265RateControlStructureFlagsEXT( bit0 ) | bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265RateControlStructureFlagsEXT
+    operator&( VideoEncodeH265RateControlStructureFlagBitsEXT bit0,
+               VideoEncodeH265RateControlStructureFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return VideoEncodeH265RateControlStructureFlagsEXT( bit0 ) & bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265RateControlStructureFlagsEXT
+    operator^( VideoEncodeH265RateControlStructureFlagBitsEXT bit0,
+               VideoEncodeH265RateControlStructureFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
+  {
+    return VideoEncodeH265RateControlStructureFlagsEXT( bit0 ) ^ bit1;
+  }
+
+  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR VideoEncodeH265RateControlStructureFlagsEXT
+    operator~( VideoEncodeH265RateControlStructureFlagBitsEXT bits ) VULKAN_HPP_NOEXCEPT
+  {
+    return ~( VideoEncodeH265RateControlStructureFlagsEXT( bits ) );
+  }
+
+  VULKAN_HPP_INLINE std::string to_string( VideoEncodeH265RateControlStructureFlagsEXT value )
+  {
+    if ( !value )
+      return "{}";
+
+    std::string result;
+    if ( value & VideoEncodeH265RateControlStructureFlagBitsEXT::eFlat )
+      result += "Flat | ";
+    if ( value & VideoEncodeH265RateControlStructureFlagBitsEXT::eDyadic )
+      result += "Dyadic | ";
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -13890,61 +18282,6 @@ namespace VULKAN_HPP_NAMESPACE
   }
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
-  //=== VK_EXT_pipeline_creation_feedback ===
-
-  using PipelineCreationFeedbackFlagsEXT = Flags<PipelineCreationFeedbackFlagBitsEXT>;
-
-  template <>
-  struct FlagTraits<PipelineCreationFeedbackFlagBitsEXT>
-  {
-    enum : VkFlags
-    {
-      allFlags = VkFlags( PipelineCreationFeedbackFlagBitsEXT::eValid ) |
-                 VkFlags( PipelineCreationFeedbackFlagBitsEXT::eApplicationPipelineCacheHit ) |
-                 VkFlags( PipelineCreationFeedbackFlagBitsEXT::eBasePipelineAcceleration )
-    };
-  };
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlagsEXT
-    operator|( PipelineCreationFeedbackFlagBitsEXT bit0, PipelineCreationFeedbackFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return PipelineCreationFeedbackFlagsEXT( bit0 ) | bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlagsEXT
-    operator&( PipelineCreationFeedbackFlagBitsEXT bit0, PipelineCreationFeedbackFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return PipelineCreationFeedbackFlagsEXT( bit0 ) & bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlagsEXT
-    operator^( PipelineCreationFeedbackFlagBitsEXT bit0, PipelineCreationFeedbackFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return PipelineCreationFeedbackFlagsEXT( bit0 ) ^ bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineCreationFeedbackFlagsEXT
-    operator~( PipelineCreationFeedbackFlagBitsEXT bits ) VULKAN_HPP_NOEXCEPT
-  {
-    return ~( PipelineCreationFeedbackFlagsEXT( bits ) );
-  }
-
-  VULKAN_HPP_INLINE std::string to_string( PipelineCreationFeedbackFlagsEXT value )
-  {
-    if ( !value )
-      return "{}";
-
-    std::string result;
-    if ( value & PipelineCreationFeedbackFlagBitsEXT::eValid )
-      result += "Valid | ";
-    if ( value & PipelineCreationFeedbackFlagBitsEXT::eApplicationPipelineCacheHit )
-      result += "ApplicationPipelineCacheHit | ";
-    if ( value & PipelineCreationFeedbackFlagBitsEXT::eBasePipelineAcceleration )
-      result += "BasePipelineAcceleration | ";
-
-    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
-  }
-
 #if defined( VK_USE_PLATFORM_FUCHSIA )
   //=== VK_FUCHSIA_imagepipe_surface ===
 
@@ -13974,70 +18311,6 @@ namespace VULKAN_HPP_NAMESPACE
   VULKAN_HPP_INLINE std::string to_string( ShaderCorePropertiesFlagsAMD )
   {
     return "{}";
-  }
-
-  //=== VK_EXT_tooling_info ===
-
-  using ToolPurposeFlagsEXT = Flags<ToolPurposeFlagBitsEXT>;
-
-  template <>
-  struct FlagTraits<ToolPurposeFlagBitsEXT>
-  {
-    enum : VkFlags
-    {
-      allFlags = VkFlags( ToolPurposeFlagBitsEXT::eValidation ) | VkFlags( ToolPurposeFlagBitsEXT::eProfiling ) |
-                 VkFlags( ToolPurposeFlagBitsEXT::eTracing ) | VkFlags( ToolPurposeFlagBitsEXT::eAdditionalFeatures ) |
-                 VkFlags( ToolPurposeFlagBitsEXT::eModifyingFeatures ) |
-                 VkFlags( ToolPurposeFlagBitsEXT::eDebugReporting ) | VkFlags( ToolPurposeFlagBitsEXT::eDebugMarkers )
-    };
-  };
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlagsEXT
-    operator|( ToolPurposeFlagBitsEXT bit0, ToolPurposeFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return ToolPurposeFlagsEXT( bit0 ) | bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlagsEXT
-    operator&( ToolPurposeFlagBitsEXT bit0, ToolPurposeFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return ToolPurposeFlagsEXT( bit0 ) & bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlagsEXT
-    operator^( ToolPurposeFlagBitsEXT bit0, ToolPurposeFlagBitsEXT bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return ToolPurposeFlagsEXT( bit0 ) ^ bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR ToolPurposeFlagsEXT operator~( ToolPurposeFlagBitsEXT bits )
-    VULKAN_HPP_NOEXCEPT
-  {
-    return ~( ToolPurposeFlagsEXT( bits ) );
-  }
-
-  VULKAN_HPP_INLINE std::string to_string( ToolPurposeFlagsEXT value )
-  {
-    if ( !value )
-      return "{}";
-
-    std::string result;
-    if ( value & ToolPurposeFlagBitsEXT::eValidation )
-      result += "Validation | ";
-    if ( value & ToolPurposeFlagBitsEXT::eProfiling )
-      result += "Profiling | ";
-    if ( value & ToolPurposeFlagBitsEXT::eTracing )
-      result += "Tracing | ";
-    if ( value & ToolPurposeFlagBitsEXT::eAdditionalFeatures )
-      result += "AdditionalFeatures | ";
-    if ( value & ToolPurposeFlagBitsEXT::eModifyingFeatures )
-      result += "ModifyingFeatures | ";
-    if ( value & ToolPurposeFlagBitsEXT::eDebugReporting )
-      result += "DebugReporting | ";
-    if ( value & ToolPurposeFlagBitsEXT::eDebugMarkers )
-      result += "DebugMarkers | ";
-
-    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
 
   //=== VK_NV_coverage_reduction_mode ===
@@ -14169,15 +18442,6 @@ namespace VULKAN_HPP_NAMESPACE
     return "{}";
   }
 
-  //=== VK_EXT_private_data ===
-
-  using PrivateDataSlotCreateFlagsEXT = Flags<PrivateDataSlotCreateFlagBitsEXT>;
-
-  VULKAN_HPP_INLINE std::string to_string( PrivateDataSlotCreateFlagsEXT )
-  {
-    return "{}";
-  }
-
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
   //=== VK_KHR_video_encode_queue ===
 
@@ -14235,8 +18499,8 @@ namespace VULKAN_HPP_NAMESPACE
   {
     enum : VkFlags
     {
-      allFlags =
-        VkFlags( VideoEncodeRateControlFlagBitsKHR::eDefault ) | VkFlags( VideoEncodeRateControlFlagBitsKHR::eReset )
+      allFlags = VkFlags( VideoEncodeRateControlFlagBitsKHR::eDefault ) |
+                 VkFlags( VideoEncodeRateControlFlagBitsKHR::eReserved0 )
     };
   };
 
@@ -14270,8 +18534,8 @@ namespace VULKAN_HPP_NAMESPACE
       return "{}";
 
     std::string result;
-    if ( value & VideoEncodeRateControlFlagBitsKHR::eReset )
-      result += "Reset | ";
+    if ( value & VideoEncodeRateControlFlagBitsKHR::eReserved0 )
+      result += "Reserved0 | ";
 
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
@@ -14379,351 +18643,6 @@ namespace VULKAN_HPP_NAMESPACE
     return "{ " + result.substr( 0, result.size() - 3 ) + " }";
   }
 
-  //=== VK_KHR_synchronization2 ===
-
-  using PipelineStageFlags2KHR = Flags<PipelineStageFlagBits2KHR>;
-
-  template <>
-  struct FlagTraits<PipelineStageFlagBits2KHR>
-  {
-    enum : VkFlags64
-    {
-      allFlags =
-        VkFlags64( PipelineStageFlagBits2KHR::eNone ) | VkFlags64( PipelineStageFlagBits2KHR::eTopOfPipe ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eDrawIndirect ) | VkFlags64( PipelineStageFlagBits2KHR::eVertexInput ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eVertexShader ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eTessellationControlShader ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eTessellationEvaluationShader ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eGeometryShader ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eFragmentShader ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eEarlyFragmentTests ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eLateFragmentTests ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eColorAttachmentOutput ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eComputeShader ) | VkFlags64( PipelineStageFlagBits2KHR::eAllTransfer ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eBottomOfPipe ) | VkFlags64( PipelineStageFlagBits2KHR::eHost ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eAllGraphics ) | VkFlags64( PipelineStageFlagBits2KHR::eAllCommands ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eCopy ) | VkFlags64( PipelineStageFlagBits2KHR::eResolve ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eBlit ) | VkFlags64( PipelineStageFlagBits2KHR::eClear ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eIndexInput ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eVertexAttributeInput ) |
-        VkFlags64( PipelineStageFlagBits2KHR::ePreRasterizationShaders )
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-        | VkFlags64( PipelineStageFlagBits2KHR::eVideoDecode ) | VkFlags64( PipelineStageFlagBits2KHR::eVideoEncode )
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-        | VkFlags64( PipelineStageFlagBits2KHR::eTransformFeedbackEXT ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eConditionalRenderingEXT ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eCommandPreprocessNV ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eFragmentShadingRateAttachment ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eAccelerationStructureBuild ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eRayTracingShader ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eFragmentDensityProcessEXT ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eTaskShaderNV ) | VkFlags64( PipelineStageFlagBits2KHR::eMeshShaderNV ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eSubpassShadingHUAWEI ) |
-        VkFlags64( PipelineStageFlagBits2KHR::eInvocationMaskHUAWEI )
-    };
-  };
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2KHR
-    operator|( PipelineStageFlagBits2KHR bit0, PipelineStageFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return PipelineStageFlags2KHR( bit0 ) | bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2KHR
-    operator&( PipelineStageFlagBits2KHR bit0, PipelineStageFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return PipelineStageFlags2KHR( bit0 ) & bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2KHR
-    operator^( PipelineStageFlagBits2KHR bit0, PipelineStageFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return PipelineStageFlags2KHR( bit0 ) ^ bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR PipelineStageFlags2KHR operator~( PipelineStageFlagBits2KHR bits )
-    VULKAN_HPP_NOEXCEPT
-  {
-    return ~( PipelineStageFlags2KHR( bits ) );
-  }
-
-  VULKAN_HPP_INLINE std::string to_string( PipelineStageFlags2KHR value )
-  {
-    if ( !value )
-      return "{}";
-
-    std::string result;
-    if ( value & PipelineStageFlagBits2KHR::eTopOfPipe )
-      result += "TopOfPipe | ";
-    if ( value & PipelineStageFlagBits2KHR::eDrawIndirect )
-      result += "DrawIndirect | ";
-    if ( value & PipelineStageFlagBits2KHR::eVertexInput )
-      result += "VertexInput | ";
-    if ( value & PipelineStageFlagBits2KHR::eVertexShader )
-      result += "VertexShader | ";
-    if ( value & PipelineStageFlagBits2KHR::eTessellationControlShader )
-      result += "TessellationControlShader | ";
-    if ( value & PipelineStageFlagBits2KHR::eTessellationEvaluationShader )
-      result += "TessellationEvaluationShader | ";
-    if ( value & PipelineStageFlagBits2KHR::eGeometryShader )
-      result += "GeometryShader | ";
-    if ( value & PipelineStageFlagBits2KHR::eFragmentShader )
-      result += "FragmentShader | ";
-    if ( value & PipelineStageFlagBits2KHR::eEarlyFragmentTests )
-      result += "EarlyFragmentTests | ";
-    if ( value & PipelineStageFlagBits2KHR::eLateFragmentTests )
-      result += "LateFragmentTests | ";
-    if ( value & PipelineStageFlagBits2KHR::eColorAttachmentOutput )
-      result += "ColorAttachmentOutput | ";
-    if ( value & PipelineStageFlagBits2KHR::eComputeShader )
-      result += "ComputeShader | ";
-    if ( value & PipelineStageFlagBits2KHR::eAllTransfer )
-      result += "AllTransfer | ";
-    if ( value & PipelineStageFlagBits2KHR::eBottomOfPipe )
-      result += "BottomOfPipe | ";
-    if ( value & PipelineStageFlagBits2KHR::eHost )
-      result += "Host | ";
-    if ( value & PipelineStageFlagBits2KHR::eAllGraphics )
-      result += "AllGraphics | ";
-    if ( value & PipelineStageFlagBits2KHR::eAllCommands )
-      result += "AllCommands | ";
-    if ( value & PipelineStageFlagBits2KHR::eCopy )
-      result += "Copy | ";
-    if ( value & PipelineStageFlagBits2KHR::eResolve )
-      result += "Resolve | ";
-    if ( value & PipelineStageFlagBits2KHR::eBlit )
-      result += "Blit | ";
-    if ( value & PipelineStageFlagBits2KHR::eClear )
-      result += "Clear | ";
-    if ( value & PipelineStageFlagBits2KHR::eIndexInput )
-      result += "IndexInput | ";
-    if ( value & PipelineStageFlagBits2KHR::eVertexAttributeInput )
-      result += "VertexAttributeInput | ";
-    if ( value & PipelineStageFlagBits2KHR::ePreRasterizationShaders )
-      result += "PreRasterizationShaders | ";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    if ( value & PipelineStageFlagBits2KHR::eVideoDecode )
-      result += "VideoDecode | ";
-    if ( value & PipelineStageFlagBits2KHR::eVideoEncode )
-      result += "VideoEncode | ";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    if ( value & PipelineStageFlagBits2KHR::eTransformFeedbackEXT )
-      result += "TransformFeedbackEXT | ";
-    if ( value & PipelineStageFlagBits2KHR::eConditionalRenderingEXT )
-      result += "ConditionalRenderingEXT | ";
-    if ( value & PipelineStageFlagBits2KHR::eCommandPreprocessNV )
-      result += "CommandPreprocessNV | ";
-    if ( value & PipelineStageFlagBits2KHR::eFragmentShadingRateAttachment )
-      result += "FragmentShadingRateAttachment | ";
-    if ( value & PipelineStageFlagBits2KHR::eAccelerationStructureBuild )
-      result += "AccelerationStructureBuild | ";
-    if ( value & PipelineStageFlagBits2KHR::eRayTracingShader )
-      result += "RayTracingShader | ";
-    if ( value & PipelineStageFlagBits2KHR::eFragmentDensityProcessEXT )
-      result += "FragmentDensityProcessEXT | ";
-    if ( value & PipelineStageFlagBits2KHR::eTaskShaderNV )
-      result += "TaskShaderNV | ";
-    if ( value & PipelineStageFlagBits2KHR::eMeshShaderNV )
-      result += "MeshShaderNV | ";
-    if ( value & PipelineStageFlagBits2KHR::eSubpassShadingHUAWEI )
-      result += "SubpassShadingHUAWEI | ";
-    if ( value & PipelineStageFlagBits2KHR::eInvocationMaskHUAWEI )
-      result += "InvocationMaskHUAWEI | ";
-
-    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
-  }
-
-  using AccessFlags2KHR = Flags<AccessFlagBits2KHR>;
-
-  template <>
-  struct FlagTraits<AccessFlagBits2KHR>
-  {
-    enum : VkFlags64
-    {
-      allFlags =
-        VkFlags64( AccessFlagBits2KHR::eNone ) | VkFlags64( AccessFlagBits2KHR::eIndirectCommandRead ) |
-        VkFlags64( AccessFlagBits2KHR::eIndexRead ) | VkFlags64( AccessFlagBits2KHR::eVertexAttributeRead ) |
-        VkFlags64( AccessFlagBits2KHR::eUniformRead ) | VkFlags64( AccessFlagBits2KHR::eInputAttachmentRead ) |
-        VkFlags64( AccessFlagBits2KHR::eShaderRead ) | VkFlags64( AccessFlagBits2KHR::eShaderWrite ) |
-        VkFlags64( AccessFlagBits2KHR::eColorAttachmentRead ) | VkFlags64( AccessFlagBits2KHR::eColorAttachmentWrite ) |
-        VkFlags64( AccessFlagBits2KHR::eDepthStencilAttachmentRead ) |
-        VkFlags64( AccessFlagBits2KHR::eDepthStencilAttachmentWrite ) | VkFlags64( AccessFlagBits2KHR::eTransferRead ) |
-        VkFlags64( AccessFlagBits2KHR::eTransferWrite ) | VkFlags64( AccessFlagBits2KHR::eHostRead ) |
-        VkFlags64( AccessFlagBits2KHR::eHostWrite ) | VkFlags64( AccessFlagBits2KHR::eMemoryRead ) |
-        VkFlags64( AccessFlagBits2KHR::eMemoryWrite ) | VkFlags64( AccessFlagBits2KHR::eShaderSampledRead ) |
-        VkFlags64( AccessFlagBits2KHR::eShaderStorageRead ) | VkFlags64( AccessFlagBits2KHR::eShaderStorageWrite )
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-        | VkFlags64( AccessFlagBits2KHR::eVideoDecodeRead ) | VkFlags64( AccessFlagBits2KHR::eVideoDecodeWrite ) |
-        VkFlags64( AccessFlagBits2KHR::eVideoEncodeRead ) | VkFlags64( AccessFlagBits2KHR::eVideoEncodeWrite )
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-        | VkFlags64( AccessFlagBits2KHR::eTransformFeedbackWriteEXT ) |
-        VkFlags64( AccessFlagBits2KHR::eTransformFeedbackCounterReadEXT ) |
-        VkFlags64( AccessFlagBits2KHR::eTransformFeedbackCounterWriteEXT ) |
-        VkFlags64( AccessFlagBits2KHR::eConditionalRenderingReadEXT ) |
-        VkFlags64( AccessFlagBits2KHR::eCommandPreprocessReadNV ) |
-        VkFlags64( AccessFlagBits2KHR::eCommandPreprocessWriteNV ) |
-        VkFlags64( AccessFlagBits2KHR::eFragmentShadingRateAttachmentRead ) |
-        VkFlags64( AccessFlagBits2KHR::eAccelerationStructureRead ) |
-        VkFlags64( AccessFlagBits2KHR::eAccelerationStructureWrite ) |
-        VkFlags64( AccessFlagBits2KHR::eFragmentDensityMapReadEXT ) |
-        VkFlags64( AccessFlagBits2KHR::eColorAttachmentReadNoncoherentEXT ) |
-        VkFlags64( AccessFlagBits2KHR::eInvocationMaskReadHUAWEI )
-    };
-  };
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2KHR operator|( AccessFlagBits2KHR bit0,
-                                                                    AccessFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return AccessFlags2KHR( bit0 ) | bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2KHR operator&( AccessFlagBits2KHR bit0,
-                                                                    AccessFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return AccessFlags2KHR( bit0 ) & bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2KHR operator^( AccessFlagBits2KHR bit0,
-                                                                    AccessFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return AccessFlags2KHR( bit0 ) ^ bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR AccessFlags2KHR operator~( AccessFlagBits2KHR bits ) VULKAN_HPP_NOEXCEPT
-  {
-    return ~( AccessFlags2KHR( bits ) );
-  }
-
-  VULKAN_HPP_INLINE std::string to_string( AccessFlags2KHR value )
-  {
-    if ( !value )
-      return "{}";
-
-    std::string result;
-    if ( value & AccessFlagBits2KHR::eIndirectCommandRead )
-      result += "IndirectCommandRead | ";
-    if ( value & AccessFlagBits2KHR::eIndexRead )
-      result += "IndexRead | ";
-    if ( value & AccessFlagBits2KHR::eVertexAttributeRead )
-      result += "VertexAttributeRead | ";
-    if ( value & AccessFlagBits2KHR::eUniformRead )
-      result += "UniformRead | ";
-    if ( value & AccessFlagBits2KHR::eInputAttachmentRead )
-      result += "InputAttachmentRead | ";
-    if ( value & AccessFlagBits2KHR::eShaderRead )
-      result += "ShaderRead | ";
-    if ( value & AccessFlagBits2KHR::eShaderWrite )
-      result += "ShaderWrite | ";
-    if ( value & AccessFlagBits2KHR::eColorAttachmentRead )
-      result += "ColorAttachmentRead | ";
-    if ( value & AccessFlagBits2KHR::eColorAttachmentWrite )
-      result += "ColorAttachmentWrite | ";
-    if ( value & AccessFlagBits2KHR::eDepthStencilAttachmentRead )
-      result += "DepthStencilAttachmentRead | ";
-    if ( value & AccessFlagBits2KHR::eDepthStencilAttachmentWrite )
-      result += "DepthStencilAttachmentWrite | ";
-    if ( value & AccessFlagBits2KHR::eTransferRead )
-      result += "TransferRead | ";
-    if ( value & AccessFlagBits2KHR::eTransferWrite )
-      result += "TransferWrite | ";
-    if ( value & AccessFlagBits2KHR::eHostRead )
-      result += "HostRead | ";
-    if ( value & AccessFlagBits2KHR::eHostWrite )
-      result += "HostWrite | ";
-    if ( value & AccessFlagBits2KHR::eMemoryRead )
-      result += "MemoryRead | ";
-    if ( value & AccessFlagBits2KHR::eMemoryWrite )
-      result += "MemoryWrite | ";
-    if ( value & AccessFlagBits2KHR::eShaderSampledRead )
-      result += "ShaderSampledRead | ";
-    if ( value & AccessFlagBits2KHR::eShaderStorageRead )
-      result += "ShaderStorageRead | ";
-    if ( value & AccessFlagBits2KHR::eShaderStorageWrite )
-      result += "ShaderStorageWrite | ";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    if ( value & AccessFlagBits2KHR::eVideoDecodeRead )
-      result += "VideoDecodeRead | ";
-    if ( value & AccessFlagBits2KHR::eVideoDecodeWrite )
-      result += "VideoDecodeWrite | ";
-    if ( value & AccessFlagBits2KHR::eVideoEncodeRead )
-      result += "VideoEncodeRead | ";
-    if ( value & AccessFlagBits2KHR::eVideoEncodeWrite )
-      result += "VideoEncodeWrite | ";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    if ( value & AccessFlagBits2KHR::eTransformFeedbackWriteEXT )
-      result += "TransformFeedbackWriteEXT | ";
-    if ( value & AccessFlagBits2KHR::eTransformFeedbackCounterReadEXT )
-      result += "TransformFeedbackCounterReadEXT | ";
-    if ( value & AccessFlagBits2KHR::eTransformFeedbackCounterWriteEXT )
-      result += "TransformFeedbackCounterWriteEXT | ";
-    if ( value & AccessFlagBits2KHR::eConditionalRenderingReadEXT )
-      result += "ConditionalRenderingReadEXT | ";
-    if ( value & AccessFlagBits2KHR::eCommandPreprocessReadNV )
-      result += "CommandPreprocessReadNV | ";
-    if ( value & AccessFlagBits2KHR::eCommandPreprocessWriteNV )
-      result += "CommandPreprocessWriteNV | ";
-    if ( value & AccessFlagBits2KHR::eFragmentShadingRateAttachmentRead )
-      result += "FragmentShadingRateAttachmentRead | ";
-    if ( value & AccessFlagBits2KHR::eAccelerationStructureRead )
-      result += "AccelerationStructureRead | ";
-    if ( value & AccessFlagBits2KHR::eAccelerationStructureWrite )
-      result += "AccelerationStructureWrite | ";
-    if ( value & AccessFlagBits2KHR::eFragmentDensityMapReadEXT )
-      result += "FragmentDensityMapReadEXT | ";
-    if ( value & AccessFlagBits2KHR::eColorAttachmentReadNoncoherentEXT )
-      result += "ColorAttachmentReadNoncoherentEXT | ";
-    if ( value & AccessFlagBits2KHR::eInvocationMaskReadHUAWEI )
-      result += "InvocationMaskReadHUAWEI | ";
-
-    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
-  }
-
-  using SubmitFlagsKHR = Flags<SubmitFlagBitsKHR>;
-
-  template <>
-  struct FlagTraits<SubmitFlagBitsKHR>
-  {
-    enum : VkFlags
-    {
-      allFlags = VkFlags( SubmitFlagBitsKHR::eProtected )
-    };
-  };
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlagsKHR operator|( SubmitFlagBitsKHR bit0,
-                                                                   SubmitFlagBitsKHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return SubmitFlagsKHR( bit0 ) | bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlagsKHR operator&( SubmitFlagBitsKHR bit0,
-                                                                   SubmitFlagBitsKHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return SubmitFlagsKHR( bit0 ) & bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlagsKHR operator^( SubmitFlagBitsKHR bit0,
-                                                                   SubmitFlagBitsKHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return SubmitFlagsKHR( bit0 ) ^ bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR SubmitFlagsKHR operator~( SubmitFlagBitsKHR bits ) VULKAN_HPP_NOEXCEPT
-  {
-    return ~( SubmitFlagsKHR( bits ) );
-  }
-
-  VULKAN_HPP_INLINE std::string to_string( SubmitFlagsKHR value )
-  {
-    if ( !value )
-      return "{}";
-
-    std::string result;
-    if ( value & SubmitFlagBitsKHR::eProtected )
-      result += "Protected | ";
-
-    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
-  }
-
   //=== VK_NV_ray_tracing_motion_blur ===
 
   using AccelerationStructureMotionInfoFlagsNV = Flags<AccelerationStructureMotionInfoFlagBitsNV>;
@@ -14750,160 +18669,6 @@ namespace VULKAN_HPP_NAMESPACE
     return "{}";
   }
 #endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
-
-  //=== VK_KHR_format_feature_flags2 ===
-
-  using FormatFeatureFlags2KHR = Flags<FormatFeatureFlagBits2KHR>;
-
-  template <>
-  struct FlagTraits<FormatFeatureFlagBits2KHR>
-  {
-    enum : VkFlags64
-    {
-      allFlags =
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImage ) | VkFlags64( FormatFeatureFlagBits2KHR::eStorageImage ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eStorageImageAtomic ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eUniformTexelBuffer ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eStorageTexelBuffer ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eStorageTexelBufferAtomic ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eVertexBuffer ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eColorAttachment ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eColorAttachmentBlend ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eDepthStencilAttachment ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eBlitSrc ) | VkFlags64( FormatFeatureFlagBits2KHR::eBlitDst ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageFilterLinear ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageFilterCubicEXT ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eTransferSrc ) | VkFlags64( FormatFeatureFlagBits2KHR::eTransferDst ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageFilterMinmax ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eMidpointChromaSamples ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionLinearFilter ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionSeparateReconstructionFilter ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionChromaReconstructionExplicit ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionChromaReconstructionExplicitForceable ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eDisjoint ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eCositedChromaSamples ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eStorageReadWithoutFormat ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eStorageWriteWithoutFormat ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eSampledImageDepthComparison )
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-        | VkFlags64( FormatFeatureFlagBits2KHR::eVideoDecodeOutput ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eVideoDecodeDpb )
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-        | VkFlags64( FormatFeatureFlagBits2KHR::eAccelerationStructureVertexBuffer ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eFragmentDensityMapEXT ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eFragmentShadingRateAttachment )
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-        | VkFlags64( FormatFeatureFlagBits2KHR::eVideoEncodeInput ) |
-        VkFlags64( FormatFeatureFlagBits2KHR::eVideoEncodeDpb )
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    };
-  };
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2KHR
-    operator|( FormatFeatureFlagBits2KHR bit0, FormatFeatureFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return FormatFeatureFlags2KHR( bit0 ) | bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2KHR
-    operator&( FormatFeatureFlagBits2KHR bit0, FormatFeatureFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return FormatFeatureFlags2KHR( bit0 ) & bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2KHR
-    operator^( FormatFeatureFlagBits2KHR bit0, FormatFeatureFlagBits2KHR bit1 ) VULKAN_HPP_NOEXCEPT
-  {
-    return FormatFeatureFlags2KHR( bit0 ) ^ bit1;
-  }
-
-  VULKAN_HPP_INLINE VULKAN_HPP_CONSTEXPR FormatFeatureFlags2KHR operator~( FormatFeatureFlagBits2KHR bits )
-    VULKAN_HPP_NOEXCEPT
-  {
-    return ~( FormatFeatureFlags2KHR( bits ) );
-  }
-
-  VULKAN_HPP_INLINE std::string to_string( FormatFeatureFlags2KHR value )
-  {
-    if ( !value )
-      return "{}";
-
-    std::string result;
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImage )
-      result += "SampledImage | ";
-    if ( value & FormatFeatureFlagBits2KHR::eStorageImage )
-      result += "StorageImage | ";
-    if ( value & FormatFeatureFlagBits2KHR::eStorageImageAtomic )
-      result += "StorageImageAtomic | ";
-    if ( value & FormatFeatureFlagBits2KHR::eUniformTexelBuffer )
-      result += "UniformTexelBuffer | ";
-    if ( value & FormatFeatureFlagBits2KHR::eStorageTexelBuffer )
-      result += "StorageTexelBuffer | ";
-    if ( value & FormatFeatureFlagBits2KHR::eStorageTexelBufferAtomic )
-      result += "StorageTexelBufferAtomic | ";
-    if ( value & FormatFeatureFlagBits2KHR::eVertexBuffer )
-      result += "VertexBuffer | ";
-    if ( value & FormatFeatureFlagBits2KHR::eColorAttachment )
-      result += "ColorAttachment | ";
-    if ( value & FormatFeatureFlagBits2KHR::eColorAttachmentBlend )
-      result += "ColorAttachmentBlend | ";
-    if ( value & FormatFeatureFlagBits2KHR::eDepthStencilAttachment )
-      result += "DepthStencilAttachment | ";
-    if ( value & FormatFeatureFlagBits2KHR::eBlitSrc )
-      result += "BlitSrc | ";
-    if ( value & FormatFeatureFlagBits2KHR::eBlitDst )
-      result += "BlitDst | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageFilterLinear )
-      result += "SampledImageFilterLinear | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageFilterCubicEXT )
-      result += "SampledImageFilterCubicEXT | ";
-    if ( value & FormatFeatureFlagBits2KHR::eTransferSrc )
-      result += "TransferSrc | ";
-    if ( value & FormatFeatureFlagBits2KHR::eTransferDst )
-      result += "TransferDst | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageFilterMinmax )
-      result += "SampledImageFilterMinmax | ";
-    if ( value & FormatFeatureFlagBits2KHR::eMidpointChromaSamples )
-      result += "MidpointChromaSamples | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionLinearFilter )
-      result += "SampledImageYcbcrConversionLinearFilter | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionSeparateReconstructionFilter )
-      result += "SampledImageYcbcrConversionSeparateReconstructionFilter | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionChromaReconstructionExplicit )
-      result += "SampledImageYcbcrConversionChromaReconstructionExplicit | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageYcbcrConversionChromaReconstructionExplicitForceable )
-      result += "SampledImageYcbcrConversionChromaReconstructionExplicitForceable | ";
-    if ( value & FormatFeatureFlagBits2KHR::eDisjoint )
-      result += "Disjoint | ";
-    if ( value & FormatFeatureFlagBits2KHR::eCositedChromaSamples )
-      result += "CositedChromaSamples | ";
-    if ( value & FormatFeatureFlagBits2KHR::eStorageReadWithoutFormat )
-      result += "StorageReadWithoutFormat | ";
-    if ( value & FormatFeatureFlagBits2KHR::eStorageWriteWithoutFormat )
-      result += "StorageWriteWithoutFormat | ";
-    if ( value & FormatFeatureFlagBits2KHR::eSampledImageDepthComparison )
-      result += "SampledImageDepthComparison | ";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    if ( value & FormatFeatureFlagBits2KHR::eVideoDecodeOutput )
-      result += "VideoDecodeOutput | ";
-    if ( value & FormatFeatureFlagBits2KHR::eVideoDecodeDpb )
-      result += "VideoDecodeDpb | ";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-    if ( value & FormatFeatureFlagBits2KHR::eAccelerationStructureVertexBuffer )
-      result += "AccelerationStructureVertexBuffer | ";
-    if ( value & FormatFeatureFlagBits2KHR::eFragmentDensityMapEXT )
-      result += "FragmentDensityMapEXT | ";
-    if ( value & FormatFeatureFlagBits2KHR::eFragmentShadingRateAttachment )
-      result += "FragmentShadingRateAttachment | ";
-#if defined( VK_ENABLE_BETA_EXTENSIONS )
-    if ( value & FormatFeatureFlagBits2KHR::eVideoEncodeInput )
-      result += "VideoEncodeInput | ";
-    if ( value & FormatFeatureFlagBits2KHR::eVideoEncodeDpb )
-      result += "VideoEncodeDpb | ";
-#endif /*VK_ENABLE_BETA_EXTENSIONS*/
-
-    return "{ " + result.substr( 0, result.size() - 3 ) + " }";
-  }
 
 #if defined( VK_USE_PLATFORM_FUCHSIA )
   //=== VK_FUCHSIA_buffer_collection ===
