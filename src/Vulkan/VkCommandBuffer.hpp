@@ -102,11 +102,11 @@ public:
 	void bindIndexBuffer(Buffer *buffer, VkDeviceSize offset, VkIndexType indexType);
 	void dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 	void dispatchIndirect(Buffer *buffer, VkDeviceSize offset);
-	void copyBuffer(const VkCopyBufferInfo2KHR &copyBufferInfo);
-	void copyImage(const VkCopyImageInfo2KHR &copyImageInfo);
-	void blitImage(const VkBlitImageInfo2KHR &blitImageInfo);
-	void copyBufferToImage(const VkCopyBufferToImageInfo2KHR &copyBufferToImageInfo);
-	void copyImageToBuffer(const VkCopyImageToBufferInfo2KHR &copyImageToBufferInfo);
+	void copyBuffer(const VkCopyBufferInfo2 &copyBufferInfo);
+	void copyImage(const VkCopyImageInfo2 &copyImageInfo);
+	void blitImage(const VkBlitImageInfo2 &blitImageInfo);
+	void copyBufferToImage(const VkCopyBufferToImageInfo2 &copyBufferToImageInfo);
+	void copyImageToBuffer(const VkCopyImageToBufferInfo2 &copyImageToBufferInfo);
 	void updateBuffer(Buffer *dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void *pData);
 	void fillBuffer(Buffer *dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data);
 	void clearColorImage(Image *image, VkImageLayout imageLayout, const VkClearColorValue *pColor,
@@ -115,7 +115,7 @@ public:
 	                            uint32_t rangeCount, const VkImageSubresourceRange *pRanges);
 	void clearAttachments(uint32_t attachmentCount, const VkClearAttachment *pAttachments,
 	                      uint32_t rectCount, const VkClearRect *pRects);
-	void resolveImage(const VkResolveImageInfo2KHR &resolveImageInfo);
+	void resolveImage(const VkResolveImageInfo2 &resolveImageInfo);
 	void setEvent(Event *event, VkPipelineStageFlags stageMask);
 	void resetEvent(Event *event, VkPipelineStageFlags stageMask);
 	void waitEvents(uint32_t eventCount, const VkEvent *pEvents, VkPipelineStageFlags srcStageMask,

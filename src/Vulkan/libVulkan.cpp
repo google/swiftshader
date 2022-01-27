@@ -823,9 +823,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				}
 			}
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES:
 			{
-				const VkPhysicalDeviceImageRobustnessFeaturesEXT *imageRobustnessFeatures = reinterpret_cast<const VkPhysicalDeviceImageRobustnessFeaturesEXT *>(extensionCreateInfo);
+				const VkPhysicalDeviceImageRobustnessFeatures *imageRobustnessFeatures = reinterpret_cast<const VkPhysicalDeviceImageRobustnessFeatures *>(extensionCreateInfo);
 
 				// We currently always provide robust image accesses. When the feature is disabled, results are
 				// undefined (for images with Dim != Buffer), so providing robustness is also acceptable.
@@ -868,9 +868,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				(void)hostQueryResetFeatures->hostQueryReset;
 			}
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES:
 			{
-				const VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT *pipelineCreationCacheControlFeatures = reinterpret_cast<const VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT *>(extensionCreateInfo);
+				const VkPhysicalDevicePipelineCreationCacheControlFeatures *pipelineCreationCacheControlFeatures = reinterpret_cast<const VkPhysicalDevicePipelineCreationCacheControlFeatures *>(extensionCreateInfo);
 
 				// VK_EXT_pipeline_creation_cache_control is always enabled.
 				(void)pipelineCreationCacheControlFeatures->pipelineCreationCacheControl;
@@ -2666,9 +2666,9 @@ VKAPI_ATTR void VKAPI_CALL vkCmdCopyBuffer(VkCommandBuffer commandBuffer, VkBuff
 	vk::Cast(commandBuffer)->copyBuffer(vk::CopyBufferInfo(srcBuffer, dstBuffer, regionCount, pRegions));
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer, const VkCopyBufferInfo2KHR *pCopyBufferInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyBuffer2(VkCommandBuffer commandBuffer, const VkCopyBufferInfo2 *pCopyBufferInfo)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyBufferInfo2KHR* pCopyBufferInfo = %p)",
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyBufferInfo2* pCopyBufferInfo = %p)",
 	      commandBuffer, pCopyBufferInfo);
 
 	vk::Cast(commandBuffer)->copyBuffer(*pCopyBufferInfo);
@@ -2682,9 +2682,9 @@ VKAPI_ATTR void VKAPI_CALL vkCmdCopyImage(VkCommandBuffer commandBuffer, VkImage
 	vk::Cast(commandBuffer)->copyImage(vk::CopyImageInfo(srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions));
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer, const VkCopyImageInfo2KHR *pCopyImageInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyImage2(VkCommandBuffer commandBuffer, const VkCopyImageInfo2 *pCopyImageInfo)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyImageInfo2KHR* pCopyImageInfo = %p)",
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyImageInfo2* pCopyImageInfo = %p)",
 	      commandBuffer, pCopyImageInfo);
 
 	vk::Cast(commandBuffer)->copyImage(*pCopyImageInfo);
@@ -2698,9 +2698,9 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBlitImage(VkCommandBuffer commandBuffer, VkImage
 	vk::Cast(commandBuffer)->blitImage(vk::BlitImageInfo(srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter));
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer, const VkBlitImageInfo2KHR *pBlitImageInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdBlitImage2(VkCommandBuffer commandBuffer, const VkBlitImageInfo2 *pBlitImageInfo)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkBlitImageInfo2KHR* pBlitImageInfo = %p)",
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkBlitImageInfo2* pBlitImageInfo = %p)",
 	      commandBuffer, pBlitImageInfo);
 
 	vk::Cast(commandBuffer)->blitImage(*pBlitImageInfo);
@@ -2714,9 +2714,9 @@ VKAPI_ATTR void VKAPI_CALL vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer,
 	vk::Cast(commandBuffer)->copyBufferToImage(vk::CopyBufferToImageInfo(srcBuffer, dstImage, dstImageLayout, regionCount, pRegions));
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2KHR *pCopyBufferToImageInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyBufferToImage2(VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2 *pCopyBufferToImageInfo)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo = %p)",
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo = %p)",
 	      commandBuffer, pCopyBufferToImageInfo);
 
 	vk::Cast(commandBuffer)->copyBufferToImage(*pCopyBufferToImageInfo);
@@ -2730,9 +2730,9 @@ VKAPI_ATTR void VKAPI_CALL vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer,
 	vk::Cast(commandBuffer)->copyImageToBuffer(vk::CopyImageToBufferInfo(srcImage, srcImageLayout, dstBuffer, regionCount, pRegions));
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2KHR *pCopyImageToBufferInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyImageToBuffer2(VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2 *pCopyImageToBufferInfo)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo = %p)",
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo = %p)",
 	      commandBuffer, pCopyImageToBufferInfo);
 
 	vk::Cast(commandBuffer)->copyImageToBuffer(*pCopyImageToBufferInfo);
@@ -2786,9 +2786,9 @@ VKAPI_ATTR void VKAPI_CALL vkCmdResolveImage(VkCommandBuffer commandBuffer, VkIm
 	vk::Cast(commandBuffer)->resolveImage(vk::ResolveImageInfo(srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions));
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer, const VkResolveImageInfo2KHR *pResolveImageInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdResolveImage2(VkCommandBuffer commandBuffer, const VkResolveImageInfo2 *pResolveImageInfo)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkResolveImageInfo2KHR* pResolveImageInfo = %p)",
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkResolveImageInfo2* pResolveImageInfo = %p)",
 	      commandBuffer, pResolveImageInfo);
 
 	vk::Cast(commandBuffer)->resolveImage(*pResolveImageInfo);
@@ -3348,9 +3348,9 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice
 	{
 		switch(extensionProperties->sType)
 		{
-		case VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3_KHR:
+		case VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3:
 			{
-				auto *properties3 = reinterpret_cast<VkFormatProperties3KHR *>(extensionProperties);
+				auto *properties3 = reinterpret_cast<VkFormatProperties3 *>(extensionProperties);
 				vk::Cast(physicalDevice)->GetFormatProperties(format, properties3);
 			}
 			break;
@@ -3675,9 +3675,9 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties2(VkPhy
 	*pPropertyCount = 0;
 }
 
-VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceToolPropertiesEXT(VkPhysicalDevice physicalDevice, uint32_t *pToolCount, VkPhysicalDeviceToolPropertiesEXT *pToolProperties)
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceToolProperties(VkPhysicalDevice physicalDevice, uint32_t *pToolCount, VkPhysicalDeviceToolProperties *pToolProperties)
 {
-	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t* pToolCount = %p, VkPhysicalDeviceToolPropertiesEXT* pToolProperties = %p)",
+	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t* pToolCount = %p, VkPhysicalDeviceToolProperties* pToolProperties = %p)",
 	      physicalDevice, pToolCount, pToolProperties);
 
 	if(!pToolProperties)
@@ -3823,6 +3823,192 @@ VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, cons
 	      device, pCreateInfo, pSupport);
 
 	vk::Cast(device)->getDescriptorSetLayoutSupport(pCreateInfo, pSupport);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCreatePrivateDataSlot(VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPrivateDataSlot* pPrivateDataSlot)
+{
+	TRACE("(VkDevice device = %p, const VkPrivateDataSlotCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkPrivateDataSlot* pPrivateDataSlot = %p)",
+	      device, pCreateInfo, pAllocator, pPrivateDataSlot);
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR void VKAPI_CALL vkDestroyPrivateDataSlot(VkDevice device, VkPrivateDataSlot privateDataSlot, const VkAllocationCallbacks* pAllocator)
+{
+	TRACE("(VkDevice device = %p, VkPrivateDataSlot privateDataSlot = %p, const VkAllocationCallbacks* pAllocator = %p)",
+	      device, static_cast<void *>(privateDataSlot), pAllocator);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkSetPrivateData(VkDevice device, VkObjectType objectType, uint64_t objectHandle, VkPrivateDataSlot privateDataSlot, uint64_t data)
+{
+	TRACE("(VkDevice device = %p, VkObjectType objectType = %d, uint64_t objectHandle = %" PRIu64 ", VkPrivateDataSlot privateDataSlot = %p, uint64_t data = %" PRIu64 ")",
+	      device, objectType, objectHandle, static_cast<void *>(privateDataSlot), data);
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetPrivateData(VkDevice device, VkObjectType objectType, uint64_t objectHandle, VkPrivateDataSlot privateDataSlot, uint64_t* pData)
+{
+	TRACE("(VkDevice device = %p, VkObjectType objectType = %d, uint64_t objectHandle = %" PRIu64 ", VkPrivateDataSlot privateDataSlot = %p, uint64_t data = %p)",
+	      device, objectType, objectHandle, static_cast<void *>(privateDataSlot), pData);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event, const VkDependencyInfo* pDependencyInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkEvent event = %p, const VkDependencyInfo* pDependencyInfo = %p)",
+	      commandBuffer, static_cast<void *>(event), pDependencyInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags2 stageMask)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkEvent event = %p, VkPipelineStageFlags2 stageMask = %" PRIu64 ")",
+	      commandBuffer, static_cast<void *>(event), stageMask);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdWaitEvents2(VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t eventCount = %d, const VkEvent* pEvents = %p, const VkDependencyInfo* pDependencyInfos = %p)",
+	      commandBuffer, eventCount, pEvents, pDependencyInfos);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer, const VkDependencyInfo* pDependencyInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkDependencyInfo* pDependencyInfo = %p)",
+	      commandBuffer, pDependencyInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdWriteTimestamp2(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage, VkQueryPool queryPool, uint32_t query)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkPipelineStageFlags2 stage = %" PRIu64 ", VkQueryPool queryPool = %p, uint32_t query = %d)",
+	      commandBuffer, stage, static_cast<void *>(queryPool), query);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkQueueSubmit2(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence)
+{
+	TRACE("(VkQueue queue = %p, uint32_t submitCount = %d, const VkSubmitInfo2* pSubmits = %p, VkFence fence = %p)",
+	      queue, submitCount, pSubmits, static_cast<void *>(fence));
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdBeginRendering(VkCommandBuffer commandBuffer, const VkRenderingInfo* pRenderingInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkRenderingInfo* pRenderingInfo = %p)",
+	      commandBuffer, pRenderingInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdEndRendering(VkCommandBuffer commandBuffer)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p)",
+	      commandBuffer);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkCullModeFlags cullMode = %d)",
+	      commandBuffer, cullMode);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace frontFace)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkFrontFace frontFace = %d)",
+	      commandBuffer, frontFace);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetPrimitiveTopology(VkCommandBuffer commandBuffer, VkPrimitiveTopology primitiveTopology)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkPrimitiveTopology primitiveTopology = %d)",
+	      commandBuffer, primitiveTopology);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetViewportWithCount(VkCommandBuffer commandBuffer, uint32_t viewportCount, const VkViewport* pViewports)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t viewportCount = %d, const VkViewport* pViewports = %p)",
+	      commandBuffer, viewportCount, pViewports);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetScissorWithCount(VkCommandBuffer commandBuffer, uint32_t scissorCount, const VkRect2D* pScissors)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t scissorCount = %d, const VkRect2D* pScissors = %p)",
+	      commandBuffer, scissorCount, pScissors);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdBindVertexBuffers2(VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes, const VkDeviceSize* pStrides)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t firstBinding = %d, uint32_t bindingCount = %d, const VkBuffer* pBuffers = %p, const VkDeviceSize* pOffsets = %p, const VkDeviceSize* pSizes = %p, const VkDeviceSize* pStrides = %p)",
+	      commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 depthTestEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 depthTestEnable = %d)",
+	      commandBuffer, depthTestEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 depthWriteEnable = %d)",
+	      commandBuffer, depthWriteEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkCompareOp depthCompareOp = %d)",
+	      commandBuffer, depthCompareOp);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer, VkBool32 depthBoundsTestEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 depthBoundsTestEnable = %d)",
+	      commandBuffer, depthBoundsTestEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetStencilTestEnable(VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 stencilTestEnable = %d)",
+	      commandBuffer, stencilTestEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetStencilOp(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkStencilFaceFlags faceMask = %d, VkStencilOp failOp = %d, VkStencilOp passOp = %d, VkStencilOp depthFailOp = %d, VkCompareOp compareOp = %d)",
+	      commandBuffer, faceMask, failOp, passOp, depthFailOp, compareOp);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer, VkBool32 rasterizerDiscardEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 rasterizerDiscardEnable = %d)",
+	      commandBuffer, rasterizerDiscardEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 depthBiasEnable = %d)",
+	      commandBuffer, depthBiasEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer, VkBool32 primitiveRestartEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 primitiveRestartEnable = %d)",
+	      commandBuffer, primitiveRestartEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetDeviceBufferMemoryRequirements(VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements)
+{
+	TRACE("(VkDevice device = %p, const VkDeviceBufferMemoryRequirements* pInfo = %p, VkMemoryRequirements2* pMemoryRequirements = %p)",
+	      device, pInfo, pMemoryRequirements);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetDeviceImageMemoryRequirements(VkDevice device, const VkDeviceImageMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements)
+{
+	TRACE("(VkDevice device = %p, const VkDeviceImageMemoryRequirements* pInfo = %p, VkMemoryRequirements2* pMemoryRequirements = %p)",
+	      device, pInfo, pMemoryRequirements);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetDeviceImageSparseMemoryRequirements(VkDevice device, const VkDeviceImageMemoryRequirements* pInfo, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
+{
+	TRACE("(VkDevice device = %p, const VkDeviceImageMemoryRequirements* pInfo = %p, uint32_t* pSparseMemoryRequirementCount = %p, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements = %p)",
+	      device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern)

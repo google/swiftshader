@@ -42,6 +42,31 @@
 //
 // 1.2 Extensions:
 // VK_KHR_create_renderpass2
+//
+// 1.3 Extensions
+// VK_KHR_copy_commands2
+// VK_KHR_dynamic_rendering
+// VK_KHR_format_feature_flags2 (no functions in this extension)
+// VK_KHR_maintenance4
+// VK_KHR_shader_integer_dot_product (no functions in this extension)
+// VK_KHR_shader_non_semantic_info (no functions in this extension)
+// VK_KHR_shader_terminate_invocation (no functions in this extension)
+// VK_KHR_synchronization2
+// VK_KHR_zero_initialize_workgroup_memory (no functions in this extension)
+// VK_EXT_4444_formats (no functions in this extension)
+// VK_EXT_extended_dynamic_state
+// VK_EXT_extended_dynamic_state2 (partial promotion, VKCmdSetLogicOpEXT and VKCmdSetPatchControlPointsEXT are not promoted)
+// VK_EXT_image_robustness (no functions in this extension)
+// VK_EXT_inline_uniform_block (no functions in this extension)
+// VK_EXT_pipeline_creation_cache_control (no functions in this extension)
+// VK_EXT_pipeline_creation_feedback (no functions in this extension)
+// VK_EXT_private_data
+// VK_EXT_shader_demote_to_helper_invocation (no functions in this extension)
+// VK_EXT_subgroup_size_control (no functions in this extension)
+// VK_EXT_texel_buffer_alignment (no functions in this extension)
+// VK_EXT_texture_compression_astc_hdr (no functions in this extension)
+// VK_EXT_tooling_info
+// VK_EXT_ycbcr_2plane_444_formats (no functions in this extension)
 
 #include "Vulkan/VulkanPlatform.hpp"
 
@@ -255,5 +280,197 @@ VKAPI_ATTR uint64_t VKAPI_CALL vkGetBufferOpaqueCaptureAddressKHR(VkDevice devic
 VKAPI_ATTR uint64_t VKAPI_CALL vkGetDeviceMemoryOpaqueCaptureAddressKHR(VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo *pInfo)
 {
 	return vkGetDeviceMemoryOpaqueCaptureAddress(device, pInfo);
+}
+
+// VK_EXT_tooling_info
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceToolPropertiesEXT(VkPhysicalDevice physicalDevice, uint32_t* pToolCount, VkPhysicalDeviceToolPropertiesEXT* pToolProperties)
+{
+	return vkGetPhysicalDeviceToolProperties(physicalDevice, pToolCount, pToolProperties);
+}
+
+// VK_EXT_private_data
+VKAPI_ATTR VkResult VKAPI_CALL vkCreatePrivateDataSlotEXT(VkDevice device, const VkPrivateDataSlotCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPrivateDataSlotEXT* pPrivateDataSlot)
+{
+	return vkCreatePrivateDataSlot(device, pCreateInfo, pAllocator, pPrivateDataSlot);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkDestroyPrivateDataSlotEXT(VkDevice device, VkPrivateDataSlotEXT privateDataSlot, const VkAllocationCallbacks* pAllocator)
+{
+	vkDestroyPrivateDataSlot(device, privateDataSlot, pAllocator);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkSetPrivateDataEXT(VkDevice device, VkObjectType objectType, uint64_t objectHandle, VkPrivateDataSlotEXT privateDataSlot, uint64_t data)
+{
+	return vkSetPrivateData(device, objectType, objectHandle, privateDataSlot, data);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetPrivateDataEXT(VkDevice device, VkObjectType objectType, uint64_t objectHandle, VkPrivateDataSlotEXT privateDataSlot, uint64_t* pData)
+{
+	vkGetPrivateData(device, objectType, objectHandle, privateDataSlot, pData);
+}
+
+// VK_KHR_synchronization2
+VKAPI_ATTR void VKAPI_CALL vkCmdSetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event, const VkDependencyInfoKHR* pDependencyInfo)
+{
+	vkCmdSetEvent2(commandBuffer, event, pDependencyInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdResetEvent2KHR(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags2KHR stageMask)
+{
+	vkCmdResetEvent2(commandBuffer, event, stageMask);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdWaitEvents2KHR(VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents, const VkDependencyInfoKHR* pDependencyInfos)
+{
+	vkCmdWaitEvents2(commandBuffer, eventCount, pEvents, pDependencyInfos);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdPipelineBarrier2KHR(VkCommandBuffer commandBuffer, const VkDependencyInfoKHR* pDependencyInfo)
+{
+	vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdWriteTimestamp2KHR(VkCommandBuffer commandBuffer, VkPipelineStageFlags2KHR stage, VkQueryPool queryPool, uint32_t query)
+{
+	vkCmdWriteTimestamp2(commandBuffer, stage, queryPool, query);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkQueueSubmit2KHR(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2KHR* pSubmits, VkFence fence)
+{
+	return vkQueueSubmit2(queue, submitCount, pSubmits, fence);
+}
+
+// VK_KHR_copy_commands2
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyBuffer2KHR(VkCommandBuffer commandBuffer, const VkCopyBufferInfo2KHR* pCopyBufferInfo)
+{
+	vkCmdCopyBuffer2(commandBuffer, pCopyBufferInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyImage2KHR(VkCommandBuffer commandBuffer, const VkCopyImageInfo2KHR* pCopyImageInfo)
+{
+	vkCmdCopyImage2(commandBuffer, pCopyImageInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyBufferToImage2KHR(VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo)
+{
+	vkCmdCopyBufferToImage2(commandBuffer, pCopyBufferToImageInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdCopyImageToBuffer2KHR(VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo)
+{
+	vkCmdCopyImageToBuffer2(commandBuffer, pCopyImageToBufferInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdBlitImage2KHR(VkCommandBuffer commandBuffer, const VkBlitImageInfo2KHR* pBlitImageInfo)
+{
+	vkCmdBlitImage2(commandBuffer, pBlitImageInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdResolveImage2KHR(VkCommandBuffer commandBuffer, const VkResolveImageInfo2KHR* pResolveImageInfo)
+{
+	vkCmdResolveImage2(commandBuffer, pResolveImageInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderingKHR(VkCommandBuffer commandBuffer, const VkRenderingInfoKHR* pRenderingInfo)
+{
+	vkCmdBeginRendering(commandBuffer, pRenderingInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderingKHR(VkCommandBuffer commandBuffer)
+{
+	vkCmdEndRendering(commandBuffer);
+}
+
+// VK_EXT_extended_dynamic_state
+VKAPI_ATTR void VKAPI_CALL vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode)
+{
+	vkCmdSetCullMode(commandBuffer, cullMode);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetFrontFaceEXT(VkCommandBuffer commandBuffer, VkFrontFace frontFace)
+{
+	vkCmdSetFrontFace(commandBuffer, frontFace);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetPrimitiveTopologyEXT(VkCommandBuffer commandBuffer, VkPrimitiveTopology primitiveTopology)
+{
+	vkCmdSetPrimitiveTopology(commandBuffer, primitiveTopology);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetViewportWithCountEXT(VkCommandBuffer commandBuffer, uint32_t viewportCount, const VkViewport* pViewports)
+{
+	vkCmdSetViewportWithCount(commandBuffer, viewportCount, pViewports);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetScissorWithCountEXT(VkCommandBuffer commandBuffer, uint32_t scissorCount, const VkRect2D* pScissors)
+{
+	vkCmdSetScissorWithCount(commandBuffer, scissorCount, pScissors);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdBindVertexBuffers2EXT(VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes, const VkDeviceSize* pStrides)
+{
+	vkCmdBindVertexBuffers2(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthTestEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthTestEnable)
+{
+	vkCmdSetDepthTestEnable(commandBuffer, depthTestEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthWriteEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable)
+{
+	vkCmdSetDepthWriteEnable(commandBuffer, depthWriteEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthCompareOpEXT(VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp)
+{
+	vkCmdSetDepthCompareOp(commandBuffer, depthCompareOp);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthBoundsTestEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthBoundsTestEnable)
+{
+	vkCmdSetDepthBoundsTestEnable(commandBuffer, depthBoundsTestEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetStencilTestEnableEXT(VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable)
+{
+	vkCmdSetStencilTestEnable(commandBuffer, stencilTestEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetStencilOpEXT(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp)
+{
+	vkCmdSetStencilOp(commandBuffer, faceMask, failOp, passOp, depthFailOp, compareOp);
+}
+
+// VK_EXT_extended_dynamic_state2
+VKAPI_ATTR void VKAPI_CALL vkCmdSetRasterizerDiscardEnableEXT(VkCommandBuffer commandBuffer, VkBool32 rasterizerDiscardEnable)
+{
+	vkCmdSetRasterizerDiscardEnable(commandBuffer, rasterizerDiscardEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthBiasEnableEXT(VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable)
+{
+	 vkCmdSetDepthBiasEnable(commandBuffer, depthBiasEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetPrimitiveRestartEnableEXT(VkCommandBuffer commandBuffer, VkBool32 primitiveRestartEnable)
+{
+	vkCmdSetPrimitiveRestartEnable(commandBuffer, primitiveRestartEnable);
+}
+
+// VK_KHR_maintenance4
+VKAPI_ATTR void VKAPI_CALL vkGetDeviceBufferMemoryRequirementsKHR(VkDevice device, const VkDeviceBufferMemoryRequirementsKHR* pInfo, VkMemoryRequirements2* pMemoryRequirements)
+{
+	vkGetDeviceBufferMemoryRequirements(device, pInfo, pMemoryRequirements);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetDeviceImageMemoryRequirementsKHR(VkDevice device, const VkDeviceImageMemoryRequirementsKHR* pInfo, VkMemoryRequirements2* pMemoryRequirements)
+{
+	vkGetDeviceImageMemoryRequirements(device, pInfo, pMemoryRequirements);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetDeviceImageSparseMemoryRequirementsKHR(VkDevice device, const VkDeviceImageMemoryRequirementsKHR* pInfo, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
+{
+	vkGetDeviceImageSparseMemoryRequirements(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 }

@@ -230,3 +230,42 @@ EXPORTS
 	vkGetBufferOpaqueCaptureAddress
 	vkGetDeviceMemoryOpaqueCaptureAddress
 	vkResetQueryPool
+
+	; Vulkan 1.3 API entry functions
+	vkCmdBeginRendering
+	vkCmdBindVertexBuffers2
+	vkCmdBlitImage2
+	vkCmdCopyBuffer2
+	vkCmdCopyBufferToImage2
+	vkCmdCopyImage2
+	vkCmdCopyImageToBuffer2
+	vkCmdEndRendering
+	vkCmdPipelineBarrier2
+	vkCmdResetEvent2
+	vkCmdResolveImage2
+	vkCmdSetCullMode
+	vkCmdSetDepthBiasEnable
+	vkCmdSetDepthBoundsTestEnable
+	vkCmdSetDepthCompareOp
+	vkCmdSetDepthTestEnable
+	vkCmdSetDepthWriteEnable
+	vkCmdSetEvent2
+	vkCmdSetFrontFace
+	vkCmdSetPrimitiveRestartEnable
+	vkCmdSetPrimitiveTopology
+	vkCmdSetRasterizerDiscardEnable
+	vkCmdSetScissorWithCount
+	vkCmdSetStencilOp
+	vkCmdSetStencilTestEnable
+	vkCmdSetViewportWithCount
+	vkCmdWaitEvents2
+	vkCmdWriteTimestamp2
+	vkCreatePrivateDataSlot
+	vkDestroyPrivateDataSlot
+	vkGetDeviceBufferMemoryRequirements
+	vkGetDeviceImageMemoryRequirements
+	vkGetDeviceImageSparseMemoryRequirements
+	vkGetPhysicalDeviceToolProperties
+	vkGetPrivateData
+	vkQueueSubmit2
+	vkSetPrivateData

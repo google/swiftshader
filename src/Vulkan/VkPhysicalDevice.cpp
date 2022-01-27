@@ -186,7 +186,7 @@ static void getPhysicalDevicePipelineCreationCacheControlFeatures(T *features)
 }
 
 template<typename T>
-static void getPhysicalDeviceImageRobustnessFeaturesEXT(T *features)
+static void getPhysicalDeviceImageRobustnessFeatures(T *features)
 {
 	features->robustImageAccess = VK_TRUE;
 }
@@ -385,11 +385,11 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES:
 			getPhysicalDeviceHostQueryResetFeatures(reinterpret_cast<VkPhysicalDeviceHostQueryResetFeatures *>(curExtension));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT:
-			getPhysicalDevicePipelineCreationCacheControlFeatures(reinterpret_cast<VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT *>(curExtension));
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES:
+			getPhysicalDevicePipelineCreationCacheControlFeatures(reinterpret_cast<VkPhysicalDevicePipelineCreationCacheControlFeatures *>(curExtension));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
-			getPhysicalDeviceImageRobustnessFeaturesEXT(reinterpret_cast<VkPhysicalDeviceImageRobustnessFeaturesEXT *>(curExtension));
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES:
+			getPhysicalDeviceImageRobustnessFeatures(reinterpret_cast<VkPhysicalDeviceImageRobustnessFeatures *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
 			getPhysicalDeviceLineRasterizationFeaturesEXT(reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT *>(curExtension));
@@ -1231,7 +1231,7 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceBlendOperationAdv
 
 void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFormatProperties)
 {
-	VkFormatProperties3KHR formatProperties3 = {};
+	VkFormatProperties3 formatProperties3 = {};
 	GetFormatProperties(format, &formatProperties3);
 
 	// VkFormatFeatureFlags2KHR is a 64-bit extension of the 32-bit VkFormatFeatureFlags,
@@ -1241,7 +1241,7 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 	pFormatProperties->bufferFeatures = static_cast<VkFormatFeatureFlags>(formatProperties3.bufferFeatures);
 }
 
-void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties3KHR *pFormatProperties)
+void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties3 *pFormatProperties)
 {
 	pFormatProperties->linearTilingFeatures = 0;   // Unsupported format
 	pFormatProperties->optimalTilingFeatures = 0;  // Unsupported format

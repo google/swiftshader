@@ -77,7 +77,7 @@ public:
 	void getProperties(VkPhysicalDeviceVulkan11Properties *properties) const;
 
 	static void GetFormatProperties(Format format, VkFormatProperties *pFormatProperties);
-	static void GetFormatProperties(Format format, VkFormatProperties3KHR *pFormatProperties);
+	static void GetFormatProperties(Format format, VkFormatProperties3 *pFormatProperties);
 	void getImageFormatProperties(Format format, VkImageType type, VkImageTiling tiling,
 	                              VkImageUsageFlags usage, VkImageCreateFlags flags,
 	                              VkImageFormatProperties *pImageFormatProperties) const;

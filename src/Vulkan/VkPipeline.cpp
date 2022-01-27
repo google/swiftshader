@@ -154,9 +154,9 @@ public:
 		if(pipelineCreationFeedback)
 		{
 			pipelineCreationFeedback->pPipelineCreationFeedback->flags |=
-			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT_EXT;
+			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT;
 			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].flags |=
-			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT_EXT;
+			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT;
 		}
 	}
 
@@ -165,7 +165,7 @@ public:
 		if(pipelineCreationFeedback)
 		{
 			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].flags |=
-			    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT_EXT;
+			    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT;
 			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].duration =
 			    now() - pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].duration;
 		}
@@ -178,14 +178,14 @@ public:
 	}
 
 private:
-	static const VkPipelineCreationFeedbackCreateInfoEXT *GetPipelineCreationFeedback(const void *pNext)
+	static const VkPipelineCreationFeedbackCreateInfo *GetPipelineCreationFeedback(const void *pNext)
 	{
 		const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pNext);
 		while(extensionCreateInfo)
 		{
-			if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT)
+			if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO)
 			{
-				return reinterpret_cast<const VkPipelineCreationFeedbackCreateInfoEXT *>(extensionCreateInfo);
+				return reinterpret_cast<const VkPipelineCreationFeedbackCreateInfo *>(extensionCreateInfo);
 			}
 
 			extensionCreateInfo = extensionCreateInfo->pNext;
@@ -210,7 +210,7 @@ private:
 		if(pipelineCreationFeedback)
 		{
 			pipelineCreationFeedback->pPipelineCreationFeedback->flags |=
-			    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT_EXT;
+			    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT;
 			pipelineCreationFeedback->pPipelineCreationFeedback->duration =
 			    now() - pipelineCreationFeedback->pPipelineCreationFeedback->duration;
 		}
@@ -236,7 +236,7 @@ private:
 		return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
 	}
 
-	const VkPipelineCreationFeedbackCreateInfoEXT *pipelineCreationFeedback = nullptr;
+	const VkPipelineCreationFeedbackCreateInfo *pipelineCreationFeedback = nullptr;
 };
 
 }  // anonymous namespace

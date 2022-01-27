@@ -20,11 +20,11 @@
 
 namespace vk {
 
-struct CopyBufferInfo : public VkCopyBufferInfo2KHR
+struct CopyBufferInfo : public VkCopyBufferInfo2
 {
 	CopyBufferInfo(VkBuffer srcBuffer, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferCopy *pRegions)
-	    : VkCopyBufferInfo2KHR{
-		    VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2_KHR,
+	    : VkCopyBufferInfo2{
+		    VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2,
 		    nullptr,
 		    srcBuffer,
 		    dstBuffer,
@@ -36,7 +36,7 @@ struct CopyBufferInfo : public VkCopyBufferInfo2KHR
 		for(uint32_t i = 0; i < regionCount; i++)
 		{
 			regions[i] = {
-				VK_STRUCTURE_TYPE_BUFFER_COPY_2_KHR,
+				VK_STRUCTURE_TYPE_BUFFER_COPY_2,
 				nullptr,
 				pRegions[i].srcOffset,
 				pRegions[i].dstOffset,
@@ -48,14 +48,14 @@ struct CopyBufferInfo : public VkCopyBufferInfo2KHR
 	}
 
 private:
-	std::vector<VkBufferCopy2KHR> regions;
+	std::vector<VkBufferCopy2> regions;
 };
 
-struct CopyImageInfo : public VkCopyImageInfo2KHR
+struct CopyImageInfo : public VkCopyImageInfo2
 {
 	CopyImageInfo(VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkImageCopy *pRegions)
-	    : VkCopyImageInfo2KHR{
-		    VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2_KHR,
+	    : VkCopyImageInfo2{
+		    VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2,
 		    nullptr,
 		    srcImage,
 		    srcImageLayout,
@@ -69,7 +69,7 @@ struct CopyImageInfo : public VkCopyImageInfo2KHR
 		for(uint32_t i = 0; i < regionCount; i++)
 		{
 			regions[i] = {
-				VK_STRUCTURE_TYPE_IMAGE_COPY_2_KHR,
+				VK_STRUCTURE_TYPE_IMAGE_COPY_2,
 				nullptr,
 				pRegions[i].srcSubresource,
 				pRegions[i].srcOffset,
@@ -83,14 +83,14 @@ struct CopyImageInfo : public VkCopyImageInfo2KHR
 	}
 
 private:
-	std::vector<VkImageCopy2KHR> regions;
+	std::vector<VkImageCopy2> regions;
 };
 
-struct BlitImageInfo : public VkBlitImageInfo2KHR
+struct BlitImageInfo : public VkBlitImageInfo2
 {
 	BlitImageInfo(VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkImageBlit *pRegions, VkFilter filter)
-	    : VkBlitImageInfo2KHR{
-		    VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2_KHR,
+	    : VkBlitImageInfo2{
+		    VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
 		    nullptr,
 		    srcImage,
 		    srcImageLayout,
@@ -105,7 +105,7 @@ struct BlitImageInfo : public VkBlitImageInfo2KHR
 		for(uint32_t i = 0; i < regionCount; i++)
 		{
 			regions[i] = {
-				VK_STRUCTURE_TYPE_IMAGE_BLIT_2_KHR,
+				VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
 				nullptr,
 				pRegions[i].srcSubresource,
 				{ pRegions[i].srcOffsets[0], pRegions[i].srcOffsets[1] },
@@ -118,14 +118,14 @@ struct BlitImageInfo : public VkBlitImageInfo2KHR
 	}
 
 private:
-	std::vector<VkImageBlit2KHR> regions;
+	std::vector<VkImageBlit2> regions;
 };
 
-struct CopyBufferToImageInfo : public VkCopyBufferToImageInfo2KHR
+struct CopyBufferToImageInfo : public VkCopyBufferToImageInfo2
 {
 	CopyBufferToImageInfo(VkBuffer srcBuffer, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkBufferImageCopy *pRegions)
-	    : VkCopyBufferToImageInfo2KHR{
-		    VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2_KHR,
+	    : VkCopyBufferToImageInfo2{
+		    VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2,
 		    nullptr,
 		    srcBuffer,
 		    dstImage,
@@ -138,7 +138,7 @@ struct CopyBufferToImageInfo : public VkCopyBufferToImageInfo2KHR
 		for(uint32_t i = 0; i < regionCount; i++)
 		{
 			regions[i] = {
-				VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2_KHR,
+				VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2,
 				nullptr,
 				pRegions[i].bufferOffset,
 				pRegions[i].bufferRowLength,
@@ -153,14 +153,14 @@ struct CopyBufferToImageInfo : public VkCopyBufferToImageInfo2KHR
 	}
 
 private:
-	std::vector<VkBufferImageCopy2KHR> regions;
+	std::vector<VkBufferImageCopy2> regions;
 };
 
-struct CopyImageToBufferInfo : public VkCopyImageToBufferInfo2KHR
+struct CopyImageToBufferInfo : public VkCopyImageToBufferInfo2
 {
 	CopyImageToBufferInfo(VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferImageCopy *pRegions)
-	    : VkCopyImageToBufferInfo2KHR{
-		    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2_KHR,
+	    : VkCopyImageToBufferInfo2{
+		    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2,
 		    nullptr,
 		    srcImage,
 		    srcImageLayout,
@@ -173,7 +173,7 @@ struct CopyImageToBufferInfo : public VkCopyImageToBufferInfo2KHR
 		for(uint32_t i = 0; i < regionCount; i++)
 		{
 			regions[i] = {
-				VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2_KHR,
+				VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2,
 				nullptr,
 				pRegions[i].bufferOffset,
 				pRegions[i].bufferRowLength,
@@ -188,14 +188,14 @@ struct CopyImageToBufferInfo : public VkCopyImageToBufferInfo2KHR
 	}
 
 private:
-	std::vector<VkBufferImageCopy2KHR> regions;
+	std::vector<VkBufferImageCopy2> regions;
 };
 
-struct ResolveImageInfo : public VkResolveImageInfo2KHR
+struct ResolveImageInfo : public VkResolveImageInfo2
 {
 	ResolveImageInfo(VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkImageResolve *pRegions)
-	    : VkResolveImageInfo2KHR{
-		    VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2_KHR,
+	    : VkResolveImageInfo2{
+		    VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2,
 		    nullptr,
 		    srcImage,
 		    srcImageLayout,
@@ -209,7 +209,7 @@ struct ResolveImageInfo : public VkResolveImageInfo2KHR
 		for(uint32_t i = 0; i < regionCount; i++)
 		{
 			regions[i] = {
-				VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR,
+				VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2,
 				nullptr,
 				pRegions[i].srcSubresource,
 				pRegions[i].srcOffset,
@@ -223,7 +223,7 @@ struct ResolveImageInfo : public VkResolveImageInfo2KHR
 	}
 
 private:
-	std::vector<VkImageResolve2KHR> regions;
+	std::vector<VkImageResolve2> regions;
 };
 
 struct ImageSubresource : VkImageSubresource
