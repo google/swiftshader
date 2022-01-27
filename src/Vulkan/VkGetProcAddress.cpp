@@ -103,6 +103,8 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 	MAKE_VULKAN_INSTANCE_ENTRY(vkSetDebugUtilsObjectNameEXT),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkSetDebugUtilsObjectTagEXT),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkSubmitDebugUtilsMessageEXT),
+	// VK_EXT_tooling_info
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceToolProperties),
 #ifndef __ANDROID__
 	// VK_KHR_surface
 	MAKE_VULKAN_INSTANCE_ENTRY(vkDestroySurfaceKHR),
@@ -331,6 +333,50 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	// VK_KHR_draw_indirect_count
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdDrawIndirectCount),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdDrawIndexedIndirectCount),
+	// Vulkan 1.3 Entry point functions
+	// VK_KHR_copy_commands2
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyBuffer2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyImage2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyBufferToImage2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdCopyImageToBuffer2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdBlitImage2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdResolveImage2),
+	// VK_KHR_dynamic_rendering
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdBeginRendering),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdEndRendering),
+	// VK_KHR_maintenance4
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceBufferMemoryRequirements),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceImageMemoryRequirements),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceImageSparseMemoryRequirements),
+	// VK_KHR_synchronization2
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetEvent2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdResetEvent2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdWaitEvents2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdPipelineBarrier2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdWriteTimestamp2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkQueueSubmit2),
+	// VK_EXT_extended_dynamic_state
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetCullMode),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetFrontFace),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetPrimitiveTopology),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetViewportWithCount),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetScissorWithCount),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdBindVertexBuffers2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthTestEnable),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthWriteEnable),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthCompareOp),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthBoundsTestEnable),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetStencilTestEnable),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetStencilOp),
+	// VK_EXT_extended_dynamic_state2 (partial promotion, VKCmdSetLogicOpEXT and VKCmdSetPatchControlPointsEXT are not promoted)
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetRasterizerDiscardEnable),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthBiasEnable),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetPrimitiveRestartEnable),
+	// VK_EXT_private_data
+	MAKE_VULKAN_DEVICE_ENTRY(vkCreatePrivateDataSlot),
+	MAKE_VULKAN_DEVICE_ENTRY(vkDestroyPrivateDataSlot),
+	MAKE_VULKAN_DEVICE_ENTRY(vkSetPrivateData),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetPrivateData),
 };
 
 // TODO(b/208256248): Avoid exit-time destructor.

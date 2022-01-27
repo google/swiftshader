@@ -238,6 +238,13 @@ SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvSh
 		imageOperands &= ~spv::ImageOperandsVolatileTexelMask;
 	}
 
+	if(imageOperands & spv::ImageOperandsNontemporalMask)
+	{
+		// Hints that the accessed texels are not likely
+		// to be accessed again in the near future.
+		imageOperands &= ~spv::ImageOperandsNontemporalMask;
+	}
+
 	// There should be no remaining image operands.
 	if(imageOperands != 0)
 	{

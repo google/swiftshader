@@ -27,9 +27,9 @@ namespace vk {
 #define SWIFTSHADER_DEVICE_NAME "SwiftShader Device"  // Max length: VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
 #define SWIFTSHADER_UUID "SwiftShaderUUID"            // Max length: VK_UUID_SIZE (16)
 
-constexpr spv_target_env SPIRV_VERSION = SPV_ENV_VULKAN_1_2;
+constexpr spv_target_env SPIRV_VERSION = SPV_ENV_VULKAN_1_3;
 
-constexpr uint32_t API_VERSION = VK_API_VERSION_1_2;
+constexpr uint32_t API_VERSION = VK_API_VERSION_1_3;
 constexpr uint32_t DRIVER_VERSION = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
 constexpr uint32_t VENDOR_ID = 0x1AE0;  // Google, Inc.: https://pcisig.com/google-inc-1
 constexpr uint32_t DEVICE_ID = 0xC0DE;  // SwiftShader (placeholder)
