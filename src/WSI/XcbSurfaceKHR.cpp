@@ -54,16 +54,19 @@ XcbSurfaceKHR::XcbSurfaceKHR(const VkXcbSurfaceCreateInfoKHR *pCreateInfo, void 
 	uint32_t values[2] = { 0, 0xffffffff };
 	libXCB->xcb_create_gc(connection, gc, window, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND, values);
 
-	auto shmCookie = libXCB->xcb_shm_query_version(connection);
-	auto geomCookie = libXCB->xcb_get_geometry(connection, window);
-
-	if (auto *reply = libXCB->xcb_shm_query_version_reply(connection, shmCookie, nullptr))
+	auto shmQuery = libXCB->xcb_get_extension_data(connection, libXCB->xcb_shm_id);
+	if(shmQuery->present)
 	{
-		mitSHM = reply && reply->shared_pixmaps;
-		free(reply);
+		auto shmCookie = libXCB->xcb_shm_query_version(connection);
+		if(auto *reply = libXCB->xcb_shm_query_version_reply(connection, shmCookie, nullptr))
+		{
+			mitSHM = reply && reply->shared_pixmaps;
+			free(reply);
+		}
 	}
 
-	if (auto *reply = libXCB->xcb_get_geometry_reply(connection, geomCookie, nullptr))
+	auto geomCookie = libXCB->xcb_get_geometry(connection, window);
+	if(auto *reply = libXCB->xcb_get_geometry_reply(connection, geomCookie, nullptr))
 	{
 		windowDepth = reply->depth;
 		free(reply);

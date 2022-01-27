@@ -29,12 +29,14 @@ LibXcbExports::LibXcbExports(void *libxcb, void *libshm)
 	getFuncAddress(libxcb, "xcb_put_image", &xcb_put_image);
 	getFuncAddress(libxcb, "xcb_copy_area", &xcb_copy_area);
 	getFuncAddress(libxcb, "xcb_free_pixmap", &xcb_free_pixmap);
+	getFuncAddress(libxcb, "xcb_get_extension_data", &xcb_get_extension_data);
 
 	getFuncAddress(libshm, "xcb_shm_query_version", &xcb_shm_query_version);
 	getFuncAddress(libshm, "xcb_shm_query_version_reply", &xcb_shm_query_version_reply);
 	getFuncAddress(libshm, "xcb_shm_attach", &xcb_shm_attach);
 	getFuncAddress(libshm, "xcb_shm_detach", &xcb_shm_detach);
 	getFuncAddress(libshm, "xcb_shm_create_pixmap", &xcb_shm_create_pixmap);
+	xcb_shm_id = (xcb_extension_t *)getProcAddress(libshm, "xcb_shm_id");
 }
 
 LibXcbExports *LibXCB::operator->()
