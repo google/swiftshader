@@ -54,4 +54,23 @@ bool CPUID::supportsSSE4_1()
 	return (eax_ebx_ecx_edx[2] & 0x00080000) != 0;
 }
 
+bool CPUID::supportsAVX2()
+{
+	int eax_ebx_ecx_edx[4];
+	cpuid(eax_ebx_ecx_edx, 1);
+	// Test bits 12 (FMA), 27 (OSXSAVE), and 28 (AVX) of ECX
+	bool osxsave_avx_fma = (eax_ebx_ecx_edx[2] & 0x18001000) == 0x18001000;
+
+	// AVX is a prerequisite of AVX2 and must be checked for first according to the Intel Software Developer's Manual.
+	// OSXSAVE ensures the operating system can save/restore ymm registers on context switches.
+	// FMA support is often considered an integral part of AVX2.
+	if(!osxsave_avx_fma)
+	{
+		return false;
+	}
+
+	cpuid(eax_ebx_ecx_edx, 7, 0);  // Valid if AVX is supported
+	return (eax_ebx_ecx_edx[1] & 0x00000020) != 0;
+}
+
 }  // namespace rr

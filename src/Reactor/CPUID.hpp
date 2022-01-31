@@ -29,6 +29,7 @@ class CPUID
 {
 public:
 	static bool supportsSSE4_1();
+	static bool supportsAVX2();  // Also ensures support for OSXSAVE and FMA
 };
 
 }  // namespace rr
