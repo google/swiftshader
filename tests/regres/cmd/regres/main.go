@@ -93,7 +93,7 @@ var (
 	dailyNow      = flag.Bool("dailynow", false, "Start by running the daily pass")
 	dailyOnly     = flag.Bool("dailyonly", false, "Run only the daily pass")
 	dailyChange   = flag.String("dailychange", "", "Change hash to use for daily pass, HEAD if not provided")
-	priority      = flag.String("priority", "", "Prioritize a single change with the given id")
+	priority      = flag.Int("priority", 0, "Prioritize a single change with the given number")
 	limit         = flag.Int("limit", 0, "only run a maximum of this number of tests")
 )
 
@@ -142,7 +142,7 @@ type regres struct {
 	dailyNow      bool            // start with a daily run
 	dailyOnly     bool            // run only the daily run
 	dailyChange   string          // Change hash to use for daily pass, HEAD if not provided
-	priority      string          // Prioritize a single change with the given id
+	priority      int             // Prioritize a single change with the given number
 }
 
 // getToolchain returns the LLVM toolchain, possibly downloading and
@@ -287,7 +287,7 @@ func (r *regres) run() error {
 		client.Authentication.SetBasicAuth(r.gerritUser, r.gerritPass)
 	}
 
-	changes := map[string]*changeInfo{} // Change ID -> changeInfo
+	changes := map[int]*changeInfo{} // Change number -> changeInfo
 	lastUpdatedTestLists := toDate(time.Now())
 	lastQueriedChanges := time.Time{}
 
@@ -331,8 +331,8 @@ func (r *regres) run() error {
 		}
 
 		for _, c := range changes {
-			if c.pending && r.priority == c.id {
-				log.Printf("Prioritizing change '%s'\n", c.id)
+			if c.pending && r.priority == c.number {
+				log.Printf("Prioritizing change '%v'\n", c.number)
 				c.priority = 1e6
 			}
 		}
@@ -358,7 +358,7 @@ func (r *regres) run() error {
 
 		log.Printf("%d changes queued for testing\n", numPending)
 
-		log.Printf("Testing change '%s'\n", change.id)
+		log.Printf("Testing change '%v'\n", change.number)
 
 		// Test the latest patchset in the change, diff against parent change.
 		msg, alert, err := r.test(change)
@@ -412,19 +412,19 @@ func (r *regres) test(change *changeInfo) (string, bool, error) {
 
 	deqpBuild, err := r.getOrBuildDEQP(latest)
 	if err != nil {
-		return "", true, cause.Wrap(err, "Failed to build dEQP '%v' for change", change.id)
+		return "", true, cause.Wrap(err, "Failed to build dEQP '%v' for change", change.number)
 	}
 
-	log.Printf("Testing latest patchset for change '%s'\n", change.id)
+	log.Printf("Testing latest patchset for change '%v'\n", change.number)
 	latestResults, testlists, err := r.testLatest(change, latest, deqpBuild)
 	if err != nil {
-		return "", true, cause.Wrap(err, "Failed to test latest change of '%v'", change.id)
+		return "", true, cause.Wrap(err, "Failed to test latest change of '%v'", change.number)
 	}
 
-	log.Printf("Testing parent of change '%s'\n", change.id)
+	log.Printf("Testing parent of change '%v'\n", change.number)
 	parentResults, err := r.testParent(change, testlists, deqpBuild)
 	if err != nil {
-		return "", true, cause.Wrap(err, "Failed to test parent change of '%v'", change.id)
+		return "", true, cause.Wrap(err, "Failed to test parent change of '%v'", change.number)
 	}
 
 	log.Println("Comparing latest patchset's results with parent")
@@ -1035,19 +1035,18 @@ func (r *regres) findTestListChange(client *gerrit.Client) (*gerrit.ChangeInfo, 
 // changeInfo holds the important information about a single, open change in
 // gerrit.
 type changeInfo struct {
-	id            string    // Gerrit change ID.
 	pending       bool      // Is this change waiting a test for the latest patchset?
 	priority      int       // Calculated priority based on Gerrit labels.
 	latest        git.Hash  // Git hash of the latest patchset in the change.
 	parent        git.Hash  // Git hash of the changelist this change is based on.
 	lastUpdated   time.Time // Time the change was last fetched.
-	number        int       // The numeric ID gerrit assigned to the change
+	number        int       // The number gerrit assigned to the change
 	commitMessage string
 }
 
 // queryChanges updates the changes map by querying gerrit for the latest open
 // changes.
-func queryChanges(client *gerrit.Client, changes map[string]*changeInfo) error {
+func queryChanges(client *gerrit.Client, changes map[int]*changeInfo) error {
 	log.Println("Checking for latest changes")
 	results, _, err := client.Changes.QueryChanges(&gerrit.QueryChangeOptions{
 		QueryOptions: gerrit.QueryOptions{
@@ -1059,24 +1058,24 @@ func queryChanges(client *gerrit.Client, changes map[string]*changeInfo) error {
 		return cause.Wrap(err, "Failed to get list of changes")
 	}
 
-	ids := map[string]int{}
+	ids := map[int]bool{}
 	for _, r := range *results {
-		ids[r.ChangeID] = r.Number
+		ids[r.Number] = true
 	}
 
 	// Add new changes
-	for id, number := range ids {
-		if _, found := changes[id]; !found {
-			log.Printf("Tracking new change '%v'\n", id)
-			changes[id] = &changeInfo{id: id, number: number}
+	for number := range ids {
+		if _, found := changes[number]; !found {
+			log.Printf("Tracking new change '%v'\n", number)
+			changes[number] = &changeInfo{number: number}
 		}
 	}
 
 	// Remove old changes
-	for id := range changes {
-		if _, found := ids[id]; !found {
-			log.Printf("Untracking change '%v'\n", id)
-			delete(changes, id)
+	for number := range changes {
+		if _, found := ids[number]; !found {
+			log.Printf("Untracking change '%v'\n", number)
+			delete(changes, number)
 		}
 	}
 
@@ -1094,11 +1093,11 @@ func (c *changeInfo) update(client *gerrit.Client) error {
 
 	current, ok := change.Revisions[change.CurrentRevision]
 	if !ok {
-		return fmt.Errorf("Couldn't find current revision for change '%s'", c.id)
+		return fmt.Errorf("Couldn't find current revision for change '%s'", c.number)
 	}
 
 	if len(current.Commit.Parents) == 0 {
-		return fmt.Errorf("Couldn't find current commit for change '%s' has no parents(?)", c.id)
+		return fmt.Errorf("Couldn't find current commit for change '%s' has no parents(?)", c.number)
 	}
 
 	kokoroPresubmit := change.Labels["Kokoro-Presubmit"].Approved.AccountID != 0
