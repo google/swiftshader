@@ -53,6 +53,7 @@ RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_orde
 RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder);
 RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder);
 RValue<Float4> FRem(RValue<Float4> lhs, RValue<Float4> rhs);
+RValue<Float4> FMA(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z);
 
 }  // namespace emulated
 }  // namespace rr

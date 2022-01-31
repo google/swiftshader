@@ -1231,6 +1231,39 @@ TEST(ReactorUnitTests, FMulAdd)
 	}
 }
 
+TEST(ReactorUnitTests, FMA)
+{
+	Function<Void(Pointer<Float4>, Pointer<Float4>, Pointer<Float4>, Pointer<Float4>)> function;
+	{
+		Pointer<Float4> r = function.Arg<0>();
+		Pointer<Float4> x = function.Arg<1>();
+		Pointer<Float4> y = function.Arg<2>();
+		Pointer<Float4> z = function.Arg<3>();
+
+		*r = FMA(*x, *y, *z);
+	}
+
+	auto routine = function(testName().c_str());
+	auto callable = (void (*)(float4 *, float4 *, float4 *, float4 *))routine->getEntry();
+
+	float x[] = { 0.0f, 2.0f, 4.0f, 1.00000011920929f };
+	float y[] = { 0.0f, 3.0f, 0.0f, 53400708.0f };
+	float z[] = { 0.0f, 0.0f, 7.0f, -53400708.0f };
+
+	for(size_t i = 0; i < std::size(x); i++)
+	{
+		float4 x_in = { x[i], x[i], x[i], x[i] };
+		float4 y_in = { y[i], y[i], y[i], y[i] };
+		float4 z_in = { z[i], z[i], z[i], z[i] };
+		float4 r_out;
+
+		callable(&r_out, &x_in, &y_in, &z_in);
+
+		float expected = fmaf(x[i], y[i], z[i]);
+		EXPECT_FLOAT_EQ(r_out[0], expected);
+	}
+}
+
 TEST(ReactorUnitTests, FAbs)
 {
 	Function<Void(Pointer<Float4>, Pointer<Float4>)> function;

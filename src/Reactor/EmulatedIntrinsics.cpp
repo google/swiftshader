@@ -56,6 +56,18 @@ RValue<T> call4(Func func, const RValue<T> &x, const RValue<T> &y)
 	return result;
 }
 
+// Call three arg function on a vector type
+template<typename Func, typename T>
+RValue<T> call4(Func func, const RValue<T> &x, const RValue<T> &y, const RValue<T> &z)
+{
+	T result;
+	result = Insert(result, Call(func, Extract(x, 0), Extract(y, 0), Extract(z, 0)), 0);
+	result = Insert(result, Call(func, Extract(x, 1), Extract(y, 1), Extract(z, 1)), 1);
+	result = Insert(result, Call(func, Extract(x, 2), Extract(y, 2), Extract(z, 2)), 2);
+	result = Insert(result, Call(func, Extract(x, 3), Extract(y, 3), Extract(z, 3)), 3);
+	return result;
+}
+
 template<typename T, typename EL = UnderlyingTypeT<T>>
 void gather(T &out, RValue<Pointer<EL>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes)
 {
@@ -276,6 +288,11 @@ RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_orde
 RValue<Float4> FRem(RValue<Float4> lhs, RValue<Float4> rhs)
 {
 	return call4(fmodf, lhs, rhs);
+}
+
+RValue<Float4> FMA(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
+{
+	return call4(fmaf, x, y, z);
 }
 
 }  // namespace emulated
