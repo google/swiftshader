@@ -47,48 +47,6 @@ static void cpuid(int registers[4], int info)
 #endif
 }
 
-bool CPUID::supportsMMX()
-{
-	int registers[4];
-	cpuid(registers, 1);
-	return (registers[3] & 0x00800000) != 0;
-}
-
-bool CPUID::supportsCMOV()
-{
-	int registers[4];
-	cpuid(registers, 1);
-	return (registers[3] & 0x00008000) != 0;
-}
-
-bool CPUID::supportsSSE()
-{
-	int registers[4];
-	cpuid(registers, 1);
-	return (registers[3] & 0x02000000) != 0;
-}
-
-bool CPUID::supportsSSE2()
-{
-	int registers[4];
-	cpuid(registers, 1);
-	return (registers[3] & 0x04000000) != 0;
-}
-
-bool CPUID::supportsSSE3()
-{
-	int registers[4];
-	cpuid(registers, 1);
-	return (registers[2] & 0x00000001) != 0;
-}
-
-bool CPUID::supportsSSSE3()
-{
-	int registers[4];
-	cpuid(registers, 1);
-	return (registers[2] & 0x00000200) != 0;
-}
-
 bool CPUID::supportsSSE4_1()
 {
 	int registers[4];

@@ -28,13 +28,6 @@ namespace rr {
 class CPUID
 {
 public:
-	static bool supportsMMX();
-	static bool supportsCMOV();
-	static bool supportsMMX2();  // MMX instructions added by SSE: pshufw, pmulhuw, pmovmskb, pavgw/b, pextrw, pinsrw, pmaxsw/ub, etc.
-	static bool supportsSSE();
-	static bool supportsSSE2();
-	static bool supportsSSE3();
-	static bool supportsSSSE3();
 	static bool supportsSSE4_1();
 };
 
