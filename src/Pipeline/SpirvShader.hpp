@@ -169,9 +169,9 @@ public:
 	class InsnIterator
 	{
 	public:
-		InsnIterator(InsnIterator const &other) = default;
-
 		InsnIterator() = default;
+		InsnIterator(InsnIterator const &other) = default;
+		InsnIterator &operator=(const InsnIterator &other) = default;
 
 		explicit InsnIterator(SpirvBinary::const_iterator iter)
 		    : iter{ iter }
@@ -389,6 +389,7 @@ public:
 
 		Block() = default;
 		Block(const Block &other) = default;
+		Block &operator=(const Block &other) = default;
 		explicit Block(InsnIterator begin, InsnIterator end);
 
 		/* range-based-for interface */
