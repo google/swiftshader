@@ -23,6 +23,7 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 
 set(VULKAN_BENCHMARKS_SRC_FILES
     ClearImageBenchmarks.cpp
+    ComputeBenchmarks.cpp
     main.cpp
     TriangleBenchmarks.cpp
 )

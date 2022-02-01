@@ -446,7 +446,7 @@ VkResult Device::QueueSubmitAndWait(VkCommandBuffer commandBuffer) const
 		nullptr,                        // pSignalSemaphores
 	};
 
-	VkResult result = driver->vkQueueSubmit(queue, 1, &info, 0);
+	VkResult result = driver->vkQueueSubmit(queue, 1, &info, VK_NULL_HANDLE);
 	if(result != VK_SUCCESS)
 	{
 		return result;
