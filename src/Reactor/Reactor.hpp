@@ -77,13 +77,12 @@ enum class Precision
 	/*Half,*/   // Half precision
 };
 
-std::string BackendName();
-
-struct Capabilities
+struct Caps
 {
-	bool CoroutinesSupported;  // Support for rr::Coroutine<F>
+	static std::string backendName();
+	static bool coroutinesSupported();  // Support for rr::Coroutine<F>
+	static bool fmaIsFast();            // rr::FMA() is faster than `x * y + z`
 };
-extern const Capabilities Caps;
 
 class Bool;
 class Byte;

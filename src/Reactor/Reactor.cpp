@@ -29,7 +29,7 @@
 #include <cmath>
 
 // Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
-// variables have a stack location obtained throuch alloca().
+// variables have a stack location obtained through alloca().
 #ifndef REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
 #	define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
 #endif

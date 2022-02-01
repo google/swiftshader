@@ -606,7 +606,7 @@ const VkPhysicalDeviceProperties &PhysicalDevice::getProperties() const
 
 		// Append Reactor JIT backend name and version
 		snprintf(properties.deviceName, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE,
-		         "%s (%s)", SWIFTSHADER_DEVICE_NAME, rr::BackendName().c_str());
+		         "%s (%s)", SWIFTSHADER_DEVICE_NAME, rr::Caps::backendName().c_str());
 
 		return properties;
 	};

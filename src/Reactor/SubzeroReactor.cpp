@@ -351,14 +351,21 @@ static_assert(!subzeroEmitTextAsm, "Compile Subzero with ALLOW_DUMP=1 for subzer
 
 namespace rr {
 
-std::string BackendName()
+std::string Caps::backendName()
 {
 	return "Subzero";
 }
 
-const Capabilities Caps = {
-	true,  // CoroutinesSupported
-};
+bool Caps::coroutinesSupported()
+{
+	return true;
+}
+
+bool Caps::fmaIsFast()
+{
+	// TODO(b/214591655): Subzero currently never emits FMA instructions. std::fma() is called instead.
+	return false;
+}
 
 enum EmulatedType
 {
