@@ -145,6 +145,9 @@ struct DynamicState
 	VkBool32 stencilTestEnable = VK_FALSE;
 	uint32_t viewportCount = 0;
 	VkRect2D viewports[vk::MAX_VIEWPORTS] = {};
+	VkBool32 rasterizerDiscardEnable = VK_FALSE;
+	VkBool32 depthBiasEnable = VK_FALSE;
+	VkBool32 primitiveRestartEnable = VK_FALSE;
 };
 
 struct GraphicsState
@@ -168,9 +171,9 @@ struct GraphicsState
 	inline VkPolygonMode getPolygonMode() const { return polygonMode; }
 	inline VkLineRasterizationModeEXT getLineRasterizationMode() const { return lineRasterizationMode; }
 
-	inline float getConstantDepthBias() const { return constantDepthBias; }
-	inline float getSlopeDepthBias() const { return slopeDepthBias; }
-	inline float getDepthBiasClamp() const { return depthBiasClamp; }
+	inline float getConstantDepthBias() const { return depthBiasEnable ? constantDepthBias : 0; }
+	inline float getSlopeDepthBias() const { return depthBiasEnable ? slopeDepthBias : 0; }
+	inline float getDepthBiasClamp() const { return depthBiasEnable ? depthBiasClamp : 0; }
 	inline float getMinDepthBounds() const { return minDepthBounds; }
 	inline float getMaxDepthBounds() const { return maxDepthBounds; }
 	inline bool hasDepthRangeUnrestricted() const { return depthRangeUnrestricted; }
@@ -263,6 +266,7 @@ private:
 	VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL;
 	VkLineRasterizationModeEXT lineRasterizationMode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
 
+	bool depthBiasEnable = false;
 	float constantDepthBias = 0.0f;
 	float slopeDepthBias = 0.0f;
 	float depthBiasClamp = 0.0f;

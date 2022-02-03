@@ -707,6 +707,60 @@ private:
 	VkRect2D viewports[vk::MAX_VIEWPORTS];
 };
 
+class CmdSetRasterizerDiscardEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetRasterizerDiscardEnable(VkBool32 rasterizerDiscardEnable)
+	    : rasterizerDiscardEnable(rasterizerDiscardEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.rasterizerDiscardEnable = rasterizerDiscardEnable;
+	}
+
+	std::string description() override { return "vkCmdSetRasterizerDiscardEnable()"; }
+
+private:
+	const VkBool32 rasterizerDiscardEnable;
+};
+
+class CmdSetDepthBiasEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthBiasEnable(VkBool32 depthBiasEnable)
+	    : depthBiasEnable(depthBiasEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthBiasEnable = depthBiasEnable;
+	}
+
+	std::string description() override { return "vkCmdSetDepthBiasEnable()"; }
+
+private:
+	const VkBool32 depthBiasEnable;
+};
+
+class CmdSetPrimitiveRestartEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetPrimitiveRestartEnable(VkBool32 primitiveRestartEnable)
+	    : primitiveRestartEnable(primitiveRestartEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.primitiveRestartEnable = primitiveRestartEnable;
+	}
+
+	std::string description() override { return "vkCmdSetPrimitiveRestartEnable()"; }
+
+private:
+	const VkBool32 primitiveRestartEnable;
+};
+
 class CmdDrawBase : public vk::CommandBuffer::Command
 {
 public:
@@ -1778,6 +1832,21 @@ void CommandBuffer::setStencilTestEnable(VkBool32 stencilTestEnable)
 void CommandBuffer::setViewportWithCount(uint32_t viewportCount, const VkViewport *pViewports)
 {
 	addCommand<::CmdSetViewportWithCount>(viewportCount, pViewports);
+}
+
+void CommandBuffer::setRasterizerDiscardEnable(VkBool32 rasterizerDiscardEnable)
+{
+	addCommand<::CmdSetRasterizerDiscardEnable>(rasterizerDiscardEnable);
+}
+
+void CommandBuffer::setDepthBiasEnable(VkBool32 depthBiasEnable)
+{
+	addCommand<::CmdSetDepthBiasEnable>(depthBiasEnable);
+}
+
+void CommandBuffer::setPrimitiveRestartEnable(VkBool32 primitiveRestartEnable)
+{
+	addCommand<::CmdSetPrimitiveRestartEnable>(primitiveRestartEnable);
 }
 
 void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout *pipelineLayout,

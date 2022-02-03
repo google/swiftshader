@@ -105,6 +105,9 @@ public:
 	void setStencilOp(VkStencilFaceFlags faceMask, VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp);
 	void setStencilTestEnable(VkBool32 stencilTestEnable);
 	void setViewportWithCount(uint32_t viewportCount, const VkViewport *pViewports);
+	void setRasterizerDiscardEnable(VkBool32 rasterizerDiscardEnable);
+	void setDepthBiasEnable(VkBool32 depthBiasEnable);
+	void setPrimitiveRestartEnable(VkBool32 primitiveRestartEnable);
 	void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout *layout,
 	                        uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet *pDescriptorSets,
 	                        uint32_t dynamicOffsetCount, const uint32_t *pDynamicOffsets);
