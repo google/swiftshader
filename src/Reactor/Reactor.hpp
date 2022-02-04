@@ -2411,7 +2411,6 @@ RValue<Float4> Floor(RValue<Float4> x);
 RValue<Float4> Ceil(RValue<Float4> x);
 
 // Trigonometric functions
-// TODO: Currently unimplemented for Subzero.
 RValue<Float4> Sin(RValue<Float4> x);
 RValue<Float4> Cos(RValue<Float4> x);
 RValue<Float4> Tan(RValue<Float4> x);
@@ -2427,7 +2426,6 @@ RValue<Float4> Atanh(RValue<Float4> x);
 RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y);
 
 // Exponential functions
-// TODO: Currently unimplemented for Subzero.
 RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y);
 RValue<Float4> Exp(RValue<Float4> x);
 RValue<Float4> Log(RValue<Float4> x);
