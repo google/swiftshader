@@ -14,9 +14,11 @@
 
 #include "Util.hpp"
 #include "VulkanTester.hpp"
+
 #include "benchmark/benchmark.h"
 
 #include <cassert>
+
 class ClearImageBenchmark
 {
 public:
@@ -30,7 +32,7 @@ public:
 		imageInfo.imageType = vk::ImageType::e2D;
 		imageInfo.format = clearFormat;
 		imageInfo.tiling = vk::ImageTiling::eOptimal;
-		imageInfo.initialLayout = vk::ImageLayout::eGeneral;
+		imageInfo.initialLayout = vk::ImageLayout::eUndefined;
 		imageInfo.usage = vk::ImageUsageFlagBits::eTransferDst;
 		imageInfo.samples = vk::SampleCountFlagBits::e4;
 		imageInfo.extent = vk::Extent3D(1024, 1024, 1);
@@ -64,6 +66,16 @@ public:
 		commandBufferBeginInfo.flags = {};
 
 		commandBuffer.begin(commandBufferBeginInfo);
+
+		vk::ImageMemoryBarrier imageMemoryBarrier;
+		imageMemoryBarrier.image = image;
+		imageMemoryBarrier.subresourceRange.aspectMask = clearAspect;
+		imageMemoryBarrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+		imageMemoryBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+		imageMemoryBarrier.oldLayout = vk::ImageLayout::eUndefined;
+		imageMemoryBarrier.newLayout = vk::ImageLayout::eGeneral;
+		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eTopOfPipe,
+		                              vk::DependencyFlagBits::eDeviceGroup, {}, {}, imageMemoryBarrier);
 
 		vk::ImageSubresourceRange range;
 		range.aspectMask = clearAspect;
