@@ -1,7 +1,7 @@
 dEQP
 ====
 
-These steps are specifically for testing SwiftShader's OpenGL ES 3.0 implementation using dEQP on Windows (steps for Linux below the Windows instructions).
+These steps are specifically for testing SwiftShader's Vulkan implementation using dEQP on Windows (steps for Linux below the Windows instructions).
 
 Prerequisites
 -------------
@@ -13,16 +13,11 @@ Prerequisites
 5. Install [MinGW-W64](http://mingw-w64.org/doku.php/download)
   * Select 'x86_64' as Architecture during setup
 6. Install [Git](https://git-scm.com/download/win)
-7. Install [Android Studio](https://developer.android.com/studio/index.html)
-8. Run Android Studio and install Android SDK.
-9. Set environment variables: Config Panel -> System and Security -> System -> Advanced system settigns -> Environment Variables
+7. Set environment variables: Config Panel -> System and Security -> System -> Advanced system settigns -> Environment Variables
   * Add `<path to python>` to your PATH environment variable
   * Add `<path to MinGW-W64>\bin` to your PATH environment variable
-  * Add `<path to adb>` to your PATH environment variable
 
-    Note: abd is in the Android SDK, typically in `C:\Users\<username>\AppData\Local\Android\sdk\platform-tools`
-
-11. (Optional) Install [TortoiseGit](https://tortoisegit.org/)
+8. (Optional) Install [TortoiseGit](https://tortoisegit.org/)
 
 Getting the Code
 ----------------
@@ -60,7 +55,7 @@ Building the code
 
     Open `<path to dEQP>\build\dEQP-Core-default.sln` in Visual Studio and Build Solution
 
-    Note: Choose a 'Release' build, unless you really mean to debug dEQP
+    Note: Choose a 'Debug' build.
 
 18. Generate test cases:
     ```
@@ -77,39 +72,25 @@ Preparing the server
 19. Edit `<path to cherry>\cherry\data.go`
 * Search for `../candy-build/deqp-wgl` and replace that by `<path to deqp>/build`
 * Just above, add an option to CommandLine: `--deqp-gl-context-type=egl`
-* Just below, modify the BinaryPath from 'Debug' to 'Release' if you did a Release build at step 17
 * Remove `--deqp-watchdog=enable` to avoid timeouts during debugging.
 
-Testing OpenGL ES
------------------
-
-20. a) Assuming you already built SwiftShader in the `build` folder, copy these two files:
-
-    `libEGL.dll`\
-    `libGLESv2.dll`
-
-    From:
-
-    `<path to SwiftShader>\build\Release_x64` or\
-    `<path to SwiftShader>\build\Debug_x64`
-
-    To:
-
-    `<path to dEQP>\build\modules\gles3\Release` (Again, assuming you did a Release build at step 17)
+  Note: If you chose a Release build at step 17, modify the BinaryPath from 'Debug' to 'Release'.
 
 Testing Vulkan
 --------------
 
-20. b) Assuming you already built SwiftShader, copy and rename this file:
+20. Assuming you already built SwiftShader, copy and rename this file:
 
     `<path to SwiftShader>\build\Release_x64\vk_swiftshader.dll` or\
     `<path to SwiftShader>\build\Debug_x64\vk_swiftshader.dll`
 
     To:
 
-    `<path to dEQP>\build\external\vulkancts\modules\vulkan\vulkan-1.dll`
+    `<path to dEQP>\build\external\vulkancts\modules\vulkan\Debug\vulkan-1.dll`
 
     This will cause dEQP to load SwiftShader's Vulkan implementatin directly, without going through a system-provided [loader](https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md#the-loader) library or any layers.
+
+     This step can also be automated by setting the `SWIFTSHADER_VULKAN_API_LIBRARY_INSTALL_PATH` environment variable to a path where we'd like the drop-in API library to be installed. For example `<path to dEQP>/build/external/vulkancts/modules/vulkan/Debug/`.
 
     To use SwiftShader as an [Installable Client Driver](https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md#installable-client-drivers) (ICD) instead:
     * Edit environment variables:
@@ -125,12 +106,12 @@ Running the tests
 
 22. Open your favorite browser and navigate to `localhost:8080`
 
-    Get Started -> Choose Device 'localhost' -> Select Tests 'dEQP-GLES3' -> Execute tests!
+    Get Started -> Choose Device 'localhost' -> Select Tests 'dEQP-VK' -> Execute tests!
 
 Mustpass sets
 -------------
 
-dEQP contains more tests than what is expected to pass by a conformant implementation (e.g. some tests are considered too strict, or assume certain undefined behavior). The [android\cts\master\gles3-master.txt](https://android.googlesource.com/platform/external/deqp/+/master/android/cts/master/gles3-master.txt) text file which can be loaded in Cherry's 'Test sets' tab to only run the latest tests expected to pass by certified Android devices.
+dEQP contains more tests than what is expected to pass by a conformant implementation (e.g. some tests are considered too strict, or assume certain undefined behavior). The [android/cts/master/vk-master.txt](https://android.googlesource.com/platform/external/deqp/+/master/android/cts/master/vk-master.txt) text file which can be loaded in Cherry's 'Test sets' tab to only run the latest tests expected to pass by certified Android devices.
 
 Linux
 -----
@@ -163,7 +144,7 @@ Getting the Code
 
 8. Get dEQP:
 
-    `git clone sso://googleplex-android/platform/external/deqp`
+   `git clone https://github.com/KhronosGroup/VK-GL-CTS`
 
 9. Get dEQP's dependencies. In your dEQP root directory, run:
 
@@ -193,8 +174,6 @@ Building the code
     export LD_LIBRARY_PATH="<Vulkan SDK location>/x86_64/lib:$LD_LIBRARY_PATH"
     export LD_LIBRARY_PATH="<Swiftshader location>/build:$LD_LIBRARY_PATH"
     ```
-
-    It's important that you perform this step before you build dEQP in the next step. CMake will search for library files in LD_LIBRARY_PATH. If it cannot discover Swiftshader's libEGL and libGLESv2 shared object files, then CMake will default to using your system's libEGL.so and libGLESv2.so files.
 
 14. Build dEQP. In the dEQP root dir, run:
     ```
@@ -226,19 +205,14 @@ Preparing the server
 * Just one more line below, replace `../candy-build/deqp-wgl/` with `<path to deqp>/build/modules/${TestPackageDir}`.
 * Remove `--deqp-watchdog=enable` to avoid timeouts during debugging.
 
-Testing OpenGL ES
------------------
-
-17. a) Assuming you setup the `LD_LIBRARY_PATH` environment variable prior to running CMake in the dEQP build directory, you're all set.
-
 Testing Vulkan
 --------------
 
-17. b) Use SwiftShader as an [Installable Client Driver](https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md#installable-client-drivers) (ICD). Add the following line to your `~/.bashrc`:
+17. Use SwiftShader as an [Installable Client Driver](https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md#installable-client-drivers) (ICD). Add the following line to your `~/.bashrc`:
 
       `export VK_ICD_FILENAMES="<path to SwiftShader>/build/Linux/vk_swiftshader_icd.json"`
 
-    Then run `source ~/.bashrc` the terminal(s) you'll be running tests from.
+    Then run `source ~/.bashrc` in the terminal(s) you'll be running tests from.
 
 
 Running the tests
@@ -250,9 +224,9 @@ Running the tests
 
 19. Open your favorite browser and navigate to `localhost:8080`
 
-    Get Started -> Choose Device 'localhost' -> Select Tests 'dEQP-GLES3' -> Execute tests!
+    Get Started -> Choose Device 'localhost' -> Select Tests 'dEQP-VK' -> Execute tests!
 
-20. To make sure that you're running SwiftShader's drivers, select only the dEQP-GLES3->info->vendor and dEQP-VK->info->platform tests. In the next window, click on these tests in the left pane. If you see Google inc for the GLES3 test and your Linux machine in the VK test, then you've set your suite up properly.
+20. To make sure that you're running SwiftShader's drivers, select only the dEQP-VK->info->device test. In the next window, click on these tests in the left pane. If you see SwiftShader in the deviceName field, then you've set your suite up properly.
 
 21. If you want to run Vulkan tests in the command line, go to the build directory in dEQP root. Then run the following command:
 
@@ -269,4 +243,4 @@ Running the tests
 Mustpass sets
 -------------
 
-dEQP contains more tests than what is expected to pass by a conformant implementation (e.g. some tests are considered too strict, or assume certain undefined behavior). The [android\cts\master\gles3-master.txt](https://android.googlesource.com/platform/external/deqp/+/master/android/cts/master/gles3-master.txt) text file which can be loaded in Cherry's 'Test sets' tab to only run the latest tests expected to pass by certified Android devices.
+dEQP contains more tests than what is expected to pass by a conformant implementation (e.g. some tests are considered too strict, or assume certain undefined behavior). The [android/cts/master/vk-master.txt](https://android.googlesource.com/platform/external/deqp/+/master/android/cts/master/vk-master.txt) text file which can be loaded in Cherry's 'Test sets' tab to only run the latest tests expected to pass by certified Android devices.
