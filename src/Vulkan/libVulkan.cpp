@@ -423,6 +423,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, VK_EXT_SUBGROUP_SIZE_CONTROL_SPEC_VERSION } },
 	{ { VK_EXT_TOOLING_INFO_EXTENSION_NAME, VK_EXT_TOOLING_INFO_SPEC_VERSION } },
 	{ { VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME, VK_KHR_COPY_COMMANDS_2_SPEC_VERSION } },
+	{ { VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_SPEC_VERSION } },
 	{ { VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME, VK_KHR_FORMAT_FEATURE_FLAGS_2_SPEC_VERSION } },
 	{ { VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_SPEC_VERSION } },
 	// Additional extension
@@ -796,6 +797,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
 				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES:
+			{
+				const VkPhysicalDeviceDynamicRenderingFeatures *dynamicRenderingFeatures = reinterpret_cast<const VkPhysicalDeviceDynamicRenderingFeatures *>(extensionCreateInfo);
+
+				// Dynamic rendering is supported
+				(void)(dynamicRenderingFeatures->dynamicRendering);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES_KHR:
@@ -3171,6 +3180,22 @@ VKAPI_ATTR void VKAPI_CALL vkCmdExecuteCommands(VkCommandBuffer commandBuffer, u
 	vk::Cast(commandBuffer)->executeCommands(commandBufferCount, pCommandBuffers);
 }
 
+VKAPI_ATTR void VKAPI_CALL vkCmdBeginRendering(VkCommandBuffer commandBuffer, const VkRenderingInfo *pRenderingInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkRenderingInfo* pRenderingInfo = %p)",
+	      commandBuffer, pRenderingInfo);
+
+	vk::Cast(commandBuffer)->beginRendering(pRenderingInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdEndRendering(VkCommandBuffer commandBuffer)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p)",
+	      commandBuffer);
+
+	vk::Cast(commandBuffer)->endRendering();
+}
+
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceVersion(uint32_t *pApiVersion)
 {
 	TRACE("(uint32_t* pApiVersion = %p)", pApiVersion);
@@ -4088,18 +4113,6 @@ VKAPI_ATTR void VKAPI_CALL vkGetPrivateData(VkDevice device, VkObjectType object
 {
 	TRACE("(VkDevice device = %p, VkObjectType objectType = %d, uint64_t objectHandle = %" PRIu64 ", VkPrivateDataSlot privateDataSlot = %p, uint64_t data = %p)",
 	      device, objectType, objectHandle, static_cast<void *>(privateDataSlot), pData);
-}
-
-VKAPI_ATTR void VKAPI_CALL vkCmdBeginRendering(VkCommandBuffer commandBuffer, const VkRenderingInfo *pRenderingInfo)
-{
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkRenderingInfo* pRenderingInfo = %p)",
-	      commandBuffer, pRenderingInfo);
-}
-
-VKAPI_ATTR void VKAPI_CALL vkCmdEndRendering(VkCommandBuffer commandBuffer)
-{
-	TRACE("(VkCommandBuffer commandBuffer = %p)",
-	      commandBuffer);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetDeviceBufferMemoryRequirements(VkDevice device, const VkDeviceBufferMemoryRequirements *pInfo, VkMemoryRequirements2 *pMemoryRequirements)

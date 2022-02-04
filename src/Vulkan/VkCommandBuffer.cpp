@@ -120,6 +120,113 @@ public:
 	std::string description() override { return "vkCmdEndRenderPass()"; }
 };
 
+class CmdBeginRendering : public vk::CommandBuffer::Command
+{
+public:
+	CmdBeginRendering(const VkRenderingInfo *pRenderingInfo)
+	    : dynamicRendering(pRenderingInfo)
+	{
+	}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicRendering = &dynamicRendering;
+
+		if(!executionState.dynamicRendering->resume())
+		{
+			VkRect2D renderArea = executionState.dynamicRendering->getRenderArea();
+
+			// Vulkan specifies that the attachments' `loadOp` gets executed "at the beginning of the subpass where it is first used."
+			// Since we don't discard any contents between subpasses, this is equivalent to executing it at the start of the renderpass.
+			for(uint32_t i = 0; i < dynamicRendering.getColorAttachmentCount(); i++)
+			{
+				const VkRenderingAttachmentInfo *colorAttachment = dynamicRendering.getColorAttachment(i);
+
+				if(colorAttachment->loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
+				{
+					vk::ImageView *imageView = vk::Cast(colorAttachment->imageView);
+					if(imageView)
+					{
+						imageView->clear(colorAttachment->clearValue, VK_IMAGE_ASPECT_COLOR_BIT, renderArea);
+					}
+				}
+			}
+
+			const VkRenderingAttachmentInfo &stencilAttachment = dynamicRendering.getStencilAttachment();
+			if(stencilAttachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
+			{
+				vk::ImageView *imageView = vk::Cast(stencilAttachment.imageView);
+				if(imageView)
+				{
+					imageView->clear(stencilAttachment.clearValue, VK_IMAGE_ASPECT_STENCIL_BIT, renderArea);
+				}
+			}
+
+			const VkRenderingAttachmentInfo &depthAttachment = dynamicRendering.getDepthAttachment();
+			if(depthAttachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
+			{
+				vk::ImageView *imageView = vk::Cast(depthAttachment.imageView);
+
+				if(imageView)
+				{
+					imageView->clear(depthAttachment.clearValue, VK_IMAGE_ASPECT_DEPTH_BIT, renderArea);
+				}
+			}
+		}
+	}
+
+	std::string description() override { return "vkCmdBeginRendering()"; }
+
+private:
+	vk::DynamicRendering dynamicRendering;
+};
+
+class CmdEndRendering : public vk::CommandBuffer::Command
+{
+public:
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		// TODO(b/197691918): Avoid halt-the-world synchronization.
+		executionState.renderer->synchronize();
+
+		if(!executionState.dynamicRendering->suspend())
+		{
+			// TODO(b/197691917): Eliminate redundant resolve operations.
+			uint32_t colorAttachmentCount = executionState.dynamicRendering->getColorAttachmentCount();
+			for(uint32_t i = 0; i < colorAttachmentCount; i++)
+			{
+				const VkRenderingAttachmentInfo *colorAttachment = executionState.dynamicRendering->getColorAttachment(i);
+				if(colorAttachment && colorAttachment->resolveMode != VK_RESOLVE_MODE_NONE)
+				{
+					vk::ImageView *imageView = vk::Cast(colorAttachment->imageView);
+					vk::ImageView *resolveImageView = vk::Cast(colorAttachment->resolveImageView);
+					imageView->resolveWithLayerMask(resolveImageView, executionState.dynamicRendering->getViewMask());
+				}
+			}
+
+			const VkRenderingAttachmentInfo &depthAttachment = executionState.dynamicRendering->getDepthAttachment();
+			if(depthAttachment.resolveMode != VK_RESOLVE_MODE_NONE)
+			{
+				vk::ImageView *imageView = vk::Cast(depthAttachment.imageView);
+				vk::ImageView *resolveImageView = vk::Cast(depthAttachment.resolveImageView);
+				imageView->resolveDepthStencil(resolveImageView, depthAttachment.resolveMode, VK_RESOLVE_MODE_NONE);
+			}
+
+			const VkRenderingAttachmentInfo &stencilAttachment = executionState.dynamicRendering->getStencilAttachment();
+			if(stencilAttachment.resolveMode != VK_RESOLVE_MODE_NONE)
+			{
+				vk::ImageView *imageView = vk::Cast(stencilAttachment.imageView);
+				vk::ImageView *resolveImageView = vk::Cast(stencilAttachment.resolveImageView);
+				imageView->resolveDepthStencil(resolveImageView, VK_RESOLVE_MODE_NONE, stencilAttachment.resolveMode);
+			}
+		}
+
+		executionState.dynamicRendering = nullptr;
+	}
+
+	std::string description() override { return "vkCmdEndRendering()"; }
+};
+
 class CmdExecuteCommands : public vk::CommandBuffer::Command
 {
 public:
@@ -792,7 +899,7 @@ public:
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			// FIXME: reconsider instances/views nesting.
-			auto viewMask = executionState.renderPass->getViewMask(executionState.subpassIndex);
+			auto viewMask = executionState.getViewMask();
 			while(viewMask)
 			{
 				int viewID = sw::log2i(viewMask);
@@ -1122,7 +1229,52 @@ public:
 		// however, we don't do the clear through the rasterizer, so need to ensure prior drawing
 		// has completed first.
 		executionState.renderer->synchronize();
-		executionState.renderPassFramebuffer->clearAttachment(executionState.renderPass, executionState.subpassIndex, attachment, rect);
+
+		if(executionState.renderPassFramebuffer)
+		{
+			executionState.renderPassFramebuffer->clearAttachment(executionState.renderPass, executionState.subpassIndex, attachment, rect);
+		}
+		else if(executionState.dynamicRendering)
+		{
+			if(attachment.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT)
+			{
+				ASSERT(attachment.colorAttachment < executionState.dynamicRendering->getColorAttachmentCount());
+
+				const VkRenderingAttachmentInfo *colorAttachment =
+				    executionState.dynamicRendering->getColorAttachment(attachment.colorAttachment);
+
+				if(colorAttachment)
+				{
+					vk::ImageView *imageView = vk::Cast(colorAttachment->imageView);
+					if(imageView)
+					{
+						imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_COLOR_BIT, rect);
+					}
+				}
+			}
+
+			if(attachment.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
+			{
+				const VkRenderingAttachmentInfo &depthAttachment = executionState.dynamicRendering->getDepthAttachment();
+
+				vk::ImageView *imageView = vk::Cast(depthAttachment.imageView);
+				if(imageView)
+				{
+					imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_DEPTH_BIT, rect);
+				}
+			}
+
+			if(attachment.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
+			{
+				const VkRenderingAttachmentInfo &stencilAttachment = executionState.dynamicRendering->getStencilAttachment();
+
+				vk::ImageView *imageView = vk::Cast(stencilAttachment.imageView);
+				if(imageView)
+				{
+					imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_STENCIL_BIT, rect);
+				}
+			}
+		}
 	}
 
 	std::string description() override { return "vkCmdClearAttachment()"; }
@@ -1509,6 +1661,43 @@ private:
 
 namespace vk {
 
+DynamicRendering::DynamicRendering(const VkRenderingInfo *pRenderingInfo)
+    : renderArea(pRenderingInfo->renderArea)
+    , layerCount(pRenderingInfo->layerCount)
+    , viewMask(pRenderingInfo->viewMask)
+    , colorAttachmentCount(pRenderingInfo->colorAttachmentCount)
+    , flags(pRenderingInfo->flags)
+{
+	if(colorAttachmentCount > 0)
+	{
+		for(uint32_t i = 0; i < colorAttachmentCount; ++i)
+		{
+			colorAttachments[i] = pRenderingInfo->pColorAttachments[i];
+		}
+	}
+
+	if(pRenderingInfo->pDepthAttachment)
+	{
+		depthAttachment = *pRenderingInfo->pDepthAttachment;
+	}
+
+	if(pRenderingInfo->pStencilAttachment)
+	{
+		stencilAttachment = *pRenderingInfo->pStencilAttachment;
+	}
+}
+
+void DynamicRendering::getAttachments(Attachments *attachments) const
+{
+	for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
+	{
+		attachments->colorBuffer[i] =
+		    (i < colorAttachmentCount) ? vk::Cast(colorAttachments[i].imageView) : nullptr;
+	}
+	attachments->depthBuffer = vk::Cast(depthAttachment.imageView);
+	attachments->stencilBuffer = vk::Cast(stencilAttachment.imageView);
+}
+
 CommandBuffer::CommandBuffer(Device *device, VkCommandBufferLevel pLevel)
     : device(device)
     , level(pLevel)
@@ -1634,6 +1823,20 @@ void CommandBuffer::executeCommands(uint32_t commandBufferCount, const VkCommand
 	{
 		addCommand<::CmdExecuteCommands>(vk::Cast(pCommandBuffers[i]));
 	}
+}
+
+void CommandBuffer::beginRendering(const VkRenderingInfo *pRenderingInfo)
+{
+	ASSERT(state == RECORDING);
+
+	addCommand<::CmdBeginRendering>(pRenderingInfo);
+}
+
+void CommandBuffer::endRendering()
+{
+	ASSERT(state == RECORDING);
+
+	addCommand<::CmdEndRendering>();
 }
 
 void CommandBuffer::setDeviceMask(uint32_t deviceMask)
@@ -2136,29 +2339,36 @@ void CommandBuffer::ExecutionState::bindAttachments(Attachments *attachments)
 	// there is too much stomping of the renderer's state by setContext() in
 	// draws.
 
-	auto const &subpass = renderPass->getSubpass(subpassIndex);
-
-	for(auto i = 0u; i < subpass.colorAttachmentCount; i++)
+	if(renderPass)
 	{
-		auto attachmentReference = subpass.pColorAttachments[i];
-		if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
+		auto const &subpass = renderPass->getSubpass(subpassIndex);
+
+		for(auto i = 0u; i < subpass.colorAttachmentCount; i++)
 		{
-			attachments->colorBuffer[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
+			auto attachmentReference = subpass.pColorAttachments[i];
+			if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
+			{
+				attachments->colorBuffer[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
+			}
+		}
+
+		auto attachmentReference = subpass.pDepthStencilAttachment;
+		if(attachmentReference && attachmentReference->attachment != VK_ATTACHMENT_UNUSED)
+		{
+			auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
+			if(attachment->hasDepthAspect())
+			{
+				attachments->depthBuffer = attachment;
+			}
+			if(attachment->hasStencilAspect())
+			{
+				attachments->stencilBuffer = attachment;
+			}
 		}
 	}
-
-	auto attachmentReference = subpass.pDepthStencilAttachment;
-	if(attachmentReference && attachmentReference->attachment != VK_ATTACHMENT_UNUSED)
+	else if(dynamicRendering)
 	{
-		auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
-		if(attachment->hasDepthAspect())
-		{
-			attachments->depthBuffer = attachment;
-		}
-		if(attachment->hasStencilAspect())
-		{
-			attachments->stencilBuffer = attachment;
-		}
+		dynamicRendering->getAttachments(attachments);
 	}
 }
 
@@ -2170,12 +2380,16 @@ VkRect2D CommandBuffer::ExecutionState::getRenderArea() const
 	{
 		renderArea.extent = renderPassFramebuffer->getExtent();
 	}
+	else if(dynamicRendering)
+	{
+		renderArea = dynamicRendering->getRenderArea();
+	}
 
 	return renderArea;
 }
 
-// Returns the number of bits set in the view mask, or 1 if multiview is disabled.
-uint32_t CommandBuffer::ExecutionState::viewCount() const
+// Returns the view mask, or 1 if multiview is disabled.
+uint32_t CommandBuffer::ExecutionState::getViewMask() const
 {
 	uint32_t viewMask = 1;
 
@@ -2183,8 +2397,18 @@ uint32_t CommandBuffer::ExecutionState::viewCount() const
 	{
 		viewMask = renderPass->getViewMask(subpassIndex);
 	}
+	else if(dynamicRendering)
+	{
+		viewMask = dynamicRendering->getViewMask();
+	}
 
-	return static_cast<uint32_t>(std::bitset<32>(viewMask).count());
+	return viewMask;
+}
+
+// Returns the number of bits set in the view mask, or 1 if multiview is disabled.
+uint32_t CommandBuffer::ExecutionState::viewCount() const
+{
+	return static_cast<uint32_t>(std::bitset<32>(getViewMask()).count());
 }
 
 }  // namespace vk

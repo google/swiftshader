@@ -242,6 +242,8 @@ private:
 	};
 
 	static DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo);
+	void setDepthStencilState(const VkPipelineDepthStencilStateCreateInfo *depthStencilState);
+	void setColorBlendState(const VkPipelineColorBlendStateCreateInfo *colorBlendState);
 
 	VkBlendFactor blendFactor(VkBlendOp blendOperation, VkBlendFactor blendFactor) const;
 	VkBlendOp blendOperation(VkBlendOp blendOperation, VkBlendFactor sourceBlendFactor, VkBlendFactor destBlendFactor, vk::Format format) const;

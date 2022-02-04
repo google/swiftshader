@@ -546,99 +546,155 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 		multiSampleMask = sampleMask & ((unsigned)0xFFFFFFFF >> (32 - sampleCount));
 
 		const vk::RenderPass *renderPass = vk::Cast(pCreateInfo->renderPass);
-		const VkSubpassDescription &subpass = renderPass->getSubpass(pCreateInfo->subpass);
-
-		// Ignore pDepthStencilState when "the subpass of the render pass the pipeline is created against does not use a depth/stencil attachment"
-		if(subpass.pDepthStencilAttachment && subpass.pDepthStencilAttachment->attachment != VK_ATTACHMENT_UNUSED)
+		if(renderPass)
 		{
-			if(depthStencilState->flags != 0)
+			const VkSubpassDescription &subpass = renderPass->getSubpass(pCreateInfo->subpass);
+
+			// Ignore pDepthStencilState when "the subpass of the render pass the pipeline
+			// is created against does not use a depth/stencil attachment"
+			if(subpass.pDepthStencilAttachment &&
+			   subpass.pDepthStencilAttachment->attachment != VK_ATTACHMENT_UNUSED)
 			{
-				// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-				UNSUPPORTED("pCreateInfo->pDepthStencilState->flags %d", int(pCreateInfo->pDepthStencilState->flags));
+				setDepthStencilState(depthStencilState);
 			}
 
-			depthBoundsTestEnable = (depthStencilState->depthBoundsTestEnable != VK_FALSE);
-			minDepthBounds = depthStencilState->minDepthBounds;
-			maxDepthBounds = depthStencilState->maxDepthBounds;
-
-			depthTestEnable = (depthStencilState->depthTestEnable != VK_FALSE);
-			depthWriteEnable = (depthStencilState->depthWriteEnable != VK_FALSE);
-			depthCompareMode = depthStencilState->depthCompareOp;
-
-			stencilEnable = (depthStencilState->stencilTestEnable != VK_FALSE);
-			if(stencilEnable)
+			// Ignore pColorBlendState when "the subpass of the render pass the pipeline
+			// is created against does not use any color attachments"
+			for(uint32_t i = 0; i < subpass.colorAttachmentCount; i++)
 			{
-				frontStencil = depthStencilState->front;
-				backStencil = depthStencilState->back;
-			}
-		}
-
-		bool colorAttachmentUsed = false;
-		for(uint32_t i = 0; i < subpass.colorAttachmentCount; i++)
-		{
-			if(subpass.pColorAttachments[i].attachment != VK_ATTACHMENT_UNUSED)
-			{
-				colorAttachmentUsed = true;
-				break;
-			}
-		}
-
-		// Ignore pColorBlendState when "the subpass of the render pass the pipeline is created against does not use any color attachments"
-		if(colorAttachmentUsed)
-		{
-			if(colorBlendState->flags != 0)
-			{
-				// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-				UNSUPPORTED("pCreateInfo->pColorBlendState->flags %d", int(pCreateInfo->pColorBlendState->flags));
-			}
-
-			if(colorBlendState->logicOpEnable != VK_FALSE)
-			{
-				UNSUPPORTED("VkPhysicalDeviceFeatures::logicOp");
-			}
-
-			if(!dynamicStateFlags.dynamicBlendConstants)
-			{
-				blendConstants.x = colorBlendState->blendConstants[0];
-				blendConstants.y = colorBlendState->blendConstants[1];
-				blendConstants.z = colorBlendState->blendConstants[2];
-				blendConstants.w = colorBlendState->blendConstants[3];
-			}
-
-			const VkBaseInStructure *extensionColorBlendInfo = reinterpret_cast<const VkBaseInStructure *>(colorBlendState->pNext);
-			while(extensionColorBlendInfo)
-			{
-				switch(extensionColorBlendInfo->sType)
+				if(subpass.pColorAttachments[i].attachment != VK_ATTACHMENT_UNUSED)
 				{
-				case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT:
+					setColorBlendState(colorBlendState);
+					break;
+				}
+			}
+		}
+		else  // No render pass
+		{
+			// When a pipeline is created without a VkRenderPass, if the VkPipelineRenderingCreateInfo structure
+			// is present in the pNext chain of VkGraphicsPipelineCreateInfo, it specifies the view mask and
+			// format of attachments used for rendering. If this structure is not specified, and the pipeline
+			// does not include a VkRenderPass, viewMask and colorAttachmentCount are 0, and
+			// depthAttachmentFormat and stencilAttachmentFormat are VK_FORMAT_UNDEFINED. If a graphics pipeline
+			// is created with a valid VkRenderPass, parameters of this structure are ignored.
+
+			const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+			while(extensionCreateInfo)
+			{
+				if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO)
+				{
+					const VkPipelineRenderingCreateInfo *renderingCreateInfo = reinterpret_cast<const VkPipelineRenderingCreateInfo *>(extensionCreateInfo);
+
+					if((renderingCreateInfo->depthAttachmentFormat != VK_FORMAT_UNDEFINED) ||
+					   (renderingCreateInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED))
 					{
-						const VkPipelineColorBlendAdvancedStateCreateInfoEXT *colorBlendAdvancedCreateInfo = reinterpret_cast<const VkPipelineColorBlendAdvancedStateCreateInfoEXT *>(extensionColorBlendInfo);
-						ASSERT(colorBlendAdvancedCreateInfo->blendOverlap == VK_BLEND_OVERLAP_UNCORRELATED_EXT);
-						ASSERT(colorBlendAdvancedCreateInfo->dstPremultiplied == VK_TRUE);
-						ASSERT(colorBlendAdvancedCreateInfo->srcPremultiplied == VK_TRUE);
+						// If renderPass is VK_NULL_HANDLE, the pipeline is being created with fragment
+						// shader state, and either of VkPipelineRenderingCreateInfo::depthAttachmentFormat
+						// or VkPipelineRenderingCreateInfo::stencilAttachmentFormat are not
+						// VK_FORMAT_UNDEFINED, pDepthStencilState must be a valid pointer to a valid
+						// VkPipelineDepthStencilStateCreateInfo structure
+						ASSERT(depthStencilState);
+
+						setDepthStencilState(depthStencilState);
 					}
-					break;
-				case VK_STRUCTURE_TYPE_MAX_ENUM:
-					// dEQP tests that this value is ignored.
-					break;
-				default:
-					UNSUPPORTED("pCreateInfo->colorBlendState->pNext sType = %s", vk::Stringify(extensionColorBlendInfo->sType).c_str());
+
+					if(renderingCreateInfo->colorAttachmentCount > 0)
+					{
+						// If renderPass is VK_NULL_HANDLE, the pipeline is being created with fragment
+						// output interface state, and VkPipelineRenderingCreateInfo::colorAttachmentCount
+						// is not equal to 0, pColorBlendState must be a valid pointer to a valid
+						// VkPipelineColorBlendStateCreateInfo structure
+						ASSERT(colorBlendState);
+
+						setColorBlendState(colorBlendState);
+					}
+
 					break;
 				}
 
-				extensionColorBlendInfo = extensionColorBlendInfo->pNext;
-			}
-
-			ASSERT(colorBlendState->attachmentCount <= sw::MAX_COLOR_BUFFERS);
-			for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
-			{
-				const VkPipelineColorBlendAttachmentState &attachment = colorBlendState->pAttachments[i];
-				colorWriteMask[i] = attachment.colorWriteMask;
-				blendState[i] = { (attachment.blendEnable != VK_FALSE),
-					              attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
-					              attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp };
+				extensionCreateInfo = extensionCreateInfo->pNext;
 			}
 		}
+	}
+}
+
+void GraphicsState::setDepthStencilState(const VkPipelineDepthStencilStateCreateInfo *depthStencilState)
+{
+	if(depthStencilState->flags != 0)
+	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("depthStencilState->flags %d", int(depthStencilState->flags));
+	}
+
+	depthBoundsTestEnable = (depthStencilState->depthBoundsTestEnable != VK_FALSE);
+	minDepthBounds = depthStencilState->minDepthBounds;
+	maxDepthBounds = depthStencilState->maxDepthBounds;
+
+	depthTestEnable = (depthStencilState->depthTestEnable != VK_FALSE);
+	depthWriteEnable = (depthStencilState->depthWriteEnable != VK_FALSE);
+	depthCompareMode = depthStencilState->depthCompareOp;
+
+	stencilEnable = (depthStencilState->stencilTestEnable != VK_FALSE);
+	if(stencilEnable)
+	{
+		frontStencil = depthStencilState->front;
+		backStencil = depthStencilState->back;
+	}
+}
+
+void GraphicsState::setColorBlendState(const VkPipelineColorBlendStateCreateInfo *colorBlendState)
+{
+	if(colorBlendState->flags != 0)
+	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("colorBlendState->flags %d", int(colorBlendState->flags));
+	}
+
+	if(colorBlendState->logicOpEnable != VK_FALSE)
+	{
+		UNSUPPORTED("VkPhysicalDeviceFeatures::logicOp");
+	}
+
+	if(!dynamicStateFlags.dynamicBlendConstants)
+	{
+		blendConstants.x = colorBlendState->blendConstants[0];
+		blendConstants.y = colorBlendState->blendConstants[1];
+		blendConstants.z = colorBlendState->blendConstants[2];
+		blendConstants.w = colorBlendState->blendConstants[3];
+	}
+
+	const VkBaseInStructure *extensionColorBlendInfo = reinterpret_cast<const VkBaseInStructure *>(colorBlendState->pNext);
+	while(extensionColorBlendInfo)
+	{
+		switch(extensionColorBlendInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT:
+			{
+				const VkPipelineColorBlendAdvancedStateCreateInfoEXT *colorBlendAdvancedCreateInfo = reinterpret_cast<const VkPipelineColorBlendAdvancedStateCreateInfoEXT *>(extensionColorBlendInfo);
+				ASSERT(colorBlendAdvancedCreateInfo->blendOverlap == VK_BLEND_OVERLAP_UNCORRELATED_EXT);
+				ASSERT(colorBlendAdvancedCreateInfo->dstPremultiplied == VK_TRUE);
+				ASSERT(colorBlendAdvancedCreateInfo->srcPremultiplied == VK_TRUE);
+			}
+			break;
+		case VK_STRUCTURE_TYPE_MAX_ENUM:
+			// dEQP tests that this value is ignored.
+			break;
+		default:
+			UNSUPPORTED("colorBlendState->pNext sType = %s", vk::Stringify(extensionColorBlendInfo->sType).c_str());
+			break;
+		}
+
+		extensionColorBlendInfo = extensionColorBlendInfo->pNext;
+	}
+
+	ASSERT(colorBlendState->attachmentCount <= sw::MAX_COLOR_BUFFERS);
+	for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
+	{
+		const VkPipelineColorBlendAttachmentState &attachment = colorBlendState->pAttachments[i];
+		colorWriteMask[i] = attachment.colorWriteMask;
+		blendState[i] = { (attachment.blendEnable != VK_FALSE),
+			              attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
+			              attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp };
 	}
 }
 

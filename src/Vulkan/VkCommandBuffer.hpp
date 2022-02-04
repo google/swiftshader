@@ -46,6 +46,43 @@ class PipelineLayout;
 class QueryPool;
 class RenderPass;
 
+struct DynamicRendering
+{
+	DynamicRendering(const VkRenderingInfo *pRenderingInfo);
+
+	void getAttachments(Attachments *attachments) const;
+	VkRect2D getRenderArea() const { return renderArea; }
+	uint32_t getLayerCount() const { return layerCount; }
+	uint32_t getViewMask() const { return (viewMask > 0) ? viewMask : 1; }
+	uint32_t getColorAttachmentCount() const { return colorAttachmentCount; }
+	const VkRenderingAttachmentInfo *getColorAttachment(uint32_t i) const
+	{
+		return (i < colorAttachmentCount) ? &(colorAttachments[i]) : nullptr;
+	}
+	const VkRenderingAttachmentInfo &getDepthAttachment() const
+	{
+		return depthAttachment;
+	}
+	const VkRenderingAttachmentInfo &getStencilAttachment() const
+	{
+		return stencilAttachment;
+	}
+	bool suspend() const { return flags & VK_RENDERING_SUSPENDING_BIT; }
+	bool resume() const { return flags & VK_RENDERING_RESUMING_BIT; }
+
+private:
+	VkRect2D renderArea = {};
+	uint32_t layerCount = 0;
+	uint32_t viewMask = 0;
+	uint32_t colorAttachmentCount = 0;
+	VkRenderingAttachmentInfo colorAttachments[sw::MAX_COLOR_BUFFERS] = { {} };
+	bool hasDepthAttachment = false;
+	VkRenderingAttachmentInfo depthAttachment = {};
+	bool hasStencilAttachment = false;
+	VkRenderingAttachmentInfo stencilAttachment = {};
+	VkRenderingFlags flags = VkRenderingFlags(0);
+};
+
 class CommandBuffer
 {
 public:
@@ -65,6 +102,8 @@ public:
 	void nextSubpass(VkSubpassContents contents);
 	void endRenderPass();
 	void executeCommands(uint32_t commandBufferCount, const VkCommandBuffer *pCommandBuffers);
+	void beginRendering(const VkRenderingInfo *pRenderingInfo);
+	void endRendering();
 
 	void setDeviceMask(uint32_t deviceMask);
 	void dispatchBase(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
@@ -156,6 +195,7 @@ public:
 		sw::CountedEvent *events = nullptr;
 		RenderPass *renderPass = nullptr;
 		Framebuffer *renderPassFramebuffer = nullptr;
+		DynamicRendering *dynamicRendering = nullptr;
 
 		// VK_PIPELINE_BIND_POINT_GRAPHICS = 0
 		// VK_PIPELINE_BIND_POINT_COMPUTE = 1
@@ -174,6 +214,7 @@ public:
 		void bindAttachments(Attachments *attachments);
 
 		VkRect2D getRenderArea() const;
+		uint32_t getViewMask() const;
 		uint32_t viewCount() const;
 	};
 

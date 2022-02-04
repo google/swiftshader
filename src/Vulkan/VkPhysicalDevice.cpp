@@ -302,6 +302,12 @@ static void getPhysicalDeviceBufferDeviceAddressFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceDynamicRenderingFeatures(T *features)
+{
+	features->dynamicRendering = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -455,6 +461,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES:
 			getPhysicalDeviceBufferDeviceAddressFeatures(reinterpret_cast<VkPhysicalDeviceBufferDeviceAddressFeatures *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES:
+			getPhysicalDeviceDynamicRenderingFeatures(reinterpret_cast<VkPhysicalDeviceDynamicRenderingFeatures *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES:
 			getPhysicalDeviceDescriptorIndexingFeatures(reinterpret_cast<VkPhysicalDeviceDescriptorIndexingFeatures *>(curExtension));
