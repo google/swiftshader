@@ -38,10 +38,11 @@ namespace rr {
 
 Config Config::Edit::apply(const Config &cfg) const
 {
+	auto newDebugCfg = debugCfgChanged ? debugCfg : cfg.debugCfg;
 	auto level = optLevelChanged ? optLevel : cfg.optimization.getLevel();
 	auto passes = cfg.optimization.getPasses();
 	apply(optPassEdits, passes);
-	return Config{ Optimization{ level, passes } };
+	return Config{ Optimization{ level, passes }, newDebugCfg };
 }
 
 template<typename T>

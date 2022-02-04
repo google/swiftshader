@@ -752,7 +752,7 @@ public:
 		}
 
 #ifdef ENABLE_RR_EMIT_ASM_FILE
-		const auto asmFilename = rr::AsmFile::generateFilename(name);
+		const auto asmFilename = rr::AsmFile::generateFilename(config.getDebugConfig().asmEmitDir, name);
 		rr::AsmFile::emitAsmFile(asmFilename, JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel()), *module);
 #endif
 

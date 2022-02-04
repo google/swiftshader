@@ -27,14 +27,14 @@
 namespace rr {
 namespace AsmFile {
 
-std::string generateFilename(std::string routineName)
+std::string generateFilename(const std::string &emitDir, std::string routineName)
 {
 	// Names from gtests sometimes have invalid file name characters
 	std::replace(routineName.begin(), routineName.end(), '/', '_');
 
 	static size_t counter = 0;
 	std::stringstream f;
-	f << "reactor_jit_llvm_" << std::setfill('0') << std::setw(4) << counter++ << "_" << routineName << ".asm";
+	f << emitDir << "reactor_jit_llvm_" << std::setfill('0') << std::setw(4) << counter++ << "_" << routineName << ".asm";
 	return f.str();
 }
 

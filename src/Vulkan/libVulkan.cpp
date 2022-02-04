@@ -114,6 +114,7 @@ void logBuildVersionInformation()
 // Reactor.
 void setReactorDefaultConfig()
 {
+	auto swConfig = sw::getConfiguration();
 	auto cfg = rr::Config::Edit()
 	               .set(rr::Optimization::Level::Default)
 	               .clearOptimizationPasses()
@@ -122,7 +123,8 @@ void setReactorDefaultConfig()
 	               .add(rr::Optimization::Pass::CFGSimplification)
 	               .add(rr::Optimization::Pass::EarlyCSEPass)
 	               .add(rr::Optimization::Pass::CFGSimplification)
-	               .add(rr::Optimization::Pass::InstructionCombining);
+	               .add(rr::Optimization::Pass::InstructionCombining)
+	               .setDebugConfig(sw::getReactorDebugConfig(swConfig));
 
 	rr::Nucleus::adjustDefaultConfig(cfg);
 }

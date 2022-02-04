@@ -25,7 +25,7 @@ namespace rr {
 namespace AsmFile {
 
 // Generate a unique name for the asm file
-std::string generateFilename(std::string routineName);
+std::string generateFilename(const std::string &emitDir, std::string routineName);
 
 // Emit an asm file for the current module
 bool emitAsmFile(const std::string &filename, llvm::orc::JITTargetMachineBuilder builder, llvm::Module &module);

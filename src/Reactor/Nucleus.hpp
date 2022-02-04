@@ -89,6 +89,11 @@ private:
 	Passes passes;
 };
 
+struct DebugConfig
+{
+	std::string asmEmitDir = "";
+};
+
 // Config holds the Reactor configuration settings.
 class Config
 {
@@ -120,6 +125,12 @@ public:
 			optPassEdits.push_back({ ListEdit::Clear, Optimization::Pass::Disabled });
 			return *this;
 		}
+		Edit &setDebugConfig(const DebugConfig &cfg)
+		{
+			debugCfg = cfg;
+			debugCfgChanged = true;
+			return *this;
+		}
 
 		Config apply(const Config &cfg) const;
 
@@ -138,17 +149,22 @@ public:
 		Optimization::Level optLevel;
 		bool optLevelChanged = false;
 		std::vector<OptPassesEdit> optPassEdits;
+		DebugConfig debugCfg;
+		bool debugCfgChanged = false;
 	};
 
 	Config() = default;
-	Config(const Optimization &optimization)
+	Config(const Optimization &optimization, const DebugConfig &debugCfg)
 	    : optimization(optimization)
+	    , debugCfg(debugCfg)
 	{}
 
 	const Optimization &getOptimization() const { return optimization; }
+	const DebugConfig &getDebugConfig() const { return debugCfg; }
 
 private:
 	Optimization optimization;
+	DebugConfig debugCfg;
 };
 
 class Nucleus
