@@ -27,8 +27,6 @@ set(REACTOR_SRC_FILES
     ExecutableMemory.cpp
     ExecutableMemory.hpp
     Nucleus.hpp
-    OptimalIntrinsics.cpp
-    OptimalIntrinsics.hpp
     Pragma.cpp
     Pragma.hpp
     PragmaInternals.hpp
