@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "Debug.hpp"
-#include "EmulatedIntrinsics.hpp"
 #include "Print.hpp"
 #include "Reactor.hpp"
 #include "ReactorDebugInfo.hpp"
@@ -51,6 +50,7 @@
 #endif
 
 #include <array>
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <mutex>
@@ -1305,11 +1305,6 @@ Value *Nucleus::createFRem(Value *lhs, Value *rhs)
 	// createArithmetic(Ice::InstArithmetic::Frem, lhs, rhs);
 	UNIMPLEMENTED("b/148139679 Nucleus::createFRem");
 	return nullptr;
-}
-
-RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
-{
-	return emulated::FRem(lhs, rhs);
 }
 
 Value *Nucleus::createShl(Value *lhs, Value *rhs)
@@ -3940,6 +3935,47 @@ Float4::Float4(RValue<Float> rhs)
 	storeValue(replicate);
 }
 
+// Call single arg function on a vector type
+template<typename Func, typename T>
+static RValue<T> call4(Func func, const RValue<T> &x)
+{
+	T result;
+	result = Insert(result, Call(func, Extract(x, 0)), 0);
+	result = Insert(result, Call(func, Extract(x, 1)), 1);
+	result = Insert(result, Call(func, Extract(x, 2)), 2);
+	result = Insert(result, Call(func, Extract(x, 3)), 3);
+	return result;
+}
+
+// Call two arg function on a vector type
+template<typename Func, typename T>
+static RValue<T> call4(Func func, const RValue<T> &x, const RValue<T> &y)
+{
+	T result;
+	result = Insert(result, Call(func, Extract(x, 0), Extract(y, 0)), 0);
+	result = Insert(result, Call(func, Extract(x, 1), Extract(y, 1)), 1);
+	result = Insert(result, Call(func, Extract(x, 2), Extract(y, 2)), 2);
+	result = Insert(result, Call(func, Extract(x, 3), Extract(y, 3)), 3);
+	return result;
+}
+
+// Call three arg function on a vector type
+template<typename Func, typename T>
+static RValue<T> call4(Func func, const RValue<T> &x, const RValue<T> &y, const RValue<T> &z)
+{
+	T result;
+	result = Insert(result, Call(func, Extract(x, 0), Extract(y, 0), Extract(z, 0)), 0);
+	result = Insert(result, Call(func, Extract(x, 1), Extract(y, 1), Extract(z, 1)), 1);
+	result = Insert(result, Call(func, Extract(x, 2), Extract(y, 2), Extract(z, 2)), 2);
+	result = Insert(result, Call(func, Extract(x, 3), Extract(y, 3), Extract(z, 3)), 3);
+	return result;
+}
+
+RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
+{
+	return call4(fmodf, lhs, rhs);
+}
+
 RValue<Float4> MulAdd(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
 {
 	// TODO(b/214591655): Use FMA when available.
@@ -3949,7 +3985,7 @@ RValue<Float4> MulAdd(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
 RValue<Float4> FMA(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
 {
 	// TODO(b/214591655): Use FMA instructions when available.
-	return emulated::FMA(x, y, z);
+	return call4(fmaf, x, y, z);
 }
 
 RValue<Float4> Abs(RValue<Float4> x)
@@ -4325,148 +4361,203 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 	UNIMPLEMENTED("b/155867273 Subzero createMaskedStore()");
 }
 
+template<typename T>
+struct UnderlyingType
+{
+	using Type = typename decltype(rr::Extract(std::declval<RValue<T>>(), 0))::rvalue_underlying_type;
+};
+
+template<typename T>
+using UnderlyingTypeT = typename UnderlyingType<T>::Type;
+
+template<typename T, typename EL = UnderlyingTypeT<T>>
+static void gather(T &out, RValue<Pointer<EL>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes)
+{
+	constexpr bool atomic = false;
+	constexpr std::memory_order order = std::memory_order_relaxed;
+
+	Pointer<Byte> baseBytePtr = base;
+
+	out = T(0);
+	for(int i = 0; i < 4; i++)
+	{
+		If(Extract(mask, i) != 0)
+		{
+			auto offset = Extract(offsets, i);
+			auto el = Load(Pointer<EL>(&baseBytePtr[offset]), alignment, atomic, order);
+			out = Insert(out, el, i);
+		}
+		Else If(zeroMaskedLanes)
+		{
+			out = Insert(out, EL(0), i);
+		}
+	}
+}
+
+template<typename T, typename EL = UnderlyingTypeT<T>>
+static void scatter(RValue<Pointer<EL>> base, RValue<T> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+{
+	constexpr bool atomic = false;
+	constexpr std::memory_order order = std::memory_order_relaxed;
+
+	Pointer<Byte> baseBytePtr = base;
+
+	for(int i = 0; i < 4; i++)
+	{
+		If(Extract(mask, i) != 0)
+		{
+			auto offset = Extract(offsets, i);
+			Store(Extract(val, i), Pointer<EL>(&baseBytePtr[offset]), alignment, atomic, order);
+		}
+	}
+}
+
 RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Gather(base, offsets, mask, alignment, zeroMaskedLanes);
+	Float4 result{};
+	gather(result, base, offsets, mask, alignment, zeroMaskedLanes);
+	return result;
 }
 
 RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Gather(base, offsets, mask, alignment, zeroMaskedLanes);
+	Int4 result{};
+	gather(result, base, offsets, mask, alignment, zeroMaskedLanes);
+	return result;
 }
 
 void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Scatter(base, val, offsets, mask, alignment);
+	scatter(base, val, offsets, mask, alignment);
 }
 
 void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Scatter(base, val, offsets, mask, alignment);
+	scatter<Int4>(base, val, offsets, mask, alignment);
 }
 
 RValue<Float> Exp2(RValue<Float> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Exp2(x);
+	return Call(exp2f, x);
 }
 
 RValue<Float> Log2(RValue<Float> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Log2(x);
+	return Call(log2f, x);
 }
 
 RValue<Float4> Sin(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Sin(x);
+	return call4(sinf, x);
 }
 
 RValue<Float4> Cos(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Cos(x);
+	return call4(cosf, x);
 }
 
 RValue<Float4> Tan(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Tan(x);
+	return call4(tanf, x);
 }
 
 RValue<Float4> Asin(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Asin(x);
+	return call4(asinf, x);
 }
 
 RValue<Float4> Acos(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Acos(x);
+	return call4(acosf, x);
 }
 
 RValue<Float4> Atan(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Atan(x);
+	return call4(atanf, x);
 }
 
 RValue<Float4> Sinh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Sinh(x);
+	return call4(sinhf, x);
 }
 
 RValue<Float4> Cosh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Cosh(x);
+	return call4(coshf, x);
 }
 
 RValue<Float4> Tanh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Tanh(x);
+	return call4(tanhf, x);
 }
 
 RValue<Float4> Asinh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Asinh(x);
+	return call4(asinhf, x);
 }
 
 RValue<Float4> Acosh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Acosh(x);
+	return call4(acoshf, x);
 }
 
 RValue<Float4> Atanh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Atanh(x);
+	return call4(atanhf, x);
 }
 
 RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Atan2(x, y);
+	return call4(atan2f, x, y);
 }
 
 RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Pow(x, y);
+	return call4(powf, x, y);
 }
 
 RValue<Float4> Exp(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Exp(x);
+	return call4(expf, x);
 }
 
 RValue<Float4> Log(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Log(x);
+	return call4(logf, x);
 }
 
 RValue<Float4> Exp2(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Exp2(x);
+	return call4(exp2f, x);
 }
 
 RValue<Float4> Log2(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Log2(x);
+	return call4(log2f, x);
 }
 
 RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)
@@ -4549,28 +4640,54 @@ RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef)
 	}
 }
 
+// TODO(b/148276653): Both atomicMin and atomicMax use a static (global) mutex that makes all min
+// operations for a given T mutually exclusive, rather than only the ones on the value pointed to
+// by ptr. Use a CAS loop, as is done for LLVMReactor's min/max atomic for Android.
+// TODO(b/148207274): Or, move this down into Subzero as a CAS-based operation.
+template<typename T>
+static T atomicMin(T *ptr, T value)
+{
+	static std::mutex m;
+
+	std::lock_guard<std::mutex> lock(m);
+	T origValue = *ptr;
+	*ptr = std::min(origValue, value);
+	return origValue;
+}
+
+template<typename T>
+static T atomicMax(T *ptr, T value)
+{
+	static std::mutex m;
+
+	std::lock_guard<std::mutex> lock(m);
+	T origValue = *ptr;
+	*ptr = std::max(origValue, value);
+	return origValue;
+}
+
 RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::MinAtomic(x, y, memoryOrder);
+	return Call(atomicMin<int32_t>, x, y);
 }
 
 RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::MinAtomic(x, y, memoryOrder);
+	return Call(atomicMin<uint32_t>, x, y);
 }
 
 RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::MaxAtomic(x, y, memoryOrder);
+	return Call(atomicMax<int32_t>, x, y);
 }
 
 RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::MaxAtomic(x, y, memoryOrder);
+	return Call(atomicMax<uint32_t>, x, y);
 }
 
 void EmitDebugLocation()

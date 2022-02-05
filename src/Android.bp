@@ -34,7 +34,6 @@ cc_defaults {
         "Reactor/Assert.cpp",
         "Reactor/CPUID.cpp",
         "Reactor/Debug.cpp",
-        "Reactor/EmulatedIntrinsics.cpp",
         "Reactor/ExecutableMemory.cpp",
         "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
