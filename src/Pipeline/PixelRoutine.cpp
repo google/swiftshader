@@ -163,7 +163,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 					WWWW += *Pointer<Float4>(constants + OFFSET(Constants, weight) + 16 * cMask[q]);
 				}
 
-				WWWW = Rcp(WWWW, Precision::Relaxed);
+				WWWW = Rcp(WWWW, true /* relaxedPrecision */);
 				XXXX *= WWWW;
 				YYYY *= WWWW;
 

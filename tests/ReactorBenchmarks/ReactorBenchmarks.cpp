@@ -32,7 +32,7 @@ public:
 BENCHMARK_DEFINE_F(Coroutines, Fibonacci)
 (benchmark::State &state)
 {
-	if(!Caps.CoroutinesSupported)
+	if(!Caps::coroutinesSupported())
 	{
 		state.SkipWithError("Coroutines are not supported");
 		return;
@@ -122,10 +122,8 @@ BENCHMARK_CAPTURE(Transcedental1, rr_Sin, Sin);
 BENCHMARK_CAPTURE(Transcedental1, rr_Cos, Cos);
 BENCHMARK_CAPTURE(Transcedental1, rr_Tan, Tan);
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Asin_fullp, Asin, Precision::Full);
-BENCHMARK_CAPTURE(Transcedental1, rr_Asin_relaxedp, Asin, Precision::Relaxed);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acos_fullp, Acos, Precision::Full);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acos_relaxedp, Acos, Precision::Relaxed);
+BENCHMARK_CAPTURE(Transcedental1, rr_Asin, Asin);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acos, Acos);
 
 BENCHMARK_CAPTURE(Transcedental1, rr_Atan, Atan);
 BENCHMARK_CAPTURE(Transcedental1, rr_Sinh, Sinh);

@@ -4379,13 +4379,13 @@ RValue<Float4> Tan(RValue<Float4> x)
 	return emulated::Tan(x);
 }
 
-RValue<Float4> Asin(RValue<Float4> x, Precision p)
+RValue<Float4> Asin(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return emulated::Asin(x);
 }
 
-RValue<Float4> Acos(RValue<Float4> x, Precision p)
+RValue<Float4> Acos(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return emulated::Acos(x);

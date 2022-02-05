@@ -67,16 +67,6 @@ int DebugPrintf(const char *format, ...);
 
 namespace rr {
 
-// These generally map to the precision types as specified by the Vulkan specification.
-// See https://www.khronos.org/registry/vulkan/specs/1.2/html/chap37.html#spirvenv-precision-operation
-enum class Precision
-{
-	/*Exact,*/  // 0 ULP with correct rounding (i.e. Math.h)
-	Full,       // Single precision, but not relaxed
-	Relaxed,    // Single precision, relaxed
-	/*Half,*/   // Half precision
-};
-
 struct Caps
 {
 	static std::string backendName();
@@ -2181,8 +2171,8 @@ RValue<Float> Rcp_pp(RValue<Float> val, bool exactAtPow2 = false);
 // Deprecated: use RcpSqrt
 // TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float> RcpSqrt_pp(RValue<Float> val);
-RValue<Float> Rcp(RValue<Float> x, Precision p = Precision::Full, bool exactAtPow2 = false);
-RValue<Float> RcpSqrt(RValue<Float> x, Precision p = Precision::Full);
+RValue<Float> Rcp(RValue<Float> x, bool relaxedPrecision, bool exactAtPow2 = false);
+RValue<Float> RcpSqrt(RValue<Float> x, bool relaxedPrecision);
 RValue<Float> Sqrt(RValue<Float> x);
 
 //	RValue<Int4> IsInf(RValue<Float> x);
@@ -2357,8 +2347,8 @@ RValue<Float4> Rcp_pp(RValue<Float4> val, bool exactAtPow2 = false);
 // Deprecated: use RcpSqrt
 // TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
-RValue<Float4> Rcp(RValue<Float4> x, Precision p = Precision::Full, bool exactAtPow2 = false);
-RValue<Float4> RcpSqrt(RValue<Float4> x, Precision p = Precision::Full);
+RValue<Float4> Rcp(RValue<Float4> x, bool relaxedPrecision, bool exactAtPow2 = false);
+RValue<Float4> RcpSqrt(RValue<Float4> x, bool relaxedPrecision);
 RValue<Float4> Sqrt(RValue<Float4> x);
 RValue<Float4> Insert(RValue<Float4> val, RValue<Float> element, int i);
 RValue<Float> Extract(RValue<Float4> x, int i);
@@ -2414,8 +2404,8 @@ RValue<Float4> Ceil(RValue<Float4> x);
 RValue<Float4> Sin(RValue<Float4> x);
 RValue<Float4> Cos(RValue<Float4> x);
 RValue<Float4> Tan(RValue<Float4> x);
-RValue<Float4> Asin(RValue<Float4> x, Precision p);
-RValue<Float4> Acos(RValue<Float4> x, Precision p);
+RValue<Float4> Asin(RValue<Float4> x);
+RValue<Float4> Acos(RValue<Float4> x);
 RValue<Float4> Atan(RValue<Float4> x);
 RValue<Float4> Sinh(RValue<Float4> x);
 RValue<Float4> Cosh(RValue<Float4> x);

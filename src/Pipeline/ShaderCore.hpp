@@ -187,8 +187,8 @@ struct Element<UInt>
 Float4 Sin(RValue<Float4> x);
 Float4 Cos(RValue<Float4> x);
 Float4 Tan(RValue<Float4> x);
-RValue<Float4> Asin(RValue<Float4> x, rr::Precision p);  // TODO(b/169755552): Remove rr::Precision
-RValue<Float4> Acos(RValue<Float4> x, rr::Precision p);  // TODO(b/169755552): Remove rr::Precision
+RValue<Float4> Asin(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Acos(RValue<Float4> x, bool relaxedPrecision);
 Float4 Atan(RValue<Float4> x);
 Float4 Atan2(RValue<Float4> y, RValue<Float4> x);
 Float4 Exp2(RValue<Float4> x);

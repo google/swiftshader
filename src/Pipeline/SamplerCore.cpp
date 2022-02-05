@@ -1144,12 +1144,12 @@ void SamplerCore::computeLod2D(Pointer<Byte> &texture, Float &lod, Float &anisot
 		uDelta = As<Float4>((As<Int4>(dudx) & mask) | ((As<Int4>(dudy) & ~mask)));
 		vDelta = As<Float4>((As<Int4>(dvdx) & mask) | ((As<Int4>(dvdy) & ~mask)));
 
-		anisotropy = lod * Rcp(det, Precision::Relaxed);
+		anisotropy = lod * Rcp(det, true /* relaxedPrecision */);
 		anisotropy = Min(anisotropy, state.maxAnisotropy);
 
 		// TODO(b/151263485): While we always need `lod` above, when there's only
 		// a single mipmap level the following calculations could be skipped.
-		lod *= Rcp(anisotropy * anisotropy, Precision::Relaxed);
+		lod *= Rcp(anisotropy * anisotropy, true /* relaxedPrecision */);
 	}
 
 	lod = log2sqrt(lod);  // log2(sqrt(lod))

@@ -3455,13 +3455,13 @@ static RValue<Float4> TransformFloat4PerElement(RValue<Float4> v, const char *na
 	return RValue<Float4>(V(out));
 }
 
-RValue<Float4> Asin(RValue<Float4> v, Precision p)
+RValue<Float4> Asin(RValue<Float4> v)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return TransformFloat4PerElement(v, "asinf");
 }
 
-RValue<Float4> Acos(RValue<Float4> v, Precision p)
+RValue<Float4> Acos(RValue<Float4> v)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return TransformFloat4PerElement(v, "acosf");

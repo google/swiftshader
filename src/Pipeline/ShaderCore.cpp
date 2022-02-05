@@ -253,20 +253,20 @@ static Float4 Asin_8_terms(RValue<Float4> x)
 	                  (As<Int4>(x) & Int4(0x80000000)));
 }
 
-RValue<Float4> Asin(RValue<Float4> x, Precision p)
+RValue<Float4> Asin(RValue<Float4> x, bool relaxedPrecision)
 {
 	// TODO(b/169755566): Surprisingly, deqp-vk's precision.acos.highp/mediump tests pass when using the 4-term polynomial
 	// approximation version of acos, unlike for Asin, which requires higher precision algorithms.
 
-	if(p == Precision::Full)
+	if(!relaxedPrecision)
 	{
-		return rr::Asin(x, p);
+		return rr::Asin(x);
 	}
 
 	return Asin_8_terms(x);
 }
 
-RValue<Float4> Acos(RValue<Float4> x, Precision p)
+RValue<Float4> Acos(RValue<Float4> x, bool relaxedPrecision)
 {
 	// pi/2 - arcsin(x)
 	return Float4(1.57079632e+0f) - Asin_4_terms(x);
@@ -500,7 +500,7 @@ Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp)
 
 Float4 reciprocal(RValue<Float4> x, bool pp, bool exactAtPow2)
 {
-	return Rcp(x, pp ? Precision::Relaxed : Precision::Full, exactAtPow2);
+	return Rcp(x, pp, exactAtPow2);
 }
 
 Float4 reciprocalSquareRoot(RValue<Float4> x, bool absolute, bool pp)
@@ -512,7 +512,7 @@ Float4 reciprocalSquareRoot(RValue<Float4> x, bool absolute, bool pp)
 		abs = Abs(abs);
 	}
 
-	return Rcp(abs, pp ? Precision::Relaxed : Precision::Full);
+	return Rcp(abs, pp);
 }
 
 Float4 modulo(RValue<Float4> x, RValue<Float4> y)

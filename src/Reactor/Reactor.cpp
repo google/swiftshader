@@ -4662,10 +4662,10 @@ RValue<Float4> RcpApprox(RValue<Float4> x, bool exactAtPow2 = false);
 RValue<Float> RcpApprox(RValue<Float> x, bool exactAtPow2 = false);
 
 template<typename T>
-static RValue<T> DoRcp(RValue<T> x, Precision p, bool exactAtPow2)
+static RValue<T> DoRcp(RValue<T> x, bool relaxedPrecision, bool exactAtPow2)
 {
 #if defined(__i386__) || defined(__x86_64__)  // On x86, 1/x is fast enough, except for lower precision
-	bool approx = HasRcpApprox() && (p != Precision::Full);
+	bool approx = HasRcpApprox() && relaxedPrecision;
 #else
 	bool approx = HasRcpApprox();
 #endif
@@ -4676,7 +4676,7 @@ static RValue<T> DoRcp(RValue<T> x, Precision p, bool exactAtPow2)
 	{
 		rcp = RcpApprox(x, exactAtPow2);
 
-		if(p == Precision::Full)
+		if(!relaxedPrecision)
 		{
 			// Perform one more iteration of Newton-Rhapson division to increase precision
 			rcp = (rcp + rcp) - (x * rcp * rcp);
@@ -4690,16 +4690,16 @@ static RValue<T> DoRcp(RValue<T> x, Precision p, bool exactAtPow2)
 	return rcp;
 }
 
-RValue<Float4> Rcp(RValue<Float4> x, Precision p, bool exactAtPow2)
+RValue<Float4> Rcp(RValue<Float4> x, bool relaxedPrecision, bool exactAtPow2)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return DoRcp(x, p, exactAtPow2);
+	return DoRcp(x, relaxedPrecision, exactAtPow2);
 }
 
-RValue<Float> Rcp(RValue<Float> x, Precision p, bool exactAtPow2)
+RValue<Float> Rcp(RValue<Float> x, bool relaxedPrecision, bool exactAtPow2)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return DoRcp(x, p, exactAtPow2);
+	return DoRcp(x, relaxedPrecision, exactAtPow2);
 }
 
 // Functions implemented by backends
@@ -4729,10 +4729,10 @@ RValue<Int> CmpNEQ(RValue<Int> x, RValue<Int> y)
 }
 
 template<typename T>
-static RValue<T> DoRcpSqrt(RValue<T> x, Precision p)
+static RValue<T> DoRcpSqrt(RValue<T> x, bool relaxedPrecision)
 {
 #if defined(__i386__) || defined(__x86_64__)  // On x86, 1/x is fast enough, except for lower precision
-	bool approx = HasRcpApprox() && (p != Precision::Full);
+	bool approx = HasRcpApprox() && relaxedPrecision;
 #else
 	bool approx = HasRcpApprox();
 #endif
@@ -4743,7 +4743,7 @@ static RValue<T> DoRcpSqrt(RValue<T> x, Precision p)
 
 		T rsq = RcpSqrtApprox(x);
 
-		if(p == Precision::Full)
+		if(!relaxedPrecision)
 		{
 			rsq = rsq * (T(3.0f) - rsq * rsq * x) * T(0.5f);
 			rsq = As<T>(CmpNEQ(As<IntType>(x), IntType(0x7F800000)) & As<IntType>(rsq));
@@ -4757,14 +4757,14 @@ static RValue<T> DoRcpSqrt(RValue<T> x, Precision p)
 	}
 }
 
-RValue<Float4> RcpSqrt(RValue<Float4> x, Precision p)
+RValue<Float4> RcpSqrt(RValue<Float4> x, bool relaxedPrecision)
 {
-	return DoRcpSqrt(x, p);
+	return DoRcpSqrt(x, relaxedPrecision);
 }
 
-RValue<Float> RcpSqrt(RValue<Float> x, Precision p)
+RValue<Float> RcpSqrt(RValue<Float> x, bool relaxedPrecision)
 {
-	return DoRcpSqrt(x, p);
+	return DoRcpSqrt(x, relaxedPrecision);
 }
 
 }  // namespace rr

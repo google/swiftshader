@@ -624,7 +624,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			ApplyDecorationsForId(&d, insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Asin(val.Float(i), d.RelaxedPrecision ? Precision::Relaxed : Precision::Full));
+				dst.move(i, sw::Asin(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
@@ -635,7 +635,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			ApplyDecorationsForId(&d, insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Acos(val.Float(i), d.RelaxedPrecision ? Precision::Relaxed : Precision::Full));
+				dst.move(i, sw::Acos(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
@@ -775,7 +775,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, RcpSqrt(val.Float(i), d.RelaxedPrecision ? Precision::Relaxed : Precision::Full));
+				dst.move(i, RcpSqrt(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
