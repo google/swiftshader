@@ -743,9 +743,9 @@ endif()
 add_subdirectory(src/Reactor) # Add ReactorSubzero and ReactorLLVM targets
 
 if(${REACTOR_BACKEND} STREQUAL "LLVM")
-    set(Reactor ReactorLLVM)
+    add_library(Reactor ALIAS ReactorLLVM)
 elseif(${REACTOR_BACKEND} STREQUAL "Subzero")
-    set(Reactor ReactorSubzero)
+    add_library(Reactor ALIAS ReactorSubzero)
 else()
     message(FATAL_ERROR "REACTOR_BACKEND must be 'LLVM' or 'Subzero'")
 endif()

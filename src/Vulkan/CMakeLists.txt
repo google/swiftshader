@@ -193,7 +193,7 @@ target_link_libraries(vk_swiftshader
         vk_pipeline
         vk_device
         vk_wsi
-        ${Reactor}
+        Reactor
         marl
         ${OS_LIBS}
         ${SWIFTSHADER_LIBS}

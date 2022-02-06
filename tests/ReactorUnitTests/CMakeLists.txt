@@ -53,7 +53,7 @@ target_link_options(ReactorUnitTests
 
 target_link_libraries(ReactorUnitTests
     PRIVATE
-        ${Reactor}
+        Reactor
         gtest
         ${ROOT_PROJECT_LINK_LIBRARIES}
 )

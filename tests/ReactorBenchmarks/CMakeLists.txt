@@ -49,6 +49,6 @@ target_link_libraries(ReactorBenchmarks
     PRIVATE
         benchmark::benchmark
         marl
-        ${Reactor}
+        Reactor
         ${ROOT_PROJECT_LINK_LIBRARIES}
 )
