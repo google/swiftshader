@@ -17,6 +17,8 @@
 
 #include "benchmark/benchmark.h"
 
+#include <vector>
+
 using namespace rr;
 
 BENCHMARK_MAIN();
@@ -31,88 +33,114 @@ BENCHMARK_MAIN();
 	}
 
 template<typename Func, class... Args>
-static void Transcedental1(benchmark::State &state, Func func, Args &&...args)
+static void Transcendental1(benchmark::State &state, Func func, Args &&...args)
 {
-	FunctionT<float(float)> function;
+	const int REPS = state.range(0);
+
+	FunctionT<void(float *, float *)> function;
 	{
-		Float a = function.Arg<0>();
-		Float4 v{ a };
-		Float4 r = func(v, args...);
-		Return(Float(r.x));
+		Pointer<Float4> r = Pointer<Float>(function.Arg<0>());
+		Pointer<Float4> a = Pointer<Float>(function.Arg<1>());
+
+		for(int i = 0; i < REPS; i++)
+		{
+			r[i] = func(a[i], args...);
+		}
 	}
 
 	auto routine = function("one");
 
+	std::vector<float> r(REPS * 4);
+	std::vector<float> a(REPS * 4, 1.0f);
+
 	for(auto _ : state)
 	{
-		routine(1.f);
+		routine(r.data(), a.data());
 	}
 }
 
 template<typename Func, class... Args>
-static void Transcedental2(benchmark::State &state, Func func, Args &&...args)
+static void Transcendental2(benchmark::State &state, Func func, Args &&...args)
 {
-	FunctionT<float(float, float)> function;
+	const int REPS = state.range(0);
+
+	FunctionT<void(float *, float *, float *)> function;
 	{
-		Float a = function.Arg<0>();
-		Float b = function.Arg<1>();
-		Float4 v1{ a };
-		Float4 v2{ b };
-		Float4 r = func(v1, v2, args...);
-		Return(Float(r.x));
+		Pointer<Float4> r = Pointer<Float>(function.Arg<0>());
+		Pointer<Float4> a = Pointer<Float>(function.Arg<1>());
+		Pointer<Float4> b = Pointer<Float>(function.Arg<2>());
+
+		for(int i = 0; i < REPS; i++)
+		{
+			r[i] = func(a[i], b[i], args...);
+		}
 	}
 
 	auto routine = function("two");
 
+	std::vector<float> r(REPS * 4);
+	std::vector<float> a(REPS * 4, 0.456f);
+	std::vector<float> b(REPS * 4, 0.789f);
+
 	for(auto _ : state)
 	{
-		routine(0.456f, 0.789f);
+		routine(r.data(), a.data(), b.data());
 	}
 }
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Sin, rr::Sin);
-BENCHMARK_CAPTURE(Transcedental1, sw_Sin, sw::Sin);
-BENCHMARK_CAPTURE(Transcedental1, rr_Cos, rr::Cos);
-BENCHMARK_CAPTURE(Transcedental1, sw_Cos, sw::Cos);
-BENCHMARK_CAPTURE(Transcedental1, rr_Tan, rr::Tan);
-BENCHMARK_CAPTURE(Transcedental1, sw_Tan, sw::Tan);
+// No operation; just copy the input to the output, for use as a baseline.
+static Float4 Nop(RValue<Float4> x)
+{
+	return x;
+}
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Asin, rr::Asin);
-BENCHMARK_CAPTURE(Transcedental1, rr_Asin_highpp, sw::Asin, false /* relaxedPrecision */);
-BENCHMARK_CAPTURE(Transcedental1, rr_Asin_relaxedp, sw::Asin, true /* relaxedPrecision */);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acos, rr::Acos);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acos_highp, sw::Acos, false /* relaxedPrecision */);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acos_relaxedp, sw::Acos, true /* relaxedPrecision */);
+static const int REPS = 10;
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Atan, rr::Atan);
-BENCHMARK_CAPTURE(Transcedental1, sw_Atan, sw::Atan);
-BENCHMARK_CAPTURE(Transcedental1, rr_Sinh, rr::Sinh);
-BENCHMARK_CAPTURE(Transcedental1, sw_Sinh, sw::Sinh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Cosh, rr::Cosh);
-BENCHMARK_CAPTURE(Transcedental1, sw_Cosh, sw::Cosh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Tanh, rr::Tanh);
-BENCHMARK_CAPTURE(Transcedental1, sw_Tanh, sw::Tanh);
+BENCHMARK_CAPTURE(Transcendental1, Nop, Nop)->Arg(REPS);
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Asinh, rr::Asinh);
-BENCHMARK_CAPTURE(Transcedental1, sw_Asinh, sw::Asinh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acosh, rr::Acosh);
-BENCHMARK_CAPTURE(Transcedental1, sw_Acosh, sw::Acosh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Atanh, rr::Atanh);
-BENCHMARK_CAPTURE(Transcedental1, sw_Atanh, sw::Atanh);
-BENCHMARK_CAPTURE(Transcedental2, rr_Atan2, rr::Atan2);
-BENCHMARK_CAPTURE(Transcedental2, sw_Atan2, sw::Atan2);
+BENCHMARK_CAPTURE(Transcendental1, rr_Sin, rr::Sin)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Sin, sw::Sin)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Cos, rr::Cos)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Cos, sw::Cos)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Tan, rr::Tan)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Tan, sw::Tan)->Arg(REPS);
 
-BENCHMARK_CAPTURE(Transcedental2, rr_Pow, rr::Pow);
-BENCHMARK_CAPTURE(Transcedental2, sw_Pow, sw::Pow);
-BENCHMARK_CAPTURE(Transcedental1, rr_Exp, rr::Exp);
-BENCHMARK_CAPTURE(Transcedental1, sw_Exp, sw::Exp);
-BENCHMARK_CAPTURE(Transcedental1, rr_Log, rr::Log);
-BENCHMARK_CAPTURE(Transcedental1, sw_Log, sw::Log);
-BENCHMARK_CAPTURE(Transcedental1, rr_Exp2, LIFT(rr::Exp2));
-BENCHMARK_CAPTURE(Transcedental1, sw_Exp2, LIFT(sw::Exp2));
-BENCHMARK_CAPTURE(Transcedental1, rr_Log2, LIFT(rr::Log2));
-BENCHMARK_CAPTURE(Transcedental1, sw_Log2, LIFT(sw::Log2));
+BENCHMARK_CAPTURE(Transcendental1, rr_Asin, rr::Asin)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Asin_highpp, sw::Asin, false /* relaxedPrecision */)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Asin_relaxedp, sw::Asin, true /* relaxedPrecision */)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Acos, rr::Acos)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Acos_highp, sw::Acos, false /* relaxedPrecision */)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Acos_relaxedp, sw::Acos, true /* relaxedPrecision */)->Arg(REPS);
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_true, LIFT(Rcp_pp), true);
-BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_false, LIFT(Rcp_pp), false);
-BENCHMARK_CAPTURE(Transcedental1, rr_RcpSqrt_pp, LIFT(RcpSqrt_pp));
+BENCHMARK_CAPTURE(Transcendental1, rr_Atan, rr::Atan)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Atan, sw::Atan)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Sinh, rr::Sinh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Sinh, sw::Sinh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Cosh, rr::Cosh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Cosh, sw::Cosh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Tanh, rr::Tanh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Tanh, sw::Tanh)->Arg(REPS);
+
+BENCHMARK_CAPTURE(Transcendental1, rr_Asinh, rr::Asinh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Asinh, sw::Asinh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Acosh, rr::Acosh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Acosh, sw::Acosh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Atanh, rr::Atanh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Atanh, sw::Atanh)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental2, rr_Atan2, rr::Atan2)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental2, sw_Atan2, sw::Atan2)->Arg(REPS);
+
+BENCHMARK_CAPTURE(Transcendental2, rr_Pow, rr::Pow)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental2, sw_Pow, sw::Pow)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Exp, rr::Exp)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Exp, sw::Exp)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Log, rr::Log)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Log, sw::Log)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Exp2, LIFT(rr::Exp2))->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Exp2, LIFT(sw::Exp2))->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Log2, LIFT(rr::Log2))->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Log2, LIFT(sw::Log2))->Arg(REPS);
+
+BENCHMARK_CAPTURE(Transcendental1, rr_Rcp_pp_exactAtPow2_true, LIFT(Rcp_pp), true)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_Rcp_pp_exactAtPow2_false, LIFT(Rcp_pp), false)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, rr_RcpSqrt_pp, LIFT(RcpSqrt_pp))->Arg(REPS);
