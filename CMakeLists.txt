@@ -924,6 +924,7 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
         set_target_properties(benchmark_main PROPERTIES FOLDER "third_party")
     endif()
 
+    add_subdirectory(${TESTS_DIR}/PipelineBenchmarks) # Add PipelineBenchmarks target
     add_subdirectory(${TESTS_DIR}/ReactorBenchmarks) # Add ReactorBenchmarks target
     add_subdirectory(${TESTS_DIR}/SystemBenchmarks) # Add system-benchmarks target
     add_subdirectory(${TESTS_DIR}/VulkanBenchmarks) # Add VulkanBenchmarks target
