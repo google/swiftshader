@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Reactor.hpp"
+#include "ShaderCore.hpp"
+#include "Reactor/Reactor.hpp"
 
 #include "benchmark/benchmark.h"
 
@@ -69,28 +70,48 @@ static void Transcedental2(benchmark::State &state, Func func, Args &&...args)
 	}
 }
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Sin, Sin);
-BENCHMARK_CAPTURE(Transcedental1, rr_Cos, Cos);
-BENCHMARK_CAPTURE(Transcedental1, rr_Tan, Tan);
+BENCHMARK_CAPTURE(Transcedental1, rr_Sin, rr::Sin);
+BENCHMARK_CAPTURE(Transcedental1, sw_Sin, sw::Sin);
+BENCHMARK_CAPTURE(Transcedental1, rr_Cos, rr::Cos);
+BENCHMARK_CAPTURE(Transcedental1, sw_Cos, sw::Cos);
+BENCHMARK_CAPTURE(Transcedental1, rr_Tan, rr::Tan);
+BENCHMARK_CAPTURE(Transcedental1, sw_Tan, sw::Tan);
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Asin, Asin);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acos, Acos);
+BENCHMARK_CAPTURE(Transcedental1, rr_Asin, rr::Asin);
+BENCHMARK_CAPTURE(Transcedental1, rr_Asin_highpp, sw::Asin, false /* relaxedPrecision */);
+BENCHMARK_CAPTURE(Transcedental1, rr_Asin_relaxedp, sw::Asin, true /* relaxedPrecision */);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acos, rr::Acos);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acos_highp, sw::Acos, false /* relaxedPrecision */);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acos_relaxedp, sw::Acos, true /* relaxedPrecision */);
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Atan, Atan);
-BENCHMARK_CAPTURE(Transcedental1, rr_Sinh, Sinh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Cosh, Cosh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Tanh, Tanh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Atan, rr::Atan);
+BENCHMARK_CAPTURE(Transcedental1, sw_Atan, sw::Atan);
+BENCHMARK_CAPTURE(Transcedental1, rr_Sinh, rr::Sinh);
+BENCHMARK_CAPTURE(Transcedental1, sw_Sinh, sw::Sinh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Cosh, rr::Cosh);
+BENCHMARK_CAPTURE(Transcedental1, sw_Cosh, sw::Cosh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Tanh, rr::Tanh);
+BENCHMARK_CAPTURE(Transcedental1, sw_Tanh, sw::Tanh);
 
-BENCHMARK_CAPTURE(Transcedental1, rr_Asinh, Asinh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Acosh, Acosh);
-BENCHMARK_CAPTURE(Transcedental1, rr_Atanh, Atanh);
-BENCHMARK_CAPTURE(Transcedental2, rr_Atan2, Atan2);
+BENCHMARK_CAPTURE(Transcedental1, rr_Asinh, rr::Asinh);
+BENCHMARK_CAPTURE(Transcedental1, sw_Asinh, sw::Asinh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Acosh, rr::Acosh);
+BENCHMARK_CAPTURE(Transcedental1, sw_Acosh, sw::Acosh);
+BENCHMARK_CAPTURE(Transcedental1, rr_Atanh, rr::Atanh);
+BENCHMARK_CAPTURE(Transcedental1, sw_Atanh, sw::Atanh);
+BENCHMARK_CAPTURE(Transcedental2, rr_Atan2, rr::Atan2);
+BENCHMARK_CAPTURE(Transcedental2, sw_Atan2, sw::Atan2);
 
-BENCHMARK_CAPTURE(Transcedental2, rr_Pow, Pow);
-BENCHMARK_CAPTURE(Transcedental1, rr_Exp, Exp);
-BENCHMARK_CAPTURE(Transcedental1, rr_Log, Log);
-BENCHMARK_CAPTURE(Transcedental1, rr_Exp2, LIFT(Exp2));
-BENCHMARK_CAPTURE(Transcedental1, rr_Log2, LIFT(Log2));
+BENCHMARK_CAPTURE(Transcedental2, rr_Pow, rr::Pow);
+BENCHMARK_CAPTURE(Transcedental2, sw_Pow, sw::Pow);
+BENCHMARK_CAPTURE(Transcedental1, rr_Exp, rr::Exp);
+BENCHMARK_CAPTURE(Transcedental1, sw_Exp, sw::Exp);
+BENCHMARK_CAPTURE(Transcedental1, rr_Log, rr::Log);
+BENCHMARK_CAPTURE(Transcedental1, sw_Log, sw::Log);
+BENCHMARK_CAPTURE(Transcedental1, rr_Exp2, LIFT(rr::Exp2));
+BENCHMARK_CAPTURE(Transcedental1, sw_Exp2, LIFT(sw::Exp2));
+BENCHMARK_CAPTURE(Transcedental1, rr_Log2, LIFT(rr::Log2));
+BENCHMARK_CAPTURE(Transcedental1, sw_Log2, LIFT(sw::Log2));
 
 BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_true, LIFT(Rcp_pp), true);
 BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_false, LIFT(Rcp_pp), false);
