@@ -74,7 +74,7 @@ const (
 	ciTestListRelPath     = "tests/regres/ci-tests.json"
 	deqpConfigRelPath     = "tests/regres/deqp.json"
 	swsTestLists          = "tests/regres/testlists"
-	deqpTestLists         = "external/vulkancts/mustpass/master"
+	deqpTestLists         = "external/vulkancts/mustpass/main"
 )
 
 var (
