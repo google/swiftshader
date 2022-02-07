@@ -30,7 +30,8 @@ cmake .. ^
     "-DREACTOR_BACKEND=%REACTOR_BACKEND%" ^
     "-DSWIFTSHADER_LLVM_VERSION=%LLVM_VERSION%" ^
     "-DREACTOR_VERIFY_LLVM_IR=1" ^
-    "-DLESS_DEBUG_INFO=%LESS_DEBUG_INFO%" || goto :error
+    "-DLESS_DEBUG_INFO=%LESS_DEBUG_INFO%" ^
+    "-DSWIFTSHADER_BUILD_BENCHMARKS=1" || goto :error
 
 cmake --build . --config %BUILD_TYPE%   || goto :error
 
