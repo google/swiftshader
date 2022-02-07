@@ -1775,6 +1775,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 			break;
 		case VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID:
 			break;
+		case VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID:
+			// Do nothing. Should be handled by vk::Image::Create()
+			break;
 #endif
 		case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO:
 			// Do nothing. Should be handled by vk::Image::Create()
