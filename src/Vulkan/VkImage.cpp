@@ -130,7 +130,9 @@ VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 	auto nextInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
-		switch(nextInfo->sType)
+		// Casting to a long since some structures, such as VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID and
+		// VK_STRUCTURE_TYPE_SWAPCHAIN_IMAGE_CREATE_INFO_ANDROID, are not enumerated in the official Vulkan headers.
+		switch((long)(nextInfo->sType))
 		{
 #ifdef __ANDROID__
 		case VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID:
@@ -147,6 +149,10 @@ VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 				ASSERT(pCreateInfo->format == VK_FORMAT_UNDEFINED || pCreateInfo->format == correspondingVkFormat);
 				return correspondingVkFormat;
 			}
+			break;
+		case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID:
+			break;
+		case VK_STRUCTURE_TYPE_SWAPCHAIN_IMAGE_CREATE_INFO_ANDROID:
 			break;
 #endif
 		// We support these extensions, but they don't affect the image format.
