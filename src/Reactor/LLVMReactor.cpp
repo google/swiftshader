@@ -113,22 +113,6 @@ llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
 	return jit->builder->CreateSExt(jit->builder->CreateICmp(pred, x, y), dstTy, "");
 }
 
-#if defined(__i386__) || defined(__x86_64__)
-llvm::Value *lowerPMOV(llvm::Value *op, llvm::Type *dstType, bool sext)
-{
-	llvm::VectorType *srcTy = llvm::cast<llvm::VectorType>(op->getType());
-	llvm::FixedVectorType *dstTy = llvm::cast<llvm::FixedVectorType>(dstType);
-
-	llvm::Value *undef = llvm::UndefValue::get(srcTy);
-	llvm::SmallVector<uint32_t, 16> mask(dstTy->getNumElements());
-	std::iota(mask.begin(), mask.end(), 0);
-	llvm::Value *v = jit->builder->CreateShuffleVector(op, undef, mask);
-
-	return sext ? jit->builder->CreateSExt(v, dstTy)
-	            : jit->builder->CreateZExt(v, dstTy);
-}
-#endif  // defined(__i386__) || defined(__x86_64__)
-
 #if !defined(__i386__) && !defined(__x86_64__)
 llvm::Value *lowerPFMINMAX(llvm::Value *x, llvm::Value *y,
                            llvm::FCmpInst::Predicate pred)
@@ -245,8 +229,8 @@ llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
 
 	llvm::Value *undef = llvm::UndefValue::get(extTy);
 
-	llvm::SmallVector<uint32_t, 16> evenIdx;
-	llvm::SmallVector<uint32_t, 16> oddIdx;
+	llvm::SmallVector<int, 16> evenIdx;
+	llvm::SmallVector<int, 16> oddIdx;
 	for(uint64_t i = 0, n = ty->getNumElements(); i < n; i += 2)
 	{
 		evenIdx.push_back(i);
@@ -288,7 +272,7 @@ llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
 	x = jit->builder->CreateTrunc(x, dstTy);
 	y = jit->builder->CreateTrunc(y, dstTy);
 
-	llvm::SmallVector<uint32_t, 16> index(srcTy->getNumElements() * 2);
+	llvm::SmallVector<int, 16> index(srcTy->getNumElements() * 2);
 	std::iota(index.begin(), index.end(), 0);
 
 	return jit->builder->CreateShuffleVector(x, y, index);
@@ -2557,84 +2541,48 @@ Int4::Int4(RValue<Byte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	if(CPUID::supportsSSE4_1())
-	{
-		*this = x86::pmovzxbd(As<Byte16>(cast));
-	}
-	else
-#endif
-	{
-		int swizzle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
-		Value *a = Nucleus::createBitCast(cast.value(), Byte16::type());
-		Value *b = Nucleus::createShuffleVector(a, Nucleus::createNullValue(Byte16::type()), swizzle);
+	int swizzle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
+	Value *a = Nucleus::createBitCast(cast.value(), Byte16::type());
+	Value *b = Nucleus::createShuffleVector(a, Nucleus::createNullValue(Byte16::type()), swizzle);
 
-		int swizzle2[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
-		Value *c = Nucleus::createBitCast(b, Short8::type());
-		Value *d = Nucleus::createShuffleVector(c, Nucleus::createNullValue(Short8::type()), swizzle2);
+	int swizzle2[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
+	Value *c = Nucleus::createBitCast(b, Short8::type());
+	Value *d = Nucleus::createShuffleVector(c, Nucleus::createNullValue(Short8::type()), swizzle2);
 
-		*this = As<Int4>(d);
-	}
+	*this = As<Int4>(d);
 }
 
 Int4::Int4(RValue<SByte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	if(CPUID::supportsSSE4_1())
-	{
-		*this = x86::pmovsxbd(As<SByte16>(cast));
-	}
-	else
-#endif
-	{
-		int swizzle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
-		Value *a = Nucleus::createBitCast(cast.value(), Byte16::type());
-		Value *b = Nucleus::createShuffleVector(a, a, swizzle);
+	int swizzle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
+	Value *a = Nucleus::createBitCast(cast.value(), Byte16::type());
+	Value *b = Nucleus::createShuffleVector(a, a, swizzle);
 
-		int swizzle2[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
-		Value *c = Nucleus::createBitCast(b, Short8::type());
-		Value *d = Nucleus::createShuffleVector(c, c, swizzle2);
+	int swizzle2[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
+	Value *c = Nucleus::createBitCast(b, Short8::type());
+	Value *d = Nucleus::createShuffleVector(c, c, swizzle2);
 
-		*this = As<Int4>(d) >> 24;
-	}
+	*this = As<Int4>(d) >> 24;
 }
 
 Int4::Int4(RValue<Short4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	if(CPUID::supportsSSE4_1())
-	{
-		*this = x86::pmovsxwd(As<Short8>(cast));
-	}
-	else
-#endif
-	{
-		int swizzle[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
-		Value *c = Nucleus::createShuffleVector(cast.value(), cast.value(), swizzle);
-		*this = As<Int4>(c) >> 16;
-	}
+	int swizzle[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
+	Value *c = Nucleus::createShuffleVector(cast.value(), cast.value(), swizzle);
+	*this = As<Int4>(c) >> 16;
 }
 
 Int4::Int4(RValue<UShort4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	if(CPUID::supportsSSE4_1())
-	{
-		*this = x86::pmovzxwd(As<UShort8>(cast));
-	}
-	else
-#endif
-	{
-		int swizzle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
-		Value *c = Nucleus::createShuffleVector(cast.value(), Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
-		*this = As<Int4>(c);
-	}
+	int swizzle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
+	Value *c = Nucleus::createShuffleVector(cast.value(), Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
+	*this = As<Int4>(c);
 }
 
 Int4::Int4(RValue<Int> rhs)
@@ -4073,26 +4021,6 @@ RValue<Int> pmovmskb(RValue<Byte8> x)
 	}
 
 	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse2_pmovmskb_128, v)) & 0xFF;
-}
-
-RValue<Int4> pmovzxbd(RValue<Byte16> x)
-{
-	return RValue<Int4>(V(lowerPMOV(V(x.value()), T(Int4::type()), false)));
-}
-
-RValue<Int4> pmovsxbd(RValue<SByte16> x)
-{
-	return RValue<Int4>(V(lowerPMOV(V(x.value()), T(Int4::type()), true)));
-}
-
-RValue<Int4> pmovzxwd(RValue<UShort8> x)
-{
-	return RValue<Int4>(V(lowerPMOV(V(x.value()), T(Int4::type()), false)));
-}
-
-RValue<Int4> pmovsxwd(RValue<Short8> x)
-{
-	return RValue<Int4>(V(lowerPMOV(V(x.value()), T(Int4::type()), true)));
 }
 
 }  // namespace x86
