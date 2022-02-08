@@ -4,6 +4,9 @@ dEQP-VK.fragment_operations.early_fragment.early_fragment_tests_depth
 dEQP-VK.fragment_operations.early_fragment.no_early_fragment_tests_depth
 dEQP-VK.fragment_operations.early_fragment.sample_count_early_fragment_tests_depth_samples_4
 dEQP-VK.pipeline.multisample_interpolation.reinterpolation_consistency.interpolate_at_centroid
+dEQP-VK.texture.conversion.snorm_clamp_linear.r16_snorm
+dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16_snorm
+dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16b16a16_snorm
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_nearest_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_nearest_linear_mipmap_linear_repeat
