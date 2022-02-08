@@ -360,8 +360,7 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 	VkBaseOutStructure *curExtension = reinterpret_cast<VkBaseOutStructure *>(features->pNext);
 	while(curExtension != nullptr)
 	{
-		// Need to switch on an integer since Provoking Vertex isn't a part of the Vulkan spec.
-		switch((int)curExtension->sType)
+		switch(curExtension->sType)
 		{
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES:
 			getPhysicalDeviceVulkan11Features(reinterpret_cast<VkPhysicalDeviceVulkan11Features *>(curExtension));
