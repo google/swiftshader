@@ -3504,6 +3504,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES:
+			{
+				auto properties = reinterpret_cast<VkPhysicalDeviceTexelBufferAlignmentProperties *>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
+			}
+			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES_KHR:
 			break;
 		default:

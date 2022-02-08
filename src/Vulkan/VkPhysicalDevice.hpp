@@ -77,6 +77,7 @@ public:
 	void getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceSubgroupSizeControlProperties *properties) const;
+	void getProperties(VkPhysicalDeviceTexelBufferAlignmentProperties *properties) const;
 	void getProperties(VkPhysicalDeviceVulkan11Properties *properties) const;
 
 	static void GetFormatProperties(Format format, VkFormatProperties *pFormatProperties);
