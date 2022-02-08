@@ -243,10 +243,109 @@ void Inputs::advanceInstanceAttributes()
 	}
 }
 
+GraphicsState::DynamicStateFlags GraphicsState::ParseDynamicStateFlags(const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo)
+{
+	GraphicsState::DynamicStateFlags dynamicStateFlags = {};
+
+	if(dynamicStateCreateInfo)
+	{
+		if(dynamicStateCreateInfo->flags != 0)
+		{
+			// Vulkan 1.3: "flags is reserved for future use." "flags must be 0"
+			UNSUPPORTED("dynamicStateCreateInfo->flags %d", int(dynamicStateCreateInfo->flags));
+		}
+
+		for(uint32_t i = 0; i < dynamicStateCreateInfo->dynamicStateCount; i++)
+		{
+			VkDynamicState dynamicState = dynamicStateCreateInfo->pDynamicStates[i];
+			switch(dynamicState)
+			{
+			case VK_DYNAMIC_STATE_VIEWPORT:
+				dynamicStateFlags.dynamicViewport = true;
+				break;
+			case VK_DYNAMIC_STATE_SCISSOR:
+				dynamicStateFlags.dynamicScissor = true;
+				break;
+			case VK_DYNAMIC_STATE_LINE_WIDTH:
+				dynamicStateFlags.dynamicLineWidth = true;
+				break;
+			case VK_DYNAMIC_STATE_DEPTH_BIAS:
+				dynamicStateFlags.dynamicDepthBias = true;
+				break;
+			case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
+				dynamicStateFlags.dynamicBlendConstants = true;
+				break;
+			case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
+				dynamicStateFlags.dynamicDepthBounds = true;
+				break;
+			case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
+				dynamicStateFlags.dynamicStencilCompareMask = true;
+				break;
+			case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
+				dynamicStateFlags.dynamicStencilWriteMask = true;
+				break;
+			case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
+				dynamicStateFlags.dynamicStencilReference = true;
+				break;
+			case VK_DYNAMIC_STATE_CULL_MODE:
+				dynamicStateFlags.dynamicCullMode = true;
+				break;
+			case VK_DYNAMIC_STATE_FRONT_FACE:
+				dynamicStateFlags.dynamicFrontFace = true;
+				break;
+			case VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY:
+				dynamicStateFlags.dynamicPrimitiveTopology = true;
+				break;
+			case VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT:
+				dynamicStateFlags.dynamicViewportWithCount = true;
+				break;
+			case VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT:
+				dynamicStateFlags.dynamicScissorWithCount = true;
+				break;
+			case VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE:
+				dynamicStateFlags.dynamicVertexInputBindingStride = true;
+				break;
+			case VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE:
+				dynamicStateFlags.dynamicDepthTestEnable = true;
+				break;
+			case VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE:
+				dynamicStateFlags.dynamicDepthWriteEnable = true;
+				break;
+			case VK_DYNAMIC_STATE_DEPTH_COMPARE_OP:
+				dynamicStateFlags.dynamicDepthCompareOp = true;
+				break;
+			case VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE:
+				dynamicStateFlags.dynamicDepthBoundsTestEnable = true;
+				break;
+			case VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE:
+				dynamicStateFlags.dynamicStencilTestEnable = true;
+				break;
+			case VK_DYNAMIC_STATE_STENCIL_OP:
+				dynamicStateFlags.dynamicStencilOp = true;
+				break;
+			case VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE:
+				dynamicStateFlags.dynamicRasterizerDiscardEnable = true;
+				break;
+			case VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE:
+				dynamicStateFlags.dynamicDepthBiasEnable = true;
+				break;
+			case VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE:
+				dynamicStateFlags.dynamicPrimitiveRestartEnable = true;
+				break;
+			default:
+				UNSUPPORTED("VkDynamicState %d", int(dynamicState));
+			}
+		}
+	}
+
+	return dynamicStateFlags;
+}
+
 GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreateInfo *pCreateInfo,
                              const PipelineLayout *layout, bool robustBufferAccess)
     : pipelineLayout(layout)
     , robustBufferAccess(robustBufferAccess)
+    , dynamicStateFlags(ParseDynamicStateFlags(pCreateInfo->pDynamicState))
 {
 	if((pCreateInfo->flags &
 	    ~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
@@ -256,37 +355,6 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 	      VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT)) != 0)
 	{
 		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
-	}
-
-	if(pCreateInfo->pDynamicState)
-	{
-		if(pCreateInfo->pDynamicState->flags != 0)
-		{
-			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-			UNSUPPORTED("pCreateInfo->pDynamicState->flags %d", int(pCreateInfo->pDynamicState->flags));
-		}
-
-		for(uint32_t i = 0; i < pCreateInfo->pDynamicState->dynamicStateCount; i++)
-		{
-			VkDynamicState dynamicState = pCreateInfo->pDynamicState->pDynamicStates[i];
-			switch(dynamicState)
-			{
-			case VK_DYNAMIC_STATE_VIEWPORT:
-			case VK_DYNAMIC_STATE_SCISSOR:
-			case VK_DYNAMIC_STATE_LINE_WIDTH:
-			case VK_DYNAMIC_STATE_DEPTH_BIAS:
-			case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
-			case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
-			case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
-			case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
-			case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
-				ASSERT(dynamicState < (sizeof(dynamicStateFlags) * 8));
-				dynamicStateFlags |= (1 << dynamicState);
-				break;
-			default:
-				UNSUPPORTED("VkDynamicState %d", int(dynamicState));
-			}
-		}
 	}
 
 	const VkPipelineVertexInputStateCreateInfo *vertexInputState = pCreateInfo->pVertexInputState;
@@ -406,12 +474,12 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			UNSUPPORTED("VkPhysicalDeviceFeatures::multiViewport");
 		}
 
-		if(!hasDynamicState(VK_DYNAMIC_STATE_SCISSOR))
+		if(!dynamicStateFlags.dynamicScissor)
 		{
 			scissor = viewportState->pScissors[0];
 		}
 
-		if(!hasDynamicState(VK_DYNAMIC_STATE_VIEWPORT))
+		if(!dynamicStateFlags.dynamicViewport)
 		{
 			viewport = viewportState->pViewports[0];
 		}
@@ -510,7 +578,7 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 				UNSUPPORTED("VkPhysicalDeviceFeatures::logicOp");
 			}
 
-			if(!hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS))
+			if(!dynamicStateFlags.dynamicBlendConstants)
 			{
 				blendConstants.x = colorBlendState->blendConstants[0];
 				blendConstants.y = colorBlendState->blendConstants[1];
@@ -637,47 +705,47 @@ const GraphicsState GraphicsState::combineStates(const DynamicState &dynamicStat
 	GraphicsState combinedState = *this;
 
 	// Apply either pipeline state or dynamic state
-	if(hasDynamicState(VK_DYNAMIC_STATE_SCISSOR))
+	if(dynamicStateFlags.dynamicScissor)
 	{
 		combinedState.scissor = dynamicState.scissor;
 	}
 
-	if(hasDynamicState(VK_DYNAMIC_STATE_VIEWPORT))
+	if(dynamicStateFlags.dynamicViewport)
 	{
 		combinedState.viewport = dynamicState.viewport;
 	}
 
-	if(hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS))
+	if(dynamicStateFlags.dynamicBlendConstants)
 	{
 		combinedState.blendConstants = dynamicState.blendConstants;
 	}
 
-	if(hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
+	if(dynamicStateFlags.dynamicDepthBias)
 	{
 		combinedState.constantDepthBias = dynamicState.depthBiasConstantFactor;
 		combinedState.slopeDepthBias = dynamicState.depthBiasSlopeFactor;
 		combinedState.depthBiasClamp = dynamicState.depthBiasClamp;
 	}
 
-	if(hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && depthBoundsTestEnable)
+	if(dynamicStateFlags.dynamicDepthBounds && depthBoundsTestEnable)
 	{
 		combinedState.minDepthBounds = dynamicState.minDepthBounds;
 		combinedState.maxDepthBounds = dynamicState.maxDepthBounds;
 	}
 
-	if(hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && stencilEnable)
+	if(dynamicStateFlags.dynamicStencilCompareMask && stencilEnable)
 	{
 		combinedState.frontStencil.compareMask = dynamicState.compareMask[0];
 		combinedState.backStencil.compareMask = dynamicState.compareMask[1];
 	}
 
-	if(hasDynamicState(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK) && stencilEnable)
+	if(dynamicStateFlags.dynamicStencilWriteMask && stencilEnable)
 	{
 		combinedState.frontStencil.writeMask = dynamicState.writeMask[0];
 		combinedState.backStencil.writeMask = dynamicState.writeMask[1];
 	}
 
-	if(hasDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE) && stencilEnable)
+	if(dynamicStateFlags.dynamicStencilReference && stencilEnable)
 	{
 		combinedState.frontStencil.reference = dynamicState.reference[0];
 		combinedState.backStencil.reference = dynamicState.reference[1];

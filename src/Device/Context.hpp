@@ -192,7 +192,35 @@ struct GraphicsState
 	bool depthBoundsTestActive(const Attachments &attachments) const;
 
 private:
-	inline bool hasDynamicState(VkDynamicState dynamicState) const { return (dynamicStateFlags & (1 << dynamicState)) != 0; }
+	struct DynamicStateFlags
+	{
+		bool dynamicViewport : 1;
+		bool dynamicScissor : 1;
+		bool dynamicLineWidth : 1;
+		bool dynamicDepthBias : 1;
+		bool dynamicBlendConstants : 1;
+		bool dynamicDepthBounds : 1;
+		bool dynamicStencilCompareMask : 1;
+		bool dynamicStencilWriteMask : 1;
+		bool dynamicStencilReference : 1;
+		bool dynamicCullMode : 1;
+		bool dynamicFrontFace : 1;
+		bool dynamicPrimitiveTopology : 1;
+		bool dynamicViewportWithCount : 1;
+		bool dynamicScissorWithCount : 1;
+		bool dynamicVertexInputBindingStride : 1;
+		bool dynamicDepthTestEnable : 1;
+		bool dynamicDepthWriteEnable : 1;
+		bool dynamicDepthCompareOp : 1;
+		bool dynamicDepthBoundsTestEnable : 1;
+		bool dynamicStencilTestEnable : 1;
+		bool dynamicStencilOp : 1;
+		bool dynamicRasterizerDiscardEnable : 1;
+		bool dynamicDepthBiasEnable : 1;
+		bool dynamicPrimitiveRestartEnable : 1;
+	};
+
+	static DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo);
 
 	VkBlendFactor blendFactor(VkBlendOp blendOperation, VkBlendFactor blendFactor) const;
 	VkBlendOp blendOperation(VkBlendOp blendOperation, VkBlendFactor sourceBlendFactor, VkBlendFactor destBlendFactor, vk::Format format) const;
@@ -202,7 +230,7 @@ private:
 
 	const PipelineLayout *pipelineLayout = nullptr;
 	const bool robustBufferAccess = false;
-	uint32_t dynamicStateFlags = 0;
+	const DynamicStateFlags dynamicStateFlags = {};
 	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
 	VkProvokingVertexModeEXT provokingVertexMode = VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
