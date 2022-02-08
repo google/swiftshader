@@ -113,58 +113,57 @@ llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
 	return jit->builder->CreateSExt(jit->builder->CreateICmp(pred, x, y), dstTy, "");
 }
 
-#if !defined(__i386__) && !defined(__x86_64__)
-llvm::Value *lowerPFMINMAX(llvm::Value *x, llvm::Value *y,
-                           llvm::FCmpInst::Predicate pred)
+[[maybe_unused]] llvm::Value *lowerPFMINMAX(llvm::Value *x, llvm::Value *y,
+                                            llvm::FCmpInst::Predicate pred)
 {
 	return jit->builder->CreateSelect(jit->builder->CreateFCmp(pred, x, y), x, y);
 }
 
-llvm::Value *lowerRound(llvm::Value *x)
+[[maybe_unused]] llvm::Value *lowerRound(llvm::Value *x)
 {
 	llvm::Function *nearbyint = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::nearbyint, { x->getType() });
 	return jit->builder->CreateCall(nearbyint, { x });
 }
 
-llvm::Value *lowerRoundInt(llvm::Value *x, llvm::Type *ty)
+[[maybe_unused]] llvm::Value *lowerRoundInt(llvm::Value *x, llvm::Type *ty)
 {
 	return jit->builder->CreateFPToSI(lowerRound(x), ty);
 }
 
-llvm::Value *lowerFloor(llvm::Value *x)
+[[maybe_unused]] llvm::Value *lowerFloor(llvm::Value *x)
 {
 	llvm::Function *floor = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::floor, { x->getType() });
 	return jit->builder->CreateCall(floor, { x });
 }
 
-llvm::Value *lowerTrunc(llvm::Value *x)
+[[maybe_unused]] llvm::Value *lowerTrunc(llvm::Value *x)
 {
 	llvm::Function *trunc = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::trunc, { x->getType() });
 	return jit->builder->CreateCall(trunc, { x });
 }
 
-llvm::Value *lowerSQRT(llvm::Value *x)
+[[maybe_unused]] llvm::Value *lowerSQRT(llvm::Value *x)
 {
 	llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::sqrt, { x->getType() });
 	return jit->builder->CreateCall(sqrt, { x });
 }
 
-llvm::Value *lowerRCP(llvm::Value *x)
+[[maybe_unused]] llvm::Value *lowerRCP(llvm::Value *x)
 {
 	llvm::Type *ty = x->getType();
 	llvm::Constant *one;
 	if(llvm::FixedVectorType *vectorTy = llvm::dyn_cast<llvm::FixedVectorType>(ty))
 	{
 		one = llvm::ConstantVector::getSplat(
-#	if LLVM_VERSION_MAJOR >= 11
+#if LLVM_VERSION_MAJOR >= 11
 		    vectorTy->getElementCount(),
-#	else
+#else
 		    vectorTy->getNumElements(),
-#	endif
+#endif
 		    llvm::ConstantFP::get(vectorTy->getElementType(), 1));
 	}
 	else
@@ -174,51 +173,68 @@ llvm::Value *lowerRCP(llvm::Value *x)
 	return jit->builder->CreateFDiv(one, x);
 }
 
-llvm::Value *lowerRSQRT(llvm::Value *x)
+[[maybe_unused]] llvm::Value *lowerRSQRT(llvm::Value *x)
 {
 	return lowerRCP(lowerSQRT(x));
 }
 
-llvm::Value *lowerVectorShl(llvm::Value *x, uint64_t scalarY)
+[[maybe_unused]] llvm::Value *lowerVectorShl(llvm::Value *x, uint64_t scalarY)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Value *y = llvm::ConstantVector::getSplat(
-#	if LLVM_VERSION_MAJOR >= 11
+#if LLVM_VERSION_MAJOR >= 11
 	    ty->getElementCount(),
-#	else
+#else
 	    ty->getNumElements(),
-#	endif
+#endif
 	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
 	return jit->builder->CreateShl(x, y);
 }
 
-llvm::Value *lowerVectorAShr(llvm::Value *x, uint64_t scalarY)
+[[maybe_unused]] llvm::Value *lowerVectorAShr(llvm::Value *x, uint64_t scalarY)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Value *y = llvm::ConstantVector::getSplat(
-#	if LLVM_VERSION_MAJOR >= 11
+#if LLVM_VERSION_MAJOR >= 11
 	    ty->getElementCount(),
-#	else
+#else
 	    ty->getNumElements(),
-#	endif
+#endif
 	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
 	return jit->builder->CreateAShr(x, y);
 }
 
-llvm::Value *lowerVectorLShr(llvm::Value *x, uint64_t scalarY)
+[[maybe_unused]] llvm::Value *lowerVectorLShr(llvm::Value *x, uint64_t scalarY)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Value *y = llvm::ConstantVector::getSplat(
-#	if LLVM_VERSION_MAJOR >= 11
+#if LLVM_VERSION_MAJOR >= 11
 	    ty->getElementCount(),
-#	else
+#else
 	    ty->getNumElements(),
-#	endif
+#endif
 	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
 	return jit->builder->CreateLShr(x, y);
 }
 
-llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
+llvm::Value *lowerShuffleVector(llvm::Value *v1, llvm::Value *v2, const int *select)
+{
+	int size = llvm::cast<llvm::FixedVectorType>(v1->getType())->getNumElements();
+	const int maxSize = 16;
+	llvm::Constant *swizzle[maxSize];
+	ASSERT(size <= maxSize);
+
+	for(int i = 0; i < size; i++)
+	{
+		swizzle[i] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*jit->context), select[i]);
+	}
+
+	llvm::Value *shuffle = llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant *>(swizzle, size));
+
+	return jit->builder->CreateShuffleVector(v1, v2, shuffle);
+}
+
+[[maybe_unused]] llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
@@ -237,12 +253,12 @@ llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
 		oddIdx.push_back(i + 1);
 	}
 
-	llvm::Value *lhs = jit->builder->CreateShuffleVector(mult, undef, evenIdx);
-	llvm::Value *rhs = jit->builder->CreateShuffleVector(mult, undef, oddIdx);
+	llvm::Value *lhs = lowerShuffleVector(mult, undef, evenIdx.data());
+	llvm::Value *rhs = lowerShuffleVector(mult, undef, oddIdx.data());
 	return jit->builder->CreateAdd(lhs, rhs);
 }
 
-llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
+[[maybe_unused]] llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
 {
 	llvm::FixedVectorType *srcTy = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::VectorType *dstTy = llvm::VectorType::getTruncatedElementVectorType(srcTy);
@@ -275,10 +291,10 @@ llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
 	llvm::SmallVector<int, 16> index(srcTy->getNumElements() * 2);
 	std::iota(index.begin(), index.end(), 0);
 
-	return jit->builder->CreateShuffleVector(x, y, index);
+	return lowerShuffleVector(x, y, index.data());
 }
 
-llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
+[[maybe_unused]] llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Constant *zero = llvm::ConstantInt::get(ty, 0);
@@ -295,7 +311,7 @@ llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
 	return ret;
 }
 
-llvm::Value *lowerFPSignMask(llvm::Value *x, llvm::Type *retTy)
+[[maybe_unused]] llvm::Value *lowerFPSignMask(llvm::Value *x, llvm::Type *retTy)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Constant *zero = llvm::ConstantFP::get(ty, 0);
@@ -311,7 +327,6 @@ llvm::Value *lowerFPSignMask(llvm::Value *x, llvm::Type *retTy)
 	}
 	return ret;
 }
-#endif  // !defined(__i386__) && !defined(__x86_64__)
 
 llvm::Value *lowerPUADDSAT(llvm::Value *x, llvm::Value *y)
 {
@@ -1645,20 +1660,7 @@ Value *Nucleus::createInsertElement(Value *vector, Value *element, int index)
 Value *Nucleus::createShuffleVector(Value *v1, Value *v2, const int *select)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-
-	int size = llvm::cast<llvm::FixedVectorType>(V(v1)->getType())->getNumElements();
-	const int maxSize = 16;
-	llvm::Constant *swizzle[maxSize];
-	ASSERT(size <= maxSize);
-
-	for(int i = 0; i < size; i++)
-	{
-		swizzle[i] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*jit->context), select[i]);
-	}
-
-	llvm::Value *shuffle = llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant *>(swizzle, size));
-
-	return V(jit->builder->CreateShuffleVector(V(v1), V(v2), shuffle));
+	return V(lowerShuffleVector(V(v1), V(v2), select));
 }
 
 Value *Nucleus::createSelect(Value *c, Value *ifTrue, Value *ifFalse)
