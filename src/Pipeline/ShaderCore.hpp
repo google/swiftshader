@@ -213,11 +213,6 @@ Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp = false);
 Float4 reciprocal(RValue<Float4> x, bool pp = false, bool exactAtPow2 = false);
 Float4 reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
 Float4 modulo(RValue<Float4> x, RValue<Float4> y);
-Float4 sine_pi(RValue<Float4> x, bool pp = false);    // limited to [-pi, pi] range
-Float4 cosine_pi(RValue<Float4> x, bool pp = false);  // limited to [-pi, pi] range
-Float4 sine(RValue<Float4> x, bool pp = false);
-Float4 cosine(RValue<Float4> x, bool pp = false);
-Float4 tangent(RValue<Float4> x, bool pp = false);
 Float4 arccos(RValue<Float4> x, bool pp = false);
 Float4 arcsin(RValue<Float4> x, bool pp = false);
 Float4 arctan(RValue<Float4> x, bool pp = false);

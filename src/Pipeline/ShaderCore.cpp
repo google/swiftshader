@@ -150,46 +150,6 @@ Int4 &Vector4i::operator[](int i)
 	return x;
 }
 
-static Float4 Reciprocal(RValue<Float4> x, bool pp = false, bool finite = false, bool exactAtPow2 = false)
-{
-	Float4 rcp = Rcp_pp(x, exactAtPow2);
-
-	if(!pp)
-	{
-		rcp = (rcp + rcp) - (x * rcp * rcp);
-	}
-
-	return rcp;
-}
-
-[[maybe_unused]] static Float4 SinOrCos(RValue<Float4> x, bool sin)
-{
-	// Reduce to [-0.5, 0.5] range
-	Float4 y = x * Float4(1.59154943e-1f);  // 1/2pi
-	y = y - Round(y);
-
-	// From the paper: "A Fast, Vectorizable Algorithm for Producing Single-Precision Sine-Cosine Pairs"
-	// This implementation passes OpenGL ES 3.0 precision requirements, at the cost of more operations:
-	// !pp : 17 mul, 7 add, 1 sub, 1 reciprocal
-	//  pp : 4 mul, 2 add, 2 abs
-
-	Float4 y2 = y * y;
-	Float4 c1 = y2 * (y2 * (y2 * Float4(-0.0204391631f) + Float4(0.2536086171f)) + Float4(-1.2336977925f)) + Float4(1.0f);
-	Float4 s1 = y * (y2 * (y2 * (y2 * Float4(-0.0046075748f) + Float4(0.0796819754f)) + Float4(-0.645963615f)) + Float4(1.5707963235f));
-	Float4 c2 = (c1 * c1) - (s1 * s1);
-	Float4 s2 = Float4(2.0f) * s1 * c1;
-	Float4 r = Reciprocal(s2 * s2 + c2 * c2);
-
-	if(sin)
-	{
-		return Float4(2.0f) * s2 * c2 * r;
-	}
-	else
-	{
-		return ((c2 * c2) - (s2 * s2)) * r;
-	}
-}
-
 // Approximation of atan in [0..1]
 static Float4 Atan_01(Float4 x)
 {
@@ -546,86 +506,6 @@ Float4 reciprocalSquareRoot(RValue<Float4> x, bool absolute, bool pp)
 Float4 modulo(RValue<Float4> x, RValue<Float4> y)
 {
 	return x - y * Floor(x / y);
-}
-
-Float4 sine_pi(RValue<Float4> x, bool pp)
-{
-	const Float4 A = Float4(-4.05284734e-1f);  // -4/pi^2
-	const Float4 B = Float4(1.27323954e+0f);   // 4/pi
-	const Float4 C = Float4(7.75160950e-1f);
-	const Float4 D = Float4(2.24839049e-1f);
-
-	// Parabola approximating sine
-	Float4 sin = x * (Abs(x) * A + B);
-
-	// Improve precision from 0.06 to 0.001
-	if(true)
-	{
-		sin = sin * (Abs(sin) * D + C);
-	}
-
-	return sin;
-}
-
-Float4 cosine_pi(RValue<Float4> x, bool pp)
-{
-	// cos(x) = sin(x + pi/2)
-	Float4 y = x + Float4(1.57079632e+0f);
-
-	// Wrap around
-	y -= As<Float4>(CmpNLT(y, Float4(3.14159265e+0f)) & As<Int4>(Float4(6.28318530e+0f)));
-
-	return sine_pi(y, pp);
-}
-
-Float4 sine(RValue<Float4> x, bool pp)
-{
-	// Reduce to [-0.5, 0.5] range
-	Float4 y = x * Float4(1.59154943e-1f);  // 1/2pi
-	y = y - Round(y);
-
-	if(!pp)
-	{
-		// From the paper: "A Fast, Vectorizable Algorithm for Producing Single-Precision Sine-Cosine Pairs"
-		// This implementation passes OpenGL ES 3.0 precision requirements, at the cost of more operations:
-		// !pp : 17 mul, 7 add, 1 sub, 1 reciprocal
-		//  pp : 4 mul, 2 add, 2 abs
-
-		Float4 y2 = y * y;
-		Float4 c1 = y2 * (y2 * (y2 * Float4(-0.0204391631f) + Float4(0.2536086171f)) + Float4(-1.2336977925f)) + Float4(1.0f);
-		Float4 s1 = y * (y2 * (y2 * (y2 * Float4(-0.0046075748f) + Float4(0.0796819754f)) + Float4(-0.645963615f)) + Float4(1.5707963235f));
-		Float4 c2 = (c1 * c1) - (s1 * s1);
-		Float4 s2 = Float4(2.0f) * s1 * c1;
-		return Float4(2.0f) * s2 * c2 * reciprocal(s2 * s2 + c2 * c2);
-	}
-
-	const Float4 A = Float4(-16.0f);
-	const Float4 B = Float4(8.0f);
-	const Float4 C = Float4(7.75160950e-1f);
-	const Float4 D = Float4(2.24839049e-1f);
-
-	// Parabola approximating sine
-	Float4 sin = y * (Abs(y) * A + B);
-
-	// Improve precision from 0.06 to 0.001
-	if(true)
-	{
-		sin = sin * (Abs(sin) * D + C);
-	}
-
-	return sin;
-}
-
-Float4 cosine(RValue<Float4> x, bool pp)
-{
-	// cos(x) = sin(x + pi/2)
-	Float4 y = x + Float4(1.57079632e+0f);
-	return sine(y, pp);
-}
-
-Float4 tangent(RValue<Float4> x, bool pp)
-{
-	return sine(x, pp) / cosine(x, pp);
 }
 
 Float4 arccos(RValue<Float4> x, bool pp)
