@@ -252,8 +252,14 @@ struct IntLiteral<UInt>
 	typedef unsigned int type;
 };
 
+template<class T>
+struct LongLiteral
+{
+	struct type;
+};
+
 template<>
-struct IntLiteral<Long>
+struct LongLiteral<Long>
 {
 	typedef int64_t type;
 };
@@ -282,6 +288,7 @@ public:
 	RValue(const T &lvalue);
 	RValue(typename BoolLiteral<T>::type i);
 	RValue(typename IntLiteral<T>::type i);
+	RValue(typename LongLiteral<T>::type i);
 	RValue(typename FloatLiteral<T>::type f);
 	RValue(const Reference<T> &rhs);
 
@@ -2771,6 +2778,13 @@ RValue<T>::RValue(typename BoolLiteral<T>::type i)
 template<class T>
 RValue<T>::RValue(typename IntLiteral<T>::type i)
     : val(Nucleus::createConstantInt(i))
+{
+	RR_DEBUG_INFO_EMIT_VAR(val);
+}
+
+template<class T>
+RValue<T>::RValue(typename LongLiteral<T>::type i)
+    : val(Nucleus::createConstantLong(i))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }

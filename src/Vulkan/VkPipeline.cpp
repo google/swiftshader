@@ -32,6 +32,13 @@
 
 namespace {
 
+std::shared_ptr<sw::SpirvProfiler> getOrCreateSpirvProfiler()
+{
+	const sw::Configuration &config = sw::getConfiguration();
+	static std::shared_ptr<sw::SpirvProfiler> profiler = sw::getConfiguration().enableSpirvProfiling ? std::make_shared<sw::SpirvProfiler>(config) : nullptr;
+	return profiler;
+}
+
 // optimizeSpirv() applies and freezes specializations into constants, and runs spirv-opt.
 sw::SpirvBinary optimizeSpirv(const vk::PipelineCache::SpirvBinaryKey &key)
 {
@@ -377,7 +384,7 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 
 		// TODO(b/201798871): use allocator.
 		auto shader = std::make_shared<sw::SpirvShader>(stageInfo.stage, stageInfo.pName, spirv,
-		                                                vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass, robustBufferAccess, dbgctx);
+		                                                vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass, robustBufferAccess, dbgctx, getOrCreateSpirvProfiler());
 
 		setShader(stageInfo.stage, shader);
 
@@ -451,7 +458,7 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 
 	// TODO(b/201798871): use allocator.
 	shader = std::make_shared<sw::SpirvShader>(stage.stage, stage.pName, spirv,
-	                                           nullptr, 0, robustBufferAccess, dbgctx);
+	                                           nullptr, 0, robustBufferAccess, dbgctx, getOrCreateSpirvProfiler());
 
 	const PipelineCache::ComputeProgramKey programKey(shader->getIdentifier(), layout->identifier);
 

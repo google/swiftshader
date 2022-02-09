@@ -116,6 +116,11 @@ Configuration readConfigurationFromFile()
 		config.asmEmitDir.push_back('/');
 	}
 
+	// Profiling flags.
+	config.enableSpirvProfiling = ini.getBoolean("Profiler", "EnableSpirvProfiling");
+	config.spvProfilingReportPeriodMs = ini.getInteger<uint64_t>("Profiler", "SpirvProfilingReportPeriodMs");
+	config.spvProfilingReportDir = ini.getValue("Profiler", "SpirvProfilingReportDir");
+
 	return config;
 }
 

@@ -35,6 +35,8 @@ set(PIPELINE_SRC_FILES
     SpirvBinary.hpp
     SpirvBinary.cpp
     SpirvID.hpp
+    SpirvProfiler.hpp
+    SpirvProfiler.cpp
     SpirvShader.cpp
     SpirvShader.hpp
     SpirvShaderArithmetic.cpp
