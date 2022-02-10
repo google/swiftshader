@@ -2720,15 +2720,25 @@ RValue<Int4> RoundInt(RValue<Float4> cast)
 RValue<Int4> RoundIntClamped(RValue<Float4> cast)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
+
+// TODO(b/165000222): Check if fptosi_sat produces optimal code for x86 and ARM.
 #if defined(__i386__) || defined(__x86_64__)
 	// cvtps2dq produces 0x80000000, a negative value, for input larger than
 	// 2147483520.0, so clamp to 2147483520. Values less than -2147483520.0
 	// saturate to 0x80000000.
 	return x86::cvtps2dq(Min(cast, Float4(0x7FFFFF80)));
-#else
+#elif defined(__arm__) || defined(__aarch64__)
 	// ARM saturates to the largest positive or negative integer. Unit tests
 	// verify that lowerRoundInt() behaves as desired.
 	return As<Int4>(V(lowerRoundInt(V(cast.value()), T(Int4::type()))));
+#elif LLVM_VERSION_MAJOR >= 14
+	llvm::Value *rounded = lowerRound(V(cast.value()));
+	llvm::Function *fptosi_sat = llvm::Intrinsic::getDeclaration(
+	    jit->module.get(), llvm::Intrinsic::fptosi_sat, { T(Int4::type()), T(Float4::type()) });
+	return RValue<Int4>(V(jit->builder->CreateCall(fptosi_sat, { rounded })));
+#else
+	RValue<Float4> clamped = Max(Min(cast, Float4(0x7FFFFF80)), Float4(0x80000000));
+	return As<Int4>(V(lowerRoundInt(V(clamped.value()), T(Int4::type()))));
 #endif
 }
 
