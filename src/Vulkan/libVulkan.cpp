@@ -3946,7 +3946,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(VkDevice device, c
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+		switch(extInfo->sType)
+		{
+#ifdef __ANDROID__
+		case VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID:
+			break;
+#endif
+		default:
+			UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+			break;
+		}
 		extInfo = extInfo->pNext;
 	}
 
