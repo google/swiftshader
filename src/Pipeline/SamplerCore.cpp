@@ -1733,48 +1733,95 @@ Vector4s SamplerCore::sampleTexel(Short4 &uuuu, Short4 &vvvv, Short4 &wwww, cons
 		Pointer<Byte> bufferV = *Pointer<Pointer<Byte>>(mipmap + 2 * sizeof(Mipmap) + OFFSET(Mipmap, buffer));
 
 		// Luminance
-		Int c0 = Int(bufferY[index[0]]);
-		Int c1 = Int(bufferY[index[1]]);
-		Int c2 = Int(bufferY[index[2]]);
-		Int c3 = Int(bufferY[index[3]]);
-		c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
-		UShort4 Y = As<UShort4>(Unpack(As<Byte4>(c0)));
-
-		UShort4 Cb, Cr;
+		UShort4 Y;
+		{
+			switch(state.textureFormat)
+			{
+			case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+			case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+				{
+					Int c0 = Int(bufferY[index[0]]);
+					Int c1 = Int(bufferY[index[1]]);
+					Int c2 = Int(bufferY[index[2]]);
+					Int c3 = Int(bufferY[index[3]]);
+					c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+					Y = As<UShort4>(Unpack(As<Byte4>(c0)));
+				}
+				break;
+			case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+				{
+					Y = Insert(Y, Pointer<UShort>(bufferY)[index[0]], 0);  // TODO: Insert(UShort4, UShort)
+					Y = Insert(Y, Pointer<UShort>(bufferY)[index[1]], 1);
+					Y = Insert(Y, Pointer<UShort>(bufferY)[index[2]], 2);
+					Y = Insert(Y, Pointer<UShort>(bufferY)[index[3]], 3);
+					// Top 10 bits of each 16 bits:
+					Y = (Y & UShort4(0xFFC0u)) >> 6;
+					// Scale from 10 bits to 16 bits:
+					Y = Y << 6;
+				}
+				break;
+			default:
+				UNSUPPORTED("state.textureFormat %d", (int)state.textureFormat);
+				break;
+			}
+		}
 
 		// Chroma
+		UShort4 Cb, Cr;
 		{
 			computeIndices(index, uuuu, vvvv, wwww, layerIndex, offset, sample, mipmap + sizeof(Mipmap));
 			UShort4 U, V;
 
-			if(state.textureFormat == VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM)
+			switch(state.textureFormat)
 			{
-				c0 = Int(bufferU[index[0]]);
-				c1 = Int(bufferU[index[1]]);
-				c2 = Int(bufferU[index[2]]);
-				c3 = Int(bufferU[index[3]]);
-				c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
-				U = As<UShort4>(Unpack(As<Byte4>(c0)));
+			case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+				{
+					Int c0 = Int(bufferU[index[0]]);
+					Int c1 = Int(bufferU[index[1]]);
+					Int c2 = Int(bufferU[index[2]]);
+					Int c3 = Int(bufferU[index[3]]);
+					c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+					U = As<UShort4>(Unpack(As<Byte4>(c0)));
 
-				c0 = Int(bufferV[index[0]]);
-				c1 = Int(bufferV[index[1]]);
-				c2 = Int(bufferV[index[2]]);
-				c3 = Int(bufferV[index[3]]);
-				c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
-				V = As<UShort4>(Unpack(As<Byte4>(c0)));
-			}
-			else if(state.textureFormat == VK_FORMAT_G8_B8R8_2PLANE_420_UNORM)
-			{
-				Short4 UV;
-				UV = Insert(UV, Pointer<Short>(bufferU)[index[0]], 0);  // TODO: Insert(UShort4, UShort)
-				UV = Insert(UV, Pointer<Short>(bufferU)[index[1]], 1);
-				UV = Insert(UV, Pointer<Short>(bufferU)[index[2]], 2);
-				UV = Insert(UV, Pointer<Short>(bufferU)[index[3]], 3);
-				U = (UV & Short4(0x00FFu)) | (UV << 8);
-				V = (UV & Short4(0xFF00u)) | As<Short4>(As<UShort4>(UV) >> 8);
-			}
-			else
+					c0 = Int(bufferV[index[0]]);
+					c1 = Int(bufferV[index[1]]);
+					c2 = Int(bufferV[index[2]]);
+					c3 = Int(bufferV[index[3]]);
+					c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+					V = As<UShort4>(Unpack(As<Byte4>(c0)));
+				}
+				break;
+			case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+				{
+					Short4 UV;
+					UV = Insert(UV, Pointer<Short>(bufferU)[index[0]], 0);  // TODO: Insert(UShort4, UShort)
+					UV = Insert(UV, Pointer<Short>(bufferU)[index[1]], 1);
+					UV = Insert(UV, Pointer<Short>(bufferU)[index[2]], 2);
+					UV = Insert(UV, Pointer<Short>(bufferU)[index[3]], 3);
+					U = (UV & Short4(0x00FFu)) | (UV << 8);
+					V = (UV & Short4(0xFF00u)) | As<Short4>(As<UShort4>(UV) >> 8);
+				}
+				break;
+			case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+				{
+					UInt4 UV;
+					UV = Insert(UV, Pointer<UInt>(bufferU)[index[0]], 0);
+					UV = Insert(UV, Pointer<UInt>(bufferU)[index[1]], 1);
+					UV = Insert(UV, Pointer<UInt>(bufferU)[index[2]], 2);
+					UV = Insert(UV, Pointer<UInt>(bufferU)[index[3]], 3);
+					// Top 10 bits of first 16 bits:
+					U = UShort4((UV & UInt4(0x0000FFC0u)) >> 6);  // TODO: UnpackLower(UInt4)
+					// Top 10 bits of second 16 bits:
+					V = UShort4((UV & UInt4(0xFFC00000u)) >> 22);  // TODO: UnpackUpper(UInt4)
+					// Scale from 10 bits to 16 bits:
+					U = U << 6;
+					V = V << 6;
+				}
+				break;
+			default:
 				UNSUPPORTED("state.textureFormat %d", (int)state.textureFormat);
+				break;
+			}
 
 			if(!state.swappedChroma)
 			{
@@ -2574,6 +2621,7 @@ sw::float4 SamplerCore::getComponentScale() const
 	{
 	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
 		return sw::float4(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
 	default:
 		break;

@@ -786,9 +786,15 @@ public:
 		position += Bytes.size();
 	}
 
-	uint64_t tell() const override { return position; }
+	uint64_t tell() const override
+	{
+		return position;
+	}
 
-	void seek(uint64_t Off) override { position = Off; }
+	void seek(uint64_t Off) override
+	{
+		position = Off;
+	}
 
 	std::vector<EntryPoint> loadImageAndGetEntryPoints(const std::vector<const char *> &functionNames)
 	{
@@ -2837,11 +2843,6 @@ UShort4::UShort4(RValue<Float4> cast, bool saturate)
 RValue<UShort> Extract(RValue<UShort4> val, int i)
 {
 	return RValue<UShort>(Nucleus::createExtractElement(val.value(), UShort::type(), i));
-}
-
-RValue<UShort4> Insert(RValue<UShort4> val, RValue<UShort> element, int i)
-{
-	return RValue<UShort4>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs)

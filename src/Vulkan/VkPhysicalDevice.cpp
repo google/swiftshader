@@ -1504,6 +1504,7 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties3 *pFo
 	// YCbCr formats:
 	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
 		pFormatProperties->optimalTilingFeatures |=
 		    VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
 		    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT |

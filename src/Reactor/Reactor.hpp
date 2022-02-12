@@ -1050,6 +1050,7 @@ RValue<UShort4> operator~(RValue<UShort4> val);
 //	RValue<UShort4> operator--(UShort4 &val, int);   // Post-decrement
 //	const UShort4 &operator--(UShort4 &val);   // Pre-decrement
 
+RValue<UShort4> Insert(RValue<UShort4> val, RValue<UShort> element, int i);
 RValue<UShort4> Max(RValue<UShort4> x, RValue<UShort4> y);
 RValue<UShort4> Min(RValue<UShort4> x, RValue<UShort4> y);
 RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y);

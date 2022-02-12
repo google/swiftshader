@@ -838,6 +838,7 @@ VkExtent3D Image::getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLe
 		{
 		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+		case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
 			ASSERT(mipLevelExtent.width % 2 == 0 && mipLevelExtent.height % 2 == 0);  // Vulkan 1.1: "Images in this format must be defined with a width and height that is a multiple of two."
 			// Vulkan 1.1 Table 31. Plane Format Compatibility Table:
 			// Half-resolution U and V planes.
@@ -944,6 +945,7 @@ VkDeviceSize Image::getAspectOffset(VkImageAspectFlagBits aspect) const
 		}
 		// Fall through to 2PLANE case:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
 		if(aspect == VK_IMAGE_ASPECT_PLANE_1_BIT)
 		{
 			return getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);

@@ -2138,6 +2138,11 @@ RValue<UShort4> operator~(RValue<UShort4> val)
 	return RValue<UShort4>(Nucleus::createNot(val.value()));
 }
 
+RValue<UShort4> Insert(RValue<UShort4> val, RValue<UShort> element, int i)
+{
+	return RValue<UShort4>(Nucleus::createInsertElement(val.value(), element.value(), i));
+}
+
 Short8::Short8(short c)
 {
 	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
