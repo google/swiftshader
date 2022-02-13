@@ -43,15 +43,11 @@ Win32SurfaceKHR::Win32SurfaceKHR(const VkWin32SurfaceCreateInfoKHR *pCreateInfo,
 {
 	ASSERT(IsWindow(hwnd) == TRUE);
 	windowContext = GetDC(hwnd);
-	bitmapContext = CreateCompatibleDC(windowContext);
-	lazyCreateFrameBuffer();
 }
 
 void Win32SurfaceKHR::destroySurface(const VkAllocationCallbacks *pAllocator)
 {
-	destroyFrameBuffer();
 	ReleaseDC(hwnd, windowContext);
-	DeleteDC(bitmapContext);
 }
 
 size_t Win32SurfaceKHR::ComputeRequiredAllocationSize(const VkWin32SurfaceCreateInfoKHR *pCreateInfo)
@@ -85,87 +81,35 @@ void Win32SurfaceKHR::detachImage(PresentImage *image)
 
 VkResult Win32SurfaceKHR::present(PresentImage *image)
 {
-	// Recreate frame buffer in case window size has changed
-	VkResult result = lazyCreateFrameBuffer();
+	VkExtent2D windowExtent = {};
+	VkResult result = getWindowSize(hwnd, windowExtent);
 	if(result != VK_SUCCESS)
 	{
 		return result;
 	}
 
-	if(!framebuffer)
-	{
-		// e.g. window width or height is 0
-		return VK_SUCCESS;
-	}
-
-	const VkExtent3D &extent = image->getImage()->getExtent();
-
+	const Image *vkImage = image->getImage();
+	const VkExtent3D &extent = vkImage->getExtent();
 	if(windowExtent.width != extent.width || windowExtent.height != extent.height)
 	{
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
 
-	image->getImage()->copyTo(reinterpret_cast<uint8_t *>(framebuffer), bitmapRowPitch);
-
-	StretchBlt(windowContext, 0, 0, extent.width, extent.height, bitmapContext, 0, 0, extent.width, extent.height, SRCCOPY);
-
-	return VK_SUCCESS;
-}
-
-VkResult Win32SurfaceKHR::lazyCreateFrameBuffer()
-{
-	VkExtent2D currWindowExtent;
-	VkResult result = getWindowSize(hwnd, currWindowExtent);
-	if(result != VK_SUCCESS)
-	{
-		destroyFrameBuffer();
-		return result;
-	}
-
-	if(currWindowExtent.width == windowExtent.width && currWindowExtent.height == windowExtent.height)
-	{
-		return VK_SUCCESS;
-	}
-
-	windowExtent = currWindowExtent;
-
-	if(framebuffer)
-	{
-		destroyFrameBuffer();
-	}
-
-	if(windowExtent.width == 0 || windowExtent.height == 0)
-	{
-		return VK_SUCCESS;
-	}
+	int stride = vkImage->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	int bytesPerPixel = static_cast<int>(vkImage->getFormat(VK_IMAGE_ASPECT_COLOR_BIT).bytes());
 
 	BITMAPINFO bitmapInfo = {};
 	bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFO);
-	bitmapInfo.bmiHeader.biBitCount = 32;
+	bitmapInfo.bmiHeader.biBitCount = bytesPerPixel * 8;
 	bitmapInfo.bmiHeader.biPlanes = 1;
-	bitmapInfo.bmiHeader.biHeight = -static_cast<LONG>(windowExtent.height);  // Negative for top-down DIB, origin in upper-left corner
-	bitmapInfo.bmiHeader.biWidth = windowExtent.width;
+	bitmapInfo.bmiHeader.biHeight = -static_cast<LONG>(extent.height);  // Negative for top-down DIB, origin in upper-left corner
+	bitmapInfo.bmiHeader.biWidth = stride / bytesPerPixel;
 	bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
-	bitmap = CreateDIBSection(bitmapContext, &bitmapInfo, DIB_RGB_COLORS, &framebuffer, 0, 0);
-	ASSERT(bitmap != NULL);
-	SelectObject(bitmapContext, bitmap);
-
-	BITMAP header;
-	int status = GetObject(bitmap, sizeof(BITMAP), &header);
-	ASSERT(status != 0);
-	bitmapRowPitch = static_cast<int>(header.bmWidthBytes);
+	void *bits = image->getImage()->getTexelPointer({ 0, 0, 0 }, { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 });
+	StretchDIBits(windowContext, 0, 0, extent.width, extent.height, 0, 0, extent.width, extent.height, bits, &bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
 
 	return VK_SUCCESS;
-}
-
-void Win32SurfaceKHR::destroyFrameBuffer()
-{
-	SelectObject(bitmapContext, NULL);
-	DeleteObject(bitmap);
-	bitmap = {};
-	bitmapRowPitch = 0;
-	framebuffer = nullptr;
 }
 
 }  // namespace vk
