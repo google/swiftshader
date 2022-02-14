@@ -166,7 +166,7 @@ static Float4 Atan_01(Float4 x)
 	return (x + x * (x2 * (a2 + x2 * (a4 + x2 * (a6 + x2 * (a8 + x2 * (a10 + x2 * (a12 + x2 * (a14 + x2 * a16)))))))));
 }
 
-// Polynomal approximation of order 5 for sin(x * 2 * pi) in the range [-1/4, 1/4]
+// Polynomial approximation of order 5 for sin(x * 2 * pi) in the range [-1/4, 1/4]
 static Float4 Sin5(Float4 x)
 {
 	// A * x^5 + B * x^3 + C * x
