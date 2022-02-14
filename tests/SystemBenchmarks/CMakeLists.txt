@@ -24,6 +24,7 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 set(SYSTEM_BENCHMARKS_SRC_FILES
     main.cpp
     LRUCacheBenchmarks.cpp
+    MathBenchmarks.cpp
 )
 
 add_executable(system-benchmarks
