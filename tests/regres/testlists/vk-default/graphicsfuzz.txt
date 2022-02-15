@@ -46,6 +46,7 @@ dEQP-VK.graphicsfuzz.cov-bitfieldreverse-loop-limit-underflow
 dEQP-VK.graphicsfuzz.cov-bitwise-and-variable-and-its-negation
 dEQP-VK.graphicsfuzz.cov-bitwise-inverse-uniform-condition
 dEQP-VK.graphicsfuzz.cov-bitwise-shift-right-always-select-one
+dEQP-VK.graphicsfuzz.cov-bitwise-shift-right-full-bits-no-effect-clamp
 dEQP-VK.graphicsfuzz.cov-blockfrequency-several-for-loops
 dEQP-VK.graphicsfuzz.cov-branch-probability-identity-matrix
 dEQP-VK.graphicsfuzz.cov-cast-float-to-int-and-back
@@ -62,6 +63,7 @@ dEQP-VK.graphicsfuzz.cov-condition-increment-zero-to-one-divide-by-two
 dEQP-VK.graphicsfuzz.cov-condition-loop-index-bitwise-not
 dEQP-VK.graphicsfuzz.cov-condition-matrix-determinant-uniform
 dEQP-VK.graphicsfuzz.cov-conditional-discard-inside-loop
+dEQP-VK.graphicsfuzz.cov-conditions-empty-blocks-index-array-one-divided-by-findlsb
 dEQP-VK.graphicsfuzz.cov-const-folding-bitfieldinsert-div-one
 dEQP-VK.graphicsfuzz.cov-color-overwrite-identity-matrix-multiply
 dEQP-VK.graphicsfuzz.cov-const-folding-ceil-vec4
@@ -105,6 +107,7 @@ dEQP-VK.graphicsfuzz.cov-descending-loop-index-temporary-array
 dEQP-VK.graphicsfuzz.cov-descending-loop-min-max-always-zero
 dEQP-VK.graphicsfuzz.cov-determinant-uninitialized-matrix-never-chosen
 dEQP-VK.graphicsfuzz.cov-dfdx-dfdy-after-nested-loops
+dEQP-VK.graphicsfuzz.cov-discard-condition-loop-same-condition-again
 dEQP-VK.graphicsfuzz.cov-divide-matrix-transpose-by-constant
 dEQP-VK.graphicsfuzz.cov-do-while-loop-until-uniform-lt-itself
 dEQP-VK.graphicsfuzz.cov-do-while-negative-iterator-nested-loops-increment-array-element
@@ -184,6 +187,7 @@ dEQP-VK.graphicsfuzz.cov-function-with-nested-loops-called-from-nested-loops
 dEQP-VK.graphicsfuzz.cov-global-loop-bound-true-logical-or
 dEQP-VK.graphicsfuzz.cov-global-loop-counter-exhaust-calling-function-twice
 dEQP-VK.graphicsfuzz.cov-global-loop-counter-float-accumulate-matrix
+dEQP-VK.graphicsfuzz.cov-global-loop-counter-for-loop-function-call-inside-never-called
 dEQP-VK.graphicsfuzz.cov-global-loop-counter-main-function-call
 dEQP-VK.graphicsfuzz.cov-global-loop-counter-multiply-one-minus
 dEQP-VK.graphicsfuzz.cov-global-loop-counter-read-past-matrix-size-never-executed
@@ -261,6 +265,7 @@ dEQP-VK.graphicsfuzz.cov-intervalmap-set-stop
 dEQP-VK.graphicsfuzz.cov-ir-builder-constant-fold-inst-combine-calls-value-tracking-findmsb-incr-if
 dEQP-VK.graphicsfuzz.cov-irbuilder-matrix-cell-uniform
 dEQP-VK.graphicsfuzz.cov-isnan-asinh-clamp-always-zero
+dEQP-VK.graphicsfuzz.cov-ivec-from-uniform-float-shift-right-add-components
 dEQP-VK.graphicsfuzz.cov-ivec-shift-right-by-large-number
 dEQP-VK.graphicsfuzz.cov-large-for-loop-exit-early-set-iterator-array-element
 dEQP-VK.graphicsfuzz.cov-large-int-array-nested-loops-set-ivec-index-component-sum
@@ -286,6 +291,7 @@ dEQP-VK.graphicsfuzz.cov-loop-findmsb-findlsb
 dEQP-VK.graphicsfuzz.cov-loop-fragcoord-identical-condition
 dEQP-VK.graphicsfuzz.cov-loop-increment-array-elements-clamp-index
 dEQP-VK.graphicsfuzz.cov-loop-increment-integer-findmsb-minus-uniform
+dEQP-VK.graphicsfuzz.cov-loop-increment-integer-set-output-color-break
 dEQP-VK.graphicsfuzz.cov-loop-increment-matrix-element-break-after-first-iteration
 dEQP-VK.graphicsfuzz.cov-loop-increment-or-divide-by-loop-index
 dEQP-VK.graphicsfuzz.cov-loop-integer-half-minus-one
@@ -323,6 +329,7 @@ dEQP-VK.graphicsfuzz.cov-modf-integer-to-private
 dEQP-VK.graphicsfuzz.cov-modulo-zero-never-executed
 dEQP-VK.graphicsfuzz.cov-multiple-fragcoord-conditions-false-never-return-sample-texture
 dEQP-VK.graphicsfuzz.cov-multiple-fragcoord-conditions-never-return-color-uninitialized
+dEQP-VK.graphicsfuzz.cov-multiple-loops-same-condition-always-false-global-loop-counter
 dEQP-VK.graphicsfuzz.cov-multiple-one-iteration-loops-global-counter-write-matrices
 dEQP-VK.graphicsfuzz.cov-nested-functions-accumulate-global-matrix
 dEQP-VK.graphicsfuzz.cov-nested-functions-compare-fragcood-length-zero-vector
@@ -344,6 +351,7 @@ dEQP-VK.graphicsfuzz.cov-nested-loops-global-counter-increment-single-element
 dEQP-VK.graphicsfuzz.cov-nested-loops-global-loop-counter-do-while-accumulate-float
 dEQP-VK.graphicsfuzz.cov-nested-loops-global-loop-counter-fragcoord-negative-always-false
 dEQP-VK.graphicsfuzz.cov-nested-loops-global-loop-counter-iterator-dependency
+dEQP-VK.graphicsfuzz.cov-nested-loops-increase-integer-dot-product
 dEQP-VK.graphicsfuzz.cov-nested-loops-redundant-condition
 dEQP-VK.graphicsfuzz.cov-nested-loops-sample-opposite-corners
 dEQP-VK.graphicsfuzz.cov-nested-loops-set-struct-data-verify-in-function
