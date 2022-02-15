@@ -81,6 +81,17 @@ float Exp2_legacy(float x)
 	return ii * ff;
 }
 
+// lolremez --float -d 4 -r "0:1" "(2^x-1)/x" "(3+2*x-1)/x"
+// ULP_32: 2.95602512, Vulkan margin: 0.943966746
+float f_r(float x)
+{
+	float u = 1.8674689e-3f;
+	u = u * x + 9.0165929e-3f;
+	u = u * x + 5.5799878e-2f;
+	u = u * x + 2.4016463e-1f;
+	return u * x + 6.9315127e-1f;
+}
+
 float Exp2(float x)
 {
 	// This implementation is based on 2^(i + f) = 2^i * 2^f,
@@ -93,18 +104,14 @@ float Exp2(float x)
 	x0 = min(x0, bit_cast<float>(int(0x4300FFFF)));  // 128.999985
 	x0 = max(x0, bit_cast<float>(int(0xC2FDFFFF)));  // -126.999992
 
-	int i = (int)round(x0 - 0.5f);
+	float xi = floor(x0);
+	int i = int(xi);
 	float ii = bit_cast<float>((i + int(127)) << 23);  // Add single-precision bias, and shift into exponent.
 
-	// For the fractional part use a polynomial
-	// which approximates 2^f in the 0 to 1 range.
-	float f = x0 - float(i);
-	float ff = bit_cast<float>(int(0x3AF61905));     // 1.8775767e-3f
-	ff = ff * f + bit_cast<float>(int(0x3C134806));  // 8.9893397e-3f
-	ff = ff * f + bit_cast<float>(int(0x3D64AA23));  // 5.5826318e-2f
-	ff = ff * f + bit_cast<float>(int(0x3E75EAD4));  // 2.4015361e-1f
-	ff = ff * f + bit_cast<float>(int(0x3F31727B));  // 6.9315308e-1f
-	ff = ff * f + float(1.0f);
+	// For the fractional part use a polynomial which approximates 2^f in the 0 to 1 range.
+	// To be exact at integers it uses the form f(x) * x + 1.
+	float f = x0 - xi;
+	float ff = f_r(f) * f + 1.0f;
 
 	return ii * ff;
 }
