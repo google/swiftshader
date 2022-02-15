@@ -13,7 +13,6 @@
 # limitations under the License.
 
 set(ROOT_PROJECT_COMPILE_OPTIONS
-    ${WARNINGS_AS_ERRORS}
 )
 
 set(VULKAN_WRAPPER_SRC_FILES
