@@ -81,6 +81,34 @@ float Exp2_legacy(float x)
 	return ii * ff;
 }
 
+float Exp2(float x)
+{
+	// This implementation is based on 2^(i + f) = 2^i * 2^f,
+	// where i is the integer part of x and f is the fraction.
+
+	// For 2^i we can put the integer part directly in the exponent of
+	// the IEEE-754 floating-point number. Clamp to prevent overflow
+	// past the representation of infinity.
+	float x0 = x;
+	x0 = min(x0, bit_cast<float>(int(0x4300FFFF)));  // 128.999985
+	x0 = max(x0, bit_cast<float>(int(0xC2FDFFFF)));  // -126.999992
+
+	int i = (int)round(x0 - 0.5f);
+	float ii = bit_cast<float>((i + int(127)) << 23);  // Add single-precision bias, and shift into exponent.
+
+	// For the fractional part use a polynomial
+	// which approximates 2^f in the 0 to 1 range.
+	float f = x0 - float(i);
+	float ff = bit_cast<float>(int(0x3AF61905));     // 1.8775767e-3f
+	ff = ff * f + bit_cast<float>(int(0x3C134806));  // 8.9893397e-3f
+	ff = ff * f + bit_cast<float>(int(0x3D64AA23));  // 5.5826318e-2f
+	ff = ff * f + bit_cast<float>(int(0x3E75EAD4));  // 2.4015361e-1f
+	ff = ff * f + bit_cast<float>(int(0x3F31727B));  // 6.9315308e-1f
+	ff = ff * f + float(1.0f);
+
+	return ii * ff;
+}
+
 TEST(MathTest, Exp2Exhaustive)
 {
 	CPUID::setDenormalsAreZero(true);
@@ -94,7 +122,7 @@ TEST(MathTest, Exp2Exhaustive)
 
 	for(float x = -10; x <= 10; x = inc(x))
 	{
-		float val = Exp2_legacy(x);
+		float val = Exp2(x);
 
 		double ref = exp2((double)x);
 		float ulp = (float)ULP_32(ref, (double)val);

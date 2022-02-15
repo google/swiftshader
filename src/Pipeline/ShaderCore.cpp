@@ -319,8 +319,8 @@ Float4 Exp2(RValue<Float4> x)
 	// the IEEE-754 floating-point number. Clamp to prevent overflow
 	// past the representation of infinity.
 	Float4 x0 = x;
-	x0 = Min(x0, As<Float4>(Int4(0x43010000)));  // 129.00000e+0f
-	x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));  // -126.99999e+0f
+	x0 = Min(x0, As<Float4>(Int4(0x4300FFFF)));  // 128.999985
+	x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));  // -126.999992
 
 	Int4 i = RoundInt(x0 - Float4(0.5f));
 	Float4 ii = As<Float4>((i + Int4(127)) << 23);  // Add single-precision bias, and shift into exponent.
