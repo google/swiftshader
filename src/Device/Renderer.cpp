@@ -181,7 +181,7 @@ void Renderer::operator delete(void *mem)
 }
 
 void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState &dynamicState, unsigned int count, int baseVertex,
-                    CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
+                    CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkRect2D &renderArea,
                     vk::Pipeline::PushConstantStorage const &pushConstants, bool update)
 {
 	if(count == 0) { return; }
@@ -413,10 +413,14 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	{
 		const VkRect2D &scissor = pipelineState.getScissor();
 
-		data->scissorX0 = clamp<int>(scissor.offset.x, 0, framebufferExtent.width);
-		data->scissorX1 = clamp<int>(scissor.offset.x + scissor.extent.width, 0, framebufferExtent.width);
-		data->scissorY0 = clamp<int>(scissor.offset.y, 0, framebufferExtent.height);
-		data->scissorY1 = clamp<int>(scissor.offset.y + scissor.extent.height, 0, framebufferExtent.height);
+		int x0 = renderArea.offset.x;
+		int y0 = renderArea.offset.y;
+		int x1 = x0 + renderArea.extent.width;
+		int y1 = y0 + renderArea.extent.height;
+		data->scissorX0 = clamp<int>(scissor.offset.x, x0, x1);
+		data->scissorX1 = clamp<int>(scissor.offset.x + scissor.extent.width, x0, x1);
+		data->scissorY0 = clamp<int>(scissor.offset.y, y0, y1);
+		data->scissorY1 = clamp<int>(scissor.offset.y + scissor.extent.height, y0, y1);
 	}
 
 	// Push constants

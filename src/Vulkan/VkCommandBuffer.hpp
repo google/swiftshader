@@ -173,6 +173,7 @@ public:
 
 		void bindAttachments(Attachments *attachments);
 
+		VkRect2D getRenderArea() const;
 		uint32_t viewCount() const;
 	};
 

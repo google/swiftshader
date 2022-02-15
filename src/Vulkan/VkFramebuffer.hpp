@@ -36,12 +36,12 @@ public:
 	ImageView *getAttachment(uint32_t index) const;
 	void resolve(const RenderPass *renderPass, uint32_t subpassIndex);
 
-	const VkExtent3D &getExtent() const { return extent; }
+	const VkExtent2D &getExtent() const { return extent; }
 
 private:
 	uint32_t attachmentCount = 0;
 	ImageView **attachments = nullptr;
-	const VkExtent3D extent = {};
+	const VkExtent2D extent = {};
 };
 
 static inline Framebuffer *Cast(VkFramebuffer object)

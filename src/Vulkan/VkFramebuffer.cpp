@@ -25,7 +25,7 @@ namespace vk {
 
 Framebuffer::Framebuffer(const VkFramebufferCreateInfo *pCreateInfo, void *mem)
     : attachments(reinterpret_cast<ImageView **>(mem))
-    , extent{ pCreateInfo->width, pCreateInfo->height, pCreateInfo->layers }
+    , extent{ pCreateInfo->width, pCreateInfo->height }
 {
 	const VkBaseInStructure *curInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	const VkFramebufferAttachmentsCreateInfo *attachmentsCreateInfo = nullptr;

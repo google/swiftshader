@@ -206,7 +206,7 @@ public:
 	bool hasOcclusionQuery() const { return occlusionQuery != nullptr; }
 
 	void draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState &dynamicState, unsigned int count, int baseVertex,
-	          CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
+	          CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkRect2D &renderArea,
 	          vk::Pipeline::PushConstantStorage const &pushConstants, bool update = true);
 
 	void addQuery(vk::Query *query);

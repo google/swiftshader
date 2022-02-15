@@ -787,6 +787,8 @@ public:
 		std::vector<std::pair<uint32_t, void *>> indexBuffers;
 		pipeline->getIndexBuffers(executionState.dynamicState, count, first, indexed, &indexBuffers);
 
+		VkRect2D renderArea = executionState.getRenderArea();
+
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			// FIXME: reconsider instances/views nesting.
@@ -800,8 +802,7 @@ public:
 				{
 					executionState.renderer->draw(pipeline, executionState.dynamicState, indexBuffer.first, vertexOffset,
 					                              executionState.events, instance, viewID, indexBuffer.second,
-					                              executionState.renderPassFramebuffer->getExtent(),
-					                              executionState.pushConstants);
+					                              renderArea, executionState.pushConstants);
 				}
 			}
 
@@ -2159,6 +2160,18 @@ void CommandBuffer::ExecutionState::bindAttachments(Attachments *attachments)
 			attachments->stencilBuffer = attachment;
 		}
 	}
+}
+
+VkRect2D CommandBuffer::ExecutionState::getRenderArea() const
+{
+	VkRect2D renderArea = {};
+
+	if(renderPassFramebuffer)
+	{
+		renderArea.extent = renderPassFramebuffer->getExtent();
+	}
+
+	return renderArea;
 }
 
 // Returns the number of bits set in the view mask, or 1 if multiview is disabled.
