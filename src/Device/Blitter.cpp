@@ -1964,9 +1964,9 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit2KHR region,
 	dst->contentsChanged(dstSubresRange);
 }
 
-static void resolveDepth(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc)
+static void resolveDepth(const vk::ImageView *src, vk::ImageView *dst, const VkResolveModeFlagBits depthResolveMode)
 {
-	if(dsrDesc.depthResolveMode == VK_RESOLVE_MODE_NONE)
+	if(depthResolveMode == VK_RESOLVE_MODE_NONE)
 	{
 		return;
 	}
@@ -1984,7 +1984,7 @@ static void resolveDepth(const vk::ImageView *src, vk::ImageView *dst, const VkS
 
 	size_t formatSize = format.bytes();
 	// TODO(b/167558951) support other resolve modes.
-	ASSERT(dsrDesc.depthResolveMode == VK_RESOLVE_MODE_SAMPLE_ZERO_BIT);
+	ASSERT(depthResolveMode == VK_RESOLVE_MODE_SAMPLE_ZERO_BIT);
 	for(int y = 0; y < height; y++)
 	{
 		memcpy(dest, source, formatSize * width);
@@ -1996,9 +1996,9 @@ static void resolveDepth(const vk::ImageView *src, vk::ImageView *dst, const VkS
 	dst->contentsChanged(vk::Image::DIRECT_MEMORY_ACCESS);
 }
 
-static void resolveStencil(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc)
+static void resolveStencil(const vk::ImageView *src, vk::ImageView *dst, const VkResolveModeFlagBits stencilResolveMode)
 {
-	if(dsrDesc.stencilResolveMode == VK_RESOLVE_MODE_NONE)
+	if(stencilResolveMode == VK_RESOLVE_MODE_NONE)
 	{
 		return;
 	}
@@ -2014,7 +2014,7 @@ static void resolveStencil(const vk::ImageView *src, vk::ImageView *dst, const V
 	uint8_t *dest = reinterpret_cast<uint8_t *>(dst->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, 0));
 
 	// TODO(b/167558951) support other resolve modes.
-	ASSERT(dsrDesc.stencilResolveMode == VK_RESOLVE_MODE_SAMPLE_ZERO_BIT);
+	ASSERT(stencilResolveMode == VK_RESOLVE_MODE_SAMPLE_ZERO_BIT);
 	for(int y = 0; y < height; y++)
 	{
 		// Stencil is always 8 bits, so the width of the resource we're resolving is
@@ -2028,7 +2028,7 @@ static void resolveStencil(const vk::ImageView *src, vk::ImageView *dst, const V
 	dst->contentsChanged(vk::Image::DIRECT_MEMORY_ACCESS);
 }
 
-void Blitter::resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc)
+void Blitter::resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, VkResolveModeFlagBits depthResolveMode, VkResolveModeFlagBits stencilResolveMode)
 {
 	VkImageSubresourceRange srcRange = src->getSubresourceRange();
 	VkImageSubresourceRange dstRange = src->getSubresourceRange();
@@ -2038,11 +2038,11 @@ void Blitter::resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, 
 
 	if(srcRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
 	{
-		resolveDepth(src, dst, dsrDesc);
+		resolveDepth(src, dst, depthResolveMode);
 	}
 	if(srcRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
 	{
-		resolveStencil(src, dst, dsrDesc);
+		resolveStencil(src, dst, stencilResolveMode);
 	}
 }
 

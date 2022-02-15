@@ -1036,9 +1036,9 @@ void Image::resolveTo(Image *dstImage, const VkImageResolve2KHR &region) const
 	device->getBlitter()->resolve(this, dstImage, region);
 }
 
-void Image::resolveDepthStencilTo(const ImageView *src, ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsResolve) const
+void Image::resolveDepthStencilTo(const ImageView *src, ImageView *dst, VkResolveModeFlagBits depthResolveMode, VkResolveModeFlagBits stencilResolveMode) const
 {
-	device->getBlitter()->resolveDepthStencil(src, dst, dsResolve);
+	device->getBlitter()->resolveDepthStencil(src, dst, depthResolveMode, stencilResolveMode);
 }
 
 uint32_t Image::getLastLayerIndex(const VkImageSubresourceRange &subresourceRange) const

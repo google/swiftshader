@@ -291,7 +291,7 @@ void ImageView::resolveWithLayerMask(ImageView *resolveAttachment, uint32_t laye
 	}
 }
 
-void ImageView::resolveDepthStencil(ImageView *resolveAttachment, const VkSubpassDescriptionDepthStencilResolve &dsResolve)
+void ImageView::resolveDepthStencil(ImageView *resolveAttachment, VkResolveModeFlagBits depthResolveMode, VkResolveModeFlagBits stencilResolveMode)
 {
 	ASSERT(subresourceRange.levelCount == 1 && resolveAttachment->subresourceRange.levelCount == 1);
 	if((subresourceRange.layerCount != 1) || (resolveAttachment->subresourceRange.layerCount != 1))
@@ -299,7 +299,7 @@ void ImageView::resolveDepthStencil(ImageView *resolveAttachment, const VkSubpas
 		UNIMPLEMENTED("b/148242443: layerCount != 1");  // FIXME(b/148242443)
 	}
 
-	image->resolveDepthStencilTo(this, resolveAttachment, dsResolve);
+	image->resolveDepthStencilTo(this, resolveAttachment, depthResolveMode, stencilResolveMode);
 }
 
 const Image *ImageView::getImage(Usage usage) const

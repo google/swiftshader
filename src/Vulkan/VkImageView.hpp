@@ -98,7 +98,7 @@ public:
 	void resolve(ImageView *resolveAttachment);
 	void resolve(ImageView *resolveAttachment, int layer);
 	void resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask);
-	void resolveDepthStencil(ImageView *resolveAttachment, const VkSubpassDescriptionDepthStencilResolve &dsResolve);
+	void resolveDepthStencil(ImageView *resolveAttachment, VkResolveModeFlagBits depthResolveMode, VkResolveModeFlagBits stencilResolveMode);
 
 	VkImageViewType getType() const { return viewType; }
 	Format getFormat(Usage usage = RAW) const;

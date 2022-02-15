@@ -226,7 +226,8 @@ void Framebuffer::resolve(const RenderPass *renderPass, uint32_t subpassIndex)
 		if(depthStencilAttachment != VK_ATTACHMENT_UNUSED)
 		{
 			ImageView *imageView = attachments[depthStencilAttachment];
-			imageView->resolveDepthStencil(attachments[dsResolve.pDepthStencilResolveAttachment->attachment], dsResolve);
+			imageView->resolveDepthStencil(attachments[dsResolve.pDepthStencilResolveAttachment->attachment],
+			                               dsResolve.depthResolveMode, dsResolve.stencilResolveMode);
 		}
 	}
 }
