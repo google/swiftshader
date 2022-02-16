@@ -56,7 +56,8 @@ config("swiftshader_llvm_private_config") {
   }
 
   if (is_fuchsia) {
-    cflags += [ "-Wno-error" ]
+    # Ignore #warning for unimplemented features in Process.inc.
+    cflags += [ "-Wno-cpp" ]
   }
 
   if (is_clang) {
