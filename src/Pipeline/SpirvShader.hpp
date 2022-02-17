@@ -1485,8 +1485,8 @@ public:
 
 	std::unordered_map<SpirvShader::Object::ID, Variable> variables;
 	std::unordered_map<uint32_t, SamplerCache> samplerCache;  // Indexed by the instruction position, in words.
-	Variable inputs = Variable{ MAX_INTERFACE_COMPONENTS };
-	Variable outputs = Variable{ MAX_INTERFACE_COMPONENTS };
+	SIMD::Float inputs[MAX_INTERFACE_COMPONENTS];
+	SIMD::Float outputs[MAX_INTERFACE_COMPONENTS];
 	InterpolationData interpolationData;
 
 	Pointer<Byte> device;

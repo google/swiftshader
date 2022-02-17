@@ -927,7 +927,7 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 		VisitInterface(resultId,
 		               [&userDefinedInterface](Decorations const &d, AttribType type) {
 			               // Populate a single scalar slot in the interface from a collection of decorations and the intended component type.
-			               auto scalarSlot = (d.Location << 2) | d.Component;
+			               int32_t scalarSlot = (d.Location << 2) | d.Component;
 			               ASSERT(scalarSlot >= 0 &&
 			                      scalarSlot < static_cast<int32_t>(userDefinedInterface.size()));
 
