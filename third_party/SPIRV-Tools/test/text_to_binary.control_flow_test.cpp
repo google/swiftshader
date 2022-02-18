@@ -379,7 +379,7 @@ INSTANTIATE_TEST_SUITE_P(
        "OpTypeQueue",
        "OpTypePipe ReadOnly",
 
-       // Skip OpTypeForwardPointer becasuse it doesn't even produce a result
+       // Skip OpTypeForwardPointer because it doesn't even produce a result
        // ID.
 
        // At least one thing that isn't a type at all

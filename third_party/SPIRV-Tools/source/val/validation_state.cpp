@@ -175,8 +175,18 @@ ValidationState_t::ValidationState_t(const spv_const_context ctx,
     }
   }
 
-  // LocalSizeId is always allowed in non-Vulkan environments.
-  features_.env_allow_localsizeid = !spvIsVulkanEnv(env);
+  // LocalSizeId is only disallowed prior to Vulkan 1.3 without maintenance4.
+  switch (env) {
+    case SPV_ENV_VULKAN_1_0:
+    case SPV_ENV_VULKAN_1_1:
+    case SPV_ENV_VULKAN_1_1_SPIRV_1_4:
+    case SPV_ENV_VULKAN_1_2:
+      features_.env_allow_localsizeid = false;
+      break;
+    default:
+      features_.env_allow_localsizeid = true;
+      break;
+  }
 
   // Only attempt to count if we have words, otherwise let the other validation
   // fail and generate an error.
@@ -389,6 +399,15 @@ void ValidationState_t::RegisterCapability(SpvCapability cap) {
       features_.variable_pointers_storage_buffer = true;
       break;
     default:
+      // TODO(dneto): For now don't validate SPV_NV_ray_tracing, which uses
+      // capability SpvCapabilityRayTracingNV.
+      // SpvCapabilityRayTracingProvisionalKHR would need the same treatment.
+      // One of the differences going from SPV_KHR_ray_tracing from
+      // provisional to final spec was the provisional spec uses Locations
+      // for variables in certain storage classes, just like the
+      // SPV_NV_ray_tracing extension.  So it mimics the NVIDIA extension.
+      // The final SPV_KHR_ray_tracing uses a different capability token
+      // number, so it doesn't fall into this case.
       break;
   }
 }
@@ -479,7 +498,7 @@ spv_result_t ValidationState_t::RegisterFunctionEnd() {
          "inside of another function");
   assert(in_block() == false &&
          "RegisterFunctionParameter can only be called when parsing the binary "
-         "ouside of a block");
+         "outside of a block");
   current_function().RegisterFunctionEnd();
   in_function_ = false;
   return SPV_SUCCESS;
@@ -497,15 +516,13 @@ void ValidationState_t::RegisterDebugInstruction(const Instruction* inst) {
   switch (inst->opcode()) {
     case SpvOpName: {
       const auto target = inst->GetOperandAs<uint32_t>(0);
-      const auto* str = reinterpret_cast<const char*>(inst->words().data() +
-                                                      inst->operand(1).offset);
+      const std::string str = inst->GetOperandAs<std::string>(1);
       AssignNameToId(target, str);
       break;
     }
     case SpvOpMemberName: {
       const auto target = inst->GetOperandAs<uint32_t>(0);
-      const auto* str = reinterpret_cast<const char*>(inst->words().data() +
-                                                      inst->operand(2).offset);
+      const std::string str = inst->GetOperandAs<std::string>(2);
       AssignNameToId(target, str);
       break;
     }
@@ -593,7 +610,7 @@ void ValidationState_t::RegisterStorageClassConsumer(
               if (message) {
                 *message =
                     errorVUID +
-                    "in Vulkan evironment, Output Storage Class must not be "
+                    "in Vulkan environment, Output Storage Class must not be "
                     "used in GLCompute, RayGenerationKHR, IntersectionKHR, "
                     "AnyHitKHR, ClosestHitKHR, MissKHR, or CallableKHR "
                     "execution models";
@@ -615,7 +632,7 @@ void ValidationState_t::RegisterStorageClassConsumer(
               if (message) {
                 *message =
                     errorVUID +
-                    "in Vulkan evironment, Workgroup Storage Class is limited "
+                    "in Vulkan environment, Workgroup Storage Class is limited "
                     "to MeshNV, TaskNV, and GLCompute execution model";
               }
               return false;
@@ -1390,7 +1407,7 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
     return "";
   }
 
-  // This large switch case is only searched when an error has occured.
+  // This large switch case is only searched when an error has occurred.
   // If an id is changed, the old case must be modified or removed. Each string
   // here is interpreted as being "implemented"
 
@@ -1867,6 +1884,16 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-OpMemoryBarrier-04733);
     case 4780:
       return VUID_WRAP(VUID-StandaloneSpirv-Result-04780);
+    case 4915:
+      return VUID_WRAP(VUID-StandaloneSpirv-Location-04915);
+    case 4916:
+      return VUID_WRAP(VUID-StandaloneSpirv-Location-04916);
+    case 4917:
+      return VUID_WRAP(VUID-StandaloneSpirv-Location-04917);
+    case 4918:
+      return VUID_WRAP(VUID-StandaloneSpirv-Location-04918);
+    case 4919:
+      return VUID_WRAP(VUID-StandaloneSpirv-Location-04919);
     default:
       return "";  // unknown id
   }

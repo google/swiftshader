@@ -886,7 +886,7 @@ OpFunctionEnd
   LoopUnroller loop_unroller;
   SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
   // By unrolling by a factor that doesn't divide evenly into the number of loop
-  // iterations we perfom an additional transform when partially unrolling to
+  // iterations we perform an additional transform when partially unrolling to
   // account for the remainder.
   SinglePassRunAndCheck<PartialUnrollerTestPass<3>>(text, output, false);
 }
@@ -3118,7 +3118,7 @@ OpFunctionEnd
 
 /*
 Generated from following GLSL with latch block artificially inserted to be
-seperate from continue.
+separate from continue.
 #version 430
 void main(void) {
     float x[10];

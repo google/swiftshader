@@ -1547,7 +1547,7 @@ OpExtension "SPV_KHR_non_semantic_info"
                         "integer scalar type"));
 }
 
-TEST_F(ValidateVulkan100DebugInfo, DebugTypeArrayFailComponentCountZero) {
+TEST_F(ValidateVulkan100DebugInfo, DebugTypeArrayComponentCountZero) {
   const std::string src = R"(
 %src = OpString "simple.hlsl"
 %code = OpString "main() {}"
@@ -1574,12 +1574,7 @@ OpExtension "SPV_KHR_non_semantic_info"
 
   CompileSuccessfully(GenerateShaderCodeForDebugInfo(
       src, constants, dbg_inst_header, "", extension, "Vertex"));
-  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("Component Count must be OpConstant with a 32- or "
-                        "64-bits integer scalar type or DebugGlobalVariable or "
-                        "DebugLocalVariable with a 32- or 64-bits unsigned "
-                        "integer scalar type"));
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
 }
 
 TEST_F(ValidateVulkan100DebugInfo, DebugTypeArrayFailVariableSizeTypeFloat) {

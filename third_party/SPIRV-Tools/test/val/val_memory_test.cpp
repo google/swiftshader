@@ -4048,7 +4048,7 @@ TEST_F(ValidateMemory, VulkanInvariantOutputSuccess) {
   const std::string spirv = R"(
 OpCapability Shader
 OpMemoryModel Logical GLSL450
-OpEntryPoint Vertex %main "main"
+OpEntryPoint Vertex %main "main" %var
 OpDecorate %var Location 0
 OpDecorate %var Invariant
 %void = OpTypeVoid
@@ -4070,7 +4070,7 @@ TEST_F(ValidateMemory, VulkanInvariantInputStructSuccess) {
   const std::string spirv = R"(
 OpCapability Shader
 OpMemoryModel Logical GLSL450
-OpEntryPoint Fragment %main "main"
+OpEntryPoint Fragment %main "main" %var
 OpExecutionMode %main OriginUpperLeft
 OpDecorate %var Location 0
 OpMemberDecorate %struct 1 Invariant
