@@ -19,6 +19,11 @@
 
 #include <limits.h>
 
+// TODO(chromium:1299047)
+#ifndef SWIFTSHADER_LEGACY_TRANSCENDENTALS
+#	define SWIFTSHADER_LEGACY_TRANSCENDENTALS false
+#endif
+
 namespace sw {
 
 Vector4s::Vector4s()
@@ -310,6 +315,23 @@ Float4 Atan2(RValue<Float4> y, RValue<Float4> x)
 	return As<Float4>((precision_loss & As<Int4>(-atan2_theta)) | (~precision_loss & As<Int4>(theta)));  // FIXME: Vector select
 }
 
+// TODO(chromium:1299047)
+Float4 Exp2_legacy(RValue<Float4> x0)
+{
+	Int4 i = RoundInt(x0 - Float4(0.5f));
+	Float4 ii = As<Float4>((i + Int4(127)) << 23);
+
+	Float4 f = x0 - Float4(i);
+	Float4 ff = As<Float4>(Int4(0x3AF61905));
+	ff = ff * f + As<Float4>(Int4(0x3C134806));
+	ff = ff * f + As<Float4>(Int4(0x3D64AA23));
+	ff = ff * f + As<Float4>(Int4(0x3E75EAD4));
+	ff = ff * f + As<Float4>(Int4(0x3F31727B));
+	ff = ff * f + Float4(1.0f);
+
+	return ii * ff;
+}
+
 Float4 Exp2(RValue<Float4> x)
 {
 	// This implementation is based on 2^(i + f) = 2^i * 2^f,
@@ -321,6 +343,11 @@ Float4 Exp2(RValue<Float4> x)
 	Float4 x0 = x;
 	x0 = Min(x0, As<Float4>(Int4(0x4300FFFF)));  // 128.999985
 	x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));  // -126.999992
+
+	if(SWIFTSHADER_LEGACY_TRANSCENDENTALS)  // TODO(chromium:1299047)
+	{
+		return Exp2_legacy(x0);
+	}
 
 	Float4 xi = Floor(x0);
 	Int4 i = Int4(xi);

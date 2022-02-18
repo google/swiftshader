@@ -56,6 +56,7 @@ config("swiftshader_libvulkan_private_config") {
 
   defines += [
      "SWIFTSHADER_ENABLE_ASTC",  # TODO(b/150130101)
+     "SWIFTSHADER_LEGACY_TRANSCENDENTALS=true",  # TODO(chromium:1299047)
   ]
 }
 
