@@ -692,9 +692,20 @@ static void getMaintenance3Properties(T *properties)
 	properties->maxPerSetDescriptors = 1024;
 }
 
+template<typename T>
+static void getMaintenance4Properties(T *properties)
+{
+	properties->maxBufferSize = MAX_MEMORY_ALLOCATION_SIZE;
+}
+
 void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties *properties) const
 {
 	getMaintenance3Properties(properties);
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance4Properties *properties) const
+{
+	getMaintenance4Properties(properties);
 }
 
 template<typename T>

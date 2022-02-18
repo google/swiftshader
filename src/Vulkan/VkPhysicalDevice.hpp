@@ -52,6 +52,7 @@ public:
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
 	void getProperties(VkPhysicalDeviceMaintenance3Properties *properties) const;
+	void getProperties(VkPhysicalDeviceMaintenance4Properties *properties) const;
 	void getProperties(VkPhysicalDeviceMultiviewProperties *properties) const;
 	void getProperties(VkPhysicalDevicePointClippingProperties *properties) const;
 	void getProperties(VkPhysicalDeviceProtectedMemoryProperties *properties) const;

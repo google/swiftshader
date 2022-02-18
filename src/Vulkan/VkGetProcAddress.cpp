@@ -396,6 +396,14 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	    {
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
 	    } },
+	// VK_KHR_maintenance4
+	{
+	    VK_KHR_MAINTENANCE_4_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceBufferMemoryRequirementsKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceImageMemoryRequirementsKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceImageSparseMemoryRequirementsKHR),
+	    } },
 	// VK_KHR_create_renderpass2
 	{
 	    VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
