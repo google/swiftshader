@@ -288,6 +288,8 @@ bool Optimizer::RegisterPassFromFlag(const std::string& flag) {
     RegisterPass(CreateStripDebugInfoPass());
   } else if (pass_name == "strip-reflect") {
     RegisterPass(CreateStripReflectInfoPass());
+  } else if (pass_name == "strip-nonsemantic") {
+    RegisterPass(CreateStripNonSemanticInfoPass());
   } else if (pass_name == "set-spec-const-default-value") {
     if (pass_args.size() > 0) {
       auto spec_ids_vals =
@@ -322,6 +324,8 @@ bool Optimizer::RegisterPassFromFlag(const std::string& flag) {
     RegisterPass(CreateLocalAccessChainConvertPass());
   } else if (pass_name == "replace-desc-array-access-using-var-index") {
     RegisterPass(CreateReplaceDescArrayAccessUsingVarIndexPass());
+  } else if (pass_name == "spread-volatile-semantics") {
+    RegisterPass(CreateSpreadVolatileSemanticsPass());
   } else if (pass_name == "descriptor-scalar-replacement") {
     RegisterPass(CreateDescriptorScalarReplacementPass());
   } else if (pass_name == "eliminate-dead-code-aggressive") {
@@ -653,8 +657,12 @@ Optimizer::PassToken CreateStripDebugInfoPass() {
 }
 
 Optimizer::PassToken CreateStripReflectInfoPass() {
+  return CreateStripNonSemanticInfoPass();
+}
+
+Optimizer::PassToken CreateStripNonSemanticInfoPass() {
   return MakeUnique<Optimizer::PassToken::Impl>(
-      MakeUnique<opt::StripReflectInfoPass>());
+      MakeUnique<opt::StripNonSemanticInfoPass>());
 }
 
 Optimizer::PassToken CreateEliminateDeadFunctionsPass() {
@@ -762,6 +770,11 @@ Optimizer::PassToken CreateDeadBranchElimPass() {
 Optimizer::PassToken CreateLocalMultiStoreElimPass() {
   return MakeUnique<Optimizer::PassToken::Impl>(
       MakeUnique<opt::SSARewritePass>());
+}
+
+Optimizer::PassToken CreateAggressiveDCEPass() {
+  return MakeUnique<Optimizer::PassToken::Impl>(
+      MakeUnique<opt::AggressiveDCEPass>(false));
 }
 
 Optimizer::PassToken CreateAggressiveDCEPass(bool preserve_interface) {
@@ -963,6 +976,11 @@ Optimizer::PassToken CreateGraphicsRobustAccessPass() {
 Optimizer::PassToken CreateReplaceDescArrayAccessUsingVarIndexPass() {
   return MakeUnique<Optimizer::PassToken::Impl>(
       MakeUnique<opt::ReplaceDescArrayAccessUsingVarIndex>());
+}
+
+Optimizer::PassToken CreateSpreadVolatileSemanticsPass() {
+  return MakeUnique<Optimizer::PassToken::Impl>(
+      MakeUnique<opt::SpreadVolatileSemantics>());
 }
 
 Optimizer::PassToken CreateDescriptorScalarReplacementPass() {

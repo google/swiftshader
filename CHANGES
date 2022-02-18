@@ -1,7 +1,29 @@
 Revision history for SPIRV-Tools
 
-v2021.5-dev 2021-11-11
-  - Start v2021.5-dev
+v2022.2-dev 2022-01-26
+  - Start v2022.2-dev
+
+v2022.1 2022-01-26
+  - General
+    - Add SPIR-V 1.6 support to wasm build (#4674)
+    - Improvements to disassembly within PassManager (#4677)
+    - Basic support for SPIR-V 1.6 (#4663)
+    - reflect debug (#4662)
+    - Fix endianness of string literals (#4622)
+  - Optimizer
+    - spirv-opt: add pass to Spread Volatile semantics (#4667)
+    - Fix constant propagation and folding of FClamp instructions (#4651)
+    - Manually fold floating point division by zero (#4637)
+    - Allow ADCE to remove dead inputs (#4629)
+  - Linker
+    - Linker improvements (#4679)
+      * test/linker: Code factorisation and small tweaks
+      * linker: Do not fail when going over limits
+  - Validator
+    - val: interface struct with builtins must be Block (#4665)
+  - Fuzzer
+    - Avoid id bound errors during opt fuzzing (#4658)
+    - Avoid uninitialised read when parsing hex float (#4646)
 
 v2021.4 2021-11-11
   - General
