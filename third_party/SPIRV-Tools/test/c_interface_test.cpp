@@ -117,7 +117,7 @@ TEST(CInterface, SpecifyConsumerNullDiagnosticForAssembling) {
                     const spv_position_t& position, const char* message) {
         ++invocation;
         EXPECT_EQ(SPV_MSG_ERROR, level);
-        // The error happens at scanning the begining of second line.
+        // The error happens at scanning the beginning of second line.
         EXPECT_STREQ("input", source);
         EXPECT_EQ(1u, position.line);
         EXPECT_EQ(0u, position.column);

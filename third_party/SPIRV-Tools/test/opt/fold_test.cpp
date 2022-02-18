@@ -7092,7 +7092,7 @@ using MatchingInstructionWithNoResultFoldingTest =
 
 // Test folding instructions that do not have a result.  The instruction
 // that will be folded is the last instruction before the return.  If there
-// are multiple returns, there is not guarentee which one is used.
+// are multiple returns, there is not guarantee which one is used.
 TEST_P(MatchingInstructionWithNoResultFoldingTest, Case) {
   const auto& tc = GetParam();
 
