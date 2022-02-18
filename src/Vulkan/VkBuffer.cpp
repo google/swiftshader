@@ -60,10 +60,7 @@ const VkMemoryRequirements Buffer::getMemoryRequirements() const
 {
 	VkMemoryRequirements memoryRequirements = {};
 
-	// Add 15 bytes of padding to ensure that any type of attribute within the
-	// buffer can be read using 16-bit accesses.
-	// TODO(b/196822081): Also reserve space for a header containing the size of the buffer (for robust buffer access)
-	memoryRequirements.size = this->size + 15;
+	memoryRequirements.size = this->size;
 
 	if(memoryRequirements.size < this->size)  // Overflow occurred
 	{

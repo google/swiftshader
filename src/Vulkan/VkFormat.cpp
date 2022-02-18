@@ -1895,7 +1895,7 @@ size_t Format::sliceBUnpadded(int width, int height, int border) const
 
 size_t Format::sliceB(int width, int height, int border) const
 {
-	return sw::align<16>(sliceBUnpadded(width, height, border) + 15);
+	return sw::align<16>(sliceBUnpadded(width, height, border));
 }
 
 sw::float4 Format::getScale() const

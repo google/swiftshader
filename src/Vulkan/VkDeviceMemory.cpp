@@ -106,30 +106,35 @@ VkResult DeviceMemory::Allocate(const VkAllocationCallbacks *pAllocator, const V
 VkResult DeviceMemory::Allocate(const VkAllocationCallbacks *pAllocator, const VkMemoryAllocateInfo *pAllocateInfo, VkDeviceMemory *pMemory,
                                 const vk::DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, Device *device)
 {
+	VkMemoryAllocateInfo allocateInfo = *pAllocateInfo;
+	// Add 15 bytes of padding to ensure that any type of attribute within
+	// buffers and images can be read using 16-byte accesses.
+	allocateInfo.allocationSize += 15;
+
 #if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 	if(AHardwareBufferExternalMemory::SupportsAllocateInfo(extendedAllocationInfo))
 	{
-		return AHardwareBufferExternalMemory::Create(pAllocator, pAllocateInfo, pMemory, extendedAllocationInfo, device);
+		return AHardwareBufferExternalMemory::Create(pAllocator, &allocateInfo, pMemory, extendedAllocationInfo, device);
 	}
 #endif
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	if(OpaqueFdExternalMemory::SupportsAllocateInfo(extendedAllocationInfo))
 	{
-		return OpaqueFdExternalMemory::Create(pAllocator, pAllocateInfo, pMemory, extendedAllocationInfo, device);
+		return OpaqueFdExternalMemory::Create(pAllocator, &allocateInfo, pMemory, extendedAllocationInfo, device);
 	}
 #endif
 #if VK_USE_PLATFORM_FUCHSIA
 	if(zircon::VmoExternalMemory::supportsAllocateInfo(extendedAllocationInfo))
 	{
-		return zircon::VmoExternalMemory::Create(pAllocator, pAllocateInfo, pMemory, extendedAllocationInfo, device);
+		return zircon::VmoExternalMemory::Create(pAllocator, &allocateInfo, pMemory, extendedAllocationInfo, device);
 	}
 #endif
 	if(ExternalMemoryHost::SupportsAllocateInfo(extendedAllocationInfo))
 	{
-		return ExternalMemoryHost::Create(pAllocator, pAllocateInfo, pMemory, extendedAllocationInfo, device);
+		return ExternalMemoryHost::Create(pAllocator, &allocateInfo, pMemory, extendedAllocationInfo, device);
 	}
 
-	return vk::DeviceMemoryInternal::Create(pAllocator, pAllocateInfo, pMemory, extendedAllocationInfo, device);
+	return vk::DeviceMemoryInternal::Create(pAllocator, &allocateInfo, pMemory, extendedAllocationInfo, device);
 }
 
 DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo *pAllocateInfo, Device *pDevice)
