@@ -42,14 +42,6 @@ PixelRoutine::PixelRoutine(
 	if(spirvShader)
 	{
 		spirvShader->emitProlog(&routine);
-
-		// Clearing inputs to 0 is not demanded by the spec,
-		// but it makes the undefined behavior deterministic.
-		// TODO(b/155148722): Remove to detect UB.
-		for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
-		{
-			routine.inputs[i] = Float4(0.0f);
-		}
 	}
 }
 
