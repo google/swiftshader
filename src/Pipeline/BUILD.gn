@@ -65,6 +65,10 @@ swiftshader_source_set("Pipeline") {
     "${swiftshader_spirv_tools_dir}/include",
   ]
 
+  defines = [
+     "SWIFTSHADER_LEGACY_PRECISION=true",  # TODO(chromium:1299047)
+  ]
+
   deps = [
     "${swiftshader_spirv_tools_dir}:spvtools_headers",
     "../../third_party/marl:Marl_headers",

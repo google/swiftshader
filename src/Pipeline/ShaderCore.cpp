@@ -20,8 +20,8 @@
 #include <limits.h>
 
 // TODO(chromium:1299047)
-#ifndef SWIFTSHADER_LEGACY_TRANSCENDENTALS
-#	define SWIFTSHADER_LEGACY_TRANSCENDENTALS false
+#ifndef SWIFTSHADER_LEGACY_PRECISION
+#	define SWIFTSHADER_LEGACY_PRECISION false
 #endif
 
 namespace sw {
@@ -344,7 +344,7 @@ Float4 Exp2(RValue<Float4> x)
 	x0 = Min(x0, As<Float4>(Int4(0x4300FFFF)));  // 128.999985
 	x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));  // -126.999992
 
-	if(SWIFTSHADER_LEGACY_TRANSCENDENTALS)  // TODO(chromium:1299047)
+	if(SWIFTSHADER_LEGACY_PRECISION)  // TODO(chromium:1299047)
 	{
 		return Exp2_legacy(x0);
 	}
