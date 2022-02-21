@@ -1,4 +1,0 @@
-dEQP-GLES3.functional.flush_finish.finish
-dEQP-GLES3.functional.flush_finish.finish_wait
-dEQP-GLES3.functional.flush_finish.flush
-dEQP-GLES3.functional.flush_finish.wait
