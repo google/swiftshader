@@ -397,7 +397,11 @@ inline constexpr int toFixedPoint(float v, int p)
 		x1 += (x1 >= 0) ? 1 : -1;
 	}
 
-	return bit_cast<float>(x1);
+	float y = bit_cast<float>(x1);
+
+	// If we have a value which compares equal to 0.0, return 0.0. This ensures
+	// subnormal values get flushed to zero when denormals-are-zero is enabled.
+	return (y == 0.0f) ? +0.0f : y;
 }
 
 }  // namespace sw
