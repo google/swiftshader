@@ -132,9 +132,14 @@ TEST(MathTest, Exp2Exhaustive)
 		float val = Exp2(x);
 
 		double ref = exp2((double)x);
-		float ulp = (float)ULP_32(ref, (double)val);
 
-		float tolerance = (3 + 2 * abs(x));
+		if(x == (int)x)
+		{
+			ASSERT_EQ(val, ref);
+		}
+
+		const float tolerance = (3 + 2 * abs(x));
+		float ulp = (float)ULP_32(ref, (double)val);
 		float margin = ulp / tolerance;
 
 		if(margin > worst_margin)
