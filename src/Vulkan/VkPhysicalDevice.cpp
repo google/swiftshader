@@ -388,6 +388,11 @@ static void getPhysicalDeviceSynchronization2Features(VkPhysicalDeviceSynchroniz
 	features->synchronization2 = VK_TRUE;
 }
 
+static void getPhysicalDeviceShaderIntegerDotProductFeatures(VkPhysicalDeviceShaderIntegerDotProductFeatures *features)
+{
+	features->shaderIntegerDotProduct = VK_TRUE;
+}
+
 void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 {
 	features->features = getFeatures();
@@ -509,6 +514,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES:
 			getPhysicalDeviceSynchronization2Features(reinterpret_cast<struct VkPhysicalDeviceSynchronization2Features *>(curExtension));
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES:
+			getPhysicalDeviceShaderIntegerDotProductFeatures(reinterpret_cast<struct VkPhysicalDeviceShaderIntegerDotProductFeatures *>(curExtension));
+			break;
 		// Unsupported extensions, but used by dEQP
 		// TODO(b/176893525): This may not be legal.
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
@@ -516,7 +524,6 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT:
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES_KHR:
 			break;
 		default:
 			UNSUPPORTED("curExtension->sType: %s", vk::Stringify(curExtension->sType).c_str());
@@ -1151,6 +1158,40 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceTexelBufferAlignmentPropertie
 	properties->uniformTexelBufferOffsetSingleTexelAlignment = VK_FALSE;
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceShaderIntegerDotProductProperties *properties) const
+{
+	properties->integerDotProduct8BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProduct8BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProduct8BitMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProduct4x8BitPackedUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProduct4x8BitPackedSignedAccelerated = VK_FALSE;
+	properties->integerDotProduct4x8BitPackedMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProduct16BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProduct16BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProduct16BitMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProduct32BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProduct32BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProduct32BitMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProduct64BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProduct64BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProduct64BitMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating8BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating8BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating16BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating16BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating32BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating32BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating64BitUnsignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating64BitSignedAccelerated = VK_FALSE;
+	properties->integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated = VK_FALSE;
+}
+
 template<typename T>
 static void getSamplerFilterMinmaxProperties(T *properties)
 {
@@ -1331,6 +1372,13 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceInlineUniformBloc
 
 	return CheckFeature(requested, supported, inlineUniformBlock) &&
 	       CheckFeature(requested, supported, descriptorBindingInlineUniformBlockUpdateAfterBind);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceShaderIntegerDotProductFeatures *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, shaderIntegerDotProduct);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *requested) const
