@@ -1236,6 +1236,9 @@ public:
 		}
 		else if(executionState.dynamicRendering)
 		{
+			uint32_t viewMask = executionState.dynamicRendering->getViewMask();
+			bool isMultiview = viewMask > 1;
+
 			if(attachment.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT)
 			{
 				ASSERT(attachment.colorAttachment < executionState.dynamicRendering->getColorAttachmentCount());
@@ -1248,7 +1251,14 @@ public:
 					vk::ImageView *imageView = vk::Cast(colorAttachment->imageView);
 					if(imageView)
 					{
-						imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_COLOR_BIT, rect);
+						if(isMultiview)
+						{
+							imageView->clearWithLayerMask(attachment.clearValue, VK_IMAGE_ASPECT_COLOR_BIT, rect.rect, viewMask);
+						}
+						else
+						{
+							imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_COLOR_BIT, rect);
+						}
 					}
 				}
 			}
@@ -1260,7 +1270,14 @@ public:
 				vk::ImageView *imageView = vk::Cast(depthAttachment.imageView);
 				if(imageView)
 				{
-					imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_DEPTH_BIT, rect);
+					if(isMultiview)
+					{
+						imageView->clearWithLayerMask(attachment.clearValue, VK_IMAGE_ASPECT_DEPTH_BIT, rect.rect, viewMask);
+					}
+					else
+					{
+						imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_DEPTH_BIT, rect);
+					}
 				}
 			}
 
@@ -1271,7 +1288,14 @@ public:
 				vk::ImageView *imageView = vk::Cast(stencilAttachment.imageView);
 				if(imageView)
 				{
-					imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_STENCIL_BIT, rect);
+					if(isMultiview)
+					{
+						imageView->clearWithLayerMask(attachment.clearValue, VK_IMAGE_ASPECT_STENCIL_BIT, rect.rect, viewMask);
+					}
+					else
+					{
+						imageView->clear(attachment.clearValue, VK_IMAGE_ASPECT_STENCIL_BIT, rect);
+					}
 				}
 			}
 		}
