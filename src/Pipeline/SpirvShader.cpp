@@ -483,6 +483,7 @@ SpirvShader::SpirvShader(
 				static constexpr std::pair<const char *, Extension::Name> extensionsByName[] = {
 					{ "GLSL.std.450", Extension::GLSLstd450 },
 					{ "OpenCL.DebugInfo.100", Extension::OpenCLDebugInfo100 },
+					{ "NonSemantic.", Extension::NonSemanticInfo },
 				};
 				static constexpr auto extensionCount = sizeof(extensionsByName) / sizeof(extensionsByName[0]);
 
@@ -491,7 +492,7 @@ SpirvShader::SpirvShader(
 				auto ext = Extension{ Extension::Unknown };
 				for(size_t i = 0; i < extensionCount; i++)
 				{
-					if(0 == strcmp(name, extensionsByName[i].first))
+					if(0 == strncmp(name, extensionsByName[i].first, strlen(extensionsByName[i].first)))
 					{
 						ext = Extension{ extensionsByName[i].second };
 						break;
@@ -748,6 +749,11 @@ SpirvShader::SpirvShader(
 			case Extension::OpenCLDebugInfo100:
 				DefineOpenCLDebugInfo100(insn);
 				break;
+			case Extension::NonSemanticInfo:
+				// An extended set name which is prefixed with "NonSemantic." is
+				// guaranteed to contain only non-semantic instructions and all
+				// OpExtInst instructions referencing this set can be ignored.
+				break;
 			default:
 				UNREACHABLE("Unexpected Extension name %d", int(getExtension(insn.word(3)).name));
 				break;
@@ -779,6 +785,7 @@ SpirvShader::SpirvShader(
 				if(!strcmp(ext, "SPV_KHR_multiview")) break;
 				if(!strcmp(ext, "SPV_EXT_shader_stencil_export")) break;
 				if(!strcmp(ext, "SPV_KHR_float_controls")) break;
+				if(!strcmp(ext, "SPV_KHR_non_semantic_info")) break;
 				if(!strcmp(ext, "SPV_KHR_vulkan_memory_model")) break;
 				if(!strcmp(ext, "SPV_GOOGLE_decorate_string")) break;
 				if(!strcmp(ext, "SPV_GOOGLE_hlsl_functionality1")) break;
@@ -2525,6 +2532,11 @@ SpirvShader::EmitResult SpirvShader::EmitExtendedInstruction(InsnIterator insn, 
 		return EmitExtGLSLstd450(insn, state);
 	case Extension::OpenCLDebugInfo100:
 		return EmitOpenCLDebugInfo100(insn, state);
+	case Extension::NonSemanticInfo:
+		// An extended set name which is prefixed with "NonSemantic." is
+		// guaranteed to contain only non-semantic instructions and all
+		// OpExtInst instructions referencing this set can be ignored.
+		break;
 	default:
 		UNREACHABLE("Unknown Extension::Name<%d>", int(ext.name));
 	}
