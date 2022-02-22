@@ -322,7 +322,7 @@ static void getPhysicalDeviceTextureCompressionASTCHDRFeatures(T *features)
 template<typename T>
 static void getPhysicalDeviceShaderDemoteToHelperInvocationFeatures(T *features)
 {
-	features->shaderDemoteToHelperInvocation = VK_FALSE;
+	features->shaderDemoteToHelperInvocation = VK_TRUE;
 }
 
 template<typename T>

@@ -688,6 +688,7 @@ public:
 		bool GroupNonUniformArithmetic : 1;
 		bool DeviceGroup : 1;
 		bool MultiView : 1;
+		bool DemoteToHelperInvocation : 1;
 		bool StencilExportEXT : 1;
 		bool VulkanMemoryModel : 1;
 		bool VulkanMemoryModelDeviceScope : 1;
@@ -1265,6 +1266,7 @@ private:
 
 	// Updates the current active lane mask.
 	void SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const;
+	void SetStoresAndAtomicsMask(RValue<SIMD::Int> mask, EmitState *state) const;
 
 	// Emit all the unvisited blocks (except for ignore) in DFS order,
 	// starting with id.
@@ -1308,6 +1310,8 @@ private:
 	EmitResult EmitUnreachable(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitReturn(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
+	EmitResult EmitDemoteToHelperInvocation(InsnIterator insn, EmitState *state) const;
+	EmitResult EmitIsHelperInvocation(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitFunctionCall(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitImageSample(const ImageInstruction &instruction, EmitState *state) const;
