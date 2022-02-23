@@ -826,14 +826,48 @@ UInt r11g11b10Pack(const Float4 &value)
 	return (UInt(truncBits.x) >> 20) | (UInt(truncBits.y) >> 9) | (UInt(truncBits.z) << 1);
 }
 
-rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints)
+RValue<Bool> AnyTrue(const RValue<SIMD::Int> &bools)
 {
-	return rr::SignMask(ints) != 0;
+	return SignMask(bools) != 0;
 }
 
-rr::RValue<rr::Bool> AnyFalse(rr::RValue<sw::SIMD::Int> const &ints)
+RValue<Bool> AnyFalse(const RValue<SIMD::Int> &bools)
 {
-	return rr::SignMask(~ints) != 0;
+	return SignMask(~bools) != 0;  // TODO(b/214588983): Compare against mask of SIMD::Width 1's to avoid bitwise NOT.
+}
+
+RValue<Bool> AllTrue(const RValue<SIMD::Int> &bools)
+{
+	return SignMask(~bools) == 0;  // TODO(b/214588983): Compare against mask of SIMD::Width 1's to avoid bitwise NOT.
+}
+
+RValue<Bool> AllFalse(const RValue<SIMD::Int> &bools)
+{
+	return SignMask(bools) == 0;
+}
+
+RValue<Bool> Divergent(const RValue<SIMD::Int> &ints)
+{
+	auto broadcastFirst = SIMD::Int(Extract(ints, 0));
+	return AnyTrue(CmpNEQ(broadcastFirst, ints));
+}
+
+RValue<Bool> Divergent(const RValue<SIMD::Float> &floats)
+{
+	auto broadcastFirst = SIMD::Float(Extract(floats, 0));
+	return AnyTrue(CmpNEQ(broadcastFirst, floats));
+}
+
+RValue<Bool> Uniform(const RValue<SIMD::Int> &ints)
+{
+	auto broadcastFirst = SIMD::Int(Extract(ints, 0));
+	return AllFalse(CmpNEQ(broadcastFirst, ints));
+}
+
+RValue<Bool> Uniform(const RValue<SIMD::Float> &floats)
+{
+	auto broadcastFirst = SIMD::Float(rr::Extract(floats, 0));
+	return AllFalse(CmpNEQ(broadcastFirst, floats));
 }
 
 rr::RValue<sw::SIMD::Float> Sign(rr::RValue<sw::SIMD::Float> const &val)

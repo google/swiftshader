@@ -238,9 +238,15 @@ sw::SIMD::UInt floatToHalfBits(sw::SIMD::UInt floatBits, bool storeInUpperBits);
 Float4 r11g11b10Unpack(UInt r11g11b10bits);
 UInt r11g11b10Pack(const Float4 &value);
 
-rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints);
+RValue<Bool> AnyTrue(const RValue<SIMD::Int> &bools);
+RValue<Bool> AnyFalse(const RValue<SIMD::Int> &bools);
+RValue<Bool> AllTrue(const RValue<SIMD::Int> &bools);
+RValue<Bool> AllFalse(const RValue<SIMD::Int> &bools);
 
-rr::RValue<rr::Bool> AnyFalse(rr::RValue<sw::SIMD::Int> const &ints);
+RValue<Bool> Divergent(const RValue<SIMD::Int> &ints);
+RValue<Bool> Divergent(const RValue<SIMD::Float> &floats);
+RValue<Bool> Uniform(const RValue<SIMD::Int> &ints);
+RValue<Bool> Uniform(const RValue<SIMD::Float> &floats);
 
 template<typename T>
 inline rr::RValue<T> AndAll(rr::RValue<T> const &mask);
