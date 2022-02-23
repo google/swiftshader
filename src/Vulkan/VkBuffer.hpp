@@ -28,6 +28,7 @@ public:
 	void destroy(const VkAllocationCallbacks *pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkBufferCreateInfo *pCreateInfo);
+	static const VkMemoryRequirements GetMemoryRequirements(VkDeviceSize size, VkBufferUsageFlags usage);
 
 	const VkMemoryRequirements getMemoryRequirements() const;
 	void bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset);
