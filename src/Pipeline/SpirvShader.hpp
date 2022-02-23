@@ -631,9 +631,10 @@ public:
 		bool DepthUnchanged : 1;
 
 		// Compute workgroup dimensions
-		int WorkgroupSizeX = 1;
-		int WorkgroupSizeY = 1;
-		int WorkgroupSizeZ = 1;
+		Object::ID WorkgroupSizeX = 1;
+		Object::ID WorkgroupSizeY = 1;
+		Object::ID WorkgroupSizeZ = 1;
+		bool useWorkgroupSizeId = false;
 	};
 
 	const ExecutionModes &getExecutionModes() const
@@ -878,6 +879,10 @@ public:
 	void emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, RValue<SIMD::Int> const &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
 	void emitEpilog(SpirvRoutine *routine) const;
 	void clearPhis(SpirvRoutine *routine) const;
+
+	uint32_t getWorkgroupSizeX() const;
+	uint32_t getWorkgroupSizeY() const;
+	uint32_t getWorkgroupSizeZ() const;
 
 	bool containsImageWrite() const { return imageWriteEmitted; }
 

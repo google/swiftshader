@@ -25,7 +25,7 @@ ShaderModule::ShaderModule(const VkShaderModuleCreateInfo *pCreateInfo, void *me
 {
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 	spvtools::SpirvTools spirvTools(SPIRV_VERSION);
-  spirvTools.SetMessageConsumer([](spv_message_level_t level, const char *source, const spv_position_t &position, const char *message) {
+	spirvTools.SetMessageConsumer([](spv_message_level_t level, const char *source, const spv_position_t &position, const char *message) {
 		switch(level)
 		{
 		case SPV_MSG_FATAL: sw::warn("SPIR-V FATAL: %d:%d %s\n", int(position.line), int(position.column), message);
@@ -41,6 +41,7 @@ ShaderModule::ShaderModule(const VkShaderModuleCreateInfo *pCreateInfo, void *me
 	spvtools::ValidatorOptions validatorOptions = {};
 	validatorOptions.SetScalarBlockLayout(true);            // VK_EXT_scalar_block_layout
 	validatorOptions.SetUniformBufferStandardLayout(true);  // VK_KHR_uniform_buffer_standard_layout
+	validatorOptions.SetAllowLocalSizeId(true);             // VK_KHR_maintenance4
 
 	ASSERT(spirvTools.Validate(binary.data(), binary.size(), validatorOptions));  // The SPIR-V code passed to vkCreateShaderModule must be valid (b/158228522)
 #endif

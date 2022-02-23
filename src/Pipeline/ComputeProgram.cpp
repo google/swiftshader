@@ -217,10 +217,12 @@ void ComputeProgram::run(
     uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
     uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
-	auto &executionModes = shader->getExecutionModes();
+	uint32_t workgroupSizeX = shader->getWorkgroupSizeX();
+	uint32_t workgroupSizeY = shader->getWorkgroupSizeY();
+	uint32_t workgroupSizeZ = shader->getWorkgroupSizeZ();
 
 	auto invocationsPerSubgroup = SIMD::Width;
-	auto invocationsPerWorkgroup = executionModes.WorkgroupSizeX * executionModes.WorkgroupSizeY * executionModes.WorkgroupSizeZ;
+	auto invocationsPerWorkgroup = workgroupSizeX * workgroupSizeY * workgroupSizeZ;
 	auto subgroupsPerWorkgroup = (invocationsPerWorkgroup + invocationsPerSubgroup - 1) / invocationsPerSubgroup;
 
 	Data data;
@@ -230,9 +232,9 @@ void ComputeProgram::run(
 	data.numWorkgroups[Y] = groupCountY;
 	data.numWorkgroups[Z] = groupCountZ;
 	data.numWorkgroups[3] = 0;
-	data.workgroupSize[X] = executionModes.WorkgroupSizeX;
-	data.workgroupSize[Y] = executionModes.WorkgroupSizeY;
-	data.workgroupSize[Z] = executionModes.WorkgroupSizeZ;
+	data.workgroupSize[X] = workgroupSizeX;
+	data.workgroupSize[Y] = workgroupSizeY;
+	data.workgroupSize[Z] = workgroupSizeZ;
 	data.workgroupSize[3] = 0;
 	data.invocationsPerSubgroup = invocationsPerSubgroup;
 	data.invocationsPerWorkgroup = invocationsPerWorkgroup;
@@ -273,7 +275,7 @@ void ComputeProgram::run(
 					// Make a function call per subgroup so each subgroup
 					// can yield, bringing all subgroups to the barrier
 					// together.
-					for(int subgroupIndex = 0; subgroupIndex < subgroupsPerWorkgroup; subgroupIndex++)
+					for(uint32_t subgroupIndex = 0; subgroupIndex < subgroupsPerWorkgroup; subgroupIndex++)
 					{
 						auto coroutine = (*this)(device, &data, groupX, groupY, groupZ, workgroupMemory.data(), subgroupIndex, 1);
 						coroutines.push(std::move(coroutine));

@@ -93,6 +93,7 @@ sw::SpirvBinary optimizeSpirv(const vk::PipelineCache::SpirvBinaryKey &key)
 	spvtools::ValidatorOptions validatorOptions = {};
 	validatorOptions.SetScalarBlockLayout(true);            // VK_EXT_scalar_block_layout
 	validatorOptions.SetUniformBufferStandardLayout(true);  // VK_KHR_uniform_buffer_standard_layout
+	validatorOptions.SetAllowLocalSizeId(true);             // VK_KHR_maintenance4
 	optimizerOptions.set_validator_options(validatorOptions);
 #endif
 
