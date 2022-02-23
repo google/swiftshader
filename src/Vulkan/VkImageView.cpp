@@ -209,6 +209,30 @@ void ImageView::clear(const VkClearValue &clearValue, const VkImageAspectFlags a
 	image->clear(clearValue, format, renderArea.rect, sr);
 }
 
+void ImageView::clear(const VkClearValue &clearValue, const VkImageAspectFlags aspectMask, const VkRect2D &renderArea, uint32_t layerMask)
+{
+	if(layerMask == 0)
+	{
+		clear(clearValue, aspectMask, renderArea);
+	}
+	else
+	{
+		clearWithLayerMask(clearValue, aspectMask, renderArea, layerMask);
+	}
+}
+
+void ImageView::clear(const VkClearValue &clearValue, const VkImageAspectFlags aspectMask, const VkClearRect &renderArea, uint32_t layerMask)
+{
+	if(layerMask == 0)
+	{
+		clear(clearValue, aspectMask, renderArea);
+	}
+	else
+	{
+		clearWithLayerMask(clearValue, aspectMask, renderArea.rect, layerMask);
+	}
+}
+
 void ImageView::clearWithLayerMask(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkRect2D &renderArea, uint32_t layerMask)
 {
 	while(layerMask)
@@ -221,7 +245,7 @@ void ImageView::clearWithLayerMask(const VkClearValue &clearValue, VkImageAspect
 	}
 }
 
-void ImageView::resolve(ImageView *resolveAttachment, int layer)
+void ImageView::resolveSingleLayer(ImageView *resolveAttachment, int layer)
 {
 	if((subresourceRange.levelCount != 1) || (resolveAttachment->subresourceRange.levelCount != 1))
 	{
@@ -281,13 +305,25 @@ void ImageView::resolve(ImageView *resolveAttachment)
 	image->resolveTo(resolveAttachment->image, region);
 }
 
+void ImageView::resolve(ImageView *resolveAttachment, uint32_t layerMask)
+{
+	if(layerMask == 0)
+	{
+		resolve(resolveAttachment);
+	}
+	else
+	{
+		resolveWithLayerMask(resolveAttachment, layerMask);
+	}
+}
+
 void ImageView::resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask)
 {
 	while(layerMask)
 	{
 		int layer = sw::log2i(layerMask);
 		layerMask &= ~(1 << layer);
-		resolve(resolveAttachment, layer);
+		resolveSingleLayer(resolveAttachment, layer);
 	}
 }
 

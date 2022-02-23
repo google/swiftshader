@@ -92,12 +92,9 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkImageViewCreateInfo *pCreateInfo);
 
-	void clear(const VkClearValue &clearValues, VkImageAspectFlags aspectMask, const VkRect2D &renderArea);
-	void clear(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkClearRect &renderArea);
-	void clearWithLayerMask(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkRect2D &renderArea, uint32_t layerMask);
-	void resolve(ImageView *resolveAttachment);
-	void resolve(ImageView *resolveAttachment, int layer);
-	void resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask);
+	void clear(const VkClearValue &clearValues, VkImageAspectFlags aspectMask, const VkRect2D &renderArea, uint32_t layerMask);
+	void clear(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkClearRect &renderArea, uint32_t layerMask);
+	void resolve(ImageView *resolveAttachment, uint32_t layerMask);
 	void resolveDepthStencil(ImageView *resolveAttachment, VkResolveModeFlagBits depthResolveMode, VkResolveModeFlagBits stencilResolveMode);
 
 	VkImageViewType getType() const { return viewType; }
@@ -138,6 +135,12 @@ public:
 private:
 	bool imageTypesMatch(VkImageType imageType) const;
 	const Image *getImage(Usage usage) const;
+	void clear(const VkClearValue &clearValues, VkImageAspectFlags aspectMask, const VkRect2D &renderArea);
+	void clear(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkClearRect &renderArea);
+	void clearWithLayerMask(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkRect2D &renderArea, uint32_t layerMask);
+	void resolve(ImageView *resolveAttachment);
+	void resolveSingleLayer(ImageView *resolveAttachment, int layer);
+	void resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask);
 
 	Image *const image = nullptr;
 	const VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D;

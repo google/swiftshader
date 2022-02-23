@@ -2633,7 +2633,7 @@ void SpirvShader::dbgBeginEmit(EmitState *state) const
 		case spv::ExecutionModelFragment:
 			{
 				auto fragment = globals + OFFSET(Globals, fragment);
-				store(fragment + OFFSET(Globals::Fragment, viewIndex), routine->viewID);
+				store(fragment + OFFSET(Globals::Fragment, viewIndex), routine->layer);
 				store(fragment + OFFSET(Globals::Fragment, fragCoord), routine->fragCoord);
 				store(fragment + OFFSET(Globals::Fragment, pointCoord), routine->pointCoord);
 				store(fragment + OFFSET(Globals::Fragment, windowSpacePosition), routine->windowSpacePosition);
@@ -2643,7 +2643,7 @@ void SpirvShader::dbgBeginEmit(EmitState *state) const
 		case spv::ExecutionModelVertex:
 			{
 				auto vertex = globals + OFFSET(Globals, vertex);
-				store(vertex + OFFSET(Globals::Vertex, viewIndex), routine->viewID);
+				store(vertex + OFFSET(Globals::Vertex, viewIndex), routine->layer);
 				store(vertex + OFFSET(Globals::Vertex, instanceIndex), routine->instanceID);
 				store(vertex + OFFSET(Globals::Vertex, vertexIndex), routine->vertexIndex);
 			}

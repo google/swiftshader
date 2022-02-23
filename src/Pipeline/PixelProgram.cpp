@@ -98,7 +98,7 @@ void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cM
 	routine.helperInvocation = ~maskAny(cMask, samples);
 	routine.windowSpacePosition[0] = x + SIMD::Int(0, 1, 0, 1);
 	routine.windowSpacePosition[1] = y + SIMD::Int(0, 0, 1, 1);
-	routine.viewID = *Pointer<Int>(data + OFFSET(DrawData, viewID));
+	routine.layer = *Pointer<Int>(data + OFFSET(DrawData, layer));
 
 	// PointCoord formula reference: https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#primsrast-points-basic
 	// Note we don't add a 0.5 offset to x and y here (like for fragCoord) because pointCoordX/Y have 0.5 subtracted as part of the viewport transform.
@@ -108,7 +108,7 @@ void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cM
 
 	routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
-		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(routine.viewID));
+		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(routine.layer));
 	});
 
 	routine.setInputBuiltin(spirvShader, spv::BuiltInFragCoord, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {

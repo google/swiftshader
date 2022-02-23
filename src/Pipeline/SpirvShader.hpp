@@ -1509,7 +1509,7 @@ public:
 	// Give careful consideration to the runtime performance loss before adding
 	// more state here.
 	std::array<SIMD::Int, 2> windowSpacePosition;
-	Int viewID;  // slice offset into input attachments for multiview, even if the shader doesn't use ViewIndex
+	Int layer;  // slice offset into input attachments for multiview, even if the shader doesn't use ViewIndex
 	Int instanceID;
 	SIMD::Int vertexIndex;
 	std::array<SIMD::Float, 4> fragCoord;

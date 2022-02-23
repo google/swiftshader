@@ -80,7 +80,7 @@ public:
 
 	uint32_t getViewMask(uint32_t subpassIndex) const
 	{
-		return viewMasks ? viewMasks[subpassIndex] : 1;
+		return viewMasks ? viewMasks[subpassIndex] : 0;
 	}
 
 	bool isMultiView() const

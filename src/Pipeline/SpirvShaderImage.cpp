@@ -684,7 +684,7 @@ SIMD::Pointer SpirvShader::GetTexelAddress(ImageInstructionSignature instruction
 	if(dim == spv::DimSubpassData)
 	{
 		// Multiview input attachment access is to the layer corresponding to the current view
-		ptrOffset += SIMD::Int(state->routine->viewID) * slicePitch;
+		ptrOffset += SIMD::Int(state->routine->layer) * slicePitch;
 	}
 
 	if(instruction.sample)

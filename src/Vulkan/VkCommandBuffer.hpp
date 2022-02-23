@@ -53,7 +53,7 @@ struct DynamicRendering
 	void getAttachments(Attachments *attachments) const;
 	VkRect2D getRenderArea() const { return renderArea; }
 	uint32_t getLayerCount() const { return layerCount; }
-	uint32_t getViewMask() const { return (viewMask > 0) ? viewMask : 1; }
+	uint32_t getViewMask() const { return viewMask; }
 	uint32_t getColorAttachmentCount() const { return colorAttachmentCount; }
 	const VkRenderingAttachmentInfo *getColorAttachment(uint32_t i) const
 	{
@@ -214,7 +214,7 @@ public:
 		void bindAttachments(Attachments *attachments);
 
 		VkRect2D getRenderArea() const;
-		uint32_t getViewMask() const;
+		uint32_t getLayerMask() const;
 		uint32_t viewCount() const;
 	};
 
