@@ -1087,9 +1087,7 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEX
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *properties) const
 {
-	// Note: advancedBlendMaxColorAttachments could already support sw::MAX_COLOR_BUFFERS as is,
-	//       but using a value of 1 is enough for ANGLE to implement GL_KHR_blend_equation_advanced
-	properties->advancedBlendMaxColorAttachments = 1;
+	properties->advancedBlendMaxColorAttachments = sw::MAX_COLOR_BUFFERS;
 	properties->advancedBlendIndependentBlend = VK_FALSE;
 	properties->advancedBlendNonPremultipliedSrcColor = VK_FALSE;
 	properties->advancedBlendNonPremultipliedDstColor = VK_FALSE;
