@@ -3346,33 +3346,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const 
 		extInfo = extInfo->pNext;
 	}
 
-	VkBaseOutStructure *extensionRequirements = reinterpret_cast<VkBaseOutStructure *>(pMemoryRequirements->pNext);
-	while(extensionRequirements)
-	{
-		switch(extensionRequirements->sType)
-		{
-		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
-			{
-				auto requirements = reinterpret_cast<VkMemoryDedicatedRequirements *>(extensionRequirements);
-				vk::Cast(device)->getRequirements(requirements);
-#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
-				if(vk::Cast(pInfo->image)->getSupportedExternalMemoryHandleTypes() == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
-				{
-					requirements->prefersDedicatedAllocation = VK_TRUE;
-					requirements->requiresDedicatedAllocation = VK_TRUE;
-				}
-#endif
-			}
-			break;
-		default:
-			UNSUPPORTED("pMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
-			break;
-		}
-
-		extensionRequirements = extensionRequirements->pNext;
-	}
-
-	vkGetImageMemoryRequirements(device, pInfo->image, &(pMemoryRequirements->memoryRequirements));
+	vk::Cast(pInfo->image)->getMemoryRequirements(pMemoryRequirements);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements2(VkDevice device, const VkBufferMemoryRequirementsInfo2 *pInfo, VkMemoryRequirements2 *pMemoryRequirements)

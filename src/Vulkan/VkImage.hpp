@@ -56,6 +56,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkImageCreateInfo *pCreateInfo);
 
 	const VkMemoryRequirements getMemoryRequirements() const;
+	void getMemoryRequirements(VkMemoryRequirements2 *pMemoryRequirements) const;
 	size_t getSizeInBytes(const VkImageSubresourceRange &subresourceRange) const;
 	void getSubresourceLayout(const VkImageSubresource *pSubresource, VkSubresourceLayout *pLayout) const;
 	void bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset);

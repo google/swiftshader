@@ -232,6 +232,37 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	return memoryRequirements;
 }
 
+void Image::getMemoryRequirements(VkMemoryRequirements2* pMemoryRequirements) const
+{
+	VkBaseOutStructure* extensionRequirements = reinterpret_cast<VkBaseOutStructure*>(pMemoryRequirements->pNext);
+	while(extensionRequirements)
+	{
+		switch(extensionRequirements->sType)
+		{
+		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
+		{
+			auto requirements = reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
+			device->getRequirements(requirements);
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+			if(getSupportedExternalMemoryHandleTypes() == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
+			{
+				requirements->prefersDedicatedAllocation = VK_TRUE;
+				requirements->requiresDedicatedAllocation = VK_TRUE;
+			}
+#endif
+		}
+		break;
+		default:
+			UNSUPPORTED("pMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
+			break;
+		}
+
+		extensionRequirements = extensionRequirements->pNext;
+	}
+
+	pMemoryRequirements->memoryRequirements = getMemoryRequirements();
+}
+
 size_t Image::getSizeInBytes(const VkImageSubresourceRange &subresourceRange) const
 {
 	size_t size = 0;
