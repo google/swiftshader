@@ -107,7 +107,6 @@ void IndexBuffer::setIndexBufferBinding(const VertexInputBinding &indexBufferBin
 
 void IndexBuffer::getIndexBuffers(VkPrimitiveTopology topology, uint32_t count, uint32_t first, bool indexed, bool hasPrimitiveRestartEnable, std::vector<std::pair<uint32_t, void *>> *indexBuffers) const
 {
-
 	if(indexed)
 	{
 		void *indexBuffer = binding.buffer->getOffsetPointer(binding.offset + first * bytesPerIndex());

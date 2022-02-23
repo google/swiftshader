@@ -34,6 +34,7 @@ set(REACTOR_SRC_FILES
     ReactorDebugInfo.cpp
     ReactorDebugInfo.hpp
     Routine.hpp
+    Swizzle.hpp
 )
 
 set(SUBZERO_SRC_FILES
