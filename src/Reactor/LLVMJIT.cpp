@@ -155,8 +155,10 @@ JITGlobals *JITGlobals::get()
 #else
 		// TODO(b/191193823): TODO(ndesaulniers): Update this after
 		// go/compilers/fc018ebb608ee0c1239b405460e49f1835ab6175
-#	if LLVM_VERSION_MAJOR < 9999
-#		error Implement stack size checks using the "warn-stack-size" function attribute.
+#	if LLVM_VERSION_MAJOR <= 15
+		// Resolve TODO
+#	elif LLVM_VERSION_MAJOR < 9999
+#		warning Implement stack size checks using the "warn-stack-size" function attribute.
 #	endif
 #endif
 		};

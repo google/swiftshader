@@ -177,7 +177,7 @@ set_if_not_defined(SWIFTSHADER_BUILD_CPPDAP ${SWIFTSHADER_ENABLE_VULKAN_DEBUGGER
 
 set(DEFAULT_REACTOR_BACKEND "LLVM")
 set(REACTOR_BACKEND ${DEFAULT_REACTOR_BACKEND} CACHE STRING "JIT compiler back-end used by Reactor")
-set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
+set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM LLVM-Submodule Subzero)
 
 set(DEFAULT_SWIFTSHADER_LLVM_VERSION "10.0")
 set(SWIFTSHADER_LLVM_VERSION ${DEFAULT_SWIFTSHADER_LLVM_VERSION} CACHE STRING "LLVM version to use")
@@ -261,6 +261,10 @@ endif()
 if(SWIFTSHADER_BUILD_CPPDAP)
     InitSubmodule(json ${THIRD_PARTY_DIR}/json)
     InitSubmodule(cppdap ${THIRD_PARTY_DIR}/cppdap)
+endif()
+
+if(${REACTOR_BACKEND} STREQUAL "LLVM-Submodule")
+    InitSubmodule(llvm-submodule ${THIRD_PARTY_DIR}/llvm-project)
 endif()
 
 ###########################################################
@@ -646,6 +650,27 @@ add_subdirectory(${THIRD_PARTY_DIR}/llvm-${SWIFTSHADER_LLVM_VERSION} EXCLUDE_FRO
 set_target_properties(llvm PROPERTIES FOLDER "third_party")
 
 ###########################################################
+# LLVM-Submodule
+###########################################################
+if(${REACTOR_BACKEND} STREQUAL "LLVM-Submodule")
+    set(LLVM_INCLUDE_TESTS FALSE)
+    set(LLVM_ENABLE_RTTI TRUE)
+    add_subdirectory(${THIRD_PARTY_DIR}/llvm-project/llvm EXCLUDE_FROM_ALL)
+    if(ARCH STREQUAL "aarch64")
+        llvm_map_components_to_libnames(llvm_libs orcjit aarch64asmparser aarch64codegen)
+    elseif(ARCH STREQUAL "arm")
+        llvm_map_components_to_libnames(llvm_libs orcjit armasmparser armcodegen)
+    elseif(ARCH MATCHES "mips*")
+        llvm_map_components_to_libnames(llvm_libs orcjit mipsasmparser mipscodegen)
+    elseif(ARCH STREQUAL "ppc64le")
+        llvm_map_components_to_libnames(llvm_libs orcjit powerpcasmparser powerpccodegen)
+    elseif(ARCH MATCHES "x86*")
+        llvm_map_components_to_libnames(llvm_libs orcjit x86asmparser x86codegen)
+    endif()
+    set_target_properties(${llvm_libs} PROPERTIES FOLDER "third_party")
+endif()
+
+###########################################################
 # Subzero
 ###########################################################
 add_subdirectory(${THIRD_PARTY_DIR}/llvm-subzero EXCLUDE_FROM_ALL)
@@ -739,10 +764,12 @@ add_subdirectory(src/Reactor) # Add ReactorSubzero and ReactorLLVM targets
 
 if(${REACTOR_BACKEND} STREQUAL "LLVM")
     add_library(Reactor ALIAS ReactorLLVM)
+elseif(${REACTOR_BACKEND} STREQUAL "LLVM-Submodule")
+    add_library(Reactor ALIAS ReactorLLVMSubmodule)
 elseif(${REACTOR_BACKEND} STREQUAL "Subzero")
     add_library(Reactor ALIAS ReactorSubzero)
 else()
-    message(FATAL_ERROR "REACTOR_BACKEND must be 'LLVM' or 'Subzero'")
+    message(FATAL_ERROR "REACTOR_BACKEND must be 'LLVM', 'LLVM-Submodule' or 'Subzero'")
 endif()
 
 if (NOT TARGET SPIRV-Tools)
