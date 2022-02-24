@@ -8,6 +8,7 @@ dEQP-VK.binding_model.descriptorset_random.sets4.constant.ubolimitlow.sbolimitlo
 dEQP-VK.binding_model.descriptorset_random.sets4.dynindexed.noubo.nosbo.nosampledimg.lowimgnotex.iublimitlow.nouab.comp.noia.0
 dEQP-VK.binding_model.descriptorset_random.sets4.dynindexed.noubo.nosbo.nosampledimg.lowimgnotex.iublimitlow.nouab.frag.noia.0
 dEQP-VK.binding_model.descriptorset_random.sets4.dynindexed.noubo.nosbo.nosampledimg.lowimgnotex.iublimitlow.nouab.vert.noia.0
+dEQP-VK.binding_model.descriptorset_random.sets4.dynindexed.noubo.nosbo.nosampledimg.lowimgnotex.iublimitlow.uab.comp.noia.0
 dEQP-VK.binding_model.descriptorset_random.sets4.dynindexed.noubo.nosbo.nosampledimg.lowimgnotex.iublimitlow.uab.frag.noia.0
 dEQP-VK.binding_model.descriptorset_random.sets4.dynindexed.noubo.nosbo.nosampledimg.lowimgnotex.iublimitlow.uab.vert.noia.0
 dEQP-VK.binding_model.descriptorset_random.sets4.dynindexed.noubo.nosbo.nosampledimg.outimgonly.iublimitlow.nouab.comp.noia.0
