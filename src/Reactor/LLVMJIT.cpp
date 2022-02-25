@@ -646,12 +646,13 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 // As we must support different LLVM versions, add a generic Unwrap for functions that return Expected<T> or the actual T.
 // TODO(b/165000222): Remove after LLVM 11 upgrade
 template<typename T>
-auto &Unwrap(llvm::Expected<T> &&v)
+T &Unwrap(llvm::Expected<T> &&v)
 {
+	assert(v);
 	return v.get();
 }
 template<typename T>
-auto &Unwrap(T &&v)
+T &Unwrap(T &&v)
 {
 	return v;
 }
@@ -705,7 +706,7 @@ public:
 	    const rr::Config &config)
 	    : name(name)
 #if LLVM_VERSION_MAJOR >= 13
-	    , session(std::move(*llvm::orc::SelfExecutorProcessControl::Create()))
+	    , session(std::move(Unwrap(llvm::orc::SelfExecutorProcessControl::Create())))
 #endif
 	    , objectLayer(session, [this]() {
 		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
