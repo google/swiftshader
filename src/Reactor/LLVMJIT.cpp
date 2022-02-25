@@ -152,14 +152,6 @@ JITGlobals *JITGlobals::get()
 #endif
 #if LLVM_VERSION_MAJOR <= 12
 			"-warn-stack-size=524288"  // Warn when a function uses more than 512 KiB of stack memory
-#else
-		// TODO(b/191193823): TODO(ndesaulniers): Update this after
-		// go/compilers/fc018ebb608ee0c1239b405460e49f1835ab6175
-#	if LLVM_VERSION_MAJOR <= 15
-		// Resolve TODO
-#	elif LLVM_VERSION_MAJOR < 9999
-#		warning Implement stack size checks using the "warn-stack-size" function attribute.
-#	endif
 #endif
 		};
 
@@ -744,7 +736,7 @@ public:
 
 		for(size_t i = 0; i < count; i++)
 		{
-			auto func = funcs[i];
+			llvm::Function *func = funcs[i];
 
 			if(!func->hasName())
 			{

@@ -524,6 +524,8 @@ static llvm::Function *createFunction(const char *name, llvm::Type *retTy, const
 		func->addFnAttr(llvm::Attribute::SanitizeMemory);
 	}
 
+	func->addFnAttr("warn-stack-size", "524288");  // Warn when a function uses more than 512 KiB of stack memory
+
 	return func;
 }
 
