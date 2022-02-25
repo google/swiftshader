@@ -232,26 +232,26 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	return memoryRequirements;
 }
 
-void Image::getMemoryRequirements(VkMemoryRequirements2* pMemoryRequirements) const
+void Image::getMemoryRequirements(VkMemoryRequirements2 *pMemoryRequirements) const
 {
-	VkBaseOutStructure* extensionRequirements = reinterpret_cast<VkBaseOutStructure*>(pMemoryRequirements->pNext);
+	VkBaseOutStructure *extensionRequirements = reinterpret_cast<VkBaseOutStructure *>(pMemoryRequirements->pNext);
 	while(extensionRequirements)
 	{
 		switch(extensionRequirements->sType)
 		{
 		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
-		{
-			auto requirements = reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
-			device->getRequirements(requirements);
-#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
-			if(getSupportedExternalMemoryHandleTypes() == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
 			{
-				requirements->prefersDedicatedAllocation = VK_TRUE;
-				requirements->requiresDedicatedAllocation = VK_TRUE;
-			}
+				auto requirements = reinterpret_cast<VkMemoryDedicatedRequirements *>(extensionRequirements);
+				device->getRequirements(requirements);
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+				if(getSupportedExternalMemoryHandleTypes() == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
+				{
+					requirements->prefersDedicatedAllocation = VK_TRUE;
+					requirements->requiresDedicatedAllocation = VK_TRUE;
+				}
 #endif
-		}
-		break;
+			}
+			break;
 		default:
 			UNSUPPORTED("pMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
 			break;
@@ -385,7 +385,7 @@ void Image::getSubresourceLayout(const VkImageSubresource *pSubresource, VkSubre
 	}
 
 	auto aspect = static_cast<VkImageAspectFlagBits>(pSubresource->aspectMask);
-	pLayout->offset = getMemoryOffset(aspect, pSubresource->mipLevel, pSubresource->arrayLayer);
+	pLayout->offset = getSubresourceOffset(aspect, pSubresource->mipLevel, pSubresource->arrayLayer);
 	pLayout->size = getMultiSampledLevelSize(aspect, pSubresource->mipLevel);
 	pLayout->rowPitch = rowPitchBytes(aspect, pSubresource->mipLevel);
 	pLayout->depthPitch = slicePitchBytes(aspect, pSubresource->mipLevel);
@@ -726,7 +726,7 @@ void *Image::getTexelPointer(const VkOffset3D &offset, const VkImageSubresource 
 {
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 	return deviceMemory->getOffsetPointer(texelOffsetBytesInStorage(offset, subresource) +
-	                                      getMemoryOffset(aspect, subresource.mipLevel, subresource.arrayLayer));
+	                                      getSubresourceOffset(aspect, subresource.mipLevel, subresource.arrayLayer));
 }
 
 VkExtent3D Image::imageExtentInBlocks(const VkExtent3D &extent, VkImageAspectFlagBits aspect) const
@@ -912,7 +912,7 @@ uint8_t *Image::end() const
 	return reinterpret_cast<uint8_t *>(deviceMemory->getOffsetPointer(deviceMemory->getCommittedMemoryInBytes() + 1));
 }
 
-VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
+VkDeviceSize Image::getAspectOffset(VkImageAspectFlagBits aspect) const
 {
 	if(deviceMemory && deviceMemory->hasExternalImageProperties())
 	{
@@ -957,19 +957,15 @@ VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
 	return memoryOffset;
 }
 
-VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
+VkDeviceSize Image::getSubresourceOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
 {
-	VkDeviceSize offset = getMemoryOffset(aspect);
-	for(uint32_t i = 0; i < mipLevel; ++i)
+	VkDeviceSize mipmapOffset = getAspectOffset(aspect);
+	for(uint32_t i = 0; i < mipLevel; i++)
 	{
-		offset += getMultiSampledLevelSize(aspect, i);
+		mipmapOffset += getMultiSampledLevelSize(aspect, i);
 	}
-	return offset;
-}
 
-VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
-{
-	return layer * getLayerOffset(aspect, mipLevel) + getMemoryOffset(aspect, mipLevel);
+	return layer * getLayerOffset(aspect, mipLevel) + mipmapOffset;
 }
 
 VkDeviceSize Image::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
