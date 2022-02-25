@@ -725,7 +725,8 @@ void Image::copyFrom(Buffer *srcBuffer, const VkBufferImageCopy2KHR &region)
 void *Image::getTexelPointer(const VkOffset3D &offset, const VkImageSubresource &subresource) const
 {
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
-	return deviceMemory->getOffsetPointer(texelOffsetBytesInStorage(offset, subresource) +
+	return deviceMemory->getOffsetPointer(getMemoryOffset(aspect) +
+	                                      texelOffsetBytesInStorage(offset, subresource) +
 	                                      getSubresourceOffset(aspect, subresource.mipLevel, subresource.arrayLayer));
 }
 
@@ -912,13 +913,18 @@ uint8_t *Image::end() const
 	return reinterpret_cast<uint8_t *>(deviceMemory->getOffsetPointer(deviceMemory->getCommittedMemoryInBytes() + 1));
 }
 
-VkDeviceSize Image::getAspectOffset(VkImageAspectFlagBits aspect) const
+VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
 {
 	if(deviceMemory && deviceMemory->hasExternalImageProperties())
 	{
 		return deviceMemory->externalImageMemoryOffset(aspect);
 	}
 
+	return memoryOffset;
+}
+
+VkDeviceSize Image::getAspectOffset(VkImageAspectFlagBits aspect) const
+{
 	switch(format)
 	{
 	case VK_FORMAT_D16_UNORM_S8_UINT:
@@ -927,26 +933,26 @@ VkDeviceSize Image::getAspectOffset(VkImageAspectFlagBits aspect) const
 		if(aspect == VK_IMAGE_ASPECT_STENCIL_BIT)
 		{
 			// Offset by depth buffer to get to stencil buffer
-			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
+			return getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
 		}
 		break;
 
 	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 		if(aspect == VK_IMAGE_ASPECT_PLANE_2_BIT)
 		{
-			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_1_BIT) + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
+			return getStorageSize(VK_IMAGE_ASPECT_PLANE_1_BIT) + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
 		}
 		// Fall through to 2PLANE case:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 		if(aspect == VK_IMAGE_ASPECT_PLANE_1_BIT)
 		{
-			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
+			return getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
 		}
 		else
 		{
 			ASSERT(aspect == VK_IMAGE_ASPECT_PLANE_0_BIT);
 
-			return memoryOffset;
+			return 0;
 		}
 		break;
 
@@ -954,18 +960,22 @@ VkDeviceSize Image::getAspectOffset(VkImageAspectFlagBits aspect) const
 		break;
 	}
 
-	return memoryOffset;
+	return 0;
 }
 
 VkDeviceSize Image::getSubresourceOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
 {
-	VkDeviceSize mipmapOffset = getAspectOffset(aspect);
+	// "If the image is disjoint, then the offset is relative to the base address of the plane.
+	//  If the image is non-disjoint, then the offset is relative to the base address of the image."
+	bool disjoint = flags & VK_IMAGE_CREATE_DISJOINT_BIT;
+	VkDeviceSize offset = !disjoint ? getAspectOffset(aspect) : 0;
+
 	for(uint32_t i = 0; i < mipLevel; i++)
 	{
-		mipmapOffset += getMultiSampledLevelSize(aspect, i);
+		offset += getMultiSampledLevelSize(aspect, i);
 	}
 
-	return layer * getLayerOffset(aspect, mipLevel) + mipmapOffset;
+	return offset + layer * getLayerOffset(aspect, mipLevel);
 }
 
 VkDeviceSize Image::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const

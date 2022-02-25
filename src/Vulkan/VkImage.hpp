@@ -125,6 +125,7 @@ private:
 	VkDeviceSize getStorageSize(VkImageAspectFlags flags) const;
 	VkDeviceSize getMultiSampledLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	VkDeviceSize getLayerOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
+	VkDeviceSize getMemoryOffset(VkImageAspectFlagBits aspect) const;
 	VkDeviceSize getAspectOffset(VkImageAspectFlagBits aspect) const;
 	VkDeviceSize getSubresourceOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const;
 	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D &offset, const VkImageSubresource &subresource) const;
