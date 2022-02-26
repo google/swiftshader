@@ -298,8 +298,6 @@ dEQP-VK.image.format_reinterpret.cube_array.r8g8b8a8_snorm_b10g11r11_ufloat_pack
 dEQP-VK.image.format_reinterpret.cube_array.r8g8b8a8_snorm_r16g16_sfloat
 dEQP-VK.image.format_reinterpret.cube_array.r8g8b8a8_uint_b10g11r11_ufloat_pack32
 dEQP-VK.image.format_reinterpret.cube_array.r8g8b8a8_uint_r16g16_sfloat
-dEQP-VK.multiview.dynamic_rendering.readback_implicit_clear.15_15_15_15
-dEQP-VK.multiview.dynamic_rendering.readback_implicit_clear.8_1_1_8
 dEQP-VK.pipeline.multisample_interpolation.reinterpolation_consistency.interpolate_at_centroid
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r16g16_snorm
