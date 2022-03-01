@@ -362,7 +362,7 @@ Float4 Exp2(RValue<Float4> x)
 	Float4 d = As<Float4>(Int4(0x3E75EDB7));  // 2.4016463e-1f
 	Float4 e = As<Float4>(Int4(0x3F31725D));  // 6.9315127e-1f
 
-	Float4 ff = ((((a * f + b) * f + c) * f + d) * f + e) * f + Float4(1.0f);
+	Float4 ff = MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(a, f, b), f, c), f, d), f, e), f, 1.0f);
 
 	return ii * ff;
 }
