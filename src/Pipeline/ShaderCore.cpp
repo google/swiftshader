@@ -182,7 +182,7 @@ static Float4 Sin5(Float4 x)
 
 	Float4 x2 = x * x;
 
-	return ((A * x2 + B) * x2 + C) * x;
+	return MulAdd(MulAdd(A, x2, B), x2, C) * x;
 }
 
 Float4 Sin(RValue<Float4> x)
