@@ -394,14 +394,12 @@ Float4 Log2(RValue<Float4> x)
 
 Float4 Exp(RValue<Float4> x)
 {
-	// TODO: Propagate the constant
-	return sw::Exp2(Float4(1.44269504f) * x);  // 1/ln(2)
+	return sw::Exp2(1.44269504f * x);  // 1/ln(2)
 }
 
 Float4 Log(RValue<Float4> x)
 {
-	// TODO: Propagate the constant
-	return Float4(6.93147181e-1f) * sw::Log2(x);  // ln(2)
+	return 6.93147181e-1f * sw::Log2(x);  // ln(2)
 }
 
 Float4 Pow(RValue<Float4> x, RValue<Float4> y)
