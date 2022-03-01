@@ -191,7 +191,7 @@ Float4 Sin(RValue<Float4> x)
 	const Float4 pi2 = 1 / (2 * 3.1415926535f);
 
 	// Range reduction and mirroring
-	Float4 x_2 = q - x * pi2;
+	Float4 x_2 = MulAdd(x, -pi2, q);
 	Float4 z = q - Abs(x_2 - Round(x_2));
 
 	return Sin5(z);
