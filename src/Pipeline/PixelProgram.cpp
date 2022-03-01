@@ -96,8 +96,8 @@ void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cM
 
 	routine.invocationsPerSubgroup = SIMD::Width;
 	routine.helperInvocation = ~maskAny(cMask, samples);
-	routine.windowSpacePosition[0] = x + SIMD::Int(0, 1, 0, 1);
-	routine.windowSpacePosition[1] = y + SIMD::Int(0, 0, 1, 1);
+	routine.windowSpacePosition[0] = SIMD::Int(x) + SIMD::Int(0, 1, 0, 1);
+	routine.windowSpacePosition[1] = SIMD::Int(y) + SIMD::Int(0, 0, 1, 1);
 	routine.layer = *Pointer<Int>(data + OFFSET(DrawData, layer));
 
 	// PointCoord formula reference: https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#primsrast-points-basic

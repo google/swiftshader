@@ -22,6 +22,7 @@
 #include "Traits.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <limits>
@@ -244,55 +245,79 @@ private:
 template<class T>
 struct BoolLiteral
 {
-	struct type;
+	struct Type;
 };
 
 template<>
 struct BoolLiteral<Bool>
 {
-	typedef bool type;
+	using Type = bool;
 };
 
 template<class T>
 struct IntLiteral
 {
-	struct type;
+	struct Type;
 };
 
 template<>
 struct IntLiteral<Int>
 {
-	typedef int type;
+	using Type = int;
 };
 
 template<>
 struct IntLiteral<UInt>
 {
-	typedef unsigned int type;
+	using Type = unsigned int;
 };
 
 template<class T>
 struct LongLiteral
 {
-	struct type;
+	struct Type;
 };
 
 template<>
 struct LongLiteral<Long>
 {
-	typedef int64_t type;
+	using Type = int64_t;
 };
 
 template<class T>
 struct FloatLiteral
 {
-	struct type;
+	struct Type;
 };
 
 template<>
 struct FloatLiteral<Float>
 {
-	typedef float type;
+	using Type = float;
+};
+
+template<class T>
+struct BroadcastLiteral
+{
+	struct Type;
+};
+
+template<>
+struct BroadcastLiteral<Int4>
+{
+	using Type = int;
+};
+
+template<>
+struct BroadcastLiteral<UInt4>
+{
+	using Type = unsigned int;
+};
+
+template<>
+struct BroadcastLiteral<Float4>
+{
+	using Type = float;
 };
 
 template<class T>
@@ -305,10 +330,11 @@ public:
 
 	RValue(const RValue<T> &rvalue);
 	RValue(const T &lvalue);
-	RValue(typename BoolLiteral<T>::type i);
-	RValue(typename IntLiteral<T>::type i);
-	RValue(typename LongLiteral<T>::type i);
-	RValue(typename FloatLiteral<T>::type f);
+	RValue(typename BoolLiteral<T>::Type b);
+	RValue(typename IntLiteral<T>::Type i);
+	RValue(typename LongLiteral<T>::Type i);
+	RValue(typename FloatLiteral<T>::Type f);
+	RValue(typename BroadcastLiteral<T>::Type x);
 	RValue(const Reference<T> &rhs);
 
 	// Rvalues cannot be assigned to: "(a + b) = c;"
@@ -1559,16 +1585,6 @@ RValue<Int4> operator~(RValue<Int4> val);
 //	RValue<Bool> operator!=(RValue<Int4> lhs, RValue<Int4> rhs);
 //	RValue<Bool> operator==(RValue<Int4> lhs, RValue<Int4> rhs);
 
-inline RValue<Int4> operator+(RValue<Int> lhs, RValue<Int4> rhs)
-{
-	return Int4(lhs) + rhs;
-}
-
-inline RValue<Int4> operator+(RValue<Int4> lhs, RValue<Int> rhs)
-{
-	return lhs + Int4(rhs);
-}
-
 RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> CmpLT(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y);
@@ -2346,30 +2362,72 @@ RValue<T>::RValue(const T &lvalue)
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
-template<class T>
-RValue<T>::RValue(typename BoolLiteral<T>::type i)
-    : val(Nucleus::createConstantBool(i))
+template<>
+inline RValue<Bool>::RValue(bool b)
+    : val(Nucleus::createConstantBool(b))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
 template<class T>
-RValue<T>::RValue(typename IntLiteral<T>::type i)
+RValue<T>::RValue(typename IntLiteral<T>::Type i)
     : val(Nucleus::createConstantInt(i))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
-template<class T>
-RValue<T>::RValue(typename LongLiteral<T>::type i)
+template<>
+inline RValue<Long>::RValue(int64_t i)
     : val(Nucleus::createConstantLong(i))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
-template<class T>
-RValue<T>::RValue(typename FloatLiteral<T>::type f)
+template<>
+inline RValue<Float>::RValue(float f)
     : val(Nucleus::createConstantFloat(f))
+{
+	RR_DEBUG_INFO_EMIT_VAR(val);
+}
+
+inline Value *broadcastInt4(int i)
+{
+	int64_t constantVector[4] = { i, i, i, i };
+	return Nucleus::createConstantVector(constantVector, Int4::type());
+}
+
+template<>
+inline RValue<Int4>::RValue(int i)
+    : val(broadcastInt4(i))
+{
+	RR_DEBUG_INFO_EMIT_VAR(val);
+}
+
+inline Value *broadcastUInt4(unsigned int i)
+{
+	int64_t constantVector[4] = { i, i, i, i };
+	return Nucleus::createConstantVector(constantVector, UInt4::type());
+}
+
+template<>
+inline RValue<UInt4>::RValue(unsigned int i)
+    : val(broadcastInt4(i))
+{
+	RR_DEBUG_INFO_EMIT_VAR(val);
+}
+
+inline Value *broadcastFloat4(float f)
+{
+	// See Float(float) constructor for the rationale behind this assert.
+	assert(std::isfinite(f));
+
+	double constantVector[4] = { f, f, f, f };
+	return Nucleus::createConstantVector(constantVector, Float4::type());
+}
+
+template<>
+inline RValue<Float4>::RValue(float f)
+    : val(broadcastFloat4(f))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
