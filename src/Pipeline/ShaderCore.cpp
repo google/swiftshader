@@ -379,11 +379,11 @@ Float4 Log2(RValue<Float4> x)
 	x1 = As<Float4>(As<Int4>(x0) & Int4(0x7F800000));
 	x1 = As<Float4>(As<UInt4>(x1) >> 8);
 	x1 = As<Float4>(As<Int4>(x1) | As<Int4>(Float4(1.0f)));
-	x1 = (x1 - Float4(1.4960938f)) * Float4(256.0f);  // FIXME: (x1 - 1.4960938f) * 256.0f;
+	x1 = (x1 - 1.4960938f) * 256.0f;
 	x0 = As<Float4>((As<Int4>(x0) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
 
-	x2 = (Float4(9.5428179e-2f) * x0 + Float4(4.7779095e-1f)) * x0 + Float4(1.9782813e-1f);
-	x3 = ((Float4(1.6618466e-2f) * x0 + Float4(2.0350508e-1f)) * x0 + Float4(2.7382900e-1f)) * x0 + Float4(4.0496687e-2f);
+	x2 = MulAdd(MulAdd(9.5428179e-2f, x0, 4.7779095e-1f), x0, 1.9782813e-1f);
+	x3 = MulAdd(MulAdd(MulAdd(1.6618466e-2f, x0, 2.0350508e-1f), x0, 2.7382900e-1f), x0, 4.0496687e-2f);
 	x2 /= x3;
 
 	x1 += (x0 - Float4(1.0f)) * x2;
