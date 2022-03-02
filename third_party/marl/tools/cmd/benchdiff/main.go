@@ -27,7 +27,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"../../bench"
+	"github.com/google/marl/tools/bench"
 )
 
 var (

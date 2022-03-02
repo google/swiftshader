@@ -110,7 +110,7 @@ class Scheduler {
   void bind();
 
   // unbind() unbinds the scheduler currently bound to the current thread.
-  // There must be a existing scheduler bound to the thread prior to calling.
+  // There must be an existing scheduler bound to the thread prior to calling.
   // unbind() flushes any enqueued tasks on the single-threaded worker before
   // returning.
   MARL_EXPORT
@@ -120,7 +120,7 @@ class Scheduler {
   MARL_EXPORT
   void enqueue(Task&& task);
 
-  // config() returns the Config that was used to build the schededuler.
+  // config() returns the Config that was used to build the scheduler.
   MARL_EXPORT
   const Config& config() const;
 
@@ -250,7 +250,7 @@ class Scheduler {
     void switchTo(Fiber*);
 
     // create() constructs and returns a new fiber with the given identifier,
-    // stack size that will executed func when switched to.
+    // stack size and func that will be executed when switched to.
     static Allocator::unique_ptr<Fiber> create(
         Allocator* allocator,
         uint32_t id,
@@ -321,7 +321,7 @@ class Scheduler {
   using FiberQueue = containers::deque<Fiber*>;
   using FiberSet = containers::unordered_set<Fiber*>;
 
-  // Workers executes Tasks on a single thread.
+  // Workers execute Tasks on a single thread.
   // Once a task is started, it may yield to other tasks on the same Worker.
   // Tasks are always resumed by the same Worker.
   class Worker {
@@ -356,7 +356,7 @@ class Scheduler {
     MARL_EXPORT
     bool wait(const TimePoint* timeout) EXCLUDES(work.mutex);
 
-    // suspend() suspends the currenetly executing Fiber until the fiber is
+    // suspend() suspends the currently executing Fiber until the fiber is
     // woken with a call to enqueue(Fiber*), or automatically sometime after the
     // optional timeout.
     void suspend(const TimePoint* timeout) REQUIRES(work.mutex);
@@ -367,7 +367,7 @@ class Scheduler {
     // enqueue(Task&&) enqueues a new, unstarted task.
     void enqueue(Task&& task) EXCLUDES(work.mutex);
 
-    // tryLock() attempts to lock the worker for task enqueing.
+    // tryLock() attempts to lock the worker for task enqueuing.
     // If the lock was successful then true is returned, and the caller must
     // call enqueueAndUnlock().
     bool tryLock() EXCLUDES(work.mutex) TRY_ACQUIRE(true, work.mutex);

@@ -83,7 +83,7 @@ class Thread {
           Affinity&& affinity,
           Allocator* allocator = Allocator::Default);
 
-      // get() returns the thread Affinity for the for the given thread by id.
+      // get() returns the thread Affinity for the given thread by id.
       MARL_EXPORT virtual Affinity get(uint32_t threadId,
                                        Allocator* allocator) const = 0;
     };

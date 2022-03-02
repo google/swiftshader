@@ -161,11 +161,13 @@ if(NOT MSVC)
         ${MARL_SRC_DIR}/osfiber_asm_mips64.S
         ${MARL_SRC_DIR}/osfiber_asm_ppc64.S
         ${MARL_SRC_DIR}/osfiber_asm_rv64.S
+	${MARL_SRC_DIR}/osfiber_asm_loongarch64.S
         ${MARL_SRC_DIR}/osfiber_asm_x64.S
         ${MARL_SRC_DIR}/osfiber_asm_x86.S
         ${MARL_SRC_DIR}/osfiber_mips64.c
         ${MARL_SRC_DIR}/osfiber_ppc64.c
         ${MARL_SRC_DIR}/osfiber_rv64.c
+	${MARL_SRC_DIR}/osfiber_loongarch64.c
         ${MARL_SRC_DIR}/osfiber_x64.c
         ${MARL_SRC_DIR}/osfiber_x86.c
     )
@@ -179,6 +181,7 @@ if(NOT MSVC)
         ${MARL_SRC_DIR}/osfiber_asm_ppc64.S
         ${MARL_SRC_DIR}/osfiber_asm_x64.S
         ${MARL_SRC_DIR}/osfiber_asm_x86.S
+	${MARL_SRC_DIR}/osfiber_asm_loongarch64.S
         PROPERTIES LANGUAGE C
     )
 endif(NOT MSVC)
@@ -240,7 +243,7 @@ function(marl_set_target_options target)
         target_compile_definitions(${target} PRIVATE "MARL_DEBUG_ENABLED=1")
     endif()
 
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "rv*")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^rv.*")
         target_link_libraries(${target} INTERFACE atomic) #explicitly use -latomic for RISC-V linking
     endif()
 
