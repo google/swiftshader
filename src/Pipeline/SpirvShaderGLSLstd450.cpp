@@ -308,11 +308,12 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto I = Operand(this, state, insn.word(5));
 			auto N = Operand(this, state, insn.word(6));
 			auto eta = Operand(this, state, insn.word(7));
+			Decorations r = GetDecorationsForId(insn.resultId());
 
 			SIMD::Float d = Dot(type.componentCount, I, N);
 			SIMD::Float k = SIMD::Float(1.0f) - eta.Float(0) * eta.Float(0) * (SIMD::Float(1.0f) - d * d);
 			SIMD::Int pos = CmpNLT(k, SIMD::Float(0.0f));
-			SIMD::Float t = (eta.Float(0) * d + Sqrt(k));
+			SIMD::Float t = (eta.Float(0) * d + Sqrt(k, r.RelaxedPrecision));
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -340,15 +341,18 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto x = Operand(this, state, insn.word(5));
 			SIMD::Float d = Dot(getObjectType(insn.word(5)).componentCount, x, x);
+			Decorations r = GetDecorationsForId(insn.resultId());
 
-			dst.move(0, Sqrt(d));
+			dst.move(0, Sqrt(d, r.RelaxedPrecision));
 		}
 		break;
 	case GLSLstd450Normalize:
 		{
 			auto x = Operand(this, state, insn.word(5));
+			Decorations r = GetDecorationsForId(insn.resultId());
+
 			SIMD::Float d = Dot(getObjectType(insn.word(5)).componentCount, x, x);
-			SIMD::Float invLength = SIMD::Float(1.0f) / Sqrt(d);
+			SIMD::Float invLength = SIMD::Float(1.0f) / Sqrt(d, r.RelaxedPrecision);
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -360,6 +364,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto p0 = Operand(this, state, insn.word(5));
 			auto p1 = Operand(this, state, insn.word(6));
+			Decorations r = GetDecorationsForId(insn.resultId());
 
 			// sqrt(dot(p0-p1, p0-p1))
 			SIMD::Float d = (p0.Float(0) - p1.Float(0)) * (p0.Float(0) - p1.Float(0));
@@ -369,7 +374,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 				d += (p0.Float(i) - p1.Float(i)) * (p0.Float(i) - p1.Float(i));
 			}
 
-			dst.move(0, Sqrt(d));
+			dst.move(0, Sqrt(d, r.RelaxedPrecision));
 		}
 		break;
 	case GLSLstd450Modf:
@@ -593,27 +598,33 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	case GLSLstd450Sin:
 		{
 			auto radians = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Sin(radians.Float(i)));
+				dst.move(i, sw::Sin(radians.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Cos:
 		{
 			auto radians = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Cos(radians.Float(i)));
+				dst.move(i, sw::Cos(radians.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Tan:
 		{
 			auto radians = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Tan(radians.Float(i)));
+				dst.move(i, sw::Tan(radians.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
@@ -621,6 +632,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto val = Operand(this, state, insn.word(5));
 			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, sw::Asin(val.Float(i), d.RelaxedPrecision));
@@ -631,6 +643,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto val = Operand(this, state, insn.word(5));
 			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, sw::Acos(val.Float(i), d.RelaxedPrecision));
@@ -640,63 +653,77 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	case GLSLstd450Atan:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Atan(val.Float(i)));
+				dst.move(i, sw::Atan(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Sinh:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Sinh(val.Float(i)));
+				dst.move(i, sw::Sinh(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Cosh:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Cosh(val.Float(i)));
+				dst.move(i, sw::Cosh(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Tanh:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Tanh(val.Float(i)));
+				dst.move(i, sw::Tanh(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Asinh:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Asinh(val.Float(i)));
+				dst.move(i, sw::Asinh(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Acosh:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Acosh(val.Float(i)));
+				dst.move(i, sw::Acosh(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Atanh:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Atanh(val.Float(i)));
+				dst.move(i, sw::Atanh(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
@@ -704,9 +731,11 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto x = Operand(this, state, insn.word(5));
 			auto y = Operand(this, state, insn.word(6));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Atan2(x.Float(i), y.Float(i)));
+				dst.move(i, sw::Atan2(x.Float(i), y.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
@@ -725,45 +754,55 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	case GLSLstd450Exp:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Exp(val.Float(i)));
+				dst.move(i, sw::Exp(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Log:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Log(val.Float(i)));
+				dst.move(i, sw::Log(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Exp2:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Exp2(val.Float(i)));
+				dst.move(i, sw::Exp2(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Log2:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Log2(val.Float(i)));
+				dst.move(i, sw::Log2(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;
 	case GLSLstd450Sqrt:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, Sqrt(val.Float(i)));
+				dst.move(i, Sqrt(val.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;

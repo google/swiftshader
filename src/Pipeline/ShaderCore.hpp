@@ -184,24 +184,24 @@ struct Element<UInt>
 }  // namespace SIMD
 
 // Vulkan 'SPIR-V Extended Instructions for GLSL' (GLSL.std.450) compliant transcendental functions
-Float4 Sin(RValue<Float4> x);
-Float4 Cos(RValue<Float4> x);
-Float4 Tan(RValue<Float4> x);
+RValue<Float4> Sin(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Cos(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Tan(RValue<Float4> x, bool relaxedPrecision);
 RValue<Float4> Asin(RValue<Float4> x, bool relaxedPrecision);
 RValue<Float4> Acos(RValue<Float4> x, bool relaxedPrecision);
-Float4 Atan(RValue<Float4> x);
-Float4 Atan2(RValue<Float4> y, RValue<Float4> x);
-Float4 Exp2(RValue<Float4> x);
-Float4 Log2(RValue<Float4> x);
-Float4 Exp(RValue<Float4> x);
-Float4 Log(RValue<Float4> x);
-Float4 Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision);
-Float4 Sinh(RValue<Float4> x);
-Float4 Cosh(RValue<Float4> x);
-Float4 Tanh(RValue<Float4> x);
-Float4 Asinh(RValue<Float4> x);
-Float4 Acosh(RValue<Float4> x);
-Float4 Atanh(RValue<Float4> x);
+RValue<Float4> Atan(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Atan2(RValue<Float4> y, RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Exp2(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Log2(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Exp(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Log(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision);
+RValue<Float4> Sinh(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Cosh(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Tanh(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Asinh(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Acosh(RValue<Float4> x, bool relaxedPrecision);
+RValue<Float4> Atanh(RValue<Float4> x, bool relaxedPrecision);
 RValue<Float4> Sqrt(RValue<Float4> x, bool relaxedPrecision);
 
 // Math functions with uses outside of shaders can be invoked using a verbose template argument instead
@@ -223,8 +223,8 @@ template<> inline RValue<Float4> Pow<Highp>(RValue<Float4> x, RValue<Float4> y) 
 template<> inline RValue<Float4> Pow<Mediump>(RValue<Float4> x, RValue<Float4> y) { return Pow(x, y, true); }
 // clang-format on
 
-Float4 reciprocal(RValue<Float4> x, bool pp = false, bool exactAtPow2 = false);
-Float4 reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
+RValue<Float4> reciprocal(RValue<Float4> x, bool pp = false, bool exactAtPow2 = false);
+RValue<Float4> reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
 
 void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);

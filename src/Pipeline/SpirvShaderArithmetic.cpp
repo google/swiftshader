@@ -417,13 +417,19 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 			dst.move(i, lhs.Float(i) * rhs.Float(i));
 			break;
 		case spv::OpFDiv:
+			// TODO(b/169760262): Optimize using reciprocal instructions (2.5 ULP).
+			// TODO(b/222218659): Optimize for RelaxedPrecision (2.5 ULP).
 			dst.move(i, lhs.Float(i) / rhs.Float(i));
 			break;
 		case spv::OpFMod:
-			// TODO(b/126873455): inaccurate for values greater than 2^24
+			// TODO(b/126873455): Inaccurate for values greater than 2^24.
+			// TODO(b/169760262): Optimize using reciprocal instructions.
+			// TODO(b/222218659): Optimize for RelaxedPrecision.
 			dst.move(i, lhs.Float(i) - rhs.Float(i) * Floor(lhs.Float(i) / rhs.Float(i)));
 			break;
 		case spv::OpFRem:
+			// TODO(b/169760262): Optimize using reciprocal instructions.
+			// TODO(b/222218659): Optimize for RelaxedPrecision.
 			dst.move(i, lhs.Float(i) % rhs.Float(i));
 			break;
 		case spv::OpFOrdEqual:

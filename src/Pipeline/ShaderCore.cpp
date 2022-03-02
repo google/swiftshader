@@ -156,7 +156,7 @@ Int4 &Vector4i::operator[](int i)
 }
 
 // Approximation of atan in [0..1]
-static Float4 Atan_01(Float4 x)
+static RValue<Float4> Atan_01(Float4 x)
 {
 	// From 4.4.49, page 81 of the Handbook of Mathematical Functions, by Milton Abramowitz and Irene Stegun
 	const Float4 a2(-0.3333314528f);
@@ -172,7 +172,7 @@ static Float4 Atan_01(Float4 x)
 }
 
 // Polynomial approximation of order 5 for sin(x * 2 * pi) in the range [-1/4, 1/4]
-static Float4 Sin5(Float4 x)
+static RValue<Float4> Sin5(Float4 x)
 {
 	// A * x^5 + B * x^3 + C * x
 	// Exact at x = 0, 1/12, 1/6, 1/4, and their negatives, which correspond to x * 2 * pi = 0, pi/6, pi/3, pi/2
@@ -185,7 +185,7 @@ static Float4 Sin5(Float4 x)
 	return MulAdd(MulAdd(A, x2, B), x2, C) * x;
 }
 
-Float4 Sin(RValue<Float4> x)
+RValue<Float4> Sin(RValue<Float4> x, bool relaxedPrecision)
 {
 	const Float4 q = 0.25f;
 	const Float4 pi2 = 1 / (2 * 3.1415926535f);
@@ -197,7 +197,7 @@ Float4 Sin(RValue<Float4> x)
 	return Sin5(z);
 }
 
-Float4 Cos(RValue<Float4> x)
+RValue<Float4> Cos(RValue<Float4> x, bool relaxedPrecision)
 {
 	const Float4 q = 0.25f;
 	const Float4 pi2 = 1 / (2 * 3.1415926535f);
@@ -209,12 +209,12 @@ Float4 Cos(RValue<Float4> x)
 	return Sin5(z);
 }
 
-Float4 Tan(RValue<Float4> x)
+RValue<Float4> Tan(RValue<Float4> x, bool relaxedPrecision)
 {
-	return sw::Sin(x) / sw::Cos(x);
+	return sw::Sin(x, relaxedPrecision) / sw::Cos(x, relaxedPrecision);
 }
 
-static Float4 Asin_4_terms(RValue<Float4> x)
+static RValue<Float4> Asin_4_terms(RValue<Float4> x)
 {
 	// From 4.4.45, page 81 of the Handbook of Mathematical Functions, by Milton Abramowitz and Irene Stegun
 	// |e(x)| <= 5e-8
@@ -224,11 +224,11 @@ static Float4 Asin_4_terms(RValue<Float4> x)
 	const Float4 a2(0.0742610f);
 	const Float4 a3(-0.0187293f);
 	Float4 absx = Abs(x);
-	return As<Float4>(As<Int4>(half_pi - Sqrt(1.0f - absx) * (a0 + absx * (a1 + absx * (a2 + absx * a3)))) ^
+	return As<Float4>(As<Int4>(half_pi - Sqrt<Highp>(1.0f - absx) * (a0 + absx * (a1 + absx * (a2 + absx * a3)))) ^
 	                  (As<Int4>(x) & Int4(0x80000000)));
 }
 
-static Float4 Asin_8_terms(RValue<Float4> x)
+static RValue<Float4> Asin_8_terms(RValue<Float4> x)
 {
 	// From 4.4.46, page 81 of the Handbook of Mathematical Functions, by Milton Abramowitz and Irene Stegun
 	// |e(x)| <= 0e-8
@@ -242,7 +242,7 @@ static Float4 Asin_8_terms(RValue<Float4> x)
 	const Float4 a6(0.006700901f);
 	const Float4 a7(-0.0012624911f);
 	Float4 absx = Abs(x);
-	return As<Float4>(As<Int4>(half_pi - Sqrt(1.0f - absx) * (a0 + absx * (a1 + absx * (a2 + absx * (a3 + absx * (a4 + absx * (a5 + absx * (a6 + absx * a7)))))))) ^
+	return As<Float4>(As<Int4>(half_pi - Sqrt<Highp>(1.0f - absx) * (a0 + absx * (a1 + absx * (a2 + absx * (a3 + absx * (a4 + absx * (a5 + absx * (a6 + absx * a7)))))))) ^
 	                  (As<Int4>(x) & Int4(0x80000000)));
 }
 
@@ -265,7 +265,7 @@ RValue<Float4> Acos(RValue<Float4> x, bool relaxedPrecision)
 	return 1.57079632e+0f - Asin_4_terms(x);
 }
 
-Float4 Atan(RValue<Float4> x)
+RValue<Float4> Atan(RValue<Float4> x, bool relaxedPrecision)
 {
 	Float4 absx = Abs(x);
 	Int4 O = CmpNLT(absx, 1.0f);
@@ -277,7 +277,7 @@ Float4 Atan(RValue<Float4> x)
 	                  (As<Int4>(x) & Int4(0x80000000)));
 }
 
-Float4 Atan2(RValue<Float4> y, RValue<Float4> x)
+RValue<Float4> Atan2(RValue<Float4> y, RValue<Float4> x, bool relaxedPrecision)
 {
 	const Float4 pi(3.14159265f);             // pi
 	const Float4 minus_pi(-3.14159265f);      // -pi
@@ -316,7 +316,7 @@ Float4 Atan2(RValue<Float4> y, RValue<Float4> x)
 }
 
 // TODO(chromium:1299047)
-Float4 Exp2_legacy(RValue<Float4> x0)
+static RValue<Float4> Exp2_legacy(RValue<Float4> x0)
 {
 	Int4 i = RoundInt(x0 - 0.5f);
 	Float4 ii = As<Float4>((i + Int4(127)) << 23);
@@ -332,7 +332,7 @@ Float4 Exp2_legacy(RValue<Float4> x0)
 	return ii * ff;
 }
 
-Float4 Exp2(RValue<Float4> x)
+RValue<Float4> Exp2(RValue<Float4> x, bool relaxedPrecision)
 {
 	// This implementation is based on 2^(i + f) = 2^i * 2^f,
 	// where i is the integer part of x and f is the fraction.
@@ -367,7 +367,7 @@ Float4 Exp2(RValue<Float4> x)
 	return ii * ff;
 }
 
-Float4 Log2(RValue<Float4> x)
+RValue<Float4> Log2(RValue<Float4> x, bool relaxedPrecision)
 {
 	Float4 x0;
 	Float4 x1;
@@ -392,53 +392,53 @@ Float4 Log2(RValue<Float4> x)
 	return As<Float4>((pos_inf_x & As<Int4>(x)) | (~pos_inf_x & As<Int4>(x1)));
 }
 
-Float4 Exp(RValue<Float4> x)
+RValue<Float4> Exp(RValue<Float4> x, bool relaxedPrecision)
 {
-	return sw::Exp2(1.44269504f * x);  // 1/ln(2)
+	return sw::Exp2(1.44269504f * x, relaxedPrecision);  // 1/ln(2)
 }
 
-Float4 Log(RValue<Float4> x)
+RValue<Float4> Log(RValue<Float4> x, bool relaxedPrecision)
 {
-	return 6.93147181e-1f * sw::Log2(x);  // ln(2)
+	return 6.93147181e-1f * sw::Log2(x, relaxedPrecision);  // ln(2)
 }
 
-Float4 Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision)
+RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision)
 {
-	Float4 log = sw::Log2(x);
+	Float4 log = sw::Log2(x, relaxedPrecision);
 	log *= y;
-	return sw::Exp2(log);
+	return sw::Exp2(log, relaxedPrecision);
 }
 
-Float4 Sinh(RValue<Float4> x)
+RValue<Float4> Sinh(RValue<Float4> x, bool relaxedPrecision)
 {
-	return (sw::Exp(x) - sw::Exp(-x)) * 0.5f;
+	return (sw::Exp(x, relaxedPrecision) - sw::Exp(-x, relaxedPrecision)) * 0.5f;
 }
 
-Float4 Cosh(RValue<Float4> x)
+RValue<Float4> Cosh(RValue<Float4> x, bool relaxedPrecision)
 {
-	return (sw::Exp(x) + sw::Exp(-x)) * 0.5f;
+	return (sw::Exp(x, relaxedPrecision) + sw::Exp(-x, relaxedPrecision)) * 0.5f;
 }
 
-Float4 Tanh(RValue<Float4> x)
+RValue<Float4> Tanh(RValue<Float4> x, bool relaxedPrecision)
 {
-	Float4 e_x = sw::Exp(x);
-	Float4 e_minus_x = sw::Exp(-x);
+	Float4 e_x = sw::Exp(x, relaxedPrecision);
+	Float4 e_minus_x = sw::Exp(-x, relaxedPrecision);
 	return (e_x - e_minus_x) / (e_x + e_minus_x);
 }
 
-Float4 Asinh(RValue<Float4> x)
+RValue<Float4> Asinh(RValue<Float4> x, bool relaxedPrecision)
 {
-	return sw::Log(x + Sqrt(x * x + 1.0f));
+	return sw::Log(x + Sqrt(x * x + 1.0f, relaxedPrecision), relaxedPrecision);
 }
 
-Float4 Acosh(RValue<Float4> x)
+RValue<Float4> Acosh(RValue<Float4> x, bool relaxedPrecision)
 {
-	return sw::Log(x + Sqrt(x + 1.0f) * Sqrt(x - 1.0f));
+	return sw::Log(x + Sqrt(x + 1.0f, relaxedPrecision) * Sqrt(x - 1.0f, relaxedPrecision), relaxedPrecision);
 }
 
-Float4 Atanh(RValue<Float4> x)
+RValue<Float4> Atanh(RValue<Float4> x, bool relaxedPrecision)
 {
-	return sw::Log((1.0f + x) / (1.0f - x)) * 0.5f;
+	return sw::Log((1.0f + x) / (1.0f - x), relaxedPrecision) * 0.5f;
 }
 
 RValue<Float4> Sqrt(RValue<Float4> x, bool relaxedPrecision)
@@ -446,12 +446,12 @@ RValue<Float4> Sqrt(RValue<Float4> x, bool relaxedPrecision)
 	return rr::Sqrt(x);  // TODO(b/222218659): Optimize for relaxed precision.
 }
 
-Float4 reciprocal(RValue<Float4> x, bool pp, bool exactAtPow2)
+RValue<Float4> reciprocal(RValue<Float4> x, bool pp, bool exactAtPow2)
 {
 	return Rcp(x, pp, exactAtPow2);
 }
 
-Float4 reciprocalSquareRoot(RValue<Float4> x, bool absolute, bool pp)
+RValue<Float4> reciprocalSquareRoot(RValue<Float4> x, bool absolute, bool pp)
 {
 	Float4 abs = x;
 
