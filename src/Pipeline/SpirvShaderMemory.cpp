@@ -362,8 +362,7 @@ void SpirvShader::VisitMemoryObject(Object::ID id, const MemoryVisitor &f) const
 
 	if(IsExplicitLayout(type.storageClass))
 	{
-		Decorations d{};
-		ApplyDecorationsForId(&d, id);
+		Decorations d = GetDecorationsForId(id);
 		uint32_t index = 0;
 		VisitMemoryObjectInner(typeId, d, index, 0, f);
 	}

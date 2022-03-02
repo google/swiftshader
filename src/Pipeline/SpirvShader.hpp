@@ -925,6 +925,7 @@ private:
 	void ProcessExecutionMode(InsnIterator it);
 
 	uint32_t ComputeTypeSize(InsnIterator insn);
+	Decorations GetDecorationsForId(TypeOrObjectID id) const;
 	void ApplyDecorationsForId(Decorations *d, TypeOrObjectID id) const;
 	void ApplyDecorationsForIdMember(Decorations *d, Type::ID id, uint32_t member) const;
 	void ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecorations *dd, Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds) const;

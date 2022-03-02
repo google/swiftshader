@@ -1177,8 +1177,7 @@ int SpirvShader::VisitInterfaceInner(Type::ID id, Decorations d, const Interface
 void SpirvShader::VisitInterface(Object::ID id, const InterfaceVisitor &f) const
 {
 	// Walk a variable definition and call f for each component in it.
-	Decorations d{};
-	ApplyDecorationsForId(&d, id);
+	Decorations d = GetDecorationsForId(id);
 
 	auto def = getObject(id).definition;
 	ASSERT(def.opcode() == spv::OpVariable);
@@ -1232,8 +1231,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 
 	auto &baseObject = getObject(baseId);
 	Type::ID typeId = getType(baseObject).element;
-	Decorations d = {};
-	ApplyDecorationsForId(&d, baseObject.typeId());
+	Decorations d = GetDecorationsForId(baseObject.typeId());
 
 	Int arrayIndex = 0;
 	if(baseObject.kind == Object::Kind::DescriptorSet)
@@ -1595,11 +1593,21 @@ void SpirvShader::DescriptorDecorations::Apply(const sw::SpirvShader::Descriptor
 	}
 }
 
+SpirvShader::Decorations SpirvShader::GetDecorationsForId(TypeOrObjectID id) const
+{
+	Decorations d;
+	ApplyDecorationsForId(&d, id);
+
+	return d;
+}
+
 void SpirvShader::ApplyDecorationsForId(Decorations *d, TypeOrObjectID id) const
 {
 	auto it = decorations.find(id);
 	if(it != decorations.end())
+	{
 		d->Apply(it->second);
+	}
 }
 
 void SpirvShader::ApplyDecorationsForIdMember(Decorations *d, Type::ID id, uint32_t member) const
@@ -2533,8 +2541,7 @@ SpirvShader::EmitResult SpirvShader::EmitArrayLength(InsnIterator insn, EmitStat
 	auto arrayBase = structBase + structDecorations.Offset;
 	auto arraySizeInBytes = SIMD::Int(arrayBase.limit()) - arrayBase.offsets();
 
-	Decorations arrayDecorations = {};
-	ApplyDecorationsForId(&arrayDecorations, arrayId);
+	Decorations arrayDecorations = GetDecorationsForId(arrayId);
 	ASSERT(arrayDecorations.HasArrayStride);
 	auto arrayLength = arraySizeInBytes / SIMD::Int(arrayDecorations.ArrayStride);
 
