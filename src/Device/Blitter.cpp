@@ -1486,8 +1486,8 @@ Int Blitter::ComputeOffset(Int &x, Int &y, Int &z, Int &sliceB, Int &pitchB, int
 
 Float4 Blitter::LinearToSRGB(const Float4 &c)
 {
-	Float4 lc = Min(c, Float4(0.0031308f)) * Float4(12.92f);
-	Float4 ec = Float4(1.055f) * power(c, Float4(1.0f / 2.4f)) - Float4(0.055f);
+	Float4 lc = Min(c, 0.0031308f) * 12.92f;
+	Float4 ec = Float4(1.055f) * sw::Pow(c, (1.0f / 2.4f)) - 0.055f;
 
 	Float4 s = c;
 	s.xyz = Max(lc, ec);
@@ -1497,10 +1497,10 @@ Float4 Blitter::LinearToSRGB(const Float4 &c)
 
 Float4 Blitter::sRGBtoLinear(const Float4 &c)
 {
-	Float4 lc = c * Float4(1.0f / 12.92f);
-	Float4 ec = power((c + Float4(0.055f)) * Float4(1.0f / 1.055f), Float4(2.4f));
+	Float4 lc = c * (1.0f / 12.92f);
+	Float4 ec = sw::Pow((c + 0.055f) * (1.0f / 1.055f), 2.4f);
 
-	Int4 linear = CmpLT(c, Float4(0.04045f));
+	Int4 linear = CmpLT(c, 0.04045f);
 
 	Float4 s = c;
 	s.xyz = As<Float4>((linear & As<Int4>(lc)) | (~linear & As<Int4>(ec)));  // TODO: IfThenElse()

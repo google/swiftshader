@@ -76,10 +76,10 @@ vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
 
 sw::SIMD::Float sRGBtoLinear(sw::SIMD::Float c)
 {
-	sw::SIMD::Float lc = c * sw::SIMD::Float(1.0f / 12.92f);
-	sw::SIMD::Float ec = sw::power((c + sw::SIMD::Float(0.055f)) * sw::SIMD::Float(1.0f / 1.055f), sw::SIMD::Float(2.4f));
+	sw::SIMD::Float lc = c * (1.0f / 12.92f);
+	sw::SIMD::Float ec = sw::Pow((c + 0.055f) * (1.0f / 1.055f), 2.4f);  // TODO(b/149574741): Use an optimized approximation.
 
-	sw::SIMD::Int linear = CmpLT(c, sw::SIMD::Float(0.04045f));
+	sw::SIMD::Int linear = CmpLT(c, 0.04045f);
 
 	return rr::As<sw::SIMD::Float>((linear & rr::As<sw::SIMD::Int>(lc)) | (~linear & rr::As<sw::SIMD::Int>(ec)));  // TODO: IfThenElse()
 }

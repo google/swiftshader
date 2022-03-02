@@ -203,26 +203,8 @@ Float4 Asinh(RValue<Float4> x);
 Float4 Acosh(RValue<Float4> x);
 Float4 Atanh(RValue<Float4> x);
 
-// Legacy transcendental functions
-// TODO(b/169755552): Consolidate with the functions above
-Float4 exponential2(RValue<Float4> x, bool pp = false);
-Float4 logarithm2(RValue<Float4> x, bool pp = false);
-Float4 exponential(RValue<Float4> x, bool pp = false);
-Float4 logarithm(RValue<Float4> x, bool pp = false);
-Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp = false);
 Float4 reciprocal(RValue<Float4> x, bool pp = false, bool exactAtPow2 = false);
 Float4 reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
-Float4 modulo(RValue<Float4> x, RValue<Float4> y);
-Float4 arccos(RValue<Float4> x, bool pp = false);
-Float4 arcsin(RValue<Float4> x, bool pp = false);
-Float4 arctan(RValue<Float4> x, bool pp = false);
-Float4 arctan(RValue<Float4> y, RValue<Float4> x, bool pp = false);
-Float4 sineh(RValue<Float4> x, bool pp = false);
-Float4 cosineh(RValue<Float4> x, bool pp = false);
-Float4 tangenth(RValue<Float4> x, bool pp = false);
-Float4 arccosh(RValue<Float4> x, bool pp = false);  // Limited to x >= 1
-Float4 arcsinh(RValue<Float4> x, bool pp = false);
-Float4 arctanh(RValue<Float4> x, bool pp = false);  // Limited to ]-1, 1[ range
 
 void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
