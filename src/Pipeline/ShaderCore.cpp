@@ -389,27 +389,40 @@ RValue<Float4> Exp2(RValue<Float4> x, bool relaxedPrecision)
 
 RValue<Float4> Log2(RValue<Float4> x, bool relaxedPrecision)
 {
-	Float4 x0;
-	Float4 x1;
-	Float4 x2;
-	Float4 x3;
+	if(!relaxedPrecision)  // highp
+	{
+		Float4 x1 = As<Float4>(As<Int4>(x) & Int4(0x7F800000));
+		x1 = As<Float4>(As<UInt4>(x1) >> 8);
+		x1 = As<Float4>(As<Int4>(x1) | As<Int4>(Float4(1.0f)));
+		x1 = (x1 - 1.4960938f) * 256.0f;
+		Float4 x0 = As<Float4>((As<Int4>(x) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
 
-	x0 = x;
+		Float4 x2 = MulAdd(MulAdd(9.5428179e-2f, x0, 4.7779095e-1f), x0, 1.9782813e-1f);
+		Float4 x3 = MulAdd(MulAdd(MulAdd(1.6618466e-2f, x0, 2.0350508e-1f), x0, 2.7382900e-1f), x0, 4.0496687e-2f);
 
-	x1 = As<Float4>(As<Int4>(x0) & Int4(0x7F800000));
-	x1 = As<Float4>(As<UInt4>(x1) >> 8);
-	x1 = As<Float4>(As<Int4>(x1) | As<Int4>(Float4(1.0f)));
-	x1 = (x1 - 1.4960938f) * 256.0f;
-	x0 = As<Float4>((As<Int4>(x0) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
+		x1 += (x0 - 1.0f) * (x2 / x3);
 
-	x2 = MulAdd(MulAdd(9.5428179e-2f, x0, 4.7779095e-1f), x0, 1.9782813e-1f);
-	x3 = MulAdd(MulAdd(MulAdd(1.6618466e-2f, x0, 2.0350508e-1f), x0, 2.7382900e-1f), x0, 4.0496687e-2f);
-	x2 /= x3;
+		Int4 pos_inf_x = CmpEQ(As<Int4>(x), Int4(0x7F800000));
+		return As<Float4>((pos_inf_x & As<Int4>(x)) | (~pos_inf_x & As<Int4>(x1)));
+	}
+	else  // RelaxedPrecision / mediump
+	{
+		// Reinterpretation as an integer provides a piecewise linear
+		// approximation of log2(). Scale to the radix and subtract exponent bias.
+		Int4 im = As<Int4>(x);
+		Float4 y = MulAdd(Float4(im), (1.0f / (1 << 23)), -127.0f);
 
-	x1 += (x0 - 1.0f) * x2;
+		Float4 m = Float4(im & 0x007FFFFF);  // Unnormalized mantissa of x.
 
-	Int4 pos_inf_x = CmpEQ(As<Int4>(x), Int4(0x7F800000));
-	return As<Float4>((pos_inf_x & As<Int4>(x)) | (~pos_inf_x & As<Int4>(x1)));
+		// Add a polynomial approximation of log2(m+1)-m to the result's mantissa.
+		const Float4 a = 2.8017103e-22f;
+		const Float4 b = -8.373131e-15f;
+		const Float4 c = 5.0615534e-8f;
+
+		Float4 f = MulAdd(MulAdd(a, m, b), m, c);
+
+		return MulAdd(f, m, y);
+	}
 }
 
 RValue<Float4> Exp(RValue<Float4> x, bool relaxedPrecision)

@@ -52,6 +52,84 @@ float ULP_16(float x, float a)
 	return abs(a - x) / ulp;
 }
 
+// lolremez --float -d 2 -r "0:2^23" "(log2(x/2^23+1)-x/2^23)/x" "1/x"
+// ULP-16: 0.797363281, abs: 0.0991751999
+float f(float x)
+{
+	float u = 2.8017103e-22f;
+	u = u * x + -8.373131e-15f;
+	return u * x + 5.0615534e-8f;
+}
+
+float Log2Relaxed(float x)
+{
+	int im = bit_cast<int>(x);
+	float q = (float)im * (1.0f / (1 << 23)) - 127.0f;
+
+	float y = (float)(im & 0x007FFFFF);
+
+	return q + f(y) * y;
+}
+
+TEST(MathTest, Log2RelaxedExhaustive)
+{
+	CPUID::setDenormalsAreZero(true);
+	CPUID::setFlushToZero(true);
+
+	float worst_margin = 0;
+	float worst_ulp = 0;
+	float worst_x = 0;
+	float worst_val = 0;
+	float worst_ref = 0;
+
+	float worst_abs = 0;
+
+	for(float x = 0.10f; x <= 10.0f; x = inc(x))
+	{
+		float val = Log2Relaxed(x);
+
+		double ref = log2((double)x);
+
+		if(ref == (int)ref)
+		{
+			ASSERT_EQ(val, ref);
+		}
+		else if(x >= 0.5f && x <= 2.0f)
+		{
+			const float tolerance = pow(2.0f, -7.0f);  // Absolute
+
+			float margin = abs(val - ref) / tolerance;
+
+			if(margin > worst_abs)
+			{
+				worst_abs = margin;
+			}
+		}
+		else
+		{
+			const float tolerance = 3;  // ULP
+
+			float ulp = (float)ULP_16(ref, (double)val);
+			float margin = ulp / tolerance;
+
+			if(margin > worst_margin)
+			{
+				worst_margin = margin;
+				worst_ulp = ulp;
+				worst_x = x;
+				worst_val = val;
+				worst_ref = ref;
+			}
+		}
+	}
+
+	ASSERT_TRUE(worst_margin < 1.0f);
+	ASSERT_TRUE(worst_abs <= 1.0f);
+
+	CPUID::setDenormalsAreZero(false);
+	CPUID::setFlushToZero(false);
+}
+
 // lolremez --float - d 2 - r "0:1" "(2^x-x-1)/x" "1/x"
 // ULP-16: 0.130859017
 float P(float x)
