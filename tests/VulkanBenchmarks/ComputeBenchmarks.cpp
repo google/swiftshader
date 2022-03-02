@@ -16,7 +16,6 @@
 #include "VulkanTester.hpp"
 
 #include "benchmark/benchmark.h"
-#include "spirv-tools/libspirv.hpp"
 
 #include <cmath>
 #include <cstring>
@@ -286,7 +285,7 @@ void BufferToBufferComputeBenchmark::run()
 class ComputeOp : public BufferToBufferComputeBenchmark
 {
 public:
-	ComputeOp(const benchmark::State &state, const char *op)
+	ComputeOp(const benchmark::State &state, const char *op, const char *precision)
 	    : BufferToBufferComputeBenchmark(state)
 	{
 		std::stringstream src;
@@ -302,7 +301,8 @@ public:
 			} Out;
 			void main()
 			{
-				float x = In.Data[gl_GlobalInvocationID.x];
+				)"
+		    << precision << R"( float x = In.Data[gl_GlobalInvocationID.x];
 				Out.Data[gl_GlobalInvocationID.x] = )"
 		    << op << R"( (x);
 			})";
@@ -311,9 +311,9 @@ public:
 	}
 };
 
-static void Compute(benchmark::State &state, const char *op)
+static void Compute(benchmark::State &state, const char *op, const char *precision = "highp")
 {
-	ComputeOp benchmark(state, op);
+	ComputeOp benchmark(state, op, precision);
 
 	// Execute once to have the Reactor routine generated.
 	benchmark.run();
@@ -325,8 +325,15 @@ static void Compute(benchmark::State &state, const char *op)
 }
 
 BENCHMARK_CAPTURE(Compute, mov, "")->RangeMultiplier(2)->Range(128, 4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
-BENCHMARK_CAPTURE(Compute, sqrt, "sqrt")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
-BENCHMARK_CAPTURE(Compute, sin, "sin")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
-BENCHMARK_CAPTURE(Compute, cos, "cos")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
-BENCHMARK_CAPTURE(Compute, exp, "exp")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
-BENCHMARK_CAPTURE(Compute, log, "log")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+
+BENCHMARK_CAPTURE(Compute, sqrt_highp, "sqrt", "highp")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, sin_highp, "sin", "highp")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, cos_highp, "cos", "highp")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, exp_highp, "exp", "highp")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, log_highp, "log", "highp")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+
+BENCHMARK_CAPTURE(Compute, sqrt_mediump, "sqrt", "mediump")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, sin_mediump, "sin", "mediump")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, cos_mediump, "cos", "mediump")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, exp_mediump, "exp", "mediump")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK_CAPTURE(Compute, log_mediump, "log", "mediump")->Arg(4 * 1024 * 1024)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
