@@ -3358,6 +3358,11 @@ Int4::Int4(const Reference<Int> &rhs)
 	*this = RValue<Int>(rhs.loadValue());
 }
 
+RValue<Int4> Int4::operator=(int x)
+{
+	return *this = Int4(x, x, x, x);
+}
+
 RValue<Int4> Int4::operator=(RValue<Int4> rhs)
 {
 	return store(rhs);

@@ -1539,6 +1539,7 @@ public:
 	Int4(const Int &rhs);
 	Int4(const Reference<Int> &rhs);
 
+	RValue<Int4> operator=(int broadcast);
 	RValue<Int4> operator=(RValue<Int4> rhs);
 	RValue<Int4> operator=(const Int4 &rhs);
 	RValue<Int4> operator=(const Reference<Int4> &rhs);
@@ -1830,7 +1831,7 @@ public:
 	//	template<int T>
 	//	Float2(const SwizzleMask1<T> &rhs);
 
-	//	RValue<Float2> operator=(float replicate);
+	//	RValue<Float2> operator=(float broadcast);
 	//	RValue<Float2> operator=(RValue<Float2> rhs);
 	//	RValue<Float2> operator=(const Float2 &rhs);
 	//	RValue<Float2> operator=(const Reference<Float2> &rhs);
@@ -1899,7 +1900,7 @@ public:
 	Float4(const SwizzleMask2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y);
 	Float4(RValue<Float2> lo, RValue<Float2> hi);
 
-	RValue<Float4> operator=(float replicate);
+	RValue<Float4> operator=(float broadcast);
 	RValue<Float4> operator=(RValue<Float4> rhs);
 	RValue<Float4> operator=(const Float4 &rhs);
 	RValue<Float4> operator=(const Reference<Float4> &rhs);

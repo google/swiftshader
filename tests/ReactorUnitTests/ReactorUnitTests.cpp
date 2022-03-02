@@ -1132,6 +1132,24 @@ TEST(ReactorUnitTests, Shuffle)
 	}
 }
 
+TEST(ReactorUnitTests, Broadcast)
+{
+	FunctionT<int()> function;
+	{
+		Int4 i = 2;
+		Int j = 3 + i.x;
+		Int4 k = i * 7;
+
+		Return(k.z - j);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine();
+
+	EXPECT_EQ(result, 9);
+}
+
 TEST(ReactorUnitTests, Branching)
 {
 	FunctionT<int()> function;

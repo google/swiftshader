@@ -76,6 +76,30 @@ private:
 };
 
 template<class Vector4, int T>
+RValue<typename Scalar<Vector4>::Type> operator+(RValue<typename Scalar<Vector4>::Type> lhs, SwizzleMask1<Vector4, T> rhs)
+{
+	return lhs + RValue<typename Scalar<Vector4>::Type>(rhs);
+}
+
+template<class Vector4, int T>
+RValue<typename Scalar<Vector4>::Type> operator+(SwizzleMask1<Vector4, T> lhs, RValue<typename Scalar<Vector4>::Type> rhs)
+{
+	return RValue<typename Scalar<Vector4>::Type>(lhs) + rhs;
+}
+
+template<class Vector4, int T>
+RValue<typename Scalar<Vector4>::Type> operator-(RValue<typename Scalar<Vector4>::Type> lhs, SwizzleMask1<Vector4, T> rhs)
+{
+	return lhs - RValue<typename Scalar<Vector4>::Type>(rhs);
+}
+
+template<class Vector4, int T>
+RValue<typename Scalar<Vector4>::Type> operator-(SwizzleMask1<Vector4, T> lhs, RValue<typename Scalar<Vector4>::Type> rhs)
+{
+	return RValue<typename Scalar<Vector4>::Type>(lhs) - rhs;
+}
+
+template<class Vector4, int T>
 class SwizzleMask2
 {
 	friend Vector4;
