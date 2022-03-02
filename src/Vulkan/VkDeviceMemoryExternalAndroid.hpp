@@ -64,7 +64,7 @@ public:
 	static VkResult GetAndroidHardwareBufferFormatProperties(const AHardwareBuffer_Desc &ahbDesc, VkAndroidHardwareBufferFormatPropertiesANDROID *pFormat);
 	static VkResult GetAndroidHardwareBufferProperties(VkDevice &device, const AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties);
 
-	bool hasExternalImageProperties() const override final { return true; }
+	bool hasExternalImagePlanes() const override final { return true; }
 	int externalImageRowPitchBytes(VkImageAspectFlagBits aspect) const override final;
 	VkDeviceSize externalImageMemoryOffset(VkImageAspectFlagBits aspect) const override final;
 

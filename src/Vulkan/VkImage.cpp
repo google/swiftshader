@@ -857,7 +857,7 @@ VkExtent3D Image::getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLe
 
 size_t Image::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
-	if(deviceMemory && deviceMemory->hasExternalImageProperties())
+	if(deviceMemory && deviceMemory->hasExternalImagePlanes())
 	{
 		return deviceMemory->externalImageRowPitchBytes(aspect);
 	}
@@ -915,7 +915,7 @@ uint8_t *Image::end() const
 
 VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
 {
-	if(deviceMemory && deviceMemory->hasExternalImageProperties())
+	if(deviceMemory && deviceMemory->hasExternalImagePlanes())
 	{
 		return deviceMemory->externalImageMemoryOffset(aspect);
 	}
@@ -967,7 +967,8 @@ VkDeviceSize Image::getSubresourceOffset(VkImageAspectFlagBits aspect, uint32_t 
 {
 	// "If the image is disjoint, then the offset is relative to the base address of the plane.
 	//  If the image is non-disjoint, then the offset is relative to the base address of the image."
-	bool disjoint = flags & VK_IMAGE_CREATE_DISJOINT_BIT;
+	// Multi-plane external images are essentially disjoint.
+	bool disjoint = (flags & VK_IMAGE_CREATE_DISJOINT_BIT) || (deviceMemory && deviceMemory->hasExternalImagePlanes());
 	VkDeviceSize offset = !disjoint ? getAspectOffset(aspect) : 0;
 
 	for(uint32_t i = 0; i < mipLevel; i++)

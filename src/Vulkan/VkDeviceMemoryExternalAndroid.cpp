@@ -491,6 +491,7 @@ int AHardwareBufferExternalMemory::externalImageRowPitchBytes(VkImageAspectFlagB
 	return static_cast<int>(ahbPlanes.planes[0].rowStride);
 }
 
+// TODO(b/208505033): Treat each image plane data pointer as a separate address instead of an offset.
 VkDeviceSize AHardwareBufferExternalMemory::externalImageMemoryOffset(VkImageAspectFlagBits aspect) const
 {
 	ASSERT(allocateInfo.dedicatedImageHandle != nullptr);

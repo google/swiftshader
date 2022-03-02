@@ -88,9 +88,8 @@ public:
 	bool checkExternalMemoryHandleType(
 	    VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleType) const;
 
-	// Some external device memories, such as Android hardware buffers, represent
-	// specific images with requirements.
-	virtual bool hasExternalImageProperties() const { return false; }
+	// Some external device memories, such as Android hardware buffers, store per-plane properties.
+	virtual bool hasExternalImagePlanes() const { return false; }
 	virtual int externalImageRowPitchBytes(VkImageAspectFlagBits aspect) const { return 0; }
 	virtual VkDeviceSize externalImageMemoryOffset(VkImageAspectFlagBits aspect) const { return 0; }
 
