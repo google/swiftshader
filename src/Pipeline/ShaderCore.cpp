@@ -334,14 +334,9 @@ static RValue<Float4> Exp2_legacy(RValue<Float4> x0)
 
 RValue<Float4> Exp2(RValue<Float4> x, bool relaxedPrecision)
 {
-	// This implementation is based on 2^(i + f) = 2^i * 2^f,
-	// where i is the integer part of x and f is the fraction.
-
-	// For 2^i we can put the integer part directly in the exponent of
-	// the IEEE-754 floating-point number. Clamp to prevent overflow
-	// past the representation of infinity.
+	// Clamp to prevent overflow past the representation of infinity.
 	Float4 x0 = x;
-	x0 = Min(x0, As<Float4>(Int4(0x4300FFFF)));  // 128.999985
+	x0 = Min(x0, 128.0f);
 	x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));  // -126.999992
 
 	if(SWIFTSHADER_LEGACY_PRECISION)  // TODO(chromium:1299047)
@@ -350,21 +345,46 @@ RValue<Float4> Exp2(RValue<Float4> x, bool relaxedPrecision)
 	}
 
 	Float4 xi = Floor(x0);
-	Int4 i = Int4(xi);
-	Float4 ii = As<Float4>((i + Int4(127)) << 23);  // Add single-precision bias, and shift into exponent.
-
-	// For the fractional part use a polynomial which approximates 2^f in the 0 to 1 range.
-	// To be exact at integers it uses the form f(x) * x + 1.
 	Float4 f = x0 - xi;
-	const Float4 a = 1.8852974e-3f;
-	const Float4 b = 8.9733787e-3f;
-	const Float4 c = 5.5835927e-2f;
-	const Float4 d = 2.4015281e-1f;
-	const Float4 e = 6.9315247e-1f;
 
-	Float4 ff = MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(a, f, b), f, c), f, d), f, e), f, 1.0f);
+	if(!relaxedPrecision)  // highp
+	{
+		// This implementation is based on 2^(i + f) = 2^i * 2^f,
+		// where i is the integer part of x and f is the fraction.
+	
+		// For 2^i we can put the integer part directly in the exponent of the IEEE-754 floating-point number.
+		Int4 i = Int4(xi);
+		Float4 ii = As<Float4>((i + Int4(127)) << 23);  // Add single-precision bias, and shift into exponent.
 
-	return ii * ff;
+		// For the fractional part use a polynomial which approximates 2^f in the 0 to 1 range.
+		// To be exact at integers it uses the form f(x) * x + 1.
+		const Float4 a = 1.8852974e-3f;
+		const Float4 b = 8.9733787e-3f;
+		const Float4 c = 5.5835927e-2f;
+		const Float4 d = 2.4015281e-1f;
+		const Float4 e = 6.9315247e-1f;
+
+		Float4 ff = MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(a, f, b), f, c), f, d), f, e), f, 1.0f);
+
+		return ii * ff;
+	}
+	else  // RelaxedPrecision / mediump
+	{
+		// Polynomial which approximates (2^x-x-1)/x. Multiplying with x
+		// gives us a correction term to be added to 1+x to obtain 2^x.
+		const Float4 a = 7.8145574e-2f;
+		const Float4 b = 2.2617357e-1f;
+		const Float4 c = -3.0444314e-1f;
+
+		Float4 r = MulAdd(MulAdd(a, f, b), f, c);
+
+		// bit_cast<float>(int(x * 2^23)) is a piecewise linear approximation of 2^x.
+		// See "Fast Exponential Computation on SIMD Architectures" by Malossi et al.
+		Float4 y = MulAdd(r, f, x0);
+		Int4 i = Int4(MulAdd((1 << 23), y, (127 << 23)));
+
+		return As<Float4>(i);
+	}
 }
 
 RValue<Float4> Log2(RValue<Float4> x, bool relaxedPrecision)

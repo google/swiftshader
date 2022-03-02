@@ -52,6 +52,73 @@ float ULP_16(float x, float a)
 	return abs(a - x) / ulp;
 }
 
+// lolremez --float - d 2 - r "0:1" "(2^x-x-1)/x" "1/x"
+// ULP-16: 0.130859017
+float P(float x)
+{
+	float u = 7.8145574e-2f;
+	u = u * x + 2.2617357e-1f;
+	return u * x + -3.0444314e-1f;
+}
+
+float Exp2Relaxed(float x)
+{
+	float x0 = x;
+	x0 = min(x0, 128.0f);
+	x0 = max(x0, bit_cast<float>(int(0xC2FDFFFF)));  // -126.999992
+
+	const float f = x0 - floor(x0);
+
+	// 2^f - f - 1 as P(f) * f
+	float y = P(f) * f + x0;
+
+	int i = (int)((1 << 23) * y + (127 << 23));
+
+	return bit_cast<float>(i);
+}
+
+TEST(MathTest, Exp2RelaxedExhaustive)
+{
+	CPUID::setDenormalsAreZero(true);
+	CPUID::setFlushToZero(true);
+
+	float worst_margin = 0;
+	float worst_ulp = 0;
+	float worst_x = 0;
+	float worst_val = 0;
+	float worst_ref = 0;
+
+	for(float x = -10; x <= 10; x = inc(x))
+	{
+		float val = Exp2Relaxed(x);
+
+		double ref = exp2((double)x);
+
+		if(x == (int)x)
+		{
+			ASSERT_EQ(val, ref);
+		}
+
+		const float tolerance = (1 + 2 * abs(x));
+		float ulp = ULP_16((float)ref, val);
+		float margin = ulp / tolerance;
+
+		if(margin > worst_margin)
+		{
+			worst_margin = margin;
+			worst_ulp = ulp;
+			worst_x = x;
+			worst_val = val;
+			worst_ref = ref;
+		}
+	}
+
+	ASSERT_TRUE(worst_margin <= 1.0f);
+
+	CPUID::setDenormalsAreZero(false);
+	CPUID::setFlushToZero(false);
+}
+
 float Log2_legacy(float x)
 {
 	float x0;
