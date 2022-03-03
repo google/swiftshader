@@ -402,7 +402,7 @@ Float4 Log(RValue<Float4> x)
 	return 6.93147181e-1f * sw::Log2(x);  // ln(2)
 }
 
-Float4 Pow(RValue<Float4> x, RValue<Float4> y)
+Float4 Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision)
 {
 	Float4 log = sw::Log2(x);
 	log *= y;
@@ -439,6 +439,11 @@ Float4 Acosh(RValue<Float4> x)
 Float4 Atanh(RValue<Float4> x)
 {
 	return sw::Log((1.0f + x) / (1.0f - x)) * 0.5f;
+}
+
+RValue<Float4> Sqrt(RValue<Float4> x, bool relaxedPrecision)
+{
+	return rr::Sqrt(x);  // TODO(b/222218659): Optimize for relaxed precision.
 }
 
 Float4 reciprocal(RValue<Float4> x, bool pp, bool exactAtPow2)

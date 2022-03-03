@@ -714,9 +714,11 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto x = Operand(this, state, insn.word(5));
 			auto y = Operand(this, state, insn.word(6));
+			Decorations d = GetDecorationsForId(insn.resultId());
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, sw::Pow(x.Float(i), y.Float(i)));
+				dst.move(i, sw::Pow(x.Float(i), y.Float(i), d.RelaxedPrecision));
 			}
 		}
 		break;

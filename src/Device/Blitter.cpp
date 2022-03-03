@@ -1487,7 +1487,7 @@ Int Blitter::ComputeOffset(Int &x, Int &y, Int &z, Int &sliceB, Int &pitchB, int
 Float4 Blitter::LinearToSRGB(const Float4 &c)
 {
 	Float4 lc = Min(c, 0.0031308f) * 12.92f;
-	Float4 ec = Float4(1.055f) * sw::Pow(c, (1.0f / 2.4f)) - 0.055f;
+	Float4 ec = Float4(1.055f) * Pow<Mediump>(c, (1.0f / 2.4f)) - 0.055f;  // TODO(b/149574741): Use a custom approximation.
 
 	Float4 s = c;
 	s.xyz = Max(lc, ec);
@@ -1498,7 +1498,7 @@ Float4 Blitter::LinearToSRGB(const Float4 &c)
 Float4 Blitter::sRGBtoLinear(const Float4 &c)
 {
 	Float4 lc = c * (1.0f / 12.92f);
-	Float4 ec = sw::Pow((c + 0.055f) * (1.0f / 1.055f), 2.4f);
+	Float4 ec = Pow<Mediump>((c + 0.055f) * (1.0f / 1.055f), 2.4f);  // TODO(b/149574741): Use a custom approximation.
 
 	Int4 linear = CmpLT(c, 0.04045f);
 

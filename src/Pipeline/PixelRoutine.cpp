@@ -2027,7 +2027,7 @@ Float4 PixelRoutine::blendOpSoftlight(Float4 &src, Float4 &dst)
 	return As<Float4>(
 	    (~largeSrc & As<Int4>(dst - ((1.0f - (2.0f * src)) * dst * (1.0f - dst)))) |
 	    (largeSrc & ((~largeDst & As<Int4>(dst + (((2.0f * src) - 1.0f) * dst * ((((16.0f * dst) - 12.0f) * dst) + 3.0f)))) |
-	                 (largeDst & As<Int4>(dst + (((2.0f * src) - 1.0f) * (Sqrt(dst) - dst)))))));
+	                 (largeDst & As<Int4>(dst + (((2.0f * src) - 1.0f) * (Sqrt<Mediump>(dst) - dst)))))));
 }
 
 Float4 PixelRoutine::maxRGB(Vector4f &c)

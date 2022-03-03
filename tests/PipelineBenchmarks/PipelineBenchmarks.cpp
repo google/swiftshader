@@ -20,6 +20,7 @@
 #include <vector>
 
 using namespace rr;
+using namespace sw;
 
 BENCHMARK_MAIN();
 
@@ -106,11 +107,11 @@ BENCHMARK_CAPTURE(Transcendental1, rr_Tan, rr::Tan)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Tan, sw::Tan)->Arg(REPS);
 
 BENCHMARK_CAPTURE(Transcendental1, rr_Asin, rr::Asin)->Arg(REPS);
-BENCHMARK_CAPTURE(Transcendental1, sw_Asin_highpp, sw::Asin, false /* relaxedPrecision */)->Arg(REPS);
-BENCHMARK_CAPTURE(Transcendental1, sw_Asin_relaxedp, sw::Asin, true /* relaxedPrecision */)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Asin_highp, sw::Asin, false /* relaxedPrecision */)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Asin_mediump, sw::Asin, true /* relaxedPrecision */)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, rr_Acos, rr::Acos)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Acos_highp, sw::Acos, false /* relaxedPrecision */)->Arg(REPS);
-BENCHMARK_CAPTURE(Transcendental1, sw_Acos_relaxedp, sw::Acos, true /* relaxedPrecision */)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental1, sw_Acos_mediump, sw::Acos, true /* relaxedPrecision */)->Arg(REPS);
 
 BENCHMARK_CAPTURE(Transcendental1, rr_Atan, rr::Atan)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Atan, sw::Atan)->Arg(REPS);
@@ -131,7 +132,8 @@ BENCHMARK_CAPTURE(Transcendental2, rr_Atan2, rr::Atan2)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental2, sw_Atan2, sw::Atan2)->Arg(REPS);
 
 BENCHMARK_CAPTURE(Transcendental2, rr_Pow, rr::Pow)->Arg(REPS);
-BENCHMARK_CAPTURE(Transcendental2, sw_Pow, sw::Pow)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental2, sw_Pow_highp, sw::Pow<Highp>)->Arg(REPS);
+BENCHMARK_CAPTURE(Transcendental2, sw_Pow_mediump, sw::Pow<Mediump>)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, rr_Exp, rr::Exp)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Exp, sw::Exp)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, rr_Log, rr::Log)->Arg(REPS);

@@ -195,13 +195,33 @@ Float4 Exp2(RValue<Float4> x);
 Float4 Log2(RValue<Float4> x);
 Float4 Exp(RValue<Float4> x);
 Float4 Log(RValue<Float4> x);
-Float4 Pow(RValue<Float4> x, RValue<Float4> y);
+Float4 Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision);
 Float4 Sinh(RValue<Float4> x);
 Float4 Cosh(RValue<Float4> x);
 Float4 Tanh(RValue<Float4> x);
 Float4 Asinh(RValue<Float4> x);
 Float4 Acosh(RValue<Float4> x);
 Float4 Atanh(RValue<Float4> x);
+RValue<Float4> Sqrt(RValue<Float4> x, bool relaxedPrecision);
+
+// Math functions with uses outside of shaders can be invoked using a verbose template argument instead
+// of a Boolean argument to indicate precision. For example Sqrt<Mediump>(x) equals Sqrt(x, true).
+enum Precision
+{
+	Highp,
+	Relaxed,
+	Mediump = Relaxed,  // GLSL defines mediump and lowp as corresponding with SPIR-V's RelaxedPrecision
+};
+
+// clang-format off
+template<Precision precision> RValue<Float4> Sqrt(RValue<Float4> x);
+template<> inline RValue<Float4> Sqrt<Highp>(RValue<Float4> x) { return Sqrt(x, false); }
+template<> inline RValue<Float4> Sqrt<Mediump>(RValue<Float4> x) { return Sqrt(x, true); }
+
+template<Precision precision> RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y);
+template<> inline RValue<Float4> Pow<Highp>(RValue<Float4> x, RValue<Float4> y) { return Pow(x, y, false); }
+template<> inline RValue<Float4> Pow<Mediump>(RValue<Float4> x, RValue<Float4> y) { return Pow(x, y, true); }
+// clang-format on
 
 Float4 reciprocal(RValue<Float4> x, bool pp = false, bool exactAtPow2 = false);
 Float4 reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);

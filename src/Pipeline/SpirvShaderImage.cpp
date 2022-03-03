@@ -23,6 +23,8 @@
 
 namespace {
 
+using namespace sw;
+
 vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
 {
 	switch(format)
@@ -74,14 +76,14 @@ vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
 	}
 }
 
-sw::SIMD::Float sRGBtoLinear(sw::SIMD::Float c)
+SIMD::Float sRGBtoLinear(SIMD::Float c)
 {
-	sw::SIMD::Float lc = c * (1.0f / 12.92f);
-	sw::SIMD::Float ec = sw::Pow((c + 0.055f) * (1.0f / 1.055f), 2.4f);  // TODO(b/149574741): Use an optimized approximation.
+	SIMD::Float lc = c * (1.0f / 12.92f);
+	SIMD::Float ec = Pow<Mediump>((c + 0.055f) * (1.0f / 1.055f), 2.4f);  // TODO(b/149574741): Use a custom approximation.
 
-	sw::SIMD::Int linear = CmpLT(c, 0.04045f);
+	SIMD::Int linear = CmpLT(c, 0.04045f);
 
-	return rr::As<sw::SIMD::Float>((linear & rr::As<sw::SIMD::Int>(lc)) | (~linear & rr::As<sw::SIMD::Int>(ec)));  // TODO: IfThenElse()
+	return rr::As<SIMD::Float>((linear & rr::As<SIMD::Int>(lc)) | (~linear & rr::As<SIMD::Int>(ec)));  // TODO: IfThenElse()
 }
 
 }  // anonymous namespace
