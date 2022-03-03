@@ -232,16 +232,16 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 Float4 QuadRasterizer::interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective)
 {
-	Float4 interpolant = D;
-
-	if(!flat)
+	if(flat)
 	{
-		interpolant += x * *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation, A), 16);
+		return D;
+	}
 
-		if(perspective)
-		{
-			interpolant *= rhw;
-		}
+	Float4 interpolant = MulAdd(x, *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation, A), 16), D);
+
+	if(perspective)
+	{
+		interpolant *= rhw;
 	}
 
 	return interpolant;
