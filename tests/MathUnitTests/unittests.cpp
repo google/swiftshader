@@ -165,15 +165,15 @@ float Exp2_legacy(float x)
 	return ii * ff;
 }
 
-// lolremez --float -d 4 -r "0:1" "(2^x-1)/x" "(3+2*x-1)/x"
-// ULP_32: 2.95602512, Vulkan margin: 0.943966746
+// lolremez --float -d 4 -r "0:1" "(2^x-1)/x" "1/x"
+// ULP_32: 2.65837669, Vulkan margin: 0.847366512
 float f_r(float x)
 {
-	float u = 1.8674689e-3f;
-	u = u * x + 9.0165929e-3f;
-	u = u * x + 5.5799878e-2f;
-	u = u * x + 2.4016463e-1f;
-	return u * x + 6.9315127e-1f;
+	float u = 1.8852974e-3f;
+	u = u * x + 8.9733787e-3f;
+	u = u * x + 5.5835927e-2f;
+	u = u * x + 2.4015281e-1f;
+	return u * x + 6.9315247e-1f;
 }
 
 float Exp2(float x)

@@ -356,11 +356,11 @@ Float4 Exp2(RValue<Float4> x)
 	// For the fractional part use a polynomial which approximates 2^f in the 0 to 1 range.
 	// To be exact at integers it uses the form f(x) * x + 1.
 	Float4 f = x0 - xi;
-	Float4 a = As<Float4>(Int4(0x3AF4C5DC));  // 1.8674689e-3f
-	Float4 b = As<Float4>(Int4(0x3C13BA55));  // 9.0165929e-3f
-	Float4 c = As<Float4>(Int4(0x3D648E6A));  // 5.5799878e-2f
-	Float4 d = As<Float4>(Int4(0x3E75EDB7));  // 2.4016463e-1f
-	Float4 e = As<Float4>(Int4(0x3F31725D));  // 6.9315127e-1f
+	const Float4 a = 1.8852974e-3f;
+	const Float4 b = 8.9733787e-3f;
+	const Float4 c = 5.5835927e-2f;
+	const Float4 d = 2.4015281e-1f;
+	const Float4 e = 6.9315247e-1f;
 
 	Float4 ff = MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(a, f, b), f, c), f, d), f, e), f, 1.0f);
 
