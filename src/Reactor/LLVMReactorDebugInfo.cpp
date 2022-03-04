@@ -359,8 +359,15 @@ void DebugInfo::emitPending(Scope &scope, IRBuilder *builder)
 		// To handle this, always promote named RValues to an alloca.
 
 		llvm::BasicBlock &entryBlock = function->getEntryBlock();
-		auto alloca = new llvm::AllocaInst(value->getType(), 0, pending.name);
-		entryBlock.getInstList().push_front(alloca);
+		llvm::AllocaInst *alloca = nullptr;
+		if(entryBlock.getInstList().size() > 0)
+		{
+			alloca = new llvm::AllocaInst(value->getType(), 0, pending.name, &entryBlock.getInstList().front());
+		}
+		else
+		{
+			alloca = new llvm::AllocaInst(value->getType(), 0, pending.name, &entryBlock);
+		}
 		builder->CreateStore(value, alloca);
 		value = alloca;
 	}

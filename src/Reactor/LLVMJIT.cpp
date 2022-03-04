@@ -714,12 +714,21 @@ public:
 		// introduces RTDyldObjectLinkingLayer::registerJITEventListener().
 		// The current API does not appear to have any way to bind the
 		// rr::DebugInfo::NotifyFreeingObject event.
+#	if LLVM_VERSION_MAJOR >= 12
+		objectLayer.setNotifyLoaded([](llvm::orc::MaterializationResponsibility &R,
+		                               const llvm::object::ObjectFile &obj,
+		                               const llvm::RuntimeDyld::LoadedObjectInfo &l) {
+			static std::atomic<uint64_t> unique_key{ 0 };
+			rr::DebugInfo::NotifyObjectEmitted(unique_key++, obj, l);
+		});
+#	else
 		objectLayer.setNotifyLoaded([](llvm::orc::VModuleKey,
 		                               const llvm::object::ObjectFile &obj,
 		                               const llvm::RuntimeDyld::LoadedObjectInfo &l) {
 			static std::atomic<uint64_t> unique_key{ 0 };
 			rr::DebugInfo::NotifyObjectEmitted(unique_key++, obj, l);
 		});
+#	endif
 #endif  // ENABLE_RR_DEBUG_INFO
 
 		if(JITGlobals::get()->getTargetTriple().isOSBinFormatCOFF())
