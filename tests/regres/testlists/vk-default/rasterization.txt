@@ -148,6 +148,7 @@ dEQP-VK.rasterization.culling.both_triangle_strip
 dEQP-VK.rasterization.culling.both_triangle_strip_reverse
 dEQP-VK.rasterization.culling.both_triangle_fan
 dEQP-VK.rasterization.culling.both_triangle_fan_reverse
+dEQP-VK.rasterization.culling.primitive_id
 dEQP-VK.rasterization.discard.triangle_list.query_pipeline_false
 dEQP-VK.rasterization.discard.triangle_list.query_pipeline_true
 dEQP-VK.rasterization.discard.triangle_strip.query_pipeline_false
