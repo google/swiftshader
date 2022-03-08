@@ -582,6 +582,35 @@ TEST_F(CCPTest, SkipSpecConstantInstrucitons) {
   EXPECT_EQ(std::get<1>(res), Pass::Status::SuccessWithoutChange);
 }
 
+TEST_F(CCPTest, FoldConstantCompositeInstrucitonsWithSpecConst) {
+  const std::string spv_asm = R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %1 "main"
+               OpExecutionMode %1 OriginUpperLeft
+       %void = OpTypeVoid
+          %4 = OpTypeFunction %void
+       %bool = OpTypeBool
+     %v3bool = OpTypeVector %bool 3
+  %_struct_8 = OpTypeStruct %v3bool
+       %true = OpConstantTrue %bool
+; CHECK: [[spec_const:%\w+]] = OpSpecConstantComposite %v3bool
+         %11 = OpSpecConstantComposite %v3bool %true %true %true
+         %12 = OpConstantComposite %_struct_8 %11
+; CHECK: OpFunction
+          %1 = OpFunction %void None %4
+         %29 = OpLabel
+         %31 = OpCompositeExtract %v3bool %12 0
+; CHECK: OpCompositeExtract %bool [[spec_const]] 0
+         %32 = OpCompositeExtract %bool %31 0
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  auto result = SinglePassRunAndMatch<CCPPass>(spv_asm, true);
+  EXPECT_EQ(std::get<1>(result), Pass::Status::SuccessWithChange);
+}
+
 TEST_F(CCPTest, UpdateSubsequentPhisToVarying) {
   const std::string text = R"(
 OpCapability Shader
