@@ -4259,8 +4259,10 @@ OpFunctionEnd
   CompileSuccessfully(spirv.c_str(), SPV_ENV_VULKAN_1_0);
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_0));
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("Variable initializers in Workgroup storage class are "
-                        "limited to OpConstantNull"));
+              AnyVUID(" VUID-StandaloneSpirv-OpVariable-04734"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("OpVariable, <id> '5[%5]', initializers are limited to "
+                        "OpConstantNull in Workgroup storage class"));
 }
 
 TEST_F(ValidateMemory, VulkanInitializerWithWorkgroupStorageClassGood) {
