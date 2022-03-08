@@ -81,6 +81,10 @@ sw::SpirvBinary optimizeSpirv(const vk::PipelineCache::SpirvBinaryKey &key)
 
 	if(optimize)
 	{
+		// Remove DontInline flags so the optimizer force-inlines all functions,
+		// as we currently don't support OpFunctionCall (b/141246700).
+		opt.RegisterPass(spvtools::CreateRemoveDontInlinePass());
+
 		// Full optimization list taken from spirv-opt.
 		opt.RegisterPerformancePasses();
 	}
