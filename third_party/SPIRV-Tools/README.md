@@ -417,7 +417,7 @@ targets, you need to install CMake Version 2.8.12 or later.
 - [Python 3](http://www.python.org/): for utility scripts and running the test
 suite.
 - [Bazel](https://bazel.build/) (optional): if building the source with Bazel,
-you need to install Bazel Version 0.29.1 on your machine. Other versions may
+you need to install Bazel Version 5.0.0 on your machine. Other versions may
 also work, but are not verified.
 - [Emscripten SDK](https://emscripten.org) (optional): if building the
   WebAssembly module.
