@@ -959,6 +959,22 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				}
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES:
+			{
+				const auto *privateDataFeatures = reinterpret_cast<const VkPhysicalDevicePrivateDataFeatures *>(extensionCreateInfo);
+				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(privateDataFeatures);
+				if(!hasFeatures)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO:
+			{
+				const auto *privateDataCreateInfo = reinterpret_cast<const VkDevicePrivateDataCreateInfo *>(extensionCreateInfo);
+				(void)privateDataCreateInfo->privateDataSlotRequestCount;
+			}
+			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES:
 			{
 				const auto *textureCompressionASTCHDRFeatures = reinterpret_cast<const VkPhysicalDeviceTextureCompressionASTCHDRFeatures *>(extensionCreateInfo);
