@@ -326,6 +326,12 @@ static void getPhysicalDeviceShaderDemoteToHelperInvocationFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceShaderTerminateInvocationFeatures(T *features)
+{
+	features->shaderTerminateInvocation = VK_FALSE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -519,6 +525,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES:
 			getPhysicalDeviceShaderDemoteToHelperInvocationFeatures(reinterpret_cast<VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES:
+			getPhysicalDeviceShaderTerminateInvocationFeatures(reinterpret_cast<VkPhysicalDeviceShaderTerminateInvocationFeatures *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES:
 			getPhysicalDeviceSubgroupSizeControlFeatures(reinterpret_cast<VkPhysicalDeviceSubgroupSizeControlFeatures *>(curExtension));
@@ -1425,6 +1434,13 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceShaderDemoteToHel
 	auto supported = getSupportedFeatures(requested);
 
 	return CheckFeature(requested, supported, shaderDemoteToHelperInvocation);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceShaderTerminateInvocationFeatures *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, shaderTerminateInvocation);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceSubgroupSizeControlFeatures *requested) const
