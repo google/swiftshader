@@ -47,6 +47,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDevicePrivateDataFeatures *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceTextureCompressionASTCHDRFeatures *features) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceSubgroupSizeControlFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceInlineUniformBlockFeatures *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceShaderIntegerDotProductFeatures *features) const;
