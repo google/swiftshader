@@ -296,7 +296,7 @@ static void getPhysicalDeviceShaderFloat16Int8Features(T *features)
 template<typename T>
 static void getPhysicalDeviceBufferDeviceAddressFeatures(T *features)
 {
-	features->bufferDeviceAddress = VK_FALSE;
+	features->bufferDeviceAddress = VK_TRUE;
 	features->bufferDeviceAddressCaptureReplay = VK_FALSE;
 	features->bufferDeviceAddressMultiDevice = VK_FALSE;
 }
