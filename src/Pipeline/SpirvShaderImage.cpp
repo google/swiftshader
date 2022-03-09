@@ -1098,13 +1098,13 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(const ImageInstruction &instr
 		dst.move(2, SIMD::Float((packed[0] >> 12) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		dst.move(3, SIMD::Float((packed[0]) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		break;
-	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
 		dst.move(0, SIMD::Float((packed[0] >> 8) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		dst.move(1, SIMD::Float((packed[0] >> 4) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		dst.move(2, SIMD::Float((packed[0]) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		dst.move(3, SIMD::Float((packed[0] >> 12) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		break;
-	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
 		dst.move(0, SIMD::Float((packed[0]) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		dst.move(1, SIMD::Float((packed[0] >> 4) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));
 		dst.move(2, SIMD::Float((packed[0] >> 8) & SIMD::Int(0xF)) * SIMD::Float(1.0f / 0xF));

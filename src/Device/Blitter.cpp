@@ -467,13 +467,13 @@ Float4 Blitter::readFloat4(Pointer<Byte> element, const State &state)
 		c.z = Float(Int((*Pointer<UShort>(element) & UShort(0x00F0)) >> UShort(4)));
 		c.w = Float(Int(*Pointer<UShort>(element) & UShort(0x000F)));
 		break;
-	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
 		c.w = Float(Int((*Pointer<UShort>(element) & UShort(0xF000)) >> UShort(12)));
 		c.z = Float(Int((*Pointer<UShort>(element) & UShort(0x0F00)) >> UShort(8)));
 		c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x00F0)) >> UShort(4)));
 		c.x = Float(Int(*Pointer<UShort>(element) & UShort(0x000F)));
 		break;
-	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
 		c.w = Float(Int((*Pointer<UShort>(element) & UShort(0xF000)) >> UShort(12)));
 		c.x = Float(Int((*Pointer<UShort>(element) & UShort(0x0F00)) >> UShort(8)));
 		c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x00F0)) >> UShort(4)));
@@ -602,7 +602,7 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 			                            (UShort(PackFields(RoundInt(c) & Int4(0xF), { 4, 8, 12, 0 })) & UShort(mask));
 		}
 		break;
-	case VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
 		if(writeRGBA)
 		{
 			*Pointer<UShort>(element) = UShort(PackFields(RoundInt(c) & Int4(0xF), { 8, 4, 0, 12 }));
@@ -618,7 +618,7 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 			                            (UShort(PackFields(RoundInt(c) & Int4(0xF), { 8, 4, 0, 12 })) & UShort(mask));
 		}
 		break;
-	case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
+	case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
 		if(writeRGBA)
 		{
 			*Pointer<UShort>(element) = UShort(PackFields(RoundInt(c) & Int4(0xF), { 0, 4, 8, 12 }));
