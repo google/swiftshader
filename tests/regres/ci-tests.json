@@ -10,5 +10,6 @@
     { "name": "vulkan-master", "api": "vulkan", "tests": "testlists/vk-master-QUALITY_WARNING.txt" },
     { "name": "vulkan-master", "api": "vulkan", "tests": "testlists/vk-master-TIMEOUT.txt" },
     { "name": "vulkan-master", "api": "vulkan", "tests": "testlists/vk-master-UNIMPLEMENTED.txt" },
-    { "name": "vulkan-master", "api": "vulkan", "tests": "testlists/vk-master-UNREACHABLE.txt" }
+    { "name": "vulkan-master", "api": "vulkan", "tests": "testlists/vk-master-UNREACHABLE.txt" },
+    { "name": "vulkan-master", "api": "vulkan", "tests": "testlists/vk-master-UNSUPPORTED.txt" }
 ]
