@@ -308,6 +308,12 @@ static void getPhysicalDeviceDynamicRenderingFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceTextureCompressionASTCHDRFeatures(T *features)
+{
+	features->textureCompressionASTC_HDR = VK_FALSE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -487,6 +493,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT:
 			getPhysicalDeviceExtendedDynamicStateFeaturesExt(reinterpret_cast<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES:
+			getPhysicalDeviceTextureCompressionASTCHDRFeatures(reinterpret_cast<VkPhysicalDeviceTextureCompressionASTCHDRFeatures *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES:
 			getPhysicalDeviceSubgroupSizeControlFeatures(reinterpret_cast<VkPhysicalDeviceSubgroupSizeControlFeatures *>(curExtension));
@@ -1329,6 +1338,13 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicSt
 	auto supported = getSupportedFeatures(requested);
 
 	return CheckFeature(requested, supported, extendedDynamicState);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceTextureCompressionASTCHDRFeatures *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, textureCompressionASTC_HDR);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceSubgroupSizeControlFeatures *requested) const

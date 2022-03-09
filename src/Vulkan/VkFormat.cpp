@@ -2608,9 +2608,9 @@ static constexpr uint8_t pack(VkFormat format)
 	}
 
 	// 10000660xx -> 227 - 240
-	if(format >= VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT && format <= VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT)
+	if(format >= VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK && format <= VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK)
 	{
-		return uint8_t(format - VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT + 227);
+		return uint8_t(format - VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK + 227);
 	}
 
 	// 100034000x -> 241 - 242
@@ -2628,8 +2628,8 @@ static_assert(pack(VK_FORMAT_G8B8G8R8_422_UNORM) == 185, "Incorrect VkFormat pac
 static_assert(pack(VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM) == 218, "Incorrect VkFormat packed value");
 static_assert(pack(VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG) == 219, "Incorrect VkFormat packed value");
 static_assert(pack(VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG) == 226, "Incorrect VkFormat packed value");
-static_assert(pack(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT) == 227, "Incorrect VkFormat packed value");
-static_assert(pack(VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT) == 240, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK) == 227, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK) == 240, "Incorrect VkFormat packed value");
 static_assert(pack(VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT) == 241, "Incorrect VkFormat packed value");
 static_assert(pack(VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT) == 242, "Incorrect VkFormat packed value");
 
@@ -2656,7 +2656,7 @@ static constexpr VkFormat unpack(uint8_t format)
 	// 227 - 240 -> 10000660xx
 	if(format >= 227 && format <= 240)
 	{
-		return static_cast<VkFormat>(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT + (format - 227));
+		return static_cast<VkFormat>(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK + (format - 227));
 	}
 
 	// 241 - 242 -> 100034000x
@@ -2674,8 +2674,8 @@ static_assert(unpack(185) == VK_FORMAT_G8B8G8R8_422_UNORM, "Incorrect VkFormat u
 static_assert(unpack(218) == VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM, "Incorrect VkFormat unpacked value");
 static_assert(unpack(219) == VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG, "Incorrect VkFormat unpacked value");
 static_assert(unpack(226) == VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG, "Incorrect VkFormat unpacked value");
-static_assert(unpack(227) == VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT, "Incorrect VkFormat unpacked value");
-static_assert(unpack(240) == VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT, "Incorrect VkFormat unpacked value");
+static_assert(unpack(227) == VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK, "Incorrect VkFormat unpacked value");
+static_assert(unpack(240) == VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK, "Incorrect VkFormat unpacked value");
 static_assert(unpack(241) == VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT, "Incorrect VkFormat unpacked value");
 static_assert(unpack(242) == VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT, "Incorrect VkFormat unpacked value");
 static_assert(unpack(243) == VK_FORMAT_UNDEFINED, "Incorrect VkFormat unpacked value");
