@@ -394,6 +394,24 @@ static void getPhysicalDeviceDepthClipEnableFeaturesExt(T *features)
 	features->depthClipEnable = VK_TRUE;
 }
 
+template<typename T>
+static void getPhysicalDeviceVulkan13Features(T *features)
+{
+	getPhysicalDeviceImageRobustnessFeatures(features);
+	getPhysicalDeviceInlineUniformBlockFeatures(features);
+	getPhysicalDevicePipelineCreationCacheControlFeatures(features);
+	getPhysicalDevicePrivateDataFeatures(features);
+	getPhysicalDeviceShaderDemoteToHelperInvocationFeatures(features);
+	getPhysicalDeviceShaderTerminateInvocationFeatures(features);
+	getPhysicalDeviceSubgroupSizeControlFeatures(features);
+	getPhysicalDeviceSynchronization2Features(features);
+	getPhysicalDeviceTextureCompressionASTCHDRFeatures(features);
+	getPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(features);
+	getPhysicalDeviceDynamicRenderingFeatures(features);
+	getPhysicalDeviceShaderIntegerDotProductFeatures(features);
+	features->maintenance4 = VK_TRUE;
+}
+
 static void getPhysicalDeviceCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomBorderColorFeaturesEXT *features)
 {
 	features->customBorderColors = VK_TRUE;
@@ -429,6 +447,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES:
 			getPhysicalDeviceVulkan12Features(reinterpret_cast<VkPhysicalDeviceVulkan12Features *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES:
+			getPhysicalDeviceVulkan13Features(reinterpret_cast<VkPhysicalDeviceVulkan13Features *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES:
 			getPhysicalDeviceMultiviewFeatures(reinterpret_cast<VkPhysicalDeviceMultiviewFeatures *>(curExtension));
@@ -1289,6 +1310,15 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceVulkan12Properties *propertie
 	properties->framebufferIntegerColorSampleCounts = VK_SAMPLE_COUNT_1_BIT;
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceVulkan13Properties *properties) const
+{
+	getSubgroupSizeControlProperties(properties);
+	getInlineUniformBlockProperties(properties);
+	getShaderIntegerDotProductProperties(properties);
+	getTexelBufferAlignmentProperties(properties);
+	getMaintenance4Properties(properties);
+}
+
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatures) const
 {
 	const VkPhysicalDeviceFeatures &supportedFeatures = getFeatures();
@@ -1412,6 +1442,27 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceVulkan12Features 
 	       CheckFeature(requested, supported, shaderOutputViewportIndex) &&
 	       CheckFeature(requested, supported, shaderOutputLayer) &&
 	       CheckFeature(requested, supported, subgroupBroadcastDynamicId);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceVulkan13Features *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, robustImageAccess) &&
+	       CheckFeature(requested, supported, inlineUniformBlock) &&
+	       CheckFeature(requested, supported, descriptorBindingInlineUniformBlockUpdateAfterBind) &&
+	       CheckFeature(requested, supported, pipelineCreationCacheControl) &&
+	       CheckFeature(requested, supported, privateData) &&
+	       CheckFeature(requested, supported, shaderDemoteToHelperInvocation) &&
+	       CheckFeature(requested, supported, shaderTerminateInvocation) &&
+	       CheckFeature(requested, supported, subgroupSizeControl) &&
+	       CheckFeature(requested, supported, computeFullSubgroups) &&
+	       CheckFeature(requested, supported, synchronization2) &&
+	       CheckFeature(requested, supported, textureCompressionASTC_HDR) &&
+	       CheckFeature(requested, supported, shaderZeroInitializeWorkgroupMemory) &&
+	       CheckFeature(requested, supported, dynamicRendering) &&
+	       CheckFeature(requested, supported, shaderIntegerDotProduct) &&
+	       CheckFeature(requested, supported, maintenance4);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceDepthClipEnableFeaturesEXT *requested) const
