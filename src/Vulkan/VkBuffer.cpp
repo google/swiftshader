@@ -43,6 +43,11 @@ Buffer::Buffer(const VkBufferCreateInfo *pCreateInfo, void *mem)
 			const auto *externalInfo = reinterpret_cast<const VkExternalMemoryBufferCreateInfo *>(nextInfo);
 			supportedExternalMemoryHandleTypes = externalInfo->handleTypes;
 		}
+		else if(nextInfo->sType == VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO)
+		{
+			const auto *opaqueCaptureAddressInfo = reinterpret_cast<const VkBufferOpaqueCaptureAddressCreateInfo *>(nextInfo);
+			opaqueCaptureAddress = opaqueCaptureAddressInfo->opaqueCaptureAddress;
+		}
 	}
 }
 
@@ -144,6 +149,11 @@ void Buffer::update(VkDeviceSize dstOffset, VkDeviceSize dataSize, const void *p
 void *Buffer::getOffsetPointer(VkDeviceSize offset) const
 {
 	return reinterpret_cast<uint8_t *>(memory) + offset;
+}
+
+uint64_t Buffer::getOpaqueCaptureAddress() const
+{
+	return (opaqueCaptureAddress != 0) ? opaqueCaptureAddress : static_cast<uint64_t>(reinterpret_cast<uintptr_t>(memory));
 }
 
 uint8_t *Buffer::end() const

@@ -141,9 +141,10 @@ VkResult DeviceMemory::Allocate(const VkAllocationCallbacks *pAllocator, const V
 	return vk::DeviceMemoryInternal::Create(pAllocator, &allocateInfo, pMemory, extendedAllocationInfo, device);
 }
 
-DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo *pAllocateInfo, Device *pDevice)
+DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo *pAllocateInfo, const DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, Device *pDevice)
     : allocationSize(pAllocateInfo->allocationSize)
     , memoryTypeIndex(pAllocateInfo->memoryTypeIndex)
+    , opaqueCaptureAddress(extendedAllocationInfo.opaqueCaptureAddress)
     , device(pDevice)
 {
 	ASSERT(allocationSize);
@@ -242,6 +243,10 @@ VkResult DeviceMemory::ParseAllocationInfo(const VkMemoryAllocateInfo *pAllocate
 			}
 			break;
 #endif  // VK_USE_PLATFORM_FUCHSIA
+		case VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO:
+			extendedAllocationInfo->opaqueCaptureAddress =
+			    reinterpret_cast<const VkMemoryOpaqueCaptureAddressAllocateInfo *>(allocationInfo)->opaqueCaptureAddress;
+			break;
 		default:
 			UNSUPPORTED("pAllocateInfo->pNext sType = %s", vk::Stringify(allocationInfo->sType).c_str());
 			break;
@@ -301,6 +306,11 @@ void *DeviceMemory::getOffsetPointer(VkDeviceSize pOffset) const
 {
 	ASSERT(buffer);
 	return reinterpret_cast<char *>(buffer) + pOffset;
+}
+
+uint64_t DeviceMemory::getOpaqueCaptureAddress() const
+{
+	return (opaqueCaptureAddress != 0) ? opaqueCaptureAddress : static_cast<uint64_t>(reinterpret_cast<uintptr_t>(buffer));
 }
 
 bool DeviceMemory::checkExternalMemoryHandleType(

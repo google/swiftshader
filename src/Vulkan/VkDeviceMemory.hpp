@@ -29,6 +29,7 @@ public:
 	{
 		VkDeviceSize allocationSize = 0;
 		uint32_t memoryTypeIndex = 0;
+		uint64_t opaqueCaptureAddress = 0;
 		const VkExportMemoryAllocateInfo *exportMemoryAllocateInfo = nullptr;
 		const VkImportMemoryHostPointerInfoEXT *importMemoryHostPointerInfo = nullptr;
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
@@ -44,7 +45,7 @@ public:
 	};
 
 protected:
-	DeviceMemory(const VkMemoryAllocateInfo *pCreateInfo, Device *pDevice);
+	DeviceMemory(const VkMemoryAllocateInfo *pCreateInfo, const DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, Device *pDevice);
 
 public:
 	virtual ~DeviceMemory() {}
@@ -81,6 +82,7 @@ public:
 	VkResult map(VkDeviceSize offset, VkDeviceSize size, void **ppData);
 	VkDeviceSize getCommittedMemoryInBytes() const;
 	void *getOffsetPointer(VkDeviceSize pOffset) const;
+	uint64_t getOpaqueCaptureAddress() const;
 	uint32_t getMemoryTypeIndex() const { return memoryTypeIndex; }
 
 	// If this is external memory, return true iff its handle type matches the bitmask
@@ -119,6 +121,7 @@ protected:
 	void *buffer = nullptr;
 	const VkDeviceSize allocationSize;
 	const uint32_t memoryTypeIndex;
+	uint64_t opaqueCaptureAddress = 0;
 	Device *const device;
 
 private:
@@ -132,7 +135,7 @@ class DeviceMemoryInternal : public DeviceMemory, public ObjectBase<DeviceMemory
 {
 public:
 	DeviceMemoryInternal(const VkMemoryAllocateInfo *pCreateInfo, void *mem, const DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, Device *pDevice)
-	    : DeviceMemory(pCreateInfo, pDevice)
+	    : DeviceMemory(pCreateInfo, extendedAllocationInfo, pDevice)
 	{}
 };
 

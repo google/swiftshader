@@ -36,7 +36,7 @@ bool ExternalMemoryHost::SupportsAllocateInfo(const vk::DeviceMemory::ExtendedAl
 }
 
 ExternalMemoryHost::ExternalMemoryHost(const VkMemoryAllocateInfo *pCreateInfo, void *mem, const DeviceMemory::ExtendedAllocationInfo &extendedAllocationInfo, vk::Device *pDevice)
-    : vk::DeviceMemory(pCreateInfo, pDevice)
+    : vk::DeviceMemory(pCreateInfo, extendedAllocationInfo, pDevice)
     , allocateInfo(extendedAllocationInfo)
 {}
 
