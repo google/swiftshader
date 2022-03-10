@@ -308,6 +308,13 @@ static void getPhysicalDeviceDynamicRenderingFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceInlineUniformBlockFeatures(T *features)
+{
+	features->inlineUniformBlock = VK_TRUE;
+	features->descriptorBindingInlineUniformBlockUpdateAfterBind = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDevicePrivateDataFeatures(T *features)
 {
 	features->privateData = VK_TRUE;
@@ -329,6 +336,31 @@ template<typename T>
 static void getPhysicalDeviceShaderTerminateInvocationFeatures(T *features)
 {
 	features->shaderTerminateInvocation = VK_TRUE;
+}
+
+template<typename T>
+static void getPhysicalDeviceSubgroupSizeControlFeatures(T *features)
+{
+	features->subgroupSizeControl = VK_TRUE;
+	features->computeFullSubgroups = VK_TRUE;
+}
+
+template<typename T>
+static void getPhysicalDeviceSynchronization2Features(T *features)
+{
+	features->synchronization2 = VK_TRUE;
+}
+
+template<typename T>
+static void getPhysicalDeviceShaderIntegerDotProductFeatures(T *features)
+{
+	features->shaderIntegerDotProduct = VK_TRUE;
+}
+
+template<typename T>
+static void getPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(T *features)
+{
+	features->shaderZeroInitializeWorkgroupMemory = VK_TRUE;
 }
 
 template<typename T>
@@ -362,11 +394,6 @@ static void getPhysicalDeviceDepthClipEnableFeaturesExt(T *features)
 	features->depthClipEnable = VK_TRUE;
 }
 
-static void getPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *features)
-{
-	features->shaderZeroInitializeWorkgroupMemory = VK_TRUE;
-}
-
 static void getPhysicalDeviceCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomBorderColorFeaturesEXT *features)
 {
 	features->customBorderColors = VK_TRUE;
@@ -383,32 +410,10 @@ static void getPhysicalDeviceExtendedDynamicStateFeaturesExt(VkPhysicalDeviceExt
 	features->extendedDynamicState = VK_TRUE;
 }
 
-static void getPhysicalDeviceSubgroupSizeControlFeatures(VkPhysicalDeviceSubgroupSizeControlFeatures *features)
-{
-	features->subgroupSizeControl = VK_TRUE;
-	features->computeFullSubgroups = VK_TRUE;
-}
-
-static void getPhysicalDeviceInlineUniformBlockFeatures(VkPhysicalDeviceInlineUniformBlockFeatures *features)
-{
-	features->inlineUniformBlock = VK_TRUE;
-	features->descriptorBindingInlineUniformBlockUpdateAfterBind = VK_TRUE;
-}
-
 static void getPhysicalDevice4444FormatsFeaturesExt(VkPhysicalDevice4444FormatsFeaturesEXT *features)
 {
 	features->formatA4R4G4B4 = VK_TRUE;
 	features->formatA4B4G4R4 = VK_TRUE;
-}
-
-static void getPhysicalDeviceSynchronization2Features(VkPhysicalDeviceSynchronization2Features *features)
-{
-	features->synchronization2 = VK_TRUE;
-}
-
-static void getPhysicalDeviceShaderIntegerDotProductFeatures(VkPhysicalDeviceShaderIntegerDotProductFeatures *features)
-{
-	features->shaderIntegerDotProduct = VK_TRUE;
 }
 
 void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
@@ -785,7 +790,8 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceProtectedMemoryProperties *pr
 	getProtectedMemoryProperties(properties);
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties *properties) const
+template<typename T>
+static void getSubgroupProperties(T *properties)
 {
 	properties->subgroupSize = sw::SIMD::Width;
 	properties->supportedStages = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
@@ -797,6 +803,11 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties *propertie
 	    VK_SUBGROUP_FEATURE_SHUFFLE_BIT |
 	    VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT;
 	properties->quadOperationsInAllStages = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties *properties) const
+{
+	getSubgroupProperties(properties);
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceVulkan11Properties *properties) const
@@ -1157,10 +1168,11 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceBlendOperationAdvancedPropert
 	properties->advancedBlendAllOperations = VK_FALSE;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupSizeControlProperties *properties) const
+template<typename T>
+static void getSubgroupSizeControlProperties(T *properties)
 {
 	VkPhysicalDeviceSubgroupProperties subgroupProperties = {};
-	getProperties(&subgroupProperties);
+	getSubgroupProperties(&subgroupProperties);
 	properties->minSubgroupSize = subgroupProperties.subgroupSize;
 	properties->maxSubgroupSize = subgroupProperties.subgroupSize;
 	properties->maxComputeWorkgroupSubgroups = vk::MAX_COMPUTE_WORKGROUP_INVOCATIONS /
@@ -1168,7 +1180,13 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupSizeControlProperties
 	properties->requiredSubgroupSizeStages = subgroupProperties.supportedStages;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceInlineUniformBlockProperties *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupSizeControlProperties *properties) const
+{
+	getSubgroupSizeControlProperties(properties);
+}
+
+template<typename T>
+static void getInlineUniformBlockProperties(T *properties)
 {
 	properties->maxInlineUniformBlockSize = MAX_INLINE_UNIFORM_BLOCK_SIZE;
 	properties->maxPerStageDescriptorInlineUniformBlocks = 4;
@@ -1177,7 +1195,13 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceInlineUniformBlockProperties 
 	properties->maxDescriptorSetUpdateAfterBindInlineUniformBlocks = 4;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceTexelBufferAlignmentProperties *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDeviceInlineUniformBlockProperties *properties) const
+{
+	getInlineUniformBlockProperties(properties);
+}
+
+template<typename T>
+static void getTexelBufferAlignmentProperties(T *properties)
 {
 	properties->storageTexelBufferOffsetAlignmentBytes = vk::MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT;
 	properties->storageTexelBufferOffsetSingleTexelAlignment = VK_FALSE;
@@ -1185,7 +1209,13 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceTexelBufferAlignmentPropertie
 	properties->uniformTexelBufferOffsetSingleTexelAlignment = VK_FALSE;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceShaderIntegerDotProductProperties *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDeviceTexelBufferAlignmentProperties *properties) const
+{
+	getTexelBufferAlignmentProperties(properties);
+}
+
+template<typename T>
+static void getShaderIntegerDotProductProperties(T *properties)
 {
 	properties->integerDotProduct8BitUnsignedAccelerated = VK_FALSE;
 	properties->integerDotProduct8BitSignedAccelerated = VK_FALSE;
@@ -1217,6 +1247,11 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceShaderIntegerDotProductProper
 	properties->integerDotProductAccumulatingSaturating64BitUnsignedAccelerated = VK_FALSE;
 	properties->integerDotProductAccumulatingSaturating64BitSignedAccelerated = VK_FALSE;
 	properties->integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceShaderIntegerDotProductProperties *properties) const
+{
+	getShaderIntegerDotProductProperties(properties);
 }
 
 template<typename T>
