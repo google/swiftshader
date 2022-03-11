@@ -349,24 +349,22 @@ RValue<Float4> Exp2(RValue<Float4> x, bool relaxedPrecision)
 
 	if(!relaxedPrecision)  // highp
 	{
-		// This implementation is based on 2^(i + f) = 2^i * 2^f,
-		// where i is the integer part of x and f is the fraction.
-	
-		// For 2^i we can put the integer part directly in the exponent of the IEEE-754 floating-point number.
-		Int4 i = Int4(xi);
-		Float4 ii = As<Float4>((i + Int4(127)) << 23);  // Add single-precision bias, and shift into exponent.
-
-		// For the fractional part use a polynomial which approximates 2^f in the 0 to 1 range.
-		// To be exact at integers it uses the form f(x) * x + 1.
+		// Polynomial which approximates (2^x-x-1)/x. Multiplying with x
+		// gives us a correction term to be added to 1+x to obtain 2^x.
 		const Float4 a = 1.8852974e-3f;
 		const Float4 b = 8.9733787e-3f;
 		const Float4 c = 5.5835927e-2f;
 		const Float4 d = 2.4015281e-1f;
-		const Float4 e = 6.9315247e-1f;
+		const Float4 e = -3.0684753e-1f;
 
-		Float4 ff = MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(a, f, b), f, c), f, d), f, e), f, 1.0f);
+		Float4 r = MulAdd(MulAdd(MulAdd(MulAdd(a, f, b), f, c), f, d), f, e);
 
-		return ii * ff;
+		// bit_cast<float>(int(x * 2^23)) is a piecewise linear approximation of 2^x.
+		// See "Fast Exponential Computation on SIMD Architectures" by Malossi et al.
+		Float4 y = MulAdd(r, f, x0);
+		Int4 i = Int4(y * (1 << 23)) + (127 << 23);
+
+		return As<Float4>(i);
 	}
 	else  // RelaxedPrecision / mediump
 	{

@@ -136,9 +136,9 @@ TEST(MathTest, Log2RelaxedExhaustive)
 	CPUID::setFlushToZero(false);
 }
 
-// lolremez --float - d 2 - r "0:1" "(2^x-x-1)/x" "1/x"
+// lolremez --float -d 2 -r "0:1" "(2^x-x-1)/x" "1/x"
 // ULP-16: 0.130859017
-float P(float x)
+float Pr(float x)
 {
 	float u = 7.8145574e-2f;
 	u = u * x + 2.2617357e-1f;
@@ -147,18 +147,17 @@ float P(float x)
 
 float Exp2Relaxed(float x)
 {
-	float x0 = x;
-	x0 = min(x0, 128.0f);
-	x0 = max(x0, bit_cast<float>(int(0xC2FDFFFF)));  // -126.999992
-
-	const float f = x0 - floor(x0);
+	x = min(x, 128.0f);
+	x = max(x, bit_cast<float>(int(0xC2FDFFFF)));  // -126.999992
 
 	// 2^f - f - 1 as P(f) * f
-	float y = P(f) * f + x0;
+	// This is a correction term to be added to 1+x to obtain 2^x.
+	float f = x - floor(x);
+	float y = Pr(f) * f + x;
 
-	int i = (int)((1 << 23) * y + (127 << 23));
-
-	return bit_cast<float>(i);
+	// bit_cast<float>(int(x * 2^23)) is a piecewise linear approximation of 2^(x-127).
+	// See "Fast Exponential Computation on SIMD Architectures" by Malossi et al.
+	return bit_cast<float>(int((1 << 23) * y + (127 << 23)));
 }
 
 TEST(MathTest, Exp2RelaxedExhaustive)
@@ -316,39 +315,30 @@ float Exp2_legacy(float x)
 	return ii * ff;
 }
 
-// lolremez --float -d 4 -r "0:1" "(2^x-1)/x" "1/x"
-// ULP_32: 2.65837669, Vulkan margin: 0.847366512
-float f_r(float x)
+// lolremez --float -d 4 -r "0:1" "(2^x-x-1)/x" "1/x"
+// ULP_32: 2.14694786, Vulkan margin: 0.686957061
+float P(float x)
 {
 	float u = 1.8852974e-3f;
 	u = u * x + 8.9733787e-3f;
 	u = u * x + 5.5835927e-2f;
 	u = u * x + 2.4015281e-1f;
-	return u * x + 6.9315247e-1f;
+	return u * x + -3.0684753e-1f;
 }
 
 float Exp2(float x)
 {
-	// This implementation is based on 2^(i + f) = 2^i * 2^f,
-	// where i is the integer part of x and f is the fraction.
+	x = min(x, 128.0f);
+	x = max(x, bit_cast<float>(0xC2FDFFFF));  // -126.999992
 
-	// For 2^i we can put the integer part directly in the exponent of
-	// the IEEE-754 floating-point number. Clamp to prevent overflow
-	// past the representation of infinity.
-	float x0 = x;
-	x0 = min(x0, bit_cast<float>(int(0x4300FFFF)));  // 128.999985
-	x0 = max(x0, bit_cast<float>(int(0xC2FDFFFF)));  // -126.999992
+	// 2^f - f - 1 as P(f) * f
+	// This is a correction term to be added to 1+x to obtain 2^x.
+	float f = x - floor(x);
+	float y = P(f) * f + x;
 
-	float xi = floor(x0);
-	int i = int(xi);
-	float ii = bit_cast<float>((i + int(127)) << 23);  // Add single-precision bias, and shift into exponent.
-
-	// For the fractional part use a polynomial which approximates 2^f in the 0 to 1 range.
-	// To be exact at integers it uses the form f(x) * x + 1.
-	float f = x0 - xi;
-	float ff = f_r(f) * f + 1.0f;
-
-	return ii * ff;
+	// bit_cast<float>(int(x * 2^23)) is a piecewise linear approximation of 2^(x-127).
+	// See "Fast Exponential Computation on SIMD Architectures" by Malossi et al.
+	return bit_cast<float>(int(y * (1 << 23)) + (127 << 23));
 }
 
 TEST(MathTest, Exp2Exhaustive)
