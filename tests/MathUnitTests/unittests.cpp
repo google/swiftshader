@@ -227,6 +227,36 @@ float Log2_legacy(float x)
 	return bit_cast<float>((pos_inf_x & bit_cast<int>(x)) | (~pos_inf_x & bit_cast<int>(x1)));
 }
 
+// lolremez --float -d 7 -r "0:1" "(log2(x+1)-x)/x" "1/x"
+// ULP-32: 1.69571960, abs: 0.360798746
+float Pl(float x)
+{
+	float u = -9.3091638e-3f;
+	u = u * x + 5.2059003e-2f;
+	u = u * x + -1.3752135e-1f;
+	u = u * x + 2.4186478e-1f;
+	u = u * x + -3.4730109e-1f;
+	u = u * x + 4.786837e-1f;
+	u = u * x + -7.2116581e-1f;
+	return u * x + 4.4268988e-1f;
+}
+
+float Log2(float x)
+{
+	// Reinterpretation as an integer provides a piecewise linear
+	// approximation of log2(). Scale to the radix and subtract exponent bias.
+	int im = bit_cast<int>(x);
+	float y = (float)(im - (127 << 23)) * (1.0f / (1 << 23));
+
+	// Handle log2(inf) = inf.
+	if(im == 0x7F800000) y = INFINITY;
+
+	float m = (float)(im & 0x007FFFFF) * (1.0f / (1 << 23));  // Normalized mantissa of x.
+
+	// Add a polynomial approximation of log2(m+1)-m to the result's mantissa.
+	return Pl(m) * m + y;
+}
+
 TEST(MathTest, Log2Exhaustive)
 {
 	CPUID::setDenormalsAreZero(true);
@@ -242,7 +272,7 @@ TEST(MathTest, Log2Exhaustive)
 
 	for(float x = 0.0f; x <= INFINITY; x = inc(x))
 	{
-		float val = Log2_legacy(x);
+		float val = Log2(x);
 
 		double ref = log2((double)x);
 

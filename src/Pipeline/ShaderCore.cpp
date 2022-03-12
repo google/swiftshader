@@ -389,19 +389,29 @@ RValue<Float4> Log2(RValue<Float4> x, bool relaxedPrecision)
 {
 	if(!relaxedPrecision)  // highp
 	{
-		Float4 x1 = As<Float4>(As<Int4>(x) & Int4(0x7F800000));
-		x1 = As<Float4>(As<UInt4>(x1) >> 8);
-		x1 = As<Float4>(As<Int4>(x1) | As<Int4>(Float4(1.0f)));
-		x1 = (x1 - 1.4960938f) * 256.0f;
-		Float4 x0 = As<Float4>((As<Int4>(x) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
+		// Reinterpretation as an integer provides a piecewise linear
+		// approximation of log2(). Scale to the radix and subtract exponent bias.
+		Int4 im = As<Int4>(x);
+		Float4 y = Float4(im - (127 << 23)) * (1.0f / (1 << 23));
 
-		Float4 x2 = MulAdd(MulAdd(9.5428179e-2f, x0, 4.7779095e-1f), x0, 1.9782813e-1f);
-		Float4 x3 = MulAdd(MulAdd(MulAdd(1.6618466e-2f, x0, 2.0350508e-1f), x0, 2.7382900e-1f), x0, 4.0496687e-2f);
+		// Handle log2(inf) = inf.
+		y = As<Float4>(As<Int4>(y) | (CmpEQ(im, 0x7F800000) & As<Int4>(Float4::infinity())));
 
-		x1 += (x0 - 1.0f) * (x2 / x3);
+		Float4 m = Float4(im & 0x007FFFFF) * (1.0f / (1 << 23));  // Normalized mantissa of x.
 
-		Int4 pos_inf_x = CmpEQ(As<Int4>(x), Int4(0x7F800000));
-		return As<Float4>((pos_inf_x & As<Int4>(x)) | (~pos_inf_x & As<Int4>(x1)));
+		// Add a polynomial approximation of log2(m+1)-m to the result's mantissa.
+		const Float4 a = -9.3091638e-3f;
+		const Float4 b = 5.2059003e-2f;
+		const Float4 c = -1.3752135e-1f;
+		const Float4 d = 2.4186478e-1f;
+		const Float4 e = -3.4730109e-1f;
+		const Float4 f = 4.786837e-1f;
+		const Float4 g = -7.2116581e-1f;
+		const Float4 h = 4.4268988e-1f;
+
+		Float4 z = MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(MulAdd(a, m, b), m, c), m, d), m, e), m, f), m, g), m, h);
+
+		return MulAdd(z, m, y);
 	}
 	else  // RelaxedPrecision / mediump
 	{
