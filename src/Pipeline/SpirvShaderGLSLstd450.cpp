@@ -1086,10 +1086,20 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 	Pointer<Byte> planeEquation = interpolationData.primitive + OFFSET(Primitive, V[packedInterpolant]);
 	if(ptr.hasDynamicOffsets)
 	{
-		// This code assumes all dynamic offsets are equal
-		Int offset = ((Extract(ptr.dynamicOffsets, 0) + ptr.staticOffsets[0]) >> 2) + component;
-		offset = Min(offset, Int(inputs.size() - interpolant - 1));
-		planeEquation += (offset * sizeof(PlaneEquation));
+		// Combine plane equations into one
+		SIMD::Float A;
+		SIMD::Float B;
+		SIMD::Float C;
+
+		for(int i = 0; i < SIMD::Width; ++i)
+		{
+			Int offset = ((Extract(ptr.dynamicOffsets, i) + ptr.staticOffsets[i]) >> 2) + component;
+			Pointer<Byte> planeEquationI = planeEquation + (offset * sizeof(PlaneEquation));
+			A = Insert(A, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, A), 16), i), i);
+			B = Insert(B, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, B), 16), i), i);
+			C = Insert(C, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, C), 16), i), i);
+		}
+		return ::Interpolate(x, y, rhw, A, B, C, false, true);
 	}
 	else
 	{
