@@ -385,8 +385,30 @@ RValue<Float4> Exp2(RValue<Float4> x, bool relaxedPrecision)
 	}
 }
 
+RValue<Float4> Log2_legacy(RValue<Float4> x)
+{
+	Float4 x1 = As<Float4>(As<Int4>(x) & Int4(0x7F800000));
+	x1 = As<Float4>(As<UInt4>(x1) >> 8);
+	x1 = As<Float4>(As<Int4>(x1) | As<Int4>(Float4(1.0f)));
+	x1 = (x1 - 1.4960938f) * 256.0f;
+	Float4 x0 = As<Float4>((As<Int4>(x) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
+
+	Float4 x2 = MulAdd(MulAdd(9.5428179e-2f, x0, 4.7779095e-1f), x0, 1.9782813e-1f);
+	Float4 x3 = MulAdd(MulAdd(MulAdd(1.6618466e-2f, x0, 2.0350508e-1f), x0, 2.7382900e-1f), x0, 4.0496687e-2f);
+
+	x1 += (x0 - 1.0f) * (x2 / x3);
+
+	Int4 pos_inf_x = CmpEQ(As<Int4>(x), Int4(0x7F800000));
+	return As<Float4>((pos_inf_x & As<Int4>(x)) | (~pos_inf_x & As<Int4>(x1)));
+}
+
 RValue<Float4> Log2(RValue<Float4> x, bool relaxedPrecision)
 {
+	if(SWIFTSHADER_LEGACY_PRECISION)  // TODO(chromium:1299047)
+	{
+		return Log2_legacy(x);
+	}
+
 	if(!relaxedPrecision)  // highp
 	{
 		// Reinterpretation as an integer provides a piecewise linear
