@@ -61,6 +61,7 @@ import (
 
 const (
 	gitURL                = "https://swiftshader.googlesource.com/SwiftShader"
+	gitDailyBranch        = "HEAD"
 	gerritURL             = "https://swiftshader-review.googlesource.com/"
 	coverageURL           = "https://$USERNAME:$PASSWORD@github.com/swiftshader-regres/swiftshader-coverage.git"
 	coverageBranch        = "gh-pages"
@@ -638,7 +639,7 @@ func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend, 
 
 	dailyHash := git.Hash{}
 	if r.dailyChange == "" {
-		headHash, err := git.FetchRefHash("HEAD", gitURL)
+		headHash, err := git.FetchRefHash(gitDailyBranch, gitURL)
 		if err != nil {
 			return cause.Wrap(err, "Could not get hash of master HEAD")
 		}
