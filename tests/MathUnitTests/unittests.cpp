@@ -63,12 +63,18 @@ float f(float x)
 
 float Log2Relaxed(float x)
 {
+	// Reinterpretation as an integer provides a piecewise linear
+	// approximation of log2(). Scale to the radix and subtract exponent bias.
 	int im = bit_cast<int>(x);
-	float q = (float)im * (1.0f / (1 << 23)) - 127.0f;
+	float y = (float)im * (1.0f / (1 << 23)) - 127.0f;
 
-	float y = (float)(im & 0x007FFFFF);
+	// Handle log2(inf) = inf.
+	if(im == 0x7F800000) y = INFINITY;
 
-	return q + f(y) * y;
+	float m = (float)(im & 0x007FFFFF);  // Unnormalized mantissa of x.
+
+	// Add a polynomial approximation of log2(m+1)-m to the result's mantissa.
+	return f(m) * m + y;
 }
 
 TEST(MathTest, Log2RelaxedExhaustive)
@@ -84,7 +90,7 @@ TEST(MathTest, Log2RelaxedExhaustive)
 
 	float worst_abs = 0;
 
-	for(float x = 0.10f; x <= 10.0f; x = inc(x))
+	for(float x = 0.0f; x <= INFINITY; x = inc(x))
 	{
 		float val = Log2Relaxed(x);
 
@@ -235,7 +241,7 @@ TEST(MathTest, Log2Exhaustive)
 
 	float worst_abs = 0;
 
-	for(float x = 0.10f; x <= 10.0f; x = inc(x))
+	for(float x = 0.0f; x <= INFINITY; x = inc(x))
 	{
 		float val = Log2_legacy(x);
 

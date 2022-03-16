@@ -412,6 +412,9 @@ RValue<Float4> Log2(RValue<Float4> x, bool relaxedPrecision)
 		Int4 im = As<Int4>(x);
 		Float4 y = MulAdd(Float4(im), (1.0f / (1 << 23)), -127.0f);
 
+		// Handle log2(inf) = inf.
+		y = As<Float4>(As<Int4>(y) | (CmpEQ(im, 0x7F800000) & As<Int4>(Float4::infinity())));
+
 		Float4 m = Float4(im & 0x007FFFFF);  // Unnormalized mantissa of x.
 
 		// Add a polynomial approximation of log2(m+1)-m to the result's mantissa.
