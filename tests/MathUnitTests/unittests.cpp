@@ -202,31 +202,6 @@ TEST(MathTest, Exp2RelaxedExhaustive)
 	CPUID::setFlushToZero(false);
 }
 
-float Log2_legacy(float x)
-{
-	float x0;
-	float x1;
-	float x2;
-	float x3;
-
-	x0 = x;
-
-	x1 = bit_cast<float>(bit_cast<int>(x0) & int(0x7F800000));
-	x1 = bit_cast<float>(bit_cast<unsigned int>(x1) >> 8);
-	x1 = bit_cast<float>(bit_cast<int>(x1) | bit_cast<int>(float(1.0f)));
-	x1 = (x1 - float(1.4960938f)) * float(256.0f);  // FIXME: (x1 - 1.4960938f) * 256.0f;
-	x0 = bit_cast<float>((bit_cast<int>(x0) & int(0x007FFFFF)) | bit_cast<int>(float(1.0f)));
-
-	x2 = (float(9.5428179e-2f) * x0 + float(4.7779095e-1f)) * x0 + float(1.9782813e-1f);
-	x3 = ((float(1.6618466e-2f) * x0 + float(2.0350508e-1f)) * x0 + float(2.7382900e-1f)) * x0 + float(4.0496687e-2f);
-	x2 /= x3;
-
-	x1 += (x0 - float(1.0f)) * x2;
-
-	int pos_inf_x = (bit_cast<int>(x) == int(0x7F800000)) ? 0xFFFFFFFF : 0x00000000;
-	return bit_cast<float>((pos_inf_x & bit_cast<int>(x)) | (~pos_inf_x & bit_cast<int>(x1)));
-}
-
 // lolremez --float -d 7 -r "0:1" "(log2(x+1)-x)/x" "1/x"
 // ULP-32: 1.69571960, abs: 0.360798746
 float Pl(float x)
@@ -314,35 +289,6 @@ TEST(MathTest, Log2Exhaustive)
 
 	CPUID::setDenormalsAreZero(false);
 	CPUID::setFlushToZero(false);
-}
-
-// ULP-32: 3.36676240, Vulkan margin: 1.0737335
-float Exp2_legacy(float x)
-{
-	// This implementation is based on 2^(i + f) = 2^i * 2^f,
-	// where i is the integer part of x and f is the fraction.
-
-	// For 2^i we can put the integer part directly in the exponent of
-	// the IEEE-754 floating-point number. Clamp to prevent overflow
-	// past the representation of infinity.
-	float x0 = x;
-	// x0 = Min(x0, bit_cast<float>(int(0x43010000)));  // 129.00000e+0f
-	// x0 = Max(x0, bit_cast<float>(int(0xC2FDFFFF)));  // -126.99999e+0f
-
-	int i = (int)round(x0 - 0.5f);
-	float ii = bit_cast<float>((i + int(127)) << 23);  // Add single-precision bias, and shift into exponent.
-
-	// For the fractional part use a polynomial
-	// which approximates 2^f in the 0 to 1 range.
-	float f = x0 - float(i);
-	float ff = bit_cast<float>(int(0x3AF61905));     // 1.8775767e-3f
-	ff = ff * f + bit_cast<float>(int(0x3C134806));  // 8.9893397e-3f
-	ff = ff * f + bit_cast<float>(int(0x3D64AA23));  // 5.5826318e-2f
-	ff = ff * f + bit_cast<float>(int(0x3E75EAD4));  // 2.4015361e-1f
-	ff = ff * f + bit_cast<float>(int(0x3F31727B));  // 6.9315308e-1f
-	ff = ff * f + float(1.0f);
-
-	return ii * ff;
 }
 
 // lolremez --float -d 4 -r "0:1" "(2^x-x-1)/x" "1/x"
