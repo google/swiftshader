@@ -561,6 +561,7 @@ public:
 
 	explicit UShort(RValue<UInt> cast);
 	explicit UShort(RValue<Int> cast);
+	explicit UShort(RValue<Byte> cast);
 
 	UShort() = default;
 	UShort(unsigned short x);
@@ -631,6 +632,8 @@ public:
 
 	static Type *type();
 };
+
+RValue<Byte4> Insert(RValue<Byte4> val, RValue<Byte> element, int i);
 
 //	RValue<Byte4> operator+(RValue<Byte4> lhs, RValue<Byte4> rhs);
 //	RValue<Byte4> operator-(RValue<Byte4> lhs, RValue<Byte4> rhs);
