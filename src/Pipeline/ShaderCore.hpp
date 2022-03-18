@@ -226,6 +226,8 @@ template<> inline RValue<Float4> Pow<Mediump>(RValue<Float4> x, RValue<Float4> y
 RValue<Float4> reciprocal(RValue<Float4> x, bool pp = false, bool exactAtPow2 = false);
 RValue<Float4> reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
 
+RValue<Float4> mulAdd(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z);  // TODO(chromium:1299047)
+
 void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
