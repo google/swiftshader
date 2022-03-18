@@ -17,6 +17,3 @@ swiftshader_standalone = true
 
 # Path to SwiftShader
 swiftshader_dir = "//"
-
-# Paths to SwiftShader dependencies
-swiftshader_spirv_tools_dir = "//third_party/SPIRV-Tools"

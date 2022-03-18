@@ -62,7 +62,7 @@ swiftshader_source_set("Pipeline") {
     "..",
     "../../include",
     "../../third_party/SPIRV-Headers/include",
-    "${swiftshader_spirv_tools_dir}/include",
+    "../../third_party/SPIRV-Tools/include",
   ]
 
   defines = [
@@ -70,7 +70,7 @@ swiftshader_source_set("Pipeline") {
   ]
 
   deps = [
-    "${swiftshader_spirv_tools_dir}:spvtools_headers",
+    "../../third_party/SPIRV-Tools:spvtools_headers",
     "../../third_party/marl:Marl_headers",
     "../Device:Device_headers",
     "../System:System_headers",

@@ -193,7 +193,9 @@ swiftshader_shared_library("swiftshader_libvulkan") {
   }
 
   deps = [
-    "${swiftshader_spirv_tools_dir}:SPIRV-Tools",
+    "../../third_party/SPIRV-Tools:spvtools_opt",
+    "../../third_party/SPIRV-Tools:spvtools_val",
+    "../../third_party/SPIRV-Tools:spvtools_headers",
     "../../third_party/marl:Marl",
     "../Device",
     "../Pipeline",
@@ -205,8 +207,8 @@ swiftshader_shared_library("swiftshader_libvulkan") {
   include_dirs = [
     "..",
     "../../include",
-    "$swiftshader_spirv_tools_dir/include",
-    "$spirv_tools_spirv_headers_dir/include",
+    "../../third_party/SPIRV-Tools/include",
+    "../../third_party/SPIRV-Headers/include",
   ]
 
   public_deps = [
