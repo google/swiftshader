@@ -14870,6 +14870,12 @@ dEQP-VK.texture.conversion.snorm_clamp_linear.r8g8b8a8_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r8g8b8_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r8g8_snorm
 dEQP-VK.texture.conversion.snorm_clamp_linear.r8_snorm
+dEQP-VK.texture.texel_buffer.uniform.srgb.r8g8b8a8_srgb
+dEQP-VK.texture.texel_buffer.uniform.srgb.b8g8r8a8_srgb
+dEQP-VK.texture.texel_buffer.uniform.srgb.b8g8r8_srgb
+dEQP-VK.texture.texel_buffer.uniform.srgb.r8g8b8_srgb
+dEQP-VK.texture.texel_buffer.uniform.srgb.r8g8_srgb
+dEQP-VK.texture.texel_buffer.uniform.srgb.r8_srgb
 dEQP-VK.texture.texel_buffer.uniform.packed.a2b10g10r10-uint-pack32
 dEQP-VK.texture.texel_buffer.uniform.packed.a2b10g10r10-unorm-pack32
 dEQP-VK.texture.texel_buffer.uniform.packed.a8b8g8r8-sint-pack32
