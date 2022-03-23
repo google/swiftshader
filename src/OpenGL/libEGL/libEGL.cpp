@@ -818,6 +818,8 @@ EGLBoolean EGLAPIENTRY SwapInterval(EGLDisplay dpy, EGLint interval)
 
 EGLContext EGLAPIENTRY CreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
 {
+	ASSERT(false && "Legacy SwiftShader OpenGL ES is deprecated. Use SwANGLE instead.");
+
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLContext share_context = %p, "
 	      "const EGLint *attrib_list = %p)", dpy, config, share_context, attrib_list);
 
