@@ -328,7 +328,7 @@ static void getPhysicalDeviceShaderDemoteToHelperInvocationFeatures(T *features)
 template<typename T>
 static void getPhysicalDeviceShaderTerminateInvocationFeatures(T *features)
 {
-	features->shaderTerminateInvocation = VK_FALSE;
+	features->shaderTerminateInvocation = VK_TRUE;
 }
 
 template<typename T>
