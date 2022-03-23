@@ -42,6 +42,7 @@ add_spvtools_unittest(TARGET opt
        desc_sroa_test.cpp
        eliminate_dead_const_test.cpp
        eliminate_dead_functions_test.cpp
+       eliminate_dead_input_components_test.cpp
        eliminate_dead_member_test.cpp
        feature_manager_test.cpp
        fix_storage_class_test.cpp

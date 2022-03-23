@@ -1017,7 +1017,7 @@ spv_result_t CheckDecorationsOfBuffers(ValidationState_t& vstate) {
       }
 
       const bool phys_storage_buffer =
-          storageClass == SpvStorageClassPhysicalStorageBufferEXT;
+          storageClass == SpvStorageClassPhysicalStorageBuffer;
       const bool workgroup =
           storageClass == SpvStorageClassWorkgroup &&
           vstate.HasCapability(SpvCapabilityWorkgroupMemoryExplicitLayoutKHR);
@@ -1407,11 +1407,11 @@ spv_result_t CheckFPRoundingModeForShaders(ValidationState_t& vstate,
         storage != SpvStorageClassUniform &&
         storage != SpvStorageClassPushConstant &&
         storage != SpvStorageClassInput && storage != SpvStorageClassOutput &&
-        storage != SpvStorageClassPhysicalStorageBufferEXT) {
+        storage != SpvStorageClassPhysicalStorageBuffer) {
       return vstate.diag(SPV_ERROR_INVALID_ID, &inst)
              << "FPRoundingMode decoration can be applied only to the "
                 "Object operand of an OpStore in the StorageBuffer, "
-                "PhysicalStorageBufferEXT, Uniform, PushConstant, Input, or "
+                "PhysicalStorageBuffer, Uniform, PushConstant, Input, or "
                 "Output Storage Classes.";
     }
   }

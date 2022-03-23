@@ -208,6 +208,10 @@ Options (in lexicographical order):)",
                unused stores to vector components, that are not removed by
                aggressive dead code elimination.)");
   printf(R"(
+  --eliminate-dead-input-components
+               Deletes unused components from input variables. Currently
+               deletes trailing unused elements from input arrays.)");
+  printf(R"(
   --eliminate-dead-variables
                Deletes module scope variables that are not referenced.)");
   printf(R"(
