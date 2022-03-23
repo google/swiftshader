@@ -106,6 +106,7 @@ SPVTOOLS_OPT_SRC_FILES := \
 		source/opt/eliminate_dead_constant_pass.cpp \
 		source/opt/eliminate_dead_functions_pass.cpp \
 		source/opt/eliminate_dead_functions_util.cpp \
+		source/opt/eliminate_dead_input_components_pass.cpp \
 		source/opt/eliminate_dead_members_pass.cpp \
 		source/opt/feature_manager.cpp \
 		source/opt/fix_storage_class.cpp \

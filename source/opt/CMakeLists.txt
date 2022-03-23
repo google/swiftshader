@@ -45,6 +45,7 @@ set(SPIRV_TOOLS_OPT_SOURCES
   eliminate_dead_constant_pass.h
   eliminate_dead_functions_pass.h
   eliminate_dead_functions_util.h
+  eliminate_dead_input_components_pass.h
   eliminate_dead_members_pass.h
   empty_pass.h
   feature_manager.h
@@ -158,6 +159,7 @@ set(SPIRV_TOOLS_OPT_SOURCES
   eliminate_dead_constant_pass.cpp
   eliminate_dead_functions_pass.cpp
   eliminate_dead_functions_util.cpp
+  eliminate_dead_input_components_pass.cpp
   eliminate_dead_members_pass.cpp
   feature_manager.cpp
   fix_storage_class.cpp

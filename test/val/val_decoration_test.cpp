@@ -5943,16 +5943,16 @@ OpFunctionEnd
 
 TEST_F(ValidateDecorations, PSBAliasedRestrictPointerSuccess) {
   const std::string body = R"(
-OpCapability PhysicalStorageBufferAddressesEXT
+OpCapability PhysicalStorageBufferAddresses
 OpCapability Int64
 OpCapability Shader
 OpExtension "SPV_EXT_physical_storage_buffer"
-OpMemoryModel PhysicalStorageBuffer64EXT GLSL450
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
 OpEntryPoint Fragment %main "main"
 OpExecutionMode %main OriginUpperLeft
-OpDecorate %val1 RestrictPointerEXT
+OpDecorate %val1 RestrictPointer
 %uint64 = OpTypeInt 64 0
-%ptr = OpTypePointer PhysicalStorageBufferEXT %uint64
+%ptr = OpTypePointer PhysicalStorageBuffer %uint64
 %pptr_f = OpTypePointer Function %ptr
 %void = OpTypeVoid
 %voidfn = OpTypeFunction %void
@@ -5969,15 +5969,15 @@ OpFunctionEnd
 
 TEST_F(ValidateDecorations, PSBAliasedRestrictPointerMissing) {
   const std::string body = R"(
-OpCapability PhysicalStorageBufferAddressesEXT
+OpCapability PhysicalStorageBufferAddresses
 OpCapability Int64
 OpCapability Shader
 OpExtension "SPV_EXT_physical_storage_buffer"
-OpMemoryModel PhysicalStorageBuffer64EXT GLSL450
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
 OpEntryPoint Fragment %main "main"
 OpExecutionMode %main OriginUpperLeft
 %uint64 = OpTypeInt 64 0
-%ptr = OpTypePointer PhysicalStorageBufferEXT %uint64
+%ptr = OpTypePointer PhysicalStorageBuffer %uint64
 %pptr_f = OpTypePointer Function %ptr
 %void = OpTypeVoid
 %voidfn = OpTypeFunction %void
@@ -5991,23 +5991,23 @@ OpFunctionEnd
   CompileSuccessfully(body.c_str());
   ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("expected AliasedPointerEXT or RestrictPointerEXT for "
-                        "PhysicalStorageBufferEXT pointer"));
+              HasSubstr("expected AliasedPointer or RestrictPointer for "
+                        "PhysicalStorageBuffer pointer"));
 }
 
 TEST_F(ValidateDecorations, PSBAliasedRestrictPointerBoth) {
   const std::string body = R"(
-OpCapability PhysicalStorageBufferAddressesEXT
+OpCapability PhysicalStorageBufferAddresses
 OpCapability Int64
 OpCapability Shader
 OpExtension "SPV_EXT_physical_storage_buffer"
-OpMemoryModel PhysicalStorageBuffer64EXT GLSL450
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
 OpEntryPoint Fragment %main "main"
 OpExecutionMode %main OriginUpperLeft
-OpDecorate %val1 RestrictPointerEXT
-OpDecorate %val1 AliasedPointerEXT
+OpDecorate %val1 RestrictPointer
+OpDecorate %val1 AliasedPointer
 %uint64 = OpTypeInt 64 0
-%ptr = OpTypePointer PhysicalStorageBufferEXT %uint64
+%ptr = OpTypePointer PhysicalStorageBuffer %uint64
 %pptr_f = OpTypePointer Function %ptr
 %void = OpTypeVoid
 %voidfn = OpTypeFunction %void
@@ -6020,24 +6020,23 @@ OpFunctionEnd
 
   CompileSuccessfully(body.c_str());
   ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
-  EXPECT_THAT(
-      getDiagnosticString(),
-      HasSubstr("can't specify both AliasedPointerEXT and RestrictPointerEXT "
-                "for PhysicalStorageBufferEXT pointer"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("can't specify both AliasedPointer and RestrictPointer "
+                        "for PhysicalStorageBuffer pointer"));
 }
 
 TEST_F(ValidateDecorations, PSBAliasedRestrictFunctionParamSuccess) {
   const std::string body = R"(
-OpCapability PhysicalStorageBufferAddressesEXT
+OpCapability PhysicalStorageBufferAddresses
 OpCapability Int64
 OpCapability Shader
 OpExtension "SPV_EXT_physical_storage_buffer"
-OpMemoryModel PhysicalStorageBuffer64EXT GLSL450
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
 OpEntryPoint Fragment %main "main"
 OpExecutionMode %main OriginUpperLeft
 OpDecorate %fparam Restrict
 %uint64 = OpTypeInt 64 0
-%ptr = OpTypePointer PhysicalStorageBufferEXT %uint64
+%ptr = OpTypePointer PhysicalStorageBuffer %uint64
 %void = OpTypeVoid
 %voidfn = OpTypeFunction %void
 %fnptr = OpTypeFunction %void %ptr
@@ -6058,15 +6057,15 @@ OpFunctionEnd
 
 TEST_F(ValidateDecorations, PSBAliasedRestrictFunctionParamMissing) {
   const std::string body = R"(
-OpCapability PhysicalStorageBufferAddressesEXT
+OpCapability PhysicalStorageBufferAddresses
 OpCapability Int64
 OpCapability Shader
 OpExtension "SPV_EXT_physical_storage_buffer"
-OpMemoryModel PhysicalStorageBuffer64EXT GLSL450
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
 OpEntryPoint Fragment %main "main"
 OpExecutionMode %main OriginUpperLeft
 %uint64 = OpTypeInt 64 0
-%ptr = OpTypePointer PhysicalStorageBufferEXT %uint64
+%ptr = OpTypePointer PhysicalStorageBuffer %uint64
 %void = OpTypeVoid
 %voidfn = OpTypeFunction %void
 %fnptr = OpTypeFunction %void %ptr
@@ -6085,22 +6084,22 @@ OpFunctionEnd
   ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("expected Aliased or Restrict for "
-                        "PhysicalStorageBufferEXT pointer"));
+                        "PhysicalStorageBuffer pointer"));
 }
 
 TEST_F(ValidateDecorations, PSBAliasedRestrictFunctionParamBoth) {
   const std::string body = R"(
-OpCapability PhysicalStorageBufferAddressesEXT
+OpCapability PhysicalStorageBufferAddresses
 OpCapability Int64
 OpCapability Shader
 OpExtension "SPV_EXT_physical_storage_buffer"
-OpMemoryModel PhysicalStorageBuffer64EXT GLSL450
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
 OpEntryPoint Fragment %main "main"
 OpExecutionMode %main OriginUpperLeft
 OpDecorate %fparam Restrict
 OpDecorate %fparam Aliased
 %uint64 = OpTypeInt 64 0
-%ptr = OpTypePointer PhysicalStorageBufferEXT %uint64
+%ptr = OpTypePointer PhysicalStorageBuffer %uint64
 %void = OpTypeVoid
 %voidfn = OpTypeFunction %void
 %fnptr = OpTypeFunction %void %ptr
@@ -6119,12 +6118,12 @@ OpFunctionEnd
   ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("can't specify both Aliased and Restrict for "
-                        "PhysicalStorageBufferEXT pointer"));
+                        "PhysicalStorageBuffer pointer"));
 }
 
 TEST_F(ValidateDecorations, PSBFPRoundingModeSuccess) {
   std::string spirv = R"(
-OpCapability PhysicalStorageBufferAddressesEXT
+OpCapability PhysicalStorageBufferAddresses
 OpCapability Shader
 OpCapability Linkage
 OpCapability StorageBuffer16BitAccess
@@ -6132,14 +6131,14 @@ OpExtension "SPV_EXT_physical_storage_buffer"
 OpExtension "SPV_KHR_storage_buffer_storage_class"
 OpExtension "SPV_KHR_variable_pointers"
 OpExtension "SPV_KHR_16bit_storage"
-OpMemoryModel PhysicalStorageBuffer64EXT GLSL450
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
 OpEntryPoint GLCompute %main "main"
 OpDecorate %_ FPRoundingMode RTE
-OpDecorate %half_ptr_var AliasedPointerEXT
+OpDecorate %half_ptr_var AliasedPointer
 %half = OpTypeFloat 16
 %float = OpTypeFloat 32
 %float_1_25 = OpConstant %float 1.25
-%half_ptr = OpTypePointer PhysicalStorageBufferEXT %half
+%half_ptr = OpTypePointer PhysicalStorageBuffer %half
 %half_pptr_f = OpTypePointer Function %half_ptr
 %void = OpTypeVoid
 %func = OpTypeFunction %void

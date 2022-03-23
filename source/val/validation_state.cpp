@@ -460,7 +460,7 @@ void ValidationState_t::set_addressing_model(SpvAddressingModel am) {
     default:
     // fall through
     case SpvAddressingModelPhysical64:
-    case SpvAddressingModelPhysicalStorageBuffer64EXT:
+    case SpvAddressingModelPhysicalStorageBuffer64:
       pointer_size_and_alignment_ = 8;
       break;
   }
@@ -1862,6 +1862,8 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-FPRoundingMode-04675);
     case 4677:
       return VUID_WRAP(VUID-StandaloneSpirv-Invariant-04677);
+    case 4680:
+      return VUID_WRAP( VUID-StandaloneSpirv-OpTypeRuntimeArray-04680);
     case 4682:
       return VUID_WRAP(VUID-StandaloneSpirv-OpControlBarrier-04682);
     case 6426:
@@ -1870,6 +1872,8 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-OpGroupNonUniformBallotBitCount-04685);
     case 4686:
       return VUID_WRAP(VUID-StandaloneSpirv-None-04686);
+    case 4708:
+      return VUID_WRAP(VUID-StandaloneSpirv-PhysicalStorageBuffer64-04708);
     case 4710:
       return VUID_WRAP(VUID-StandaloneSpirv-PhysicalStorageBuffer64-04710);
     case 4711:
@@ -1884,6 +1888,8 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-OpMemoryBarrier-04733);
     case 4734:
       return VUID_WRAP(VUID-StandaloneSpirv-OpVariable-04734);
+    case 4777:
+      return VUID_WRAP(VUID-StandaloneSpirv-OpImage-04777);
     case 4780:
       return VUID_WRAP(VUID-StandaloneSpirv-Result-04780);
     case 4915:
@@ -1896,6 +1902,8 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-Location-04918);
     case 4919:
       return VUID_WRAP(VUID-StandaloneSpirv-Location-04919);
+    case 6214:
+      return VUID_WRAP(VUID-StandaloneSpirv-OpTypeImage-06214);
     case 6491:
       return VUID_WRAP(VUID-StandaloneSpirv-DescriptorSet-06491);
     default:
