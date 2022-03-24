@@ -64,7 +64,8 @@ protected:
 	void linearToSRGB12_16(Vector4s &c);
 
 private:
-	Byte8 stencilReplaceRef(bool isBack);
+	bool hasStencilReplaceRef() const;
+	Byte8 stencilReplaceRef();
 	void stencilTest(const Pointer<Byte> &sBuffer, const Int &x, Int sMask[4], const SampleSet &samples);
 	void stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, bool isBack);
 	void stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, const PixelProcessor::States::StencilOpState &ops, bool isBack, const Int &zMask, const Int &sMask);

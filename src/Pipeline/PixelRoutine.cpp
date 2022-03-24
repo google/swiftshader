@@ -869,59 +869,69 @@ void PixelRoutine::stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, c
 	}
 }
 
-Byte8 PixelRoutine::stencilReplaceRef(bool isBack)
+bool PixelRoutine::hasStencilReplaceRef() const
 {
-	if(spirvShader)
-	{
-		auto it = spirvShader->outputBuiltins.find(spv::BuiltInFragStencilRefEXT);
-		if(it != spirvShader->outputBuiltins.end())
-		{
-			UInt4 sRef = As<UInt4>(routine.getVariable(it->second.Id)[it->second.FirstComponent]) & UInt4(0xff);
-			// TODO (b/148295813): Could be done with a single pshufb instruction. Optimize the
-			//                     following line by either adding a rr::Shuffle() variant to do
-			//                     it explicitly or adding a Byte4(Int4) constructor would work.
-			sRef.x = rr::UInt(sRef.x) | (rr::UInt(sRef.y) << 8) | (rr::UInt(sRef.z) << 16) | (rr::UInt(sRef.w) << 24);
+	return spirvShader &&
+	       (spirvShader->outputBuiltins.find(spv::BuiltInFragStencilRefEXT) !=
+	        spirvShader->outputBuiltins.end());
+}
 
-			UInt2 sRefDuplicated;
-			sRefDuplicated = Insert(sRefDuplicated, sRef.x, 0);
-			sRefDuplicated = Insert(sRefDuplicated, sRef.x, 1);
-			return As<Byte8>(sRefDuplicated);
-		}
-	}
+Byte8 PixelRoutine::stencilReplaceRef()
+{
+	ASSERT(spirvShader);
 
-	return *Pointer<Byte8>(data + OFFSET(DrawData, stencil[isBack].referenceQ));
+	auto it = spirvShader->outputBuiltins.find(spv::BuiltInFragStencilRefEXT);
+	ASSERT(it != spirvShader->outputBuiltins.end());
+
+	UInt4 sRef = As<UInt4>(routine.getVariable(it->second.Id)[it->second.FirstComponent]) & UInt4(0xff);
+	// TODO (b/148295813): Could be done with a single pshufb instruction. Optimize the
+	//                     following line by either adding a rr::Shuffle() variant to do
+	//                     it explicitly or adding a Byte4(Int4) constructor would work.
+	sRef.x = rr::UInt(sRef.x) | (rr::UInt(sRef.y) << 8) | (rr::UInt(sRef.z) << 16) | (rr::UInt(sRef.w) << 24);
+
+	UInt2 sRefDuplicated;
+	sRefDuplicated = Insert(sRefDuplicated, sRef.x, 0);
+	sRefDuplicated = Insert(sRefDuplicated, sRef.x, 1);
+	return As<Byte8>(sRefDuplicated);
 }
 
 void PixelRoutine::stencilOperation(Byte8 &output, const Byte8 &bufferValue, VkStencilOp operation, bool isBack)
 {
-	switch(operation)
+	if(hasStencilReplaceRef())
 	{
-	case VK_STENCIL_OP_KEEP:
-		output = bufferValue;
-		break;
-	case VK_STENCIL_OP_ZERO:
-		output = Byte8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-		break;
-	case VK_STENCIL_OP_REPLACE:
-		output = stencilReplaceRef(isBack);
-		break;
-	case VK_STENCIL_OP_INCREMENT_AND_CLAMP:
-		output = AddSat(bufferValue, Byte8(1, 1, 1, 1, 1, 1, 1, 1));
-		break;
-	case VK_STENCIL_OP_DECREMENT_AND_CLAMP:
-		output = SubSat(bufferValue, Byte8(1, 1, 1, 1, 1, 1, 1, 1));
-		break;
-	case VK_STENCIL_OP_INVERT:
-		output = bufferValue ^ Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
-		break;
-	case VK_STENCIL_OP_INCREMENT_AND_WRAP:
-		output = bufferValue + Byte8(1, 1, 1, 1, 1, 1, 1, 1);
-		break;
-	case VK_STENCIL_OP_DECREMENT_AND_WRAP:
-		output = bufferValue - Byte8(1, 1, 1, 1, 1, 1, 1, 1);
-		break;
-	default:
-		UNSUPPORTED("VkStencilOp: %d", int(operation));
+		output = stencilReplaceRef();
+	}
+	else
+	{
+		switch(operation)
+		{
+		case VK_STENCIL_OP_KEEP:
+			output = bufferValue;
+			break;
+		case VK_STENCIL_OP_ZERO:
+			output = Byte8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+			break;
+		case VK_STENCIL_OP_REPLACE:
+			output = *Pointer<Byte8>(data + OFFSET(DrawData, stencil[isBack].referenceQ));
+			break;
+		case VK_STENCIL_OP_INCREMENT_AND_CLAMP:
+			output = AddSat(bufferValue, Byte8(1, 1, 1, 1, 1, 1, 1, 1));
+			break;
+		case VK_STENCIL_OP_DECREMENT_AND_CLAMP:
+			output = SubSat(bufferValue, Byte8(1, 1, 1, 1, 1, 1, 1, 1));
+			break;
+		case VK_STENCIL_OP_INVERT:
+			output = bufferValue ^ Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
+			break;
+		case VK_STENCIL_OP_INCREMENT_AND_WRAP:
+			output = bufferValue + Byte8(1, 1, 1, 1, 1, 1, 1, 1);
+			break;
+		case VK_STENCIL_OP_DECREMENT_AND_WRAP:
+			output = bufferValue - Byte8(1, 1, 1, 1, 1, 1, 1, 1);
+			break;
+		default:
+			UNSUPPORTED("VkStencilOp: %d", int(operation));
+		}
 	}
 }
 
