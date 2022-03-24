@@ -607,23 +607,23 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits()
 		vk::MAX_PUSH_CONSTANT_SIZE,                  // maxPushConstantsSize
 		4096,                                        // maxMemoryAllocationCount
 		vk::MAX_SAMPLER_ALLOCATION_COUNT,            // maxSamplerAllocationCount
-		131072,                                      // bufferImageGranularity
+		4096,                                        // bufferImageGranularity
 		0,                                           // sparseAddressSpaceSize (unsupported)
 		MAX_BOUND_DESCRIPTOR_SETS,                   // maxBoundDescriptorSets
-		16,                                          // maxPerStageDescriptorSamplers
-		14,                                          // maxPerStageDescriptorUniformBuffers
-		16,                                          // maxPerStageDescriptorStorageBuffers
-		16,                                          // maxPerStageDescriptorSampledImages
-		4,                                           // maxPerStageDescriptorStorageImages
+		64,                                          // maxPerStageDescriptorSamplers
+		15,                                          // maxPerStageDescriptorUniformBuffers
+		30,                                          // maxPerStageDescriptorStorageBuffers
+		200,                                         // maxPerStageDescriptorSampledImages
+		16,                                          // maxPerStageDescriptorStorageImages
 		sw::MAX_COLOR_BUFFERS,                       // maxPerStageDescriptorInputAttachments
-		128,                                         // maxPerStageResources
-		96,                                          // maxDescriptorSetSamplers
-		72,                                          // maxDescriptorSetUniformBuffers
+		200,                                         // maxPerStageResources
+		576,                                         // maxDescriptorSetSamplers
+		90,                                          // maxDescriptorSetUniformBuffers
 		MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC,  // maxDescriptorSetUniformBuffersDynamic
-		24,                                          // maxDescriptorSetStorageBuffers
+		96,                                          // maxDescriptorSetStorageBuffers
 		MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC,  // maxDescriptorSetStorageBuffersDynamic
-		96,                                          // maxDescriptorSetSampledImages
-		24,                                          // maxDescriptorSetStorageImages
+		1800,                                        // maxDescriptorSetSampledImages
+		144,                                         // maxDescriptorSetStorageImages
 		sw::MAX_COLOR_BUFFERS,                       // maxDescriptorSetInputAttachments
 		16,                                          // maxVertexInputAttributes
 		vk::MAX_VERTEX_INPUT_BINDINGS,               // maxVertexInputBindings
