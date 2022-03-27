@@ -16,8 +16,9 @@
 #define VK_FORMAT_HPP_
 
 #include "System/Types.hpp"
-
 #include "Vulkan/VulkanPlatform.hpp"
+
+#include <vector>
 
 namespace vk {
 
@@ -46,7 +47,9 @@ public:
 	bool isFloatFormat() const;
 	bool isYcbcrFormat() const;
 
-	bool isCompatible(const Format &other) const;
+	bool isCompatible(Format other) const;
+	std::vector<Format> getCompatibleFormats() const;
+
 	bool isCompressed() const;
 	VkFormat getDecompressedFormat() const;
 	int blockWidth() const;
@@ -77,7 +80,7 @@ public:
 	static VkFormat mapFrom8bit(uint8_t format);
 
 private:
-	VkFormat compatibleFormat() const;
+	VkFormat getCompatibilityClassRepresentative() const;
 	size_t sliceBUnpadded(int width, int height, int border) const;
 
 	VkFormat format = VK_FORMAT_UNDEFINED;

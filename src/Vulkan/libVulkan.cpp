@@ -3831,14 +3831,26 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 		extensionProperties = extensionProperties->pNext;
 	}
 
-	VkFormat format = pImageFormatInfo->format;
+	vk::Format format = pImageFormatInfo->format;
 	VkImageType type = pImageFormatInfo->type;
 	VkImageTiling tiling = pImageFormatInfo->tiling;
 	VkImageUsageFlags usage = pImageFormatInfo->usage;
 	VkImageCreateFlags flags = pImageFormatInfo->flags;
 
-	VkFormatProperties properties;
+	VkFormatProperties properties = {};
 	vk::PhysicalDevice::GetFormatProperties(format, &properties);
+
+	if(flags & VK_IMAGE_CREATE_EXTENDED_USAGE_BIT)
+	{
+		for(vk::Format f : format.getCompatibleFormats())
+		{
+			VkFormatProperties extendedProperties = {};
+			vk::PhysicalDevice::GetFormatProperties(f, &extendedProperties);
+			properties.linearTilingFeatures |= extendedProperties.linearTilingFeatures;
+			properties.optimalTilingFeatures |= extendedProperties.optimalTilingFeatures;
+			properties.bufferFeatures |= extendedProperties.bufferFeatures;
+		}
+	}
 
 	VkFormatFeatureFlags features;
 	switch(tiling)
