@@ -754,6 +754,8 @@ OpFunctionEnd
 
   CompileSuccessfully(text, SPV_ENV_VULKAN_1_0);
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_0));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-Location-06672"));
   EXPECT_THAT(
       getDiagnosticString(),
       HasSubstr("decoration must not be applied to this storage class"));

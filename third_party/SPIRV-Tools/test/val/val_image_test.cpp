@@ -1043,6 +1043,26 @@ TEST_F(ValidateImage, SampledImageNotSampler) {
               HasSubstr("Expected Sampler to be of type OpTypeSampler"));
 }
 
+TEST_F(ValidateImage, SampledImageIsStorage) {
+  const std::string declarations = R"(
+%type_sampled_image_f32_2d_0002 = OpTypeSampledImage %type_image_f32_2d_0002
+)";
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_2d_0002 %uniform_image_f32_2d_0002
+%sampler = OpLoad %type_sampler %uniform_sampler
+%simg = OpSampledImage %type_sampled_image_f32_2d_0002 %img %sampler
+)";
+
+  CompileSuccessfully(GenerateShaderCode(body, "", "Fragment", "",
+                                         SPV_ENV_UNIVERSAL_1_0, "GLSL450",
+                                         declarations)
+                          .c_str());
+  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Sampled image type requires an image type with "
+                        "\"Sampled\" operand set to 0 or 1"));
+}
+
 TEST_F(ValidateImage, ImageTexelPointerSuccess) {
   const std::string body = R"(
 %texel_ptr = OpImageTexelPointer %ptr_Image_u32 %private_image_u32_buffer_0002_r32ui %u32_0 %u32_0

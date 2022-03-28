@@ -1034,5 +1034,46 @@ INSTANTIATE_TEST_SUITE_P(
                                  {SpvCapabilityBitInstructions})},
             })));
 
+// SPV_KHR_uniform_group_instructions
+
+INSTANTIATE_TEST_SUITE_P(
+    SPV_KHR_uniform_group_instructions, ExtensionRoundTripTest,
+    Combine(
+        Values(SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_5,
+               SPV_ENV_UNIVERSAL_1_6, SPV_ENV_VULKAN_1_0, SPV_ENV_VULKAN_1_1,
+               SPV_ENV_VULKAN_1_2, SPV_ENV_VULKAN_1_3),
+        ValuesIn(std::vector<AssemblyCase>{
+            {"OpExtension \"SPV_KHR_uniform_group_instructions\"\n",
+             MakeInstruction(SpvOpExtension,
+                             MakeVector("SPV_KHR_uniform_group_instructions"))},
+            {"OpCapability GroupUniformArithmeticKHR\n",
+             MakeInstruction(SpvOpCapability,
+                             {SpvCapabilityGroupUniformArithmeticKHR})},
+            {"%2 = OpGroupIMulKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupIMulKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+            {"%2 = OpGroupFMulKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupFMulKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+            {"%2 = OpGroupBitwiseAndKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupBitwiseAndKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+            {"%2 = OpGroupBitwiseOrKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupBitwiseOrKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+            {"%2 = OpGroupBitwiseXorKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupBitwiseXorKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+            {"%2 = OpGroupLogicalAndKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupLogicalAndKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+            {"%2 = OpGroupLogicalOrKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupLogicalOrKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+            {"%2 = OpGroupLogicalXorKHR %1 %3 Reduce %4\n",
+             MakeInstruction(SpvOpGroupLogicalXorKHR,
+                             {1, 2, 3, SpvGroupOperationReduce, 4})},
+        })));
+
 }  // namespace
 }  // namespace spvtools

@@ -623,7 +623,8 @@ spv_result_t spvTextEncodeOpcode(const spvtools::AssemblyGrammar& grammar,
           break;
         } else {
           return context->diagnostic()
-                 << "Expected operand, found end of stream.";
+                 << "Expected operand for " << opcodeName
+                 << " instruction, but found the end of the stream.";
         }
       }
       assert(error == SPV_SUCCESS && "Somebody added another way to fail");
@@ -633,7 +634,8 @@ spv_result_t spvTextEncodeOpcode(const spvtools::AssemblyGrammar& grammar,
           break;
         } else {
           return context->diagnostic()
-                 << "Expected operand, found next instruction instead.";
+                 << "Expected operand for " << opcodeName
+                 << " instruction, but found the next instruction instead.";
         }
       }
 
@@ -667,7 +669,7 @@ spv_result_t spvTextEncodeOpcode(const spvtools::AssemblyGrammar& grammar,
 
   if (pInst->words.size() > SPV_LIMIT_INSTRUCTION_WORD_COUNT_MAX) {
     return context->diagnostic()
-           << "Instruction too long: " << pInst->words.size()
+           << opcodeName << " Instruction too long: " << pInst->words.size()
            << " words, but the limit is "
            << SPV_LIMIT_INSTRUCTION_WORD_COUNT_MAX;
   }

@@ -114,7 +114,7 @@ def remove_debug_info(in_path):
     (in_basename, in_ext) = os.path.splitext(in_path)
     out_name = in_basename + '_no_dbg' + in_ext
     out_path = os.path.join(tmp_dir, out_name)
-    
+
     with open(in_path, 'r') as fin:
         with open(out_path, 'w') as fout:
             for line in fin:

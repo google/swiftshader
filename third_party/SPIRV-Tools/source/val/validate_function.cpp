@@ -300,7 +300,7 @@ spv_result_t ValidateFunctionCall(ValidationState_t& _,
             // These are always allowed.
             break;
           case SpvStorageClassStorageBuffer:
-            if (!_.features().variable_pointers_storage_buffer) {
+            if (!_.features().variable_pointers) {
               return _.diag(SPV_ERROR_INVALID_ID, inst)
                      << "StorageBuffer pointer operand "
                      << _.getIdName(argument_id)
@@ -316,11 +316,10 @@ spv_result_t ValidateFunctionCall(ValidationState_t& _,
         // Validate memory object declaration requirements.
         if (argument->opcode() != SpvOpVariable &&
             argument->opcode() != SpvOpFunctionParameter) {
-          const bool ssbo_vptr =
-              _.features().variable_pointers_storage_buffer &&
-              sc == SpvStorageClassStorageBuffer;
-          const bool wg_vptr =
-              _.features().variable_pointers && sc == SpvStorageClassWorkgroup;
+          const bool ssbo_vptr = _.features().variable_pointers &&
+                                 sc == SpvStorageClassStorageBuffer;
+          const bool wg_vptr = _.HasCapability(SpvCapabilityVariablePointers) &&
+                               sc == SpvStorageClassWorkgroup;
           const bool uc_ptr = sc == SpvStorageClassUniformConstant;
           if (!ssbo_vptr && !wg_vptr && !uc_ptr) {
             return _.diag(SPV_ERROR_INVALID_ID, inst)

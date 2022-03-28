@@ -1113,6 +1113,26 @@ OpFunctionEnd
   SinglePassRunAndMatch<SpreadVolatileSemantics>(text, true);
 }
 
+TEST_F(VolatileSpreadTest, SkipIfItHasNoExecutionModel) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+%2 = OpTypeVoid
+%3 = OpTypeFunction %2
+%4 = OpFunction %2 None %3
+%5 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  Pass::Status status;
+  std::tie(std::ignore, status) =
+      SinglePassRunToBinary<SpreadVolatileSemantics>(text,
+                                                     /* skip_nop = */ false);
+  EXPECT_EQ(status, Pass::Status::SuccessWithoutChange);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

@@ -20,10 +20,15 @@ if (build_with_chromium) {
 }
 
 # SPIRV-Tools may be part of multiple projects in the Chromium tree.
-# Only enable building executables if this is the main copy, or standalone.
+# Only enable building executables if this is the main copy.
 abspath = get_path_info(".", "abspath")
-spvtools_chromium_third_party = (abspath == "//third_party/SPIRV-Tools/")
-spvtools_build_executables = !build_with_chromium || spvtools_chromium_third_party
+spvtools_chromium_third_party = (abspath == "//third_party/vulkan-deps/spirv-tools/src/")
+spvtools_build_executables = build_with_chromium && spvtools_chromium_third_party
+# Fuchsia also requires building the executables.
+# TODO(b/158002593): Avoid the use of dependent-specific variables.
+if (defined(is_fuchsia_tree) && is_fuchsia_tree) {
+  spvtools_build_executables = true
+}
 
 spirv_headers = spirv_tools_spirv_headers_dir
 spirv_is_winuwp = is_win && target_os == "winuwp"
