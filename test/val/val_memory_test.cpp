@@ -3252,8 +3252,8 @@ OpFunctionEnd
     EXPECT_EQ(SPV_ERROR_INVALID_ID,
               ValidateInstructions(SPV_ENV_UNIVERSAL_1_4));
     EXPECT_THAT(getDiagnosticString(),
-                HasSubstr("Instruction cannot be used without a variable "
-                          "pointers capability"));
+                HasSubstr("Instruction cannot for logical addressing model be "
+                          "used without a variable pointers capability"));
   }
 }
 

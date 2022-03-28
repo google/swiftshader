@@ -18,6 +18,12 @@
 list(APPEND DIFF_TEST_FILES
 "diff_files/OpExtInst_in_dst_only_autogen.cpp"
 "diff_files/OpExtInst_in_src_only_autogen.cpp"
+"diff_files/OpTypeForwardPointer_basic_autogen.cpp"
+"diff_files/OpTypeForwardPointer_intertwined_autogen.cpp"
+"diff_files/OpTypeForwardPointer_mismatching_class_autogen.cpp"
+"diff_files/OpTypeForwardPointer_mismatching_type_autogen.cpp"
+"diff_files/OpTypeForwardPointer_nested_autogen.cpp"
+"diff_files/OpTypeForwardPointer_onesided_debug_autogen.cpp"
 "diff_files/basic_autogen.cpp"
 "diff_files/constant_array_size_autogen.cpp"
 "diff_files/different_decorations_fragment_autogen.cpp"
