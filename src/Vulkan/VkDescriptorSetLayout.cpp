@@ -569,8 +569,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 	}
 	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK)
 	{
-		auto update = reinterpret_cast<const VkWriteDescriptorSetInlineUniformBlock *>(src);
-		memcpy(memToWrite, static_cast<const uint8_t *>(update->pData), update->dataSize);
+		memcpy(memToWrite, src + entry.offset, entry.descriptorCount);
 	}
 }
 
@@ -626,8 +625,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, const VkWriteDescri
 					//  the stride member of VkDescriptorUpdateTemplateEntry is ignored for inline
 					//  uniform blocks and a default value of one is used, meaning that the data to
 					//  update inline uniform block bindings with must be contiguous in memory."
-					ptr = extInfo;
-					e.descriptorCount = 1;
+					ptr = reinterpret_cast<const VkWriteDescriptorSetInlineUniformBlock *>(extInfo)->pData;
 					e.stride = 1;
 					break;
 				}
