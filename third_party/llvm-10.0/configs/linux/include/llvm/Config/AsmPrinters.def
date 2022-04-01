@@ -39,6 +39,9 @@ LLVM_ASM_PRINTER(Mips)
 #if defined(__powerpc64__)
 LLVM_ASM_PRINTER(PowerPC)
 #endif
+#if defined(__riscv)
+LLVM_ASM_PRINTER(RISCV)
+#endif
 
 
 #undef LLVM_ASM_PRINTER

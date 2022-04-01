@@ -39,6 +39,9 @@ LLVM_DISASSEMBLER(Mips)
 #if defined(__powerpc64__)
 LLVM_DISASSEMBLER(PowerPC)
 #endif
+#if defined(__riscv)
+LLVM_DISASSEMBLER(RISCV)
+#endif
 
 
 #undef LLVM_DISASSEMBLER
