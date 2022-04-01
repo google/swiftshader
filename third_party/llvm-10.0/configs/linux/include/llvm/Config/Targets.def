@@ -38,6 +38,9 @@ LLVM_TARGET(Mips)
 #if defined(__powerpc64__)
 LLVM_TARGET(PowerPC)
 #endif
+#if defined(__riscv)
+LLVM_TARGET(RISCV)
+#endif
 
 
 #undef LLVM_TARGET

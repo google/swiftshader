@@ -1126,6 +1126,40 @@ elseif(ARCH STREQUAL "ppc64le")
         ${LLVM_DIR}/lib/Target/PowerPC/PPCVSXSwapRemoval.cpp
         ${LLVM_DIR}/lib/Target/PowerPC/TargetInfo/PowerPCTargetInfo.cpp
     )
+elseif(ARCH STREQUAL "riscv64")
+    list(APPEND LLVM_LIST
+       ${LLVM_DIR}/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVAsmBackend.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVELFObjectWriter.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVELFStreamer.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVInstPrinter.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVMCAsmInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVMCCodeEmitter.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVMCExpr.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVMCTargetDesc.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/MCTargetDesc/RISCVTargetStreamer.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVAsmPrinter.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVCallLowering.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVExpandPseudoInsts.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVFrameLowering.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVInstrInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVInstructionSelector.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVISelDAGToDAG.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVISelLowering.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVLegalizerInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVMCInstLower.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVMergeBaseOffset.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVRegisterBankInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVRegisterInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVSubtarget.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVTargetMachine.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVTargetObjectFile.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/TargetInfo/RISCVTargetInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/Utils/RISCVBaseInfo.cpp
+       ${LLVM_DIR}/lib/Target/RISCV/Utils/RISCVMatInt.cpp
+    )
 endif()
 
 if(REACTOR_EMIT_DEBUG_INFO)
@@ -1157,6 +1191,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/lib/Target/ARM
     ${LLVM_DIR}/lib/Target/Mips
     ${LLVM_DIR}/lib/Target/PowerPC
+    ${LLVM_DIR}/lib/Target/RISCV
     ${LLVM_DIR}/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/include
     ${LLVM_CONFIG_DIR}/common/lib/IR
@@ -1164,6 +1199,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_CONFIG_DIR}/common/lib/Target/ARM
     ${LLVM_CONFIG_DIR}/common/lib/Target/Mips
     ${LLVM_CONFIG_DIR}/common/lib/Target/PowerPC
+    ${LLVM_CONFIG_DIR}/common/lib/Target/RISCV
     ${LLVM_CONFIG_DIR}/common/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/lib/Transforms/InstCombine
 )
