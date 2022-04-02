@@ -2097,6 +2097,11 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dR
 		}
 	}
 
+	if(borderModeActive())
+	{
+		c = replaceBorderTexel(c, valid);
+	}
+
 	if(state.compareEnable)
 	{
 		Float4 ref = dRef;
@@ -2127,11 +2132,6 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dR
 		c.y = Float4(0.0f);
 		c.z = Float4(0.0f);
 		c.w = Float4(1.0f);
-	}
-
-	if(borderModeActive())
-	{
-		c = replaceBorderTexel(c, valid);
 	}
 
 	return c;
