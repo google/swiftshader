@@ -31,6 +31,7 @@ struct Configuration
 		OneOf = 1,
 	};
 
+	// -------- [Processor] --------
 	// Number of threads used by the scheduler. A thread count of 0 is
 	// interpreted as min(cpu_cores_available, 16).
 	uint32_t threadCount = 0;
@@ -39,9 +40,11 @@ struct Configuration
 	uint64_t affinityMask = 0xffffffffffffffff;
 	AffinityPolicy affinityPolicy = AffinityPolicy::AnyOf;
 
+	// -------- [Debug] --------
 	// Directory where ASM listings of JITted code will be emitted.
 	std::string asmEmitDir = "";
 
+	// -------- [Profiler] --------
 	// Whether SPIR-V profiling is enabled.
 	bool enableSpirvProfiling = false;
 	// Period controlling how often SPIR-V profiles are reported.
