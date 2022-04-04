@@ -85,7 +85,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 		{
 			auto &result = CreateConstant(insn);
 			auto const &compositeObject = getObject(insn.word(4));
-			auto firstComponent = WalkLiteralAccessChain(compositeObject.typeId(), insn.wordCount() - 5, insn.wordPointer(5));
+			auto firstComponent = WalkLiteralAccessChain(compositeObject.typeId(), Span(insn, 5, insn.wordCount() - 5));
 
 			for(auto i = 0u; i < getType(result).componentCount; i++)
 			{
@@ -99,7 +99,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 			auto &result = CreateConstant(insn);
 			auto const &newPart = getObject(insn.word(4));
 			auto const &oldObject = getObject(insn.word(5));
-			auto firstNewComponent = WalkLiteralAccessChain(result.typeId(), insn.wordCount() - 6, insn.wordPointer(6));
+			auto firstNewComponent = WalkLiteralAccessChain(result.typeId(), Span(insn, 6, insn.wordCount() - 6));
 
 			// old components before
 			for(auto i = 0u; i < firstNewComponent; i++)

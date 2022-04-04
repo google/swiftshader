@@ -574,7 +574,7 @@ SpirvShader::SpirvShader(
 				if(opcode == spv::OpAccessChain || opcode == spv::OpInBoundsAccessChain)
 				{
 					Decorations dd{};
-					ApplyDecorationsForAccessChain(&dd, &descriptorDecorations[resultId], pointerId, insn.wordCount() - 4, insn.wordPointer(4));
+					ApplyDecorationsForAccessChain(&dd, &descriptorDecorations[resultId], pointerId, Span(insn, 4, insn.wordCount() - 4));
 					// Note: offset is the one thing that does *not* propagate, as the access chain accounts for it.
 					dd.HasOffset = false;
 					decorations[resultId].Apply(dd);
@@ -1201,14 +1201,14 @@ void SpirvShader::VisitInterface(Object::ID id, const InterfaceVisitor &f) const
 	VisitInterfaceInner(def.word(1), d, f);
 }
 
-void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecorations *dd, Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds) const
+void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecorations *dd, Object::ID baseId, const Span &indexIds) const
 {
 	ApplyDecorationsForId(d, baseId);
 	auto &baseObject = getObject(baseId);
 	ApplyDecorationsForId(d, baseObject.typeId());
 	auto typeId = getType(baseObject).element;
 
-	for(auto i = 0u; i < numIndexes; i++)
+	for(uint32_t i = 0; i < indexIds.size(); i++)
 	{
 		ApplyDecorationsForId(d, typeId);
 		auto &type = getType(typeId);
@@ -1242,7 +1242,7 @@ void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecor
 	}
 }
 
-SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const
+SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, const Span &indexIds, const EmitState *state) const
 {
 	// Produce a offset into external memory in sizeof(float) units
 
@@ -1251,6 +1251,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 	Decorations d = GetDecorationsForId(baseObject.typeId());
 
 	Int arrayIndex = 0;
+	uint32_t start = 0;
 	if(baseObject.kind == Object::Kind::DescriptorSet)
 	{
 		auto type = getType(typeId).definition.opcode();
@@ -1268,8 +1269,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 				arrayIndex = Extract(state->getIntermediate(indexIds[0]).Int(0), 0);
 			}
 
-			numIndexes--;
-			indexIds++;
+			start = 1;
 			typeId = getType(typeId).element;
 		}
 	}
@@ -1278,7 +1278,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 
 	int constantOffset = 0;
 
-	for(auto i = 0u; i < numIndexes; i++)
+	for(uint32_t i = start; i < indexIds.size(); i++)
 	{
 		auto &type = getType(typeId);
 		ApplyDecorationsForId(&d, typeId);
@@ -1353,7 +1353,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 	return ptr;
 }
 
-SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const
+SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, const Span &indexIds, EmitState const *state) const
 {
 	// TODO: avoid doing per-lane work in some cases if we can?
 	auto routine = state->routine;
@@ -1364,7 +1364,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 
 	int constantOffset = 0;
 
-	for(auto i = 0u; i < numIndexes; i++)
+	for(uint32_t i = 0; i < indexIds.size(); i++)
 	{
 		auto &type = getType(typeId);
 		switch(type.opcode())
@@ -1437,11 +1437,11 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 	return ptr;
 }
 
-uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexes, uint32_t const *indexes) const
+uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, const Span &indexes) const
 {
 	uint32_t componentOffset = 0;
 
-	for(auto i = 0u; i < numIndexes; i++)
+	for(uint32_t i = 0; i < indexes.size(); i++)
 	{
 		auto &type = getType(typeId);
 		switch(type.opcode())
@@ -1824,7 +1824,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 	{
 		auto text = spvtools::spvInstructionBinaryToText(
 		    vk::SPIRV_VERSION,
-		    insn.wordPointer(0),
+		    insn.data(),
 		    insn.wordCount(),
 		    insns.data(),
 		    insns.size(),
@@ -2202,8 +2202,6 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 	Type::ID typeId = insn.word(1);
 	Object::ID resultId = insn.word(2);
 	Object::ID baseId = insn.word(3);
-	uint32_t numIndexes = insn.wordCount() - 4;
-	const uint32_t *indexes = insn.wordPointer(4);
 	auto &type = getType(typeId);
 	ASSERT(type.componentCount == 1);
 	ASSERT(getObject(resultId).kind == Object::Kind::Pointer);
@@ -2212,12 +2210,12 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 	   type.storageClass == spv::StorageClassUniform ||
 	   type.storageClass == spv::StorageClassStorageBuffer)
 	{
-		auto ptr = WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, state);
+		auto ptr = WalkExplicitLayoutAccessChain(baseId, Span(insn, 4, insn.wordCount() - 4), state);
 		state->createPointer(resultId, ptr);
 	}
 	else
 	{
-		auto ptr = WalkAccessChain(baseId, numIndexes, indexes, state);
+		auto ptr = WalkAccessChain(baseId, Span(insn, 4, insn.wordCount() - 4), state);
 		state->createPointer(resultId, ptr);
 	}
 
@@ -2253,7 +2251,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeInsert(InsnIterator insn, Emit
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &newPartObject = getObject(insn.word(3));
 	auto &newPartObjectTy = getType(newPartObject);
-	auto firstNewComponent = WalkLiteralAccessChain(resultTypeId, insn.wordCount() - 5, insn.wordPointer(5));
+	auto firstNewComponent = WalkLiteralAccessChain(resultTypeId, Span(insn, 5, insn.wordCount() - 5));
 
 	Operand srcObjectAccess(this, state, insn.word(4));
 	Operand newPartObjectAccess(this, state, insn.word(3));
@@ -2283,7 +2281,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeExtract(InsnIterator insn, Emi
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &compositeObject = getObject(insn.word(3));
 	Type::ID compositeTypeId = compositeObject.definition.word(1);
-	auto firstComponent = WalkLiteralAccessChain(compositeTypeId, insn.wordCount() - 4, insn.wordPointer(4));
+	auto firstComponent = WalkLiteralAccessChain(compositeTypeId, Span(insn, 4, insn.wordCount() - 4));
 
 	Operand compositeObjectAccess(this, state, insn.word(3));
 	for(auto i = 0u; i < type.componentCount; i++)

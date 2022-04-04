@@ -2571,13 +2571,13 @@ void SpirvShader::dbgCreateFile()
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
 		                       vk::SPIRV_VERSION,
-		                       insn.wordPointer(0),
+		                       insn.data(),
 		                       insn.wordCount(),
 		                       insns.data(),
 		                       insns.size(),
 		                       SPV_BINARY_TO_TEXT_OPTION_NO_HEADER) +
 		                   "\n";
-		dbg->spirvLineMappings[insn.wordPointer(0)] = currentLine;
+		dbg->spirvLineMappings[insn.data()] = currentLine;
 		currentLine += std::count(instruction.begin(), instruction.end(), '\n');
 		source += instruction;
 	}
@@ -2670,7 +2670,7 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
 		    vk::SPIRV_VERSION,
-		    insn.wordPointer(0),
+		    insn.data(),
 		    insn.wordCount(),
 		    insns.data(),
 		    insns.size(),
@@ -2683,7 +2683,7 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
 		    vk::SPIRV_VERSION,
-		    insn.wordPointer(0),
+		    insn.data(),
 		    insn.wordCount(),
 		    insns.data(),
 		    insns.size(),
@@ -2711,7 +2711,7 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 			// We're emitting debugger logic for SPIR-V.
 			if(IsStatement(insn.opcode()))
 			{
-				auto line = dbg->spirvLineMappings.at(insn.wordPointer(0));
+				auto line = dbg->spirvLineMappings.at(insn.data());
 				dbg->setLocation(state, dbg->spirvFile, line);
 			}
 		}
@@ -2735,7 +2735,7 @@ void SpirvShader::dbgEndEmitInstruction(InsnIterator insn, EmitState *state) con
 		break;
 	default:
 		{
-			auto resIt = dbg->results.find(insn.wordPointer(0));
+			auto resIt = dbg->results.find(insn.data());
 			if(resIt != dbg->results.end())
 			{
 				dbg->shadow.create(this, state, resIt->second);
@@ -2759,7 +2759,7 @@ void SpirvShader::dbgDeclareResult(const InsnIterator &insn, Object::ID resultId
 	auto dbg = impl.debugger;
 	if(!dbg) { return; }
 
-	dbg->results.emplace(insn.wordPointer(0), resultId);
+	dbg->results.emplace(insn.data(), resultId);
 }
 
 SpirvShader::EmitResult SpirvShader::EmitLine(InsnIterator insn, EmitState *state) const
@@ -2779,7 +2779,7 @@ void SpirvShader::DefineOpenCLDebugInfo100(const InsnIterator &insn)
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
 		    vk::SPIRV_VERSION,
-		    insn.wordPointer(0),
+		    insn.data(),
 		    insn.wordCount(),
 		    insns.data(),
 		    insns.size(),
