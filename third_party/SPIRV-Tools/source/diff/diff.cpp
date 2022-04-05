@@ -2196,16 +2196,18 @@ void Differ::MatchTypeIds() {
         case SpvOpTypeSampledImage:
         case SpvOpTypeRuntimeArray:
         case SpvOpTypePointer:
-        case SpvOpTypeFunction:
           // Match these instructions when all operands match.
           assert(src_inst->NumInOperandWords() ==
                  dst_inst->NumInOperandWords());
           return DoOperandsMatch(src_inst, dst_inst, 0,
                                  src_inst->NumInOperandWords());
 
+        case SpvOpTypeFunction:
         case SpvOpTypeImage:
-          // Match these instructions when all operands match, including the
-          // optional final parameter (if provided in both).
+          // Match function types only if they have the same number of operands,
+          // and they all match.
+          // Match image types similarly, expecting the optional final parameter
+          // to match (if provided in both)
           if (src_inst->NumInOperandWords() != dst_inst->NumInOperandWords()) {
             return false;
           }
