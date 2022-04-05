@@ -111,10 +111,10 @@ if(LINUX)
     check_symbol_exists(mallinfo2 malloc.h HAVE_MALLINFO2)
 
     include(CheckIncludeFiles)
-    CHECK_INCLUDE_FILES("xcb/xcb.h" HAVE_XCB_H)
+    CHECK_INCLUDE_FILES("xcb/xcb.h;xcb/shm.h" HAVE_XCB_H)
     if(NOT HAVE_XCB_H)
-        message(WARNING "xcb/xcb.h was not found. Install the libx11-xcb-dev package "
-                        "to build with WSI support for XCB surfaces.")
+        message(WARNING "xcb/xcb.h or xcb/shm.h was not found. Install the libx11-xcb-dev and "
+                        "libxcb-shm0-dev packages to build with WSI support for XCB surfaces.")
     endif()
 endif()
 

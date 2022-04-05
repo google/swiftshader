@@ -34,10 +34,10 @@ struct LibXcbExports
 	xcb_void_cookie_t (*xcb_free_pixmap)(xcb_connection_t *conn, xcb_pixmap_t pixmap);
 	xcb_query_extension_reply_t *(*xcb_get_extension_data)(xcb_connection_t *c, xcb_extension_t *extension) = nullptr;
 
-	xcb_shm_query_version_cookie_t 	(*xcb_shm_query_version)(xcb_connection_t *c);
+	xcb_shm_query_version_cookie_t (*xcb_shm_query_version)(xcb_connection_t *c);
 	xcb_shm_query_version_reply_t *(*xcb_shm_query_version_reply)(xcb_connection_t *c, xcb_shm_query_version_cookie_t cookie, xcb_generic_error_t **e);
 	xcb_void_cookie_t (*xcb_shm_attach)(xcb_connection_t *c, xcb_shm_seg_t shmseg, uint32_t shmid, uint8_t read_only);
-	xcb_void_cookie_t (*xcb_shm_detach)(xcb_connection_t * 	c, xcb_shm_seg_t shmseg);
+	xcb_void_cookie_t (*xcb_shm_detach)(xcb_connection_t *c, xcb_shm_seg_t shmseg);
 	xcb_void_cookie_t (*xcb_shm_create_pixmap)(xcb_connection_t *c, xcb_pixmap_t pid, xcb_drawable_t drawable, uint16_t width, uint16_t height, uint8_t depth, xcb_shm_seg_t shmseg, uint32_t offset);
 	xcb_extension_t *xcb_shm_id;
 };

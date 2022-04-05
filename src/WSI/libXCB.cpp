@@ -54,7 +54,7 @@ LibXcbExports *LibXCB::loadExports()
 			libxcb = RTLD_DEFAULT;
 		}
 		else
-                {
+		{
 			libxcb = loadLibrary("libxcb.so.1");
 		}
 
@@ -63,7 +63,7 @@ LibXcbExports *LibXCB::loadExports()
 			libshm = RTLD_DEFAULT;
 		}
 		else
-                {
+		{
 			libshm = loadLibrary("libxcb-shm.so.0");
 		}
 

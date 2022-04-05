@@ -45,13 +45,13 @@ bool XcbSurfaceKHR::isSupported()
 }
 
 XcbSurfaceKHR::XcbSurfaceKHR(const VkXcbSurfaceCreateInfoKHR *pCreateInfo, void *mem)
-	: connection(pCreateInfo->connection)
-	, window(pCreateInfo->window)
+    : connection(pCreateInfo->connection)
+    , window(pCreateInfo->window)
 {
 	ASSERT(isSupported());
 
 	gc = libXCB->xcb_generate_id(connection);
-	uint32_t values[2] = { 0, 0xffffffff };
+	uint32_t values[2] = { 0, 0xFFFFFFFF };
 	libXCB->xcb_create_gc(connection, gc, window, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND, values);
 
 	auto shmQuery = libXCB->xcb_get_extension_data(connection, libXCB->xcb_shm_id);
@@ -89,7 +89,7 @@ size_t XcbSurfaceKHR::ComputeRequiredAllocationSize(const VkXcbSurfaceCreateInfo
 
 VkResult XcbSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
 {
-	if (surfaceLost)
+	if(surfaceLost)
 	{
 		return VK_ERROR_SURFACE_LOST_KHR;
 	}
@@ -110,12 +110,14 @@ VkResult XcbSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfac
 	return VK_SUCCESS;
 }
 
-void* XcbSurfaceKHR::allocateImageMemory(PresentImage *image, const VkMemoryAllocateInfo &allocateInfo)
+void *XcbSurfaceKHR::allocateImageMemory(PresentImage *image, const VkMemoryAllocateInfo &allocateInfo)
 {
-	if (!mitSHM)
+	if(!mitSHM)
+	{
 		return nullptr;
+	}
 
-	SHMPixmap& pixmap = pixmaps[image];
+	SHMPixmap &pixmap = pixmaps[image];
 	int shmid = shmget(IPC_PRIVATE, allocateInfo.allocationSize, IPC_CREAT | SHM_R | SHM_W);
 	pixmap.shmaddr = shmat(shmid, 0, 0);
 	pixmap.shmseg = libXCB->xcb_generate_id(connection);
@@ -129,20 +131,20 @@ void* XcbSurfaceKHR::allocateImageMemory(PresentImage *image, const VkMemoryAllo
 
 	pixmap.pixmap = libXCB->xcb_generate_id(connection);
 	libXCB->xcb_shm_create_pixmap(
-		connection,
-		pixmap.pixmap,
-		window,
-		width, height,
-		windowDepth,
-		pixmap.shmseg,
-		0);
+	    connection,
+	    pixmap.pixmap,
+	    window,
+	    width, height,
+	    windowDepth,
+	    pixmap.shmseg,
+	    0);
 
 	return pixmap.shmaddr;
 }
 
 void XcbSurfaceKHR::releaseImageMemory(PresentImage *image)
 {
-	if (mitSHM)
+	if(mitSHM)
 	{
 		auto it = pixmaps.find(image);
 		assert(it != pixmaps.end());
@@ -179,7 +181,8 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
 
-	if (!mitSHM) {
+	if(!mitSHM)
+	{
 		// TODO: Convert image if not RGB888.
 		int stride = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 		int bytesPerPixel = static_cast<int>(image->getImage()->getFormat(VK_IMAGE_ASPECT_COLOR_BIT).bytes());
@@ -187,17 +190,17 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 		auto buffer = reinterpret_cast<uint8_t *>(image->getImageMemory()->getOffsetPointer(0));
 		size_t bufferSize = extent.height * stride;
 		libXCB->xcb_put_image(
-			connection,
-			XCB_IMAGE_FORMAT_Z_PIXMAP,
-			window,
-			gc,
-			width,
-			extent.height,
-			0, 0,  // dst x, y
-			0,     // left_pad
-			depth,
-			bufferSize,  // data_len
-			buffer       // data
+		    connection,
+		    XCB_IMAGE_FORMAT_Z_PIXMAP,
+		    window,
+		    gc,
+		    width,
+		    extent.height,
+		    0, 0,  // dst x, y
+		    0,     // left_pad
+		    depth,
+		    bufferSize,  // data_len
+		    buffer       // data
 		);
 	}
 	else
@@ -205,14 +208,14 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 		auto it = pixmaps.find(image);
 		assert(it != pixmaps.end());
 		libXCB->xcb_copy_area(
-			connection,
-			it->second.pixmap,
-			window,
-			gc,
-			0, 0,  // src x, y
-			0, 0,  // dst x, y
-			extent.width,
-			extent.height);
+		    connection,
+		    it->second.pixmap,
+		    window,
+		    gc,
+		    0, 0,  // src x, y
+		    0, 0,  // dst x, y
+		    extent.width,
+		    extent.height);
 	}
 	libXCB->xcb_flush(connection);
 
