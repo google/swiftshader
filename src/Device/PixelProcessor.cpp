@@ -131,12 +131,12 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 
 	state.occlusionEnabled = occlusionEnabled;
 
-	bool fragmentContainsKill = (fragmentShader && fragmentShader->getAnalysis().ContainsKill);
+	bool fragmentContainsDiscard = (fragmentShader && fragmentShader->getAnalysis().ContainsDiscard);
 	for(int i = 0; i < MAX_COLOR_BUFFERS; i++)
 	{
 		state.colorWriteMask |= pipelineState.colorWriteActive(i, attachments) << (4 * i);
 		state.colorFormat[i] = attachments.colorFormat(i);
-		state.blendState[i] = pipelineState.getBlendState(i, attachments, fragmentContainsKill);
+		state.blendState[i] = pipelineState.getBlendState(i, attachments, fragmentContainsDiscard);
 	}
 
 	state.multiSampleCount = static_cast<unsigned int>(pipelineState.getSampleCount());

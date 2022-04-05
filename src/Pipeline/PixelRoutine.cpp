@@ -282,7 +282,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 
 			Bool alphaPass = alphaTest(cMask, samples);
 
-			if((spirvShader && spirvShader->getAnalysis().ContainsKill) || state.alphaToCoverage)
+			if((spirvShader && spirvShader->getAnalysis().ContainsDiscard) || state.alphaToCoverage)
 			{
 				for(unsigned int q : samples)
 				{

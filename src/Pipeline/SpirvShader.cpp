@@ -234,7 +234,7 @@ SpirvShader::SpirvShader(
 		// Termination instructions:
 		case spv::OpKill:
 		case spv::OpTerminateInvocation:
-			analysis.ContainsKill = true;
+			analysis.ContainsDiscard = true;
 			// [[fallthrough]]
 
 		case spv::OpUnreachable:
@@ -256,7 +256,7 @@ SpirvShader::SpirvShader(
 			break;
 
 		case spv::OpDemoteToHelperInvocation:
-			analysis.ContainsKill = true;
+			analysis.ContainsDiscard = true;
 			break;
 
 		case spv::OpLoopMerge:
@@ -2092,7 +2092,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 
 	case spv::OpKill:
 	case spv::OpTerminateInvocation:
-		return EmitKill(insn, state);
+		return EmitTerminateInvocation(insn, state);
 
 	case spv::OpDemoteToHelperInvocation:
 		return EmitDemoteToHelperInvocation(insn, state);

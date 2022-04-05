@@ -669,7 +669,7 @@ public:
 
 	struct Analysis
 	{
-		bool ContainsKill : 1;
+		bool ContainsDiscard : 1;  // OpKill, OpTerminateInvocation, or OpDemoteToHelperInvocation
 		bool ContainsControlBarriers : 1;
 		bool NeedsCentroid : 1;
 		bool ContainsSampleQualifier : 1;
@@ -1334,7 +1334,7 @@ private:
 	EmitResult EmitSwitch(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitUnreachable(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitReturn(InsnIterator insn, EmitState *state) const;
-	EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
+	EmitResult EmitTerminateInvocation(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitDemoteToHelperInvocation(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitIsHelperInvocation(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitFunctionCall(InsnIterator insn, EmitState *state) const;
@@ -1540,7 +1540,7 @@ public:
 	Pointer<Int> descriptorDynamicOffsets;
 	Pointer<Byte> pushConstants;
 	Pointer<Byte> constants;
-	Int killMask = Int{ 0 };
+	Int discardMask = 0;
 
 	// Shader invocation state.
 	// Not all of these variables are used for every type of shader, and some
