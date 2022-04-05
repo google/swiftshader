@@ -32,7 +32,7 @@ if(WIN32)
         Win32SurfaceKHR.hpp
     )
 elseif(LINUX)
-    if(XCB)
+    if(HAVE_XCB_H)
         list(APPEND WSI_SRC_FILES
             XcbSurfaceKHR.cpp
             XcbSurfaceKHR.hpp

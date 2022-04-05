@@ -105,13 +105,19 @@ endif()
 # Host libraries
 ###########################################################
 
-include(CheckSymbolExists)
 if(LINUX)
+    include(CheckSymbolExists)
     check_symbol_exists(mallinfo malloc.h HAVE_MALLINFO)
     check_symbol_exists(mallinfo2 malloc.h HAVE_MALLINFO2)
+
+    include(CheckIncludeFiles)
+    CHECK_INCLUDE_FILES("xcb/xcb.h" HAVE_XCB_H)
+    if(NOT HAVE_XCB_H)
+        message(WARNING "xcb/xcb.h was not found. Install the libx11-xcb-dev package "
+                        "to build with WSI support for XCB surfaces.")
+    endif()
 endif()
 
-find_library(XCB xcb)
 if(SWIFTSHADER_BUILD_WSI_WAYLAND)
     find_library(WAYLAND wayland-client)
 endif(SWIFTSHADER_BUILD_WSI_WAYLAND)
@@ -792,7 +798,7 @@ endif()
 if(WIN32)
     target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_WIN32_KHR")
 elseif(LINUX)
-    if(XCB)
+    if(HAVE_XCB_H)
         target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_XCB_KHR")
     endif()
     if(SWIFTSHADER_BUILD_WSI_WAYLAND)
