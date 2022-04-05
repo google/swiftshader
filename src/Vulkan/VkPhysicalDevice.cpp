@@ -364,6 +364,12 @@ static void getPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceMaintenance4Features(T *features)
+{
+	features->maintenance4 = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -409,7 +415,7 @@ static void getPhysicalDeviceVulkan13Features(T *features)
 	getPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(features);
 	getPhysicalDeviceDynamicRenderingFeatures(features);
 	getPhysicalDeviceShaderIntegerDotProductFeatures(features);
-	features->maintenance4 = VK_TRUE;
+	getPhysicalDeviceMaintenance4Features(features);
 }
 
 static void getPhysicalDeviceCustomBorderColorFeaturesExt(VkPhysicalDeviceCustomBorderColorFeaturesEXT *features)
@@ -570,6 +576,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES:
 			getPhysicalDeviceShaderIntegerDotProductFeatures(reinterpret_cast<struct VkPhysicalDeviceShaderIntegerDotProductFeatures *>(curExtension));
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES:
+			getPhysicalDeviceMaintenance4Features(reinterpret_cast<struct VkPhysicalDeviceMaintenance4Features *>(curExtension));
+			break;
 		// Unsupported extensions, but used by dEQP
 		// TODO(b/176893525): This may not be legal.
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
@@ -577,6 +586,7 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT:
+		case VK_STRUCTURE_TYPE_MAX_ENUM:  // dEQP tests that this value is ignored.
 			break;
 		default:
 			UNSUPPORTED("curExtension->sType: %s", vk::Stringify(curExtension->sType).c_str());
