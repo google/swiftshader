@@ -15,6 +15,16 @@
 #ifndef rr_Routine_hpp
 #define rr_Routine_hpp
 
+// A Clang extension to determine compiler features.
+// We use it to detect Sanitizer builds (e.g. -fsanitize=memory).
+#ifndef __has_feature
+#	define __has_feature(x) 0
+#endif
+
+#if __has_feature(memory_sanitizer)
+#	include "sanitizer/msan_interface.h"
+#endif
+
 #include <memory>
 
 namespace rr {
@@ -57,6 +67,11 @@ public:
 	template<typename... Args>
 	Return operator()(Args... args) const
 	{
+#if __has_feature(memory_sanitizer)
+		// TODO(b/228253151): Fix support for detecting uninitialized parameters.
+		__msan_unpoison_param(sizeof...(args));
+#endif
+
 		return function(args...);
 	}
 
