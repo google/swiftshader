@@ -492,12 +492,12 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			UNSUPPORTED("VkPhysicalDeviceFeatures::multiViewport");
 		}
 
-		if(!dynamicStateFlags.dynamicScissor)
+		if(!dynamicStateFlags.dynamicScissor && !dynamicStateFlags.dynamicScissorWithCount)
 		{
 			scissor = viewportState->pScissors[0];
 		}
 
-		if(!dynamicStateFlags.dynamicViewport)
+		if(!dynamicStateFlags.dynamicViewport && !dynamicStateFlags.dynamicViewportWithCount)
 		{
 			viewport = viewportState->pViewports[0];
 		}
