@@ -626,35 +626,7 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool buffe
 	int srcRowPitchBytes = bufferIsSource ? bufferRowPitchBytes : imageRowPitchBytes;
 	int dstRowPitchBytes = bufferIsSource ? imageRowPitchBytes : bufferRowPitchBytes;
 
-	VkExtent3D mipLevelExtent = getMipLevelExtent(aspect, region.imageSubresource.mipLevel);
-	bool isSingleSlice = (imageExtent.depth == 1);
-	bool isSingleRow = (imageExtent.height == 1) && isSingleSlice;
-	bool isEntireRow = (imageExtent.width == mipLevelExtent.width) &&
-	                   (imageRowPitchBytes == bufferRowPitchBytes);
-	bool isEntireSlice = isEntireRow && (imageExtent.height == mipLevelExtent.height) &&
-	                     (imageSlicePitchBytes == bufferSlicePitchBytes);
-
-	VkDeviceSize copySize = 0;
-	if(isSingleRow)
-	{
-		copySize = imageExtent.width * bytesPerBlock;
-	}
-	else if(isEntireRow && isSingleSlice)
-	{
-		copySize = (imageExtent.height - 1) * imageRowPitchBytes + imageExtent.width * bytesPerBlock;
-	}
-	else if(isEntireSlice)
-	{
-		copySize = (imageExtent.depth - 1) * imageSlicePitchBytes + (imageExtent.height - 1) * imageRowPitchBytes + imageExtent.width * bytesPerBlock;  // Copy multiple slices
-	}
-	else if(isEntireRow)  // Copy slice by slice
-	{
-		copySize = (imageExtent.height - 1) * imageRowPitchBytes + imageExtent.width * bytesPerBlock;
-	}
-	else  // Copy row by row
-	{
-		copySize = imageExtent.width * bytesPerBlock;
-	}
+	VkDeviceSize copySize = imageExtent.width * bytesPerBlock;
 
 	VkDeviceSize imageLayerSize = getLayerSize(aspect);
 	VkDeviceSize srcLayerSize = bufferIsSource ? bufferSlicePitchBytes : imageLayerSize;
@@ -662,44 +634,22 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool buffe
 
 	for(uint32_t i = 0; i < region.imageSubresource.layerCount; i++)
 	{
-		if(isSingleRow || (isEntireRow && isSingleSlice) || isEntireSlice)
+		uint8_t *srcLayerMemory = srcMemory;
+		uint8_t *dstLayerMemory = dstMemory;
+		for(uint32_t z = 0; z < imageExtent.depth; z++)
 		{
-			ASSERT(((bufferIsSource ? dstMemory : srcMemory) + copySize) < end());
-			ASSERT(((bufferIsSource ? srcMemory : dstMemory) + copySize) < buffer->end());
-			memcpy(dstMemory, srcMemory, copySize);
-		}
-		else if(isEntireRow)  // Copy slice by slice
-		{
-			uint8_t *srcSliceMemory = srcMemory;
-			uint8_t *dstSliceMemory = dstMemory;
-			for(uint32_t z = 0; z < imageExtent.depth; z++)
+			uint8_t *srcSliceMemory = srcLayerMemory;
+			uint8_t *dstSliceMemory = dstLayerMemory;
+			for(uint32_t y = 0; y < imageExtent.height; y++)
 			{
 				ASSERT(((bufferIsSource ? dstSliceMemory : srcSliceMemory) + copySize) < end());
 				ASSERT(((bufferIsSource ? srcSliceMemory : dstSliceMemory) + copySize) < buffer->end());
 				memcpy(dstSliceMemory, srcSliceMemory, copySize);
-				srcSliceMemory += srcSlicePitchBytes;
-				dstSliceMemory += dstSlicePitchBytes;
+				srcSliceMemory += srcRowPitchBytes;
+				dstSliceMemory += dstRowPitchBytes;
 			}
-		}
-		else  // Copy row by row
-		{
-			uint8_t *srcLayerMemory = srcMemory;
-			uint8_t *dstLayerMemory = dstMemory;
-			for(uint32_t z = 0; z < imageExtent.depth; z++)
-			{
-				uint8_t *srcSliceMemory = srcLayerMemory;
-				uint8_t *dstSliceMemory = dstLayerMemory;
-				for(uint32_t y = 0; y < imageExtent.height; y++)
-				{
-					ASSERT(((bufferIsSource ? dstSliceMemory : srcSliceMemory) + copySize) < end());
-					ASSERT(((bufferIsSource ? srcSliceMemory : dstSliceMemory) + copySize) < buffer->end());
-					memcpy(dstSliceMemory, srcSliceMemory, copySize);
-					srcSliceMemory += srcRowPitchBytes;
-					dstSliceMemory += dstRowPitchBytes;
-				}
-				srcLayerMemory += srcSlicePitchBytes;
-				dstLayerMemory += dstSlicePitchBytes;
-			}
+			srcLayerMemory += srcSlicePitchBytes;
+			dstLayerMemory += dstSlicePitchBytes;
 		}
 
 		srcMemory += srcLayerSize;
