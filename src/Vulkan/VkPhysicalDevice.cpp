@@ -581,6 +581,10 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:  // TODO(b/176893525): This may not be legal. dEQP tests that this value is ignored.
 			break;
+		// FIXME(b/228307968): VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_ARM
+		//                     is used by dEQP without checking if VK_ARM_rasterization_order_attachment_access is present
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_ARM:
+			break;
 		default:
 			UNSUPPORTED("curExtension->sType: %s", vk::Stringify(curExtension->sType).c_str());
 			break;
