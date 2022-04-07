@@ -241,6 +241,8 @@ sw::SIMD::UInt halfToFloatBits(sw::SIMD::UInt halfBits);
 sw::SIMD::UInt floatToHalfBits(sw::SIMD::UInt floatBits, bool storeInUpperBits);
 Float4 r11g11b10Unpack(UInt r11g11b10bits);
 UInt r11g11b10Pack(const Float4 &value);
+Float4 linearToSRGB(const Float4 &c);
+Float4 sRGBtoLinear(const Float4 &c);
 
 RValue<Bool> AnyTrue(const RValue<SIMD::Int> &bools);
 RValue<Bool> AnyFalse(const RValue<SIMD::Int> &bools);

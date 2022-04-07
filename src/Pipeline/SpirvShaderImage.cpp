@@ -21,11 +21,9 @@
 
 #include <spirv/unified1/spirv.hpp>
 
-namespace {
+namespace sw {
 
-using namespace sw;
-
-vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
+static vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
 {
 	switch(format)
 	{
@@ -75,20 +73,6 @@ vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
 		return VK_FORMAT_UNDEFINED;
 	}
 }
-
-SIMD::Float sRGBtoLinear(SIMD::Float c)
-{
-	SIMD::Float lc = c * (1.0f / 12.92f);
-	SIMD::Float ec = Pow<Mediump>((c + 0.055f) * (1.0f / 1.055f), 2.4f);  // TODO(b/149574741): Use a custom approximation.
-
-	SIMD::Int linear = CmpLT(c, 0.04045f);
-
-	return rr::As<SIMD::Float>((linear & rr::As<SIMD::Int>(lc)) | (~linear & rr::As<SIMD::Int>(ec)));  // TODO: IfThenElse()
-}
-
-}  // anonymous namespace
-
-namespace sw {
 
 SpirvShader::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvShader &spirv)
     : ImageInstructionSignature(parseVariantAndMethod(insn))
@@ -909,9 +893,9 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(const ImageInstruction &instr
 		break;
 	case VK_FORMAT_R8G8B8A8_SRGB:
 	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-		dst.move(0, ::sRGBtoLinear(SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
-		dst.move(1, ::sRGBtoLinear(SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
-		dst.move(2, ::sRGBtoLinear(SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+		dst.move(0, sRGBtoLinear(SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+		dst.move(1, sRGBtoLinear(SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+		dst.move(2, sRGBtoLinear(SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
 		dst.move(3, SIMD::Float((packed[0] >> 24) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
 		break;
 	case VK_FORMAT_B8G8R8A8_UNORM:
@@ -921,9 +905,9 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(const ImageInstruction &instr
 		dst.move(3, SIMD::Float((packed[0] >> 24) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
 		break;
 	case VK_FORMAT_B8G8R8A8_SRGB:
-		dst.move(0, ::sRGBtoLinear(SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
-		dst.move(1, ::sRGBtoLinear(SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
-		dst.move(2, ::sRGBtoLinear(SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+		dst.move(0, sRGBtoLinear(SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+		dst.move(1, sRGBtoLinear(SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+		dst.move(2, sRGBtoLinear(SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
 		dst.move(3, SIMD::Float((packed[0] >> 24) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
 		break;
 	case VK_FORMAT_R8G8B8A8_UINT:
