@@ -1,7 +1,0 @@
-dEQP-VK.pipeline.monolithic.extended_dynamic_state.after_pipelines.1_full_scissor
-dEQP-VK.pipeline.monolithic.extended_dynamic_state.before_draw.1_full_scissor
-dEQP-VK.pipeline.monolithic.extended_dynamic_state.before_good_static.1_full_scissor
-dEQP-VK.pipeline.monolithic.extended_dynamic_state.between_pipelines.1_full_scissor
-dEQP-VK.pipeline.monolithic.extended_dynamic_state.cmd_buffer_start.1_full_scissor
-dEQP-VK.pipeline.monolithic.extended_dynamic_state.two_draws_dynamic.1_full_scissor
-dEQP-VK.pipeline.monolithic.extended_dynamic_state.two_draws_static.1_full_scissor
