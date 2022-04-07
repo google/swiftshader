@@ -1779,7 +1779,7 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties3 *pFo
 	case VK_FORMAT_B8G8R8A8_SRGB:
 		pFormatProperties->optimalTilingFeatures |=
 		    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT |
-		    VK_FORMAT_FEATURE_2_STORAGE_WRITE_WITHOUT_FORMAT_BIT_KHR;
+		    VK_FORMAT_FEATURE_2_STORAGE_WRITE_WITHOUT_FORMAT_BIT;
 		pFormatProperties->bufferFeatures |=
 		    VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;
 		break;
