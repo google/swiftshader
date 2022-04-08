@@ -84,8 +84,8 @@ config("swiftshader_config") {
 
 group("swiftshader") {
   data_deps = [
-    "src/OpenGL/libEGL:swiftshader_libEGL",
-    "src/OpenGL/libGLESv2:swiftshader_libGLESv2",
+    "src/Vulkan:icd_file",
+    "src/Vulkan:swiftshader_libvulkan",
   ]
 }
 
@@ -93,10 +93,7 @@ if (build_with_chromium) {
   group("swiftshader_tests") {
     testonly = true
 
-    data_deps = [
-      "tests/GLESUnitTests:swiftshader_unittests",
-      "tests/SystemUnitTests:swiftshader_system_unittests",
-    ]
+    data_deps = [ "tests/SystemUnitTests:swiftshader_system_unittests" ]
 
     if (supports_llvm) {
       data_deps +=
