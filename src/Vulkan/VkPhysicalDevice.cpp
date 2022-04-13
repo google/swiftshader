@@ -579,6 +579,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES:
 			getPhysicalDeviceMaintenance4Features(reinterpret_cast<struct VkPhysicalDeviceMaintenance4Features *>(curExtension));
 			break;
+		// FIXME(b/228307968): dEQP mistakenly considers VK_EXT_shader_image_atomic_int64 promoted to Vulkan 1.2 (https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/3631)
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:  // TODO(b/176893525): This may not be legal. dEQP tests that this value is ignored.
 			break;
 		// FIXME(b/228307968): VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_ARM
