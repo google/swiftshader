@@ -1,3 +1,5 @@
+> :warning: **Out of date**
+
 SwiftShader Documentation
 =========================
 

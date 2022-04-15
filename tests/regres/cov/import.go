@@ -59,12 +59,7 @@ func AppendRuntimeEnv(env []string, coverageFile string) []string {
 // didn't get compiled.
 func (e Env) AllSourceFiles() *Coverage {
 	var ignorePaths = map[string]bool{
-		"src/Common":   true,
-		"src/Main":     true,
-		"src/OpenGL":   true,
-		"src/Renderer": true,
-		"src/Shader":   true,
-		"src/System":   true,
+		"src/System": true,
 	}
 
 	// Gather all the source files to include them even if there is no coverage

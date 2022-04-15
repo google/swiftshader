@@ -8,10 +8,10 @@ SwiftShader.
 
 Regres provides:
 
-* [Presubmit testing](#presubmit-testing) - An automatic OpenGL|ES and Vulkan
+* [Presubmit testing](#presubmit-testing) - An automatic Vulkan
   dEQP test run for each Gerrit patchset put up for review.
 * [Continuous integration testing](#daily-run-continuous-integration-testing) -
-  A OpenGL|ES and Vulkan dEQP test run performed against the `master` branch each night. \
+  A Vulkan dEQP test run performed against the `master` branch each night. \
   This nightly run also produces code coverage information which can be viewed at
   [swiftshader-regres.github.io/swiftshader-coverage](https://swiftshader-regres.github.io/swiftshader-coverage/).
 * [Local dEQP test runner](#local-dEQP-test-runner) Provides a local tool for
