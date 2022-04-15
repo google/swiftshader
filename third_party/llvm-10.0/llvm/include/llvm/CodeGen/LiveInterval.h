@@ -625,11 +625,10 @@ namespace llvm {
         // if the Seg is lower find first segment that is above Idx using binary
         // search
         if (Seg->end <= *Idx) {
-          Seg = std::upper_bound(++Seg, EndSeg, *Idx,
-            [=](typename std::remove_reference<decltype(*Idx)>::type V,
-                const typename std::remove_reference<decltype(*Seg)>::type &S) {
-              return V < S.end;
-            });
+          Seg =
+              std::upper_bound(++Seg, EndSeg, *Idx, [=](auto V, const auto &S) {
+                return V < S.end;
+              });
           if (Seg == EndSeg)
             break;
         }
