@@ -102,6 +102,27 @@ if(CCACHE_FOUND)
 endif()
 
 ###########################################################
+# Install Gerrit commit hook
+###########################################################
+
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/commit-msg)
+    message(WARNING "
+        .git/hooks/commit-msg was not found.
+        Downloading from https://gerrit-review.googlesource.com/tools/hooks/commit-msg...
+    ")
+
+    file(DOWNLOAD https://gerrit-review.googlesource.com/tools/hooks/commit-msg ${CMAKE_SOURCE_DIR}/commit-msg)
+
+    file(COPY ${CMAKE_SOURCE_DIR}/commit-msg
+         DESTINATION ${CMAKE_SOURCE_DIR}/.git/hooks/
+         FILE_PERMISSIONS
+           OWNER_READ OWNER_WRITE OWNER_EXECUTE
+           GROUP_READ GROUP_WRITE GROUP_EXECUTE
+           WORLD_READ WORLD_EXECUTE)
+    file(REMOVE ${CMAKE_SOURCE_DIR}/commit-msg)
+endif()
+
+###########################################################
 # Host libraries
 ###########################################################
 
