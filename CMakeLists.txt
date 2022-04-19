@@ -404,6 +404,7 @@ if(MSVC)
         "/wd4838" # conversion from 'type_1' to 'type_2' requires a narrowing conversion
         "/wd5030" # attribute 'attribute' is not recognized
         "/wd5038" # data member 'member1' will be initialized after data member 'member2' data member 'member' will be initialized after base class 'base_class'
+        "/wd4146" # unary minus operator applied to unsigned type, result still unsigned
     )
 
     # Treat specific warnings as errors

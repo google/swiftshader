@@ -23,7 +23,6 @@
 
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/IntrinsicsX86.h"
-#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Alignment.h"
@@ -31,6 +30,16 @@
 #include "llvm/Transforms/Coroutines.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Scalar.h"
+
+#if LLVM_VERSION_MAJOR >= 13  // New pass manager
+#	include "llvm/Passes/PassBuilder.h"
+#else  // Legacy pass manager
+#	include "llvm/IR/LegacyPassManager.h"
+#	include "llvm/Pass.h"
+#	include "llvm/Transforms/Coroutines.h"
+#	include "llvm/Transforms/IPO.h"
+#	include "llvm/Transforms/Scalar.h"
+#endif
 
 #include <fstream>
 #include <iostream>
@@ -614,10 +623,9 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 		}
 
 #if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
+		if(llvm::verifyModule(*jit->module, &llvm::errs()))
 		{
-			llvm::legacy::PassManager pm;
-			pm.add(llvm::createVerifierPass());
-			pm.run(*jit->module);
+			llvm::report_fatal_error("Invalid LLVM module");
 		}
 #endif  // defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 
@@ -4391,6 +4399,23 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 
 	if(isCoroutine)
 	{
+#if LLVM_VERSION_MAJOR >= 13  // New pass manager
+		llvm::PassBuilder pb;
+		llvm::LoopAnalysisManager lam;
+		llvm::FunctionAnalysisManager fam;
+		llvm::CGSCCAnalysisManager cgam;
+		llvm::ModuleAnalysisManager mam;
+
+		pb.registerModuleAnalyses(mam);
+		pb.registerCGSCCAnalyses(cgam);
+		pb.registerFunctionAnalyses(fam);
+		pb.registerLoopAnalyses(lam);
+		pb.crossRegisterProxies(lam, fam, cgam, mam);
+
+		llvm::ModulePassManager mpm =
+		    pb.buildO0DefaultPipeline(llvm::OptimizationLevel::O0);
+		mpm.run(*jit->module, mam);
+#else
 		// Run manadory coroutine transforms.
 		llvm::legacy::PassManager pm;
 
@@ -4401,13 +4426,13 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 		pm.add(llvm::createCoroCleanupLegacyPass());
 
 		pm.run(*jit->module);
+#endif
 	}
 
 #if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
+	if(llvm::verifyModule(*jit->module, &llvm::errs()))
 	{
-		llvm::legacy::PassManager pm;
-		pm.add(llvm::createVerifierPass());
-		pm.run(*jit->module);
+		llvm::report_fatal_error("Invalid LLVM module");
 	}
 #endif  // defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 
