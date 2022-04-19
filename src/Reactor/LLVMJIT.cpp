@@ -31,6 +31,7 @@ __pragma(warning(push))
 #include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/IR/DiagnosticInfo.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
@@ -52,7 +53,9 @@ __pragma(warning(push))
 #	include "llvm/Transforms/Scalar/SimplifyCFG.h"
 #else  // Legacy pass manager
 #	include "llvm/IR/LegacyPassManager.h"
-#	include "llvm/Transforms/Scalar.h"
+#	include "llvm/Pass.h"
+#	include "llvm/Transforms/Coroutines.h"
+#	include "llvm/Transforms/IPO.h"
 #endif
 
 #ifdef _MSC_VER
@@ -854,8 +857,46 @@ JITBuilder::JITBuilder(const rr::Config &config)
 	}
 }
 
-void JITBuilder::optimize(const rr::Config &cfg)
+void JITBuilder::runPasses(const rr::Config &cfg)
 {
+	if(coroutine.id)  // Run manadory coroutine transforms.
+	{
+#if LLVM_VERSION_MAJOR >= 13  // New pass manager
+		llvm::PassBuilder pb;
+		llvm::LoopAnalysisManager lam;
+		llvm::FunctionAnalysisManager fam;
+		llvm::CGSCCAnalysisManager cgam;
+		llvm::ModuleAnalysisManager mam;
+
+		pb.registerModuleAnalyses(mam);
+		pb.registerCGSCCAnalyses(cgam);
+		pb.registerFunctionAnalyses(fam);
+		pb.registerLoopAnalyses(lam);
+		pb.crossRegisterProxies(lam, fam, cgam, mam);
+
+		llvm::ModulePassManager mpm =
+		    pb.buildO0DefaultPipeline(llvm::OptimizationLevel::O0);
+		mpm.run(*module, mam);
+#else  // Legacy pass manager
+		llvm::legacy::PassManager pm;
+
+		pm.add(llvm::createCoroEarlyLegacyPass());
+		pm.add(llvm::createCoroSplitLegacyPass());
+		pm.add(llvm::createCoroElideLegacyPass());
+		pm.add(llvm::createBarrierNoopPass());
+		pm.add(llvm::createCoroCleanupLegacyPass());
+
+		pm.run(*module);
+#endif
+	}
+
+#if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
+	if(llvm::verifyModule(*module, &llvm::errs()))
+	{
+		llvm::report_fatal_error("Invalid LLVM module");
+	}
+#endif
+
 #ifdef ENABLE_RR_DEBUG_INFO
 	if(debugInfo != nullptr)
 	{
@@ -892,8 +933,9 @@ void JITBuilder::optimize(const rr::Config &cfg)
 		{
 		case rr::Optimization::Pass::Disabled: break;
 		case rr::Optimization::Pass::CFGSimplification: fpm.addPass(llvm::SimplifyCFGPass()); break;
-		case rr::Optimization::Pass::LICM: fpm.addPass(llvm::createFunctionToLoopPassAdaptor(
-			llvm::LICMPass(llvm::SetLicmMssaOptCap, llvm::SetLicmMssaNoAccForPromotionCap, true)));
+		case rr::Optimization::Pass::LICM:
+			fpm.addPass(llvm::createFunctionToLoopPassAdaptor(
+			    llvm::LICMPass(llvm::SetLicmMssaOptCap, llvm::SetLicmMssaNoAccForPromotionCap, true)));
 			break;
 		case rr::Optimization::Pass::AggressiveDCE: fpm.addPass(llvm::ADCEPass()); break;
 		case rr::Optimization::Pass::GVN: fpm.addPass(llvm::GVNPass()); break;

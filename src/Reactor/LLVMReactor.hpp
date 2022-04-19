@@ -90,7 +90,7 @@ class JITBuilder
 public:
 	JITBuilder(const rr::Config &config);
 
-	void optimize(const rr::Config &cfg);
+	void runPasses(const rr::Config &cfg);
 
 	std::shared_ptr<rr::Routine> acquireRoutine(const char *name, llvm::Function **funcs, size_t count, const rr::Config &cfg);
 
