@@ -2228,10 +2228,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineLayout(VkDevice device, const VkP
 	TRACE("(VkDevice device = %p, const VkPipelineLayoutCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkPipelineLayout* pPipelineLayout = %p)",
 	      device, pCreateInfo, pAllocator, pPipelineLayout);
 
-	if((pCreateInfo->flags != 0) &&
-	   // FIXME(b/228307968) : VK_PIPELINE_LAYOUT_CREATE_INDEPENDENT_SETS_BIT_EXT is used by dEQP
-	   //                      without checking if VK_EXT_graphics_pipeline_library is present
-	   (pCreateInfo->flags != VK_PIPELINE_LAYOUT_CREATE_INDEPENDENT_SETS_BIT_EXT))
+	if(pCreateInfo->flags != 0)
 	{
 		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
