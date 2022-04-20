@@ -15,6 +15,7 @@
 #include "ShaderCore.hpp"
 
 #include "Device/Renderer.hpp"
+#include "Reactor/Assert.hpp"
 #include "System/Debug.hpp"
 
 #include <limits.h>
@@ -969,6 +970,7 @@ Pointer::Pointer(rr::Pointer<Byte> base, rr::Int limit)
     , staticOffsets{}
     , hasDynamicLimit(true)
     , hasDynamicOffsets(false)
+    , isBasePlusOffset(true)
 {}
 
 Pointer::Pointer(rr::Pointer<Byte> base, unsigned int limit)
@@ -979,6 +981,7 @@ Pointer::Pointer(rr::Pointer<Byte> base, unsigned int limit)
     , staticOffsets{}
     , hasDynamicLimit(false)
     , hasDynamicOffsets(false)
+    , isBasePlusOffset(true)
 {}
 
 Pointer::Pointer(rr::Pointer<Byte> base, rr::Int limit, SIMD::Int offset)
@@ -989,6 +992,7 @@ Pointer::Pointer(rr::Pointer<Byte> base, rr::Int limit, SIMD::Int offset)
     , staticOffsets{}
     , hasDynamicLimit(true)
     , hasDynamicOffsets(true)
+    , isBasePlusOffset(true)
 {}
 
 Pointer::Pointer(rr::Pointer<Byte> base, unsigned int limit, SIMD::Int offset)
@@ -999,17 +1003,38 @@ Pointer::Pointer(rr::Pointer<Byte> base, unsigned int limit, SIMD::Int offset)
     , staticOffsets{}
     , hasDynamicLimit(false)
     , hasDynamicOffsets(true)
+    , isBasePlusOffset(true)
+{}
+
+Pointer::Pointer(rr::Pointer<Byte> p0, rr::Pointer<Byte> p1, rr::Pointer<Byte> p2, rr::Pointer<Byte> p3)
+    : pointers({ { p0, p1, p2, p3 } })
+    , isBasePlusOffset(false)
+{
+	static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
+}
+
+Pointer::Pointer(std::array<rr::Pointer<Byte>, SIMD::Width> pointers)
+    : pointers(pointers)
+    , isBasePlusOffset(false)
 {}
 
 Pointer &Pointer::operator+=(Int i)
 {
-	dynamicOffsets += i;
-	hasDynamicOffsets = true;
+	if(isBasePlusOffset)
+	{
+		dynamicOffsets += i;
+		hasDynamicOffsets = true;
+	}
+	else
+	{
+		for(int el = 0; el < SIMD::Width; el++) { pointers[el] += Extract(i, el); }
+	}
 	return *this;
 }
 
 Pointer &Pointer::operator*=(Int i)
 {
+	ASSERT_MSG(isBasePlusOffset, "No offset to multiply for this type of pointer");
 	dynamicOffsets = offsets() * i;
 	staticOffsets = {};
 	hasDynamicOffsets = true;
@@ -1031,12 +1056,20 @@ Pointer Pointer::operator*(SIMD::Int i)
 
 Pointer &Pointer::operator+=(int i)
 {
-	for(int el = 0; el < SIMD::Width; el++) { staticOffsets[el] += i; }
+	if(isBasePlusOffset)
+	{
+		for(int el = 0; el < SIMD::Width; el++) { staticOffsets[el] += i; }
+	}
+	else
+	{
+		for(int el = 0; el < SIMD::Width; el++) { pointers[el] += i; }
+	}
 	return *this;
 }
 
 Pointer &Pointer::operator*=(int i)
 {
+	ASSERT_MSG(isBasePlusOffset, "No offset to multiply for this type of pointer");
 	for(int el = 0; el < SIMD::Width; el++) { staticOffsets[el] *= i; }
 	if(hasDynamicOffsets)
 	{
@@ -1060,6 +1093,7 @@ Pointer Pointer::operator*(int i)
 
 SIMD::Int Pointer::offsets() const
 {
+	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
 	static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
 	return dynamicOffsets + SIMD::Int(staticOffsets[0], staticOffsets[1], staticOffsets[2], staticOffsets[3]);
 }
@@ -1132,6 +1166,7 @@ rr::Int Pointer::limit() const
 // (N+0*step, N+1*step, N+2*step, N+3*step)
 rr::Bool Pointer::hasSequentialOffsets(unsigned int step) const
 {
+	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
 	if(hasDynamicOffsets)
 	{
 		auto o = offsets();
@@ -1145,6 +1180,7 @@ rr::Bool Pointer::hasSequentialOffsets(unsigned int step) const
 // sequential (N+0*step, N+1*step, N+2*step, N+3*step)
 bool Pointer::hasStaticSequentialOffsets(unsigned int step) const
 {
+	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
 	if(hasDynamicOffsets)
 	{
 		return false;
@@ -1159,6 +1195,7 @@ bool Pointer::hasStaticSequentialOffsets(unsigned int step) const
 // Returns true if all offsets are equal (N, N, N, N)
 rr::Bool Pointer::hasEqualOffsets() const
 {
+	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
 	if(hasDynamicOffsets)
 	{
 		auto o = offsets();
@@ -1172,6 +1209,7 @@ rr::Bool Pointer::hasEqualOffsets() const
 // (N, N, N, N)
 bool Pointer::hasStaticEqualOffsets() const
 {
+	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
 	if(hasDynamicOffsets)
 	{
 		return false;
@@ -1183,6 +1221,44 @@ bool Pointer::hasStaticEqualOffsets() const
 	return true;
 }
 
+rr::Pointer<rr::Byte> Pointer::getUniformPointer() const
+{
+	if(isBasePlusOffset)
+	{
+		Assert(hasEqualOffsets());
+	}
+	else
+	{
+		Assert(pointers[0] == pointers[1] && pointers[0] == pointers[2] && pointers[0] == pointers[3]);
+	}
+	return getPointerForLane(0);
+}
+
+rr::Pointer<rr::Byte> Pointer::getPointerForLane(int lane) const
+{
+	if(isBasePlusOffset)
+	{
+		return base + Extract(offsets(), lane);
+	}
+	else
+	{
+		return pointers[lane];
+	}
+}
+
+#ifdef ENABLE_RR_PRINT
+std::vector<rr::Value *> Pointer::getPrintValues() const
+{
+	if(isBasePlusOffset)
+	{
+		return PrintValue::vals(base, offsets());
+	}
+	else
+	{
+		return PrintValue::vals(pointers[0], pointers[1], pointers[2], pointers[3]);
+	}
+}
+#endif
 }  // namespace SIMD
 
 }  // namespace sw

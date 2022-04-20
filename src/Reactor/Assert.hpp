@@ -32,10 +32,10 @@ void failedAssert(const char *expression, const char *file, unsigned int line, c
 #ifdef NDEBUG
 #	define Assert(expression) ((void)0)
 #else
-#	define Assert(expression)                                                                                                    \
-		If(!(expression))                                                                                                         \
-		{                                                                                                                         \
-			Call(failedAssert, ConstantPointer(#expression), ConstantPointer(__FILE__), Int(__LINE__), ConstantPointer(FUNCSIG)); \
+#	define Assert(expression)                                                                                                        \
+		If(!(expression))                                                                                                             \
+		{                                                                                                                             \
+			Call(failedAssert, ConstantPointer(#expression), ConstantPointer(__FILE__), rr::Int(__LINE__), ConstantPointer(FUNCSIG)); \
 		};
 #endif
 

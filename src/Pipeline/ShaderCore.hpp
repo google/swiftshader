@@ -102,6 +102,8 @@ struct Pointer
 	Pointer(rr::Pointer<Byte> base, unsigned int limit);
 	Pointer(rr::Pointer<Byte> base, rr::Int limit, SIMD::Int offset);
 	Pointer(rr::Pointer<Byte> base, unsigned int limit, SIMD::Int offset);
+	Pointer(rr::Pointer<Byte> p0, rr::Pointer<Byte> p1, rr::Pointer<Byte> p2, rr::Pointer<Byte> p3);
+	Pointer(std::array<rr::Pointer<Byte>, SIMD::Width> pointers);
 
 	Pointer &operator+=(Int i);
 	Pointer &operator*=(Int i);
@@ -147,9 +149,20 @@ struct Pointer
 	template<typename T>
 	inline void Store(RValue<T> val, OutOfBoundsBehavior robustness, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
 
+	rr::Pointer<rr::Byte> getUniformPointer() const;
+	rr::Pointer<rr::Byte> getPointerForLane(int lane) const;
+
+#ifdef ENABLE_RR_PRINT
+	std::vector<rr::Value *> getPrintValues() const;
+#endif
+
+private:
 	// Base address for the pointer, common across all lanes.
 	rr::Pointer<rr::Byte> base;
+	// Per-lane address for dealing with non-uniform data
+	std::array<rr::Pointer<Byte>, SIMD::Width> pointers;
 
+public:
 	// Upper (non-inclusive) limit for offsets from base.
 	rr::Int dynamicLimit;  // If hasDynamicLimit is false, dynamicLimit is zero.
 	unsigned int staticLimit;
@@ -160,6 +173,7 @@ struct Pointer
 
 	bool hasDynamicLimit;    // True if dynamicLimit is non-zero.
 	bool hasDynamicOffsets;  // True if any dynamicOffsets are non-zero.
+	bool isBasePlusOffset;   // True if this uses base+offset. False if this is a collection of rr::Pointers
 };
 
 template<typename T>
@@ -342,6 +356,20 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 {
 	using EL = typename Element<T>::type;
 
+	if(!isBasePlusOffset)
+	{
+		T out = T(0);
+		for(int i = 0; i < SIMD::Width; i++)
+		{
+			If(Extract(mask, i) != 0)
+			{
+				auto el = rr::Load(rr::Pointer<EL>(pointers[i]), alignment, atomic, order);
+				out = Insert(out, el, i);
+			}
+		}
+		return out;
+	}
+
 	if(isStaticallyInBounds(sizeof(float), robustness))
 	{
 		// All elements are statically known to be in-bounds.
@@ -448,8 +476,20 @@ inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, Int mask
 {
 	using EL = typename Element<T>::type;
 	constexpr size_t alignment = sizeof(float);
-	auto offs = offsets();
 
+	if(!isBasePlusOffset)
+	{
+		for(int i = 0; i < SIMD::Width; i++)
+		{
+			If(Extract(mask, i) != 0)
+			{
+				rr::Store(Extract(val, i), rr::Pointer<EL>(pointers[i]), alignment, atomic, order);
+			}
+		}
+		return;
+	}
+
+	auto offs = offsets();
 	switch(robustness)
 	{
 	case OutOfBoundsBehavior::Nullify:
@@ -581,12 +621,12 @@ struct PrintValue::Ty<sw::SIMD::Pointer>
 {
 	static std::string fmt(const sw::SIMD::Pointer &v)
 	{
-		return "{" + PrintValue::fmt(v.base) + " +" + PrintValue::fmt(v.offsets()) + "}";
+		return v.isBasePlusOffset ? "{%p + [%d, %d, %d, %d]}" : "{%p, %p, %p, %p}";
 	}
 
 	static std::vector<rr::Value *> val(const sw::SIMD::Pointer &v)
 	{
-		return PrintValue::vals(v.base, v.offsets());
+		return v.getPrintValues();
 	}
 };
 }  // namespace rr
