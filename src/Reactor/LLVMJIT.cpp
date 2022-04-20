@@ -169,7 +169,7 @@ JITGlobals *JITGlobals::get()
 			"-x86-asm-syntax=intel",  // Use Intel syntax rather than the default AT&T
 #endif
 #if LLVM_VERSION_MAJOR <= 12
-			"-warn-stack-size=524288"  // Warn when a function uses more than 512 KiB of stack memory
+			"-warn-stack-size=524288",  // Warn when a function uses more than 512 KiB of stack memory
 #endif
 		};
 
@@ -922,7 +922,7 @@ void JITBuilder::runPasses(const rr::Config &cfg)
 
 	if(__has_feature(memory_sanitizer) && msanInstrumentation)
 	{
-		llvm::MemorySanitizerOptions msanOpts;
+		llvm::MemorySanitizerOptions msanOpts(0 /* TrackOrigins */, false /* Recover */, false /* Kernel */, true /* EagerChecks */);
 		pm.addPass(llvm::ModuleMemorySanitizerPass(msanOpts));
 		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
 	}

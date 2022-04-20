@@ -517,6 +517,16 @@ static llvm::Function *createFunction(const char *name, llvm::Type *retTy, const
 	if(__has_feature(memory_sanitizer))
 	{
 		func->addFnAttr(llvm::Attribute::SanitizeMemory);
+
+		// Assume that when using recent versions of LLVM, MemorySanitizer enabled builds
+		// use -fsanitize-memory-param-retval, which makes the caller not update the shadow
+		// of function parameters. NoUndef skips generating checks for uninitialized values.
+#if LLVM_VERSION_MAJOR >= 13
+		for(unsigned int i = 0; i < params.size(); i++)
+		{
+			func->addParamAttr(i, llvm::Attribute::NoUndef);
+		}
+#endif
 	}
 
 	func->addFnAttr("warn-stack-size", "524288");  // Warn when a function uses more than 512 KiB of stack memory
