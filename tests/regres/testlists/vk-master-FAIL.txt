@@ -1,4 +1,3 @@
-dEQP-VK.api.device_init.create_device_unsupported_features
 dEQP-VK.api.driver_properties.conformance_version
 dEQP-VK.draw.dynamic_rendering.linear_interpolation.no_offset_1_sample
 dEQP-VK.draw.dynamic_rendering.linear_interpolation.no_offset_4_samples
