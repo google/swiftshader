@@ -66,19 +66,6 @@ llvm::llvm_shutdown_obj llvmShutdownObj;
 // for destructing objects at exit. See crbug.com/1074222
 thread_local rr::JITBuilder *jit = nullptr;
 
-// Default configuration settings. Must be accessed under mutex lock.
-std::mutex defaultConfigLock;
-rr::Config &defaultConfig()
-{
-	// This uses a static in a function to avoid the cost of a global static
-	// initializer. See http://neugierig.org/software/chromium/notes/2011/08/static-initializers.html
-	static rr::Config config = rr::Config::Edit()
-	                               .add(rr::Optimization::Pass::ScalarReplAggregates)
-	                               .add(rr::Optimization::Pass::InstructionCombining)
-	                               .apply({});
-	return config;
-}
-
 llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
 {
 	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
@@ -544,7 +531,7 @@ Nucleus::Nucleus()
 	ASSERT(Variable::unmaterializedVariables == nullptr);
 #endif
 
-	jit = new JITBuilder(Nucleus::getDefaultConfig());
+	jit = new JITBuilder();
 	Variable::unmaterializedVariables = new Variable::UnmaterializedVariables();
 }
 
@@ -557,26 +544,7 @@ Nucleus::~Nucleus()
 	jit = nullptr;
 }
 
-void Nucleus::setDefaultConfig(const Config &cfg)
-{
-	std::unique_lock<std::mutex> lock(::defaultConfigLock);
-	::defaultConfig() = cfg;
-}
-
-void Nucleus::adjustDefaultConfig(const Config::Edit &cfgEdit)
-{
-	std::unique_lock<std::mutex> lock(::defaultConfigLock);
-	auto &config = ::defaultConfig();
-	config = cfgEdit.apply(config);
-}
-
-Config Nucleus::getDefaultConfig()
-{
-	std::unique_lock<std::mutex> lock(::defaultConfigLock);
-	return ::defaultConfig();
-}
-
-std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit *cfgEdit /* = nullptr */)
+std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name)
 {
 	if(jit->builder->GetInsertBlock()->empty() || !jit->builder->GetInsertBlock()->back().isTerminator())
 	{
@@ -595,14 +563,8 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 	std::shared_ptr<Routine> routine;
 
 	auto acquire = [&](rr::JITBuilder *jit) {
-		// ::jit is thread-local, so when this is executed on a separate thread (see JIT_IN_SEPARATE_THREAD)
-		// it needs to only use the jit variable passed in as an argument.
-
-		Config cfg = jit->config;
-		if(cfgEdit)
-		{
-			cfg = cfgEdit->apply(jit->config);
-		}
+	// ::jit is thread-local, so when this is executed on a separate thread (see JIT_IN_SEPARATE_THREAD)
+	// it needs to only use the jit variable passed in as an argument.
 
 #ifdef ENABLE_RR_DEBUG_INFO
 		if(jit->debugInfo != nullptr)
@@ -618,7 +580,7 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 			jit->module->print(file, 0);
 		}
 
-		jit->runPasses(cfg);
+		jit->runPasses();
 
 		if(false)
 		{
@@ -627,7 +589,7 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 			jit->module->print(file, 0);
 		}
 
-		routine = jit->acquireRoutine(name, &jit->function, 1, cfg);
+		routine = jit->acquireRoutine(name, &jit->function, 1);
 	};
 
 #ifdef JIT_IN_SEPARATE_THREAD
@@ -4351,7 +4313,7 @@ void Nucleus::yield(Value *val)
 	jit->builder->SetInsertPoint(resumeBlock);
 }
 
-std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit *cfgEdit /* = nullptr */)
+std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name)
 {
 	if(jit->coroutine.id)
 	{
@@ -4385,12 +4347,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 		jit->module->print(file, 0);
 	}
 
-	Config cfg = jit->config;
-	if(cfgEdit)
-	{
-		cfg = cfgEdit->apply(jit->config);
-	}
-	jit->runPasses(cfg);
+	jit->runPasses();
 
 	if(false)
 	{
@@ -4404,7 +4361,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	funcs[Nucleus::CoroutineEntryAwait] = jit->coroutine.await;
 	funcs[Nucleus::CoroutineEntryDestroy] = jit->coroutine.destroy;
 
-	auto routine = jit->acquireRoutine(name, funcs, Nucleus::CoroutineEntryCount, cfg);
+	auto routine = jit->acquireRoutine(name, funcs, Nucleus::CoroutineEntryCount);
 
 	delete jit;
 	jit = nullptr;

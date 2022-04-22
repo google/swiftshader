@@ -19,6 +19,7 @@
 
 #include "ExecutableMemory.hpp"
 #include "Optimizer.hpp"
+#include "PragmaInternals.hpp"
 
 #include "src/IceCfg.h"
 #include "src/IceCfgNode.h"
@@ -203,17 +204,6 @@ namespace {
 // Used to automatically invoke llvm_shutdown() when driver is unloaded
 llvm::llvm_shutdown_obj llvmShutdownObj;
 
-// Default configuration settings. Must be accessed under mutex lock.
-std::mutex defaultConfigLock;
-rr::Config &defaultConfig()
-{
-	// This uses a static in a function to avoid the cost of a global static
-	// initializer. See http://neugierig.org/software/chromium/notes/2011/08/static-initializers.html
-	static rr::Config config = rr::Config::Edit()
-	                               .apply({});
-	return config;
-}
-
 Ice::GlobalContext *context = nullptr;
 Ice::Cfg *function = nullptr;
 Ice::CfgNode *entryBlock = nullptr;
@@ -255,15 +245,15 @@ namespace {
 #	define __x86_64__ 1
 #endif
 
-Ice::OptLevel toIce(rr::Optimization::Level level)
+Ice::OptLevel toIce(int level)
 {
 	switch(level)
 	{
-	// Note that Opt_0 and Opt_1 are not implemented by Subzero
-	case rr::Optimization::Level::None: return Ice::Opt_m1;
-	case rr::Optimization::Level::Less: return Ice::Opt_m1;
-	case rr::Optimization::Level::Default: return Ice::Opt_2;
-	case rr::Optimization::Level::Aggressive: return Ice::Opt_2;
+	// Note that O0 and O1 are not implemented by Subzero
+	case 0: return Ice::Opt_m1;
+	case 1: return Ice::Opt_m1;
+	case 2: return Ice::Opt_2;
+	case 3: return Ice::Opt_2;
 	default: UNREACHABLE("Unknown Optimization Level %d", int(level));
 	}
 	return Ice::Opt_2;
@@ -907,7 +897,7 @@ Nucleus::Nucleus()
 	Flags.setTargetInstructionSet(CPUID::SSE4_1 ? Ice::X86InstructionSet_SSE4_1 : Ice::X86InstructionSet_SSE2);
 #endif
 	Flags.setOutFileType(Ice::FT_Elf);
-	Flags.setOptLevel(toIce(getDefaultConfig().getOptimization().getLevel()));
+	Flags.setOptLevel(toIce(rr::getPragmaState(rr::OptimizationLevel)));
 	Flags.setVerbose(subzeroDumpEnabled ? Ice::IceV_Most : Ice::IceV_None);
 	Flags.setDisableHybridAssembly(true);
 
@@ -976,29 +966,10 @@ Nucleus::~Nucleus()
 	::codegenMutex.unlock();
 }
 
-void Nucleus::setDefaultConfig(const Config &cfg)
-{
-	std::unique_lock<std::mutex> lock(::defaultConfigLock);
-	::defaultConfig() = cfg;
-}
-
-void Nucleus::adjustDefaultConfig(const Config::Edit &cfgEdit)
-{
-	std::unique_lock<std::mutex> lock(::defaultConfigLock);
-	auto &config = ::defaultConfig();
-	config = cfgEdit.apply(config);
-}
-
-Config Nucleus::getDefaultConfig()
-{
-	std::unique_lock<std::mutex> lock(::defaultConfigLock);
-	return ::defaultConfig();
-}
-
 // This function lowers and produces executable binary code in memory for the input functions,
 // and returns a Routine with the entry points to these functions.
 template<size_t Count>
-static std::shared_ptr<Routine> acquireRoutine(Ice::Cfg *const (&functions)[Count], const char *const (&names)[Count], const Config::Edit *cfgEdit)
+static std::shared_ptr<Routine> acquireRoutine(Ice::Cfg *const (&functions)[Count], const char *const (&names)[Count])
 {
 	// This logic is modeled after the IceCompiler, as well as GlobalContext::translateFunctions
 	// and GlobalContext::emitItems.
@@ -1101,10 +1072,10 @@ static std::shared_ptr<Routine> acquireRoutine(Ice::Cfg *const (&functions)[Coun
 	return std::shared_ptr<Routine>(handoffRoutine);
 }
 
-std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit *cfgEdit /* = nullptr */)
+std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name)
 {
 	finalizeFunction();
-	return rr::acquireRoutine({ ::function }, { name }, cfgEdit);
+	return rr::acquireRoutine({ ::function }, { name });
 }
 
 Value *Nucleus::allocateStackVariable(Type *t, int arraySize)
@@ -5077,7 +5048,7 @@ static void coroutineEntryDestroyStub(Nucleus::CoroutineHandle handle)
 {
 }
 
-std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit *cfgEdit /* = nullptr */)
+std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name)
 {
 	if(::coroGen)
 	{
@@ -5095,8 +5066,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 		::coroYieldType = nullptr;
 
 		auto routine = rr::acquireRoutine({ ::function, awaitFunc.get(), destroyFunc.get() },
-		                                  { name, "await", "destroy" },
-		                                  cfgEdit);
+		                                  { name, "await", "destroy" });
 
 		return routine;
 	}
@@ -5110,7 +5080,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 		::coroYieldType = nullptr;
 
 		// Not an actual coroutine (no yields), so return stubs for await and destroy
-		auto routine = rr::acquireRoutine({ ::function }, { name }, cfgEdit);
+		auto routine = rr::acquireRoutine({ ::function }, { name });
 
 		auto routineImpl = std::static_pointer_cast<ELFMemoryStreamer>(routine);
 		routineImpl->setEntry(Nucleus::CoroutineEntryAwait, reinterpret_cast<const void *>(&coroutineEntryAwaitStub));

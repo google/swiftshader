@@ -110,25 +110,6 @@ void logBuildVersionInformation()
 }
 #endif  // __ANDROID__ && ENABLE_BUILD_VERSION_OUTPUT
 
-// setReactorDefaultConfig() sets the default configuration for Vulkan's use of
-// Reactor.
-void setReactorDefaultConfig()
-{
-	auto swConfig = sw::getConfiguration();
-	auto cfg = rr::Config::Edit()
-	               .set(rr::Optimization::Level::Default)
-	               .clearOptimizationPasses()
-	               .add(rr::Optimization::Pass::ScalarReplAggregates)
-	               .add(rr::Optimization::Pass::SCCP)
-	               .add(rr::Optimization::Pass::CFGSimplification)
-	               .add(rr::Optimization::Pass::EarlyCSEPass)
-	               .add(rr::Optimization::Pass::CFGSimplification)
-	               .add(rr::Optimization::Pass::InstructionCombining)
-	               .setDebugConfig(sw::getReactorDebugConfig(swConfig));
-
-	rr::Nucleus::adjustDefaultConfig(cfg);
-}
-
 std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 {
 	struct Scheduler
@@ -159,7 +140,6 @@ void initializeLibrary()
 #if defined(__ANDROID__) && defined(ENABLE_BUILD_VERSION_OUTPUT)
 		logBuildVersionInformation();
 #endif  // __ANDROID__ && ENABLE_BUILD_VERSION_OUTPUT
-		setReactorDefaultConfig();
 		return true;
 	}();
 	(void)doOnce;

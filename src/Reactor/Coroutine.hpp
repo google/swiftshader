@@ -139,7 +139,7 @@ public:
 	// finalize() *must* be called explicitly on the same thread that
 	// instantiates the Coroutine instance if operator() is to be invoked on
 	// different threads.
-	inline void finalize(const char *name = "coroutine", const Config::Edit *cfg = nullptr);
+	inline void finalize(const char *name = "coroutine");
 
 	// Starts execution of the coroutine and returns a unique_ptr to a
 	// Stream<> that exposes the await() function for obtaining yielded
@@ -169,11 +169,11 @@ Coroutine<Return(Arguments...)>::Coroutine()
 }
 
 template<typename Return, typename... Arguments>
-void Coroutine<Return(Arguments...)>::finalize(const char *name /*= "coroutine"*/, const Config::Edit *cfg /* = nullptr */)
+void Coroutine<Return(Arguments...)>::finalize(const char *name /*= "coroutine"*/)
 {
 	if(core != nullptr)
 	{
-		routine = core->acquireCoroutine(name, cfg);
+		routine = core->acquireCoroutine(name);
 		core.reset(nullptr);
 	}
 }

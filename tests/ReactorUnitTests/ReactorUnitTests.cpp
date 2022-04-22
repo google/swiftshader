@@ -2041,14 +2041,11 @@ TEST(ReactorUnitTests, LargeStack)
 		}
 	}
 
-	// LLVM takes very long to generate this routine when InstructionCombining
-	// and O2 optimizations are enabled. Disable for now.
-	// TODO(b/174031014): Remove this once we fix LLVM taking so long
-	auto cfg = Config::Edit{}
-	               .remove(Optimization::Pass::InstructionCombining)
-	               .set(Optimization::Level::None);
+	// LLVM takes very long to generate this routine when O2 optimizations are enabled. Disable for now.
+	// TODO(b/174031014): Remove this once we fix LLVM taking so long.
+	ScopedPragma O0(OptimizationLevel, 0);
 
-	auto routine = function(cfg, testName().c_str());
+	auto routine = function(testName().c_str());
 
 	std::array<int32_t, ArraySize> v;
 

@@ -13,10 +13,10 @@
 // limitations under the License.
 
 #include "SwiftConfig.hpp"
+
 #include "CPUID.hpp"
 #include "Configurator.hpp"
 #include "Debug.hpp"
-
 #include "marl/scheduler.h"
 
 #include <algorithm>
@@ -92,11 +92,11 @@ Configuration readConfigurationFromFile()
 
 	// Processor flags.
 	config.threadCount = ini.getInteger<uint32_t>("Processor", "ThreadCount", 0);
-	config.affinityMask = ini.getInteger<uint64_t>("Processor", "AffinityMask", 0xffffffffffffffff);
+	config.affinityMask = ini.getInteger<uint64_t>("Processor", "AffinityMask", 0xFFFFFFFFFFFFFFFFu);
 	if(config.affinityMask == 0)
 	{
 		warn("Affinity mask is empty, using all-cores affinity\n");
-		config.affinityMask = 0xffffffffffffffff;
+		config.affinityMask = 0xFFFFFFFFFFFFFFFFu;
 	}
 	std::string affinityPolicy = toLowerStr(ini.getValue("Processor", "AffinityPolicy", "any"));
 	if(affinityPolicy == "one")
@@ -107,13 +107,6 @@ Configuration readConfigurationFromFile()
 	{
 		// Default.
 		config.affinityPolicy = Configuration::AffinityPolicy::AnyOf;
-	}
-
-	// Debug flags.
-	config.asmEmitDir = ini.getValue("Debug", "AsmEmitDir");
-	if(config.asmEmitDir.size() > 0 && *config.asmEmitDir.rend() != '/')
-	{
-		config.asmEmitDir.push_back('/');
 	}
 
 	// Profiling flags.
@@ -147,10 +140,4 @@ marl::Scheduler::Config getSchedulerConfiguration(const Configuration &config)
 	return cfg;
 }
 
-rr::DebugConfig getReactorDebugConfig(const Configuration &config)
-{
-	rr::DebugConfig debugCfg;
-	debugCfg.asmEmitDir = config.asmEmitDir;
-	return debugCfg;
-}
 }  // namespace sw

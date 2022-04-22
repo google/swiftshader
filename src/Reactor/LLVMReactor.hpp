@@ -82,19 +82,17 @@ inline std::vector<llvm::Value *> V(const std::vector<Value *> &values)
 void Nop();
 
 class Routine;
-class Config;
 
 // JITBuilder holds all the LLVM state for building routines.
 class JITBuilder
 {
 public:
-	JITBuilder(const rr::Config &config);
+	JITBuilder();
 
-	void runPasses(const rr::Config &cfg);
+	void runPasses();
 
-	std::shared_ptr<rr::Routine> acquireRoutine(const char *name, llvm::Function **funcs, size_t count, const rr::Config &cfg);
+	std::shared_ptr<rr::Routine> acquireRoutine(const char *name, llvm::Function **funcs, size_t count);
 
-	const Config config;
 	std::unique_ptr<llvm::LLVMContext> context;
 	std::unique_ptr<llvm::Module> module;
 	std::unique_ptr<llvm::IRBuilder<>> builder;

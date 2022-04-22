@@ -39,134 +39,6 @@ class SwitchCases;
 class BasicBlock;
 class Routine;
 
-// Optimization holds the optimization settings for code generation.
-class Optimization
-{
-public:
-	enum class Level
-	{
-		None,
-		Less,
-		Default,
-		Aggressive,
-	};
-
-	enum class Pass
-	{
-		Disabled,
-		InstructionCombining,
-		CFGSimplification,
-		LICM,
-		AggressiveDCE,
-		GVN,
-		Reassociate,
-		DeadStoreElimination,
-		SCCP,
-		ScalarReplAggregates,
-		EarlyCSEPass,
-
-		Count,
-	};
-
-	using Passes = std::vector<Pass>;
-
-	Optimization(Level level = Level::Default, const Passes &passes = {})
-	    : level(level)
-	    , passes(passes)
-	{
-#if defined(REACTOR_DEFAULT_OPT_LEVEL)
-		{
-			this->level = Level::REACTOR_DEFAULT_OPT_LEVEL;
-		}
-#endif
-	}
-
-	Level getLevel() const { return level; }
-	const Passes &getPasses() const { return passes; }
-
-private:
-	Level level = Level::Default;
-	Passes passes;
-};
-
-struct DebugConfig
-{
-	std::string asmEmitDir = "";
-};
-
-// Config holds the Reactor configuration settings.
-class Config
-{
-public:
-	// Edit holds a number of modifications to a config, that can be applied
-	// on an existing Config to produce a new Config with the specified
-	// changes.
-	class Edit
-	{
-	public:
-		Edit &set(Optimization::Level level)
-		{
-			optLevel = level;
-			optLevelChanged = true;
-			return *this;
-		}
-		Edit &add(Optimization::Pass pass)
-		{
-			optPassEdits.push_back({ ListEdit::Add, pass });
-			return *this;
-		}
-		Edit &remove(Optimization::Pass pass)
-		{
-			optPassEdits.push_back({ ListEdit::Remove, pass });
-			return *this;
-		}
-		Edit &clearOptimizationPasses()
-		{
-			optPassEdits.push_back({ ListEdit::Clear, Optimization::Pass::Disabled });
-			return *this;
-		}
-		Edit &setDebugConfig(const DebugConfig &cfg)
-		{
-			debugCfg = cfg;
-			debugCfgChanged = true;
-			return *this;
-		}
-
-		Config apply(const Config &cfg) const;
-
-	private:
-		enum class ListEdit
-		{
-			Add,
-			Remove,
-			Clear
-		};
-		using OptPassesEdit = std::pair<ListEdit, Optimization::Pass>;
-
-		template<typename T>
-		void apply(const std::vector<std::pair<ListEdit, T>> &edits, std::vector<T> &list) const;
-
-		Optimization::Level optLevel;
-		bool optLevelChanged = false;
-		std::vector<OptPassesEdit> optPassEdits;
-		DebugConfig debugCfg;
-		bool debugCfgChanged = false;
-	};
-
-	Config() = default;
-	Config(const Optimization &optimization, const DebugConfig &debugCfg)
-	    : optimization(optimization)
-	    , debugCfg(debugCfg)
-	{}
-
-	const Optimization &getOptimization() const { return optimization; }
-	const DebugConfig &getDebugConfig() const { return debugCfg; }
-
-private:
-	Optimization optimization;
-	DebugConfig debugCfg;
-};
-
 class Nucleus
 {
 public:
@@ -174,13 +46,7 @@ public:
 
 	virtual ~Nucleus();
 
-	// Default configuration to use when no other configuration is specified.
-	// The new configuration will be applied to subsequent reactor calls.
-	static void setDefaultConfig(const Config &cfg);
-	static void adjustDefaultConfig(const Config::Edit &cfgEdit);
-	static Config getDefaultConfig();
-
-	std::shared_ptr<Routine> acquireRoutine(const char *name, const Config::Edit *cfgEdit = nullptr);
+	std::shared_ptr<Routine> acquireRoutine(const char *name);
 
 	static Value *allocateStackVariable(Type *type, int arraySize = 0);
 	static BasicBlock *createBasicBlock();
@@ -217,7 +83,7 @@ public:
 	static void yield(Value *val);
 	// Called to finalize coroutine creation. After this call, Routine::getEntry can be called to retrieve the entry point to any
 	// of the three coroutine functions. Called by Coroutine::finalize.
-	std::shared_ptr<Routine> acquireCoroutine(const char *name, const Config::Edit *cfg = nullptr);
+	std::shared_ptr<Routine> acquireCoroutine(const char *name);
 	// Called by Coroutine::operator() to execute CoroutineEntryBegin wrapped up in func. This is needed in case
 	// the call must be run on a separate thread of execution (e.g. on a fiber).
 	static CoroutineHandle invokeCoroutineBegin(Routine &routine, std::function<CoroutineHandle()> func);

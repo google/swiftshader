@@ -30,7 +30,8 @@ namespace {
 
 struct PragmaState
 {
-	bool memorySanitizerInstrumentation;
+	bool memorySanitizerInstrumentation = false;
+	int optimizationLevel = 2;  // Default
 };
 
 // The initialization of static thread-local data is not observed by MemorySanitizer
@@ -73,6 +74,20 @@ void Pragma(BooleanPragmaOption option, bool enable)
 	}
 }
 
+void Pragma(IntegerPragmaOption option, int value)
+{
+	PragmaState &state = ::getPragmaState();
+
+	switch(option)
+	{
+	case OptimizationLevel:
+		state.optimizationLevel = value;
+		break;
+	default:
+		UNSUPPORTED("Unknown integer pragma option %d", int(option));
+	}
+}
+
 bool getPragmaState(BooleanPragmaOption option)
 {
 	PragmaState &state = ::getPragmaState();
@@ -87,16 +102,44 @@ bool getPragmaState(BooleanPragmaOption option)
 	}
 }
 
+int getPragmaState(IntegerPragmaOption option)
+{
+	PragmaState &state = ::getPragmaState();
+
+	switch(option)
+	{
+	case OptimizationLevel:
+		return state.optimizationLevel;
+	default:
+		UNSUPPORTED("Unknown integer pragma option %d", int(option));
+		return 0;
+	}
+}
+
 ScopedPragma::ScopedPragma(BooleanPragmaOption option, bool enable)
 {
 	oldState = BooleanPragma{ option, getPragmaState(option) };
 	Pragma(option, enable);
 }
 
+ScopedPragma::ScopedPragma(IntegerPragmaOption option, int value)
+{
+	oldState = IntegerPragma{ option, getPragmaState(option) };
+	Pragma(option, value);
+}
+
 ScopedPragma::~ScopedPragma()
 {
-	auto &restore = std::get<BooleanPragma>(oldState);
-	Pragma(restore.option, restore.enable);
+	if(std::holds_alternative<BooleanPragma>(oldState))
+	{
+		auto &restore = std::get<BooleanPragma>(oldState);
+		Pragma(restore.option, restore.enable);
+	}
+	else
+	{
+		auto &restore = std::get<IntegerPragma>(oldState);
+		Pragma(restore.option, restore.value);
+	}
 }
 
 }  // namespace rr

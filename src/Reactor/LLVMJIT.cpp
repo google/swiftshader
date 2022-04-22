@@ -62,6 +62,10 @@ __pragma(warning(push))
     __pragma(warning(pop))
 #endif
 
+#ifndef REACTOR_ASM_EMIT_DIR
+#	define REACTOR_ASM_EMIT_DIR "./"
+#endif
+
 #if defined(_WIN64)
         extern "C" void __chkstk();
 #elif defined(_WIN32)
@@ -147,14 +151,14 @@ class JITGlobals
 public:
 	static JITGlobals *get();
 
-	llvm::orc::JITTargetMachineBuilder getTargetMachineBuilder(rr::Optimization::Level optLevel) const;
+	llvm::orc::JITTargetMachineBuilder getTargetMachineBuilder() const;
 	const llvm::DataLayout &getDataLayout() const;
 	const llvm::Triple &getTargetTriple() const;
 
 private:
 	JITGlobals(llvm::orc::JITTargetMachineBuilder &&jitTargetMachineBuilder, llvm::DataLayout &&dataLayout);
 
-	static llvm::CodeGenOpt::Level toLLVM(rr::Optimization::Level level);
+	static llvm::CodeGenOpt::Level toLLVM(int level);
 
 	const llvm::orc::JITTargetMachineBuilder jitTargetMachineBuilder;
 	const llvm::DataLayout dataLayout;
@@ -219,10 +223,10 @@ JITGlobals *JITGlobals::get()
 	return &instance;
 }
 
-llvm::orc::JITTargetMachineBuilder JITGlobals::getTargetMachineBuilder(rr::Optimization::Level optLevel) const
+llvm::orc::JITTargetMachineBuilder JITGlobals::getTargetMachineBuilder() const
 {
 	llvm::orc::JITTargetMachineBuilder out = jitTargetMachineBuilder;
-	out.setCodeGenOptLevel(toLLVM(optLevel));
+	out.setCodeGenOptLevel(toLLVM(rr::getPragmaState(rr::OptimizationLevel)));
 
 	return out;
 }
@@ -243,7 +247,7 @@ JITGlobals::JITGlobals(llvm::orc::JITTargetMachineBuilder &&jitTargetMachineBuil
 {
 }
 
-llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
+llvm::CodeGenOpt::Level JITGlobals::toLLVM(int level)
 {
 	// TODO(b/173257647): MemorySanitizer instrumentation produces IR which takes
 	// a lot longer to process by the machine code optimization passes. Disabling
@@ -255,10 +259,10 @@ llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
 
 	switch(level)
 	{
-	case rr::Optimization::Level::None: return llvm::CodeGenOpt::None;
-	case rr::Optimization::Level::Less: return llvm::CodeGenOpt::Less;
-	case rr::Optimization::Level::Default: return llvm::CodeGenOpt::Default;
-	case rr::Optimization::Level::Aggressive: return llvm::CodeGenOpt::Aggressive;
+	case 0: return llvm::CodeGenOpt::None;
+	case 1: return llvm::CodeGenOpt::Less;
+	case 2: return llvm::CodeGenOpt::Default;
+	case 3: return llvm::CodeGenOpt::Aggressive;
 	default: UNREACHABLE("Unknown Optimization Level %d", int(level));
 	}
 
@@ -712,8 +716,7 @@ public:
 	    std::unique_ptr<llvm::LLVMContext> context,
 	    const char *name,
 	    llvm::Function **funcs,
-	    size_t count,
-	    const rr::Config &config)
+	    size_t count)
 	    : name(name)
 #if LLVM_VERSION_MAJOR >= 13
 	    , session(std::move(Unwrap(llvm::orc::SelfExecutorProcessControl::Create())))
@@ -774,15 +777,15 @@ public:
 		}
 
 #ifdef ENABLE_RR_EMIT_ASM_FILE
-		const auto asmFilename = rr::AsmFile::generateFilename(config.getDebugConfig().asmEmitDir, name);
-		rr::AsmFile::emitAsmFile(asmFilename, JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel()), *module);
+		const auto asmFilename = rr::AsmFile::generateFilename(REACTOR_ASM_EMIT_DIR, name);
+		rr::AsmFile::emitAsmFile(asmFilename, JITGlobals::get()->getTargetMachineBuilder(), *module);
 #endif
 
 		// Once the module is passed to the compileLayer, the llvm::Functions are freed.
 		// Make sure funcs are not referenced after this point.
 		funcs = nullptr;
 
-		llvm::orc::IRCompileLayer compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel())));
+		llvm::orc::IRCompileLayer compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder()));
 		llvm::orc::JITDylib &dylib(Unwrap(session.createJITDylib("<routine>")));
 		dylib.addGenerator(std::make_unique<ExternalSymbolGenerator>());
 
@@ -841,9 +844,8 @@ private:
 
 namespace rr {
 
-JITBuilder::JITBuilder(const rr::Config &config)
-    : config(config)
-    , context(new llvm::LLVMContext())
+JITBuilder::JITBuilder()
+    : context(new llvm::LLVMContext())
     , module(new llvm::Module("", *context))
     , builder(new llvm::IRBuilder<>(*context))
 {
@@ -857,7 +859,7 @@ JITBuilder::JITBuilder(const rr::Config &config)
 	}
 }
 
-void JITBuilder::runPasses(const rr::Config &cfg)
+void JITBuilder::runPasses()
 {
 	if(coroutine.id)  // Run manadory coroutine transforms.
 	{
@@ -927,27 +929,10 @@ void JITBuilder::runPasses(const rr::Config &cfg)
 		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
 	}
 
-	for(auto pass : cfg.getOptimization().getPasses())
+	if(getPragmaState(OptimizationLevel) > 0)
 	{
-		switch(pass)
-		{
-		case rr::Optimization::Pass::Disabled: break;
-		case rr::Optimization::Pass::CFGSimplification: fpm.addPass(llvm::SimplifyCFGPass()); break;
-		case rr::Optimization::Pass::LICM:
-			fpm.addPass(llvm::createFunctionToLoopPassAdaptor(
-			    llvm::LICMPass(llvm::SetLicmMssaOptCap, llvm::SetLicmMssaNoAccForPromotionCap, true)));
-			break;
-		case rr::Optimization::Pass::AggressiveDCE: fpm.addPass(llvm::ADCEPass()); break;
-		case rr::Optimization::Pass::GVN: fpm.addPass(llvm::GVNPass()); break;
-		case rr::Optimization::Pass::InstructionCombining: fpm.addPass(llvm::InstCombinePass()); break;
-		case rr::Optimization::Pass::Reassociate: fpm.addPass(llvm::ReassociatePass()); break;
-		case rr::Optimization::Pass::DeadStoreElimination: fpm.addPass(llvm::DSEPass()); break;
-		case rr::Optimization::Pass::SCCP: fpm.addPass(llvm::SCCPPass()); break;
-		case rr::Optimization::Pass::ScalarReplAggregates: fpm.addPass(llvm::SROAPass()); break;
-		case rr::Optimization::Pass::EarlyCSEPass: fpm.addPass(llvm::EarlyCSEPass()); break;
-		default:
-			UNREACHABLE("pass: %d", int(pass));
-		}
+		fpm.addPass(llvm::SROAPass());
+		fpm.addPass(llvm::InstCombinePass());
 	}
 
 	if(!fpm.isEmpty())
@@ -964,34 +949,20 @@ void JITBuilder::runPasses(const rr::Config &cfg)
 		passManager.add(llvm::createMemorySanitizerLegacyPassPass());
 	}
 
-	for(auto pass : cfg.getOptimization().getPasses())
+	if(getPragmaState(OptimizationLevel) > 0)
 	{
-		switch(pass)
-		{
-		case rr::Optimization::Pass::Disabled: break;
-		case rr::Optimization::Pass::CFGSimplification: passManager.add(llvm::createCFGSimplificationPass()); break;
-		case rr::Optimization::Pass::LICM: passManager.add(llvm::createLICMPass()); break;
-		case rr::Optimization::Pass::AggressiveDCE: passManager.add(llvm::createAggressiveDCEPass()); break;
-		case rr::Optimization::Pass::GVN: passManager.add(llvm::createGVNPass()); break;
-		case rr::Optimization::Pass::InstructionCombining: passManager.add(llvm::createInstructionCombiningPass()); break;
-		case rr::Optimization::Pass::Reassociate: passManager.add(llvm::createReassociatePass()); break;
-		case rr::Optimization::Pass::DeadStoreElimination: passManager.add(llvm::createDeadStoreEliminationPass()); break;
-		case rr::Optimization::Pass::SCCP: passManager.add(llvm::createSCCPPass()); break;
-		case rr::Optimization::Pass::ScalarReplAggregates: passManager.add(llvm::createSROAPass()); break;
-		case rr::Optimization::Pass::EarlyCSEPass: passManager.add(llvm::createEarlyCSEPass()); break;
-		default:
-			UNREACHABLE("pass: %d", int(pass));
-		}
+		passManager.add(llvm::createSROAPass());
+		passManager.add(llvm::createInstructionCombiningPass());
 	}
 
 	passManager.run(*module);
 #endif
 }
 
-std::shared_ptr<rr::Routine> JITBuilder::acquireRoutine(const char *name, llvm::Function **funcs, size_t count, const rr::Config &cfg)
+std::shared_ptr<rr::Routine> JITBuilder::acquireRoutine(const char *name, llvm::Function **funcs, size_t count)
 {
 	ASSERT(module);
-	return std::make_shared<JITRoutine>(std::move(module), std::move(context), name, funcs, count, cfg);
+	return std::make_shared<JITRoutine>(std::move(module), std::move(context), name, funcs, count);
 }
 
 }  // namespace rr
