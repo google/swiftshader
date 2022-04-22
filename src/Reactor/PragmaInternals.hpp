@@ -19,7 +19,7 @@
 
 namespace rr {
 
-bool getPragmaState(PragmaBooleanOption option);
+bool getPragmaState(BooleanPragmaOption option);
 
 }  // namespace rr
 

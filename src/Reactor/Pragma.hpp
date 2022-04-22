@@ -15,14 +15,33 @@
 #ifndef rr_Pragma_hpp
 #define rr_Pragma_hpp
 
+#include <variant>
+
 namespace rr {
 
-enum PragmaBooleanOption
+enum BooleanPragmaOption
 {
 	MemorySanitizerInstrumentation,
 };
 
-void Pragma(PragmaBooleanOption option, bool enable);
+void Pragma(BooleanPragmaOption option, bool enable);
+
+class ScopedPragma
+{
+public:
+	ScopedPragma(BooleanPragmaOption option, bool enable);
+
+	~ScopedPragma();
+
+private:
+	struct BooleanPragma
+	{
+		BooleanPragmaOption option;
+		bool enable;
+	};
+
+	std::variant<BooleanPragma> oldState;
+};
 
 }  // namespace rr
 
