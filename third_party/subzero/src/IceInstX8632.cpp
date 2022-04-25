@@ -710,6 +710,11 @@ void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Var,
   }
 }
 
+template void emitIASRegOpTyGPR<true, true>(const Cfg *Func, Type Ty,
+                                            const Variable *Var,
+                                            const Operand *Src,
+                                            const GPREmitterRegOp &Emitter);
+
 void emitIASAddrOpTyGPR(const Cfg *Func, Type Ty, const AsmAddress &Addr,
                         const Operand *Src, const GPREmitterAddrOp &Emitter) {
   Assembler *Asm = Func->getAssembler<Assembler>();
