@@ -861,6 +861,13 @@ JITBuilder::JITBuilder()
 
 void JITBuilder::runPasses()
 {
+#if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
+	if(llvm::verifyModule(*module, &llvm::errs()))
+	{
+		llvm::report_fatal_error("Invalid LLVM module");
+	}
+#endif
+
 	if(coroutine.id)  // Run manadory coroutine transforms.
 	{
 #if LLVM_VERSION_MAJOR >= 13  // New pass manager
@@ -891,13 +898,6 @@ void JITBuilder::runPasses()
 		pm.run(*module);
 #endif
 	}
-
-#if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
-	if(llvm::verifyModule(*module, &llvm::errs()))
-	{
-		llvm::report_fatal_error("Invalid LLVM module");
-	}
-#endif
 
 #ifdef ENABLE_RR_DEBUG_INFO
 	if(debugInfo != nullptr)
