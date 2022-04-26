@@ -868,9 +868,19 @@ void JITBuilder::runPasses()
 	}
 #endif
 
-	if(coroutine.id)  // Run manadory coroutine transforms.
+	int optimizationLevel = getPragmaState(OptimizationLevel);
+
+#ifdef ENABLE_RR_DEBUG_INFO
+	if(debugInfo != nullptr)
 	{
+		optimizationLevel = 0;  // Don't optimize if we're generating debug info.
+	}
+#endif  // ENABLE_RR_DEBUG_INFO
+
 #if LLVM_VERSION_MAJOR >= 13  // New pass manager
+	if(coroutine.id)
+	{
+		// Run mandatory coroutine transforms.
 		llvm::PassBuilder pb;
 		llvm::LoopAnalysisManager lam;
 		llvm::FunctionAnalysisManager fam;
@@ -886,27 +896,8 @@ void JITBuilder::runPasses()
 		llvm::ModulePassManager mpm =
 		    pb.buildO0DefaultPipeline(llvm::OptimizationLevel::O0);
 		mpm.run(*module, mam);
-#else  // Legacy pass manager
-		llvm::legacy::PassManager pm;
-
-		pm.add(llvm::createCoroEarlyLegacyPass());
-		pm.add(llvm::createCoroSplitLegacyPass());
-		pm.add(llvm::createCoroElideLegacyPass());
-		pm.add(llvm::createBarrierNoopPass());
-		pm.add(llvm::createCoroCleanupLegacyPass());
-
-		pm.run(*module);
-#endif
 	}
 
-#ifdef ENABLE_RR_DEBUG_INFO
-	if(debugInfo != nullptr)
-	{
-		return;  // Don't optimize if we're generating debug info.
-	}
-#endif  // ENABLE_RR_DEBUG_INFO
-
-#if LLVM_VERSION_MAJOR >= 13  // New pass manager
 	llvm::LoopAnalysisManager lam;
 	llvm::FunctionAnalysisManager fam;
 	llvm::CGSCCAnalysisManager cgam;
@@ -929,7 +920,7 @@ void JITBuilder::runPasses()
 		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
 	}
 
-	if(getPragmaState(OptimizationLevel) > 0)
+	if(optimizationLevel > 0)
 	{
 		fpm.addPass(llvm::SROAPass());
 		fpm.addPass(llvm::InstCombinePass());
@@ -942,6 +933,20 @@ void JITBuilder::runPasses()
 
 	pm.run(*module, mam);
 #else  // Legacy pass manager
+	if(coroutine.id)
+	{
+		// Run mandatory coroutine transforms.
+		llvm::legacy::PassManager pm;
+
+		pm.add(llvm::createCoroEarlyLegacyPass());
+		pm.add(llvm::createCoroSplitLegacyPass());
+		pm.add(llvm::createCoroElideLegacyPass());
+		pm.add(llvm::createBarrierNoopPass());
+		pm.add(llvm::createCoroCleanupLegacyPass());
+
+		pm.run(*module);
+	}
+
 	llvm::legacy::PassManager passManager;
 
 	if(__has_feature(memory_sanitizer) && msanInstrumentation)
@@ -949,7 +954,7 @@ void JITBuilder::runPasses()
 		passManager.add(llvm::createMemorySanitizerLegacyPassPass());
 	}
 
-	if(getPragmaState(OptimizationLevel) > 0)
+	if(optimizationLevel > 0)
 	{
 		passManager.add(llvm::createSROAPass());
 		passManager.add(llvm::createInstructionCombiningPass());
