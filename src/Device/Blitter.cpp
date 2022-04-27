@@ -1784,6 +1784,8 @@ Blitter::BlitRoutineType Blitter::getBlitRoutine(const State &state)
 
 	if(!blitRoutine)
 	{
+		ScopedPragma msan(MemorySanitizerInstrumentation, true);
+
 		blitRoutine = generate(state);
 		blitCache.add(state, blitRoutine);
 	}
