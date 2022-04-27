@@ -51,6 +51,9 @@ __pragma(warning(push))
 #	include "llvm/Transforms/Scalar/SCCP.h"
 #	include "llvm/Transforms/Scalar/SROA.h"
 #	include "llvm/Transforms/Scalar/SimplifyCFG.h"
+#	include "llvm/Transforms/Coroutines/CoroCleanup.h"
+#	include "llvm/Transforms/Coroutines/CoroEarly.h"
+#	include "llvm/Transforms/Coroutines/CoroSplit.h"
 #else  // Legacy pass manager
 #	include "llvm/IR/LegacyPassManager.h"
 #	include "llvm/Pass.h"
@@ -878,26 +881,6 @@ void JITBuilder::runPasses()
 #endif  // ENABLE_RR_DEBUG_INFO
 
 #if LLVM_VERSION_MAJOR >= 13  // New pass manager
-	if(coroutine.id)
-	{
-		// Run mandatory coroutine transforms.
-		llvm::PassBuilder pb;
-		llvm::LoopAnalysisManager lam;
-		llvm::FunctionAnalysisManager fam;
-		llvm::CGSCCAnalysisManager cgam;
-		llvm::ModuleAnalysisManager mam;
-
-		pb.registerModuleAnalyses(mam);
-		pb.registerCGSCCAnalyses(cgam);
-		pb.registerFunctionAnalyses(fam);
-		pb.registerLoopAnalyses(lam);
-		pb.crossRegisterProxies(lam, fam, cgam, mam);
-
-		llvm::ModulePassManager mpm =
-		    pb.buildO0DefaultPipeline(llvm::OptimizationLevel::O0);
-		mpm.run(*module, mam);
-	}
-
 	llvm::LoopAnalysisManager lam;
 	llvm::FunctionAnalysisManager fam;
 	llvm::CGSCCAnalysisManager cgam;
@@ -912,6 +895,16 @@ void JITBuilder::runPasses()
 
 	llvm::ModulePassManager pm;
 	llvm::FunctionPassManager fpm;
+
+	if(coroutine.id)
+	{
+		// Run mandatory coroutine transforms.
+		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::CoroEarlyPass()));
+		llvm::CGSCCPassManager cgpm;
+		cgpm.addPass(llvm::CoroSplitPass());
+		pm.addPass(llvm::createModuleToPostOrderCGSCCPassAdaptor(std::move(cgpm)));
+		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::CoroCleanupPass()));
+	}
 
 	if(__has_feature(memory_sanitizer) && msanInstrumentation)
 	{
@@ -933,21 +926,17 @@ void JITBuilder::runPasses()
 
 	pm.run(*module, mam);
 #else  // Legacy pass manager
+	llvm::legacy::PassManager passManager;
+
 	if(coroutine.id)
 	{
 		// Run mandatory coroutine transforms.
-		llvm::legacy::PassManager pm;
-
-		pm.add(llvm::createCoroEarlyLegacyPass());
-		pm.add(llvm::createCoroSplitLegacyPass());
-		pm.add(llvm::createCoroElideLegacyPass());
-		pm.add(llvm::createBarrierNoopPass());
-		pm.add(llvm::createCoroCleanupLegacyPass());
-
-		pm.run(*module);
+		passManager.add(llvm::createCoroEarlyLegacyPass());
+		passManager.add(llvm::createCoroSplitLegacyPass());
+		passManager.add(llvm::createCoroElideLegacyPass());
+		passManager.add(llvm::createBarrierNoopPass());
+		passManager.add(llvm::createCoroCleanupLegacyPass());
 	}
-
-	llvm::legacy::PassManager passManager;
 
 	if(__has_feature(memory_sanitizer) && msanInstrumentation)
 	{
