@@ -39,6 +39,8 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 	vk::Device::SamplingRoutineCache::Key key = { signature, samplerId, imageViewId };
 
 	auto createSamplingRoutine = [device](const vk::Device::SamplingRoutineCache::Key &key) {
+		ScopedPragma msan(MemorySanitizerInstrumentation, true);
+
 		ImageInstructionSignature instruction(key.instruction);
 		const vk::Identifier::State imageViewState = vk::Identifier(key.imageView).getState();
 		const vk::SamplerState *vkSamplerState = (key.sampler != 0) ? device->findSampler(key.sampler) : nullptr;
