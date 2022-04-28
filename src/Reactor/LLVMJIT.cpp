@@ -51,9 +51,6 @@ __pragma(warning(push))
 #	include "llvm/Transforms/Scalar/SCCP.h"
 #	include "llvm/Transforms/Scalar/SROA.h"
 #	include "llvm/Transforms/Scalar/SimplifyCFG.h"
-#	include "llvm/Transforms/Coroutines/CoroCleanup.h"
-#	include "llvm/Transforms/Coroutines/CoroEarly.h"
-#	include "llvm/Transforms/Coroutines/CoroSplit.h"
 #else  // Legacy pass manager
 #	include "llvm/IR/LegacyPassManager.h"
 #	include "llvm/Pass.h"
@@ -898,12 +895,8 @@ void JITBuilder::runPasses()
 
 	if(coroutine.id)
 	{
-		// Run mandatory coroutine transforms.
-		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::CoroEarlyPass()));
-		llvm::CGSCCPassManager cgpm;
-		cgpm.addPass(llvm::CoroSplitPass());
-		pm.addPass(llvm::createModuleToPostOrderCGSCCPassAdaptor(std::move(cgpm)));
-		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::CoroCleanupPass()));
+		// Adds mandatory coroutine transforms.
+		pm = pb.buildO0DefaultPipeline(llvm::OptimizationLevel::O0);
 	}
 
 	if(__has_feature(memory_sanitizer) && msanInstrumentation)
