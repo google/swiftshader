@@ -3831,18 +3831,6 @@ Type *Half::type()
 	return T(Ice::IceType_i16);
 }
 
-RValue<Float> Rcp_pp(RValue<Float> x, bool exactAtPow2)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return 1.0f / x;
-}
-
-RValue<Float> RcpSqrt_pp(RValue<Float> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return Rcp_pp(Sqrt(x));
-}
-
 RValue<Float> Sqrt(RValue<Float> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
@@ -3996,18 +3984,6 @@ RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y)
 	::basicBlock->appendInst(select);
 
 	return RValue<Float4>(V(result));
-}
-
-RValue<Float4> Rcp_pp(RValue<Float4> x, bool exactAtPow2)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return Float4(1.0f) / x;
-}
-
-RValue<Float4> RcpSqrt_pp(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return Rcp_pp(Sqrt(x));
 }
 
 bool HasRcpApprox()

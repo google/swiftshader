@@ -2871,32 +2871,6 @@ Type *Half::type()
 	return T(llvm::Type::getInt16Ty(*jit->context));
 }
 
-RValue<Float> Rcp_pp(RValue<Float> x, bool exactAtPow2)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	if(exactAtPow2)
-	{
-		// rcpss uses a piecewise-linear approximation which minimizes the relative error
-		// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
-		return x86::rcpss(x) * Float(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
-	}
-	return x86::rcpss(x);
-#else
-	return As<Float>(V(lowerRCP(V(x.value()))));
-#endif
-}
-
-RValue<Float> RcpSqrt_pp(RValue<Float> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	return x86::rsqrtss(x);
-#else
-	return As<Float>(V(lowerRSQRT(V(x.value()))));
-#endif
-}
-
 bool HasRcpApprox()
 {
 #if defined(__i386__) || defined(__x86_64__)
@@ -3132,32 +3106,6 @@ RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y)
 	return x86::minps(x, y);
 #else
 	return As<Float4>(V(lowerPFMINMAX(V(x.value()), V(y.value()), llvm::FCmpInst::FCMP_OLT)));
-#endif
-}
-
-RValue<Float4> Rcp_pp(RValue<Float4> x, bool exactAtPow2)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	if(exactAtPow2)
-	{
-		// rcpps uses a piecewise-linear approximation which minimizes the relative error
-		// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
-		return x86::rcpps(x) * Float4(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
-	}
-	return x86::rcpps(x);
-#else
-	return As<Float4>(V(lowerRCP(V(x.value()))));
-#endif
-}
-
-RValue<Float4> RcpSqrt_pp(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
-	return x86::rsqrtps(x);
-#else
-	return As<Float4>(V(lowerRSQRT(V(x.value()))));
 #endif
 }
 

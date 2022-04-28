@@ -157,7 +157,3 @@ BENCHMARK_CAPTURE(Transcendental1, sw_Exp2_mediump, LIFT(sw::Exp2), true /* rela
 BENCHMARK_CAPTURE(Transcendental1, rr_Log2, LIFT(rr::Log2))->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Log2_highp, LIFT(sw::Log2), false /* relaxedPrecision */)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Log2_mediump, LIFT(sw::Log2), true /* relaxedPrecision */)->Arg(REPS);
-
-BENCHMARK_CAPTURE(Transcendental1, rr_Rcp_pp_exactAtPow2_true, LIFT(Rcp_pp), true)->Arg(REPS);
-BENCHMARK_CAPTURE(Transcendental1, rr_Rcp_pp_exactAtPow2_false, LIFT(Rcp_pp), false)->Arg(REPS);
-BENCHMARK_CAPTURE(Transcendental1, rr_RcpSqrt_pp, LIFT(RcpSqrt_pp))->Arg(REPS);

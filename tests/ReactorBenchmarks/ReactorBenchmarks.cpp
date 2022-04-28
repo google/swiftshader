@@ -140,7 +140,3 @@ BENCHMARK_CAPTURE(Transcedental1, rr_Exp, Exp);
 BENCHMARK_CAPTURE(Transcedental1, rr_Log, Log);
 BENCHMARK_CAPTURE(Transcedental1, rr_Exp2, LIFT(Exp2));
 BENCHMARK_CAPTURE(Transcedental1, rr_Log2, LIFT(Log2));
-
-BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_true, LIFT(Rcp_pp), true);
-BENCHMARK_CAPTURE(Transcedental1, rr_Rcp_pp_exactAtPow2_false, LIFT(Rcp_pp), false);
-BENCHMARK_CAPTURE(Transcedental1, rr_RcpSqrt_pp, LIFT(RcpSqrt_pp));

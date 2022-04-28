@@ -1771,12 +1771,6 @@ RValue<Bool> operator==(RValue<Float> lhs, RValue<Float> rhs);
 RValue<Float> Abs(RValue<Float> x);
 RValue<Float> Max(RValue<Float> x, RValue<Float> y);
 RValue<Float> Min(RValue<Float> x, RValue<Float> y);
-// Deprecated: use Rcp
-// TODO(b/147516027): Remove when GLES frontend is removed
-RValue<Float> Rcp_pp(RValue<Float> val, bool exactAtPow2 = false);
-// Deprecated: use RcpSqrt
-// TODO(b/147516027): Remove when GLES frontend is removed
-RValue<Float> RcpSqrt_pp(RValue<Float> val);
 RValue<Float> Rcp(RValue<Float> x, bool relaxedPrecision, bool exactAtPow2 = false);
 RValue<Float> RcpSqrt(RValue<Float> x, bool relaxedPrecision);
 RValue<Float> Sqrt(RValue<Float> x);
@@ -1947,12 +1941,6 @@ RValue<Float4> Abs(RValue<Float4> x);
 RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y);
 RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y);
 
-// Deprecated: use Rcp
-// TODO(b/147516027): Remove when GLES frontend is removed
-RValue<Float4> Rcp_pp(RValue<Float4> val, bool exactAtPow2 = false);
-// Deprecated: use RcpSqrt
-// TODO(b/147516027): Remove when GLES frontend is removed
-RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
 RValue<Float4> Rcp(RValue<Float4> x, bool relaxedPrecision, bool exactAtPow2 = false);
 RValue<Float4> RcpSqrt(RValue<Float4> x, bool relaxedPrecision);
 RValue<Float4> Sqrt(RValue<Float4> x);
