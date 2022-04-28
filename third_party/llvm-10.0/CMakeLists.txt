@@ -1206,7 +1206,15 @@ list(APPEND LLVM_INCLUDE_DIR
 
 # Suppress known LLVM warnings
 set(LLVM_COMPILE_OPTIONS "")
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+if(FUCHSIA)
+    list(APPEND LLVM_COMPILE_OPTIONS
+         "-Wno-cpp"   # Ignore #warning for unimplemented features in Process.inc.
+    )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND LLVM_COMPILE_OPTIONS
+         "-Wno-deprecated-declarations"
+    )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     list(APPEND LLVM_COMPILE_OPTIONS
         "-Wno-noexcept-type"           # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type
         "-Wno-maybe-uninitialized"     # ‘X’ may be used uninitialized in this function
@@ -1233,10 +1241,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         "/wd4624" # 'X': destructor was implicitly defined as deleted
         "/wd4805" # 'X': unsafe mix of type 'unsigned int' and type 'bool' in operation
         "/wd4996" # 'X': Call to 'Y' with parameters that may be unsafe - this call relies on the caller to check that the passed values are correct.
-    )
-elseif(FUCHSIA)
-    list(APPEND LLVM_COMPILE_OPTIONS
-         "-Wno-error"   # The Fuchsia builds triggers several minor explicit #warning lines.
     )
 endif()
 
