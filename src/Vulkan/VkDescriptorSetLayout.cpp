@@ -146,7 +146,7 @@ bool DescriptorSetLayout::IsDescriptorDynamic(VkDescriptorType type)
 size_t DescriptorSetLayout::getDescriptorSetAllocationSize() const
 {
 	// vk::DescriptorSet has a header with a pointer to the layout.
-	return sw::align<alignof(DescriptorSet)>(OFFSET(DescriptorSet, data) + getDescriptorSetDataSize());
+	return sw::align<alignof(DescriptorSet)>(sizeof(DescriptorSetHeader) + getDescriptorSetDataSize());
 }
 
 size_t DescriptorSetLayout::getDescriptorSetDataSize() const
@@ -166,7 +166,7 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 
 	// Use a pointer to this descriptor set layout as the descriptor set's header
 	descriptorSet->header.layout = this;
-	uint8_t *mem = descriptorSet->data;
+	uint8_t *mem = descriptorSet->GetDataAddress();
 
 	for(uint32_t i = 0; i < bindingsArraySize; i++)
 	{
@@ -279,7 +279,7 @@ uint8_t *DescriptorSetLayout::getDescriptorPointer(DescriptorSet *descriptorSet,
 	size_t byteOffset = bindings[bindingNumber].offset + (*typeSize * arrayElement);
 	ASSERT(((*typeSize * count) + byteOffset) <= getDescriptorSetDataSize());  // Make sure the operation will not go out of bounds
 
-	return &descriptorSet->data[byteOffset];
+	return descriptorSet->GetDataAddress() + byteOffset;
 }
 
 static void WriteTextureLevelInfo(sw::Texture *texture, uint32_t level, uint32_t width, uint32_t height, uint32_t depth, uint32_t pitchP, uint32_t sliceP, uint32_t samplePitchP, uint32_t sampleMax)

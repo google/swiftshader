@@ -1432,7 +1432,7 @@ public:
 		{
 			// We need both a descriptor set object for updates and a descriptor set data pointer for routines
 			descriptorSetObjects[firstSet + i] = vk::Cast(pDescriptorSets[i]);
-			descriptorSets[firstSet + i] = vk::Cast(pDescriptorSets[i])->data;
+			descriptorSets[firstSet + i] = vk::Cast(pDescriptorSets[i])->GetDataAddress();
 		}
 
 		for(uint32_t i = 0; i < dynamicOffsetCount; i++)
@@ -1786,7 +1786,7 @@ VkResult CommandBuffer::reset(VkCommandPoolResetFlags flags)
 }
 
 template<typename T, typename... Args>
-void CommandBuffer::addCommand(Args &&... args)
+void CommandBuffer::addCommand(Args &&...args)
 {
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	commands.push_back(std::make_unique<T>(std::forward<Args>(args)...));

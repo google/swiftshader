@@ -42,7 +42,7 @@ void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const Pipeline
 				VkDescriptorType type = layout->getDescriptorType(i, j);
 				uint32_t descriptorCount = layout->getDescriptorCount(i, j);
 				uint32_t descriptorSize = layout->getDescriptorSize(i, j);
-				uint8_t *descriptorMemory = descriptorSet->data + layout->getBindingOffset(i, j);
+				uint8_t *descriptorMemory = descriptorSet->GetDataAddress() + layout->getBindingOffset(i, j);
 
 				for(uint32_t k = 0; k < descriptorCount; k++)
 				{
@@ -86,6 +86,12 @@ void DescriptorSet::ContentsChanged(const Array &descriptorSets, const PipelineL
 void DescriptorSet::PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout, Device *device)
 {
 	ParseDescriptors(descriptorSets, layout, device, PREPARE_FOR_SAMPLING);
+}
+
+uint8_t *DescriptorSet::GetDataAddress()
+{
+	static_assert(sizeof(DescriptorSetHeader) == sizeof(DescriptorSet));
+	return reinterpret_cast<uint8_t *>(this) + sizeof(DescriptorSetHeader);
 }
 
 }  // namespace vk

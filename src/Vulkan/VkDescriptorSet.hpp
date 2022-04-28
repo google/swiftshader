@@ -43,9 +43,9 @@ public:
 
 	static void ContentsChanged(const Array &descriptorSets, const PipelineLayout *layout, Device *device);
 	static void PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout, Device *device);
+	uint8_t *GetDataAddress();
 
 	DescriptorSetHeader header;
-	alignas(16) uint8_t data[1];
 
 private:
 	enum NotificationType
