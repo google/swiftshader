@@ -899,13 +899,6 @@ void JITBuilder::runPasses()
 		pm = pb.buildO0DefaultPipeline(llvm::OptimizationLevel::O0);
 	}
 
-	if(__has_feature(memory_sanitizer) && msanInstrumentation)
-	{
-		llvm::MemorySanitizerOptions msanOpts(0 /* TrackOrigins */, false /* Recover */, false /* Kernel */, true /* EagerChecks */);
-		pm.addPass(llvm::ModuleMemorySanitizerPass(msanOpts));
-		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
-	}
-
 	if(optimizationLevel > 0)
 	{
 		fpm.addPass(llvm::SROAPass());
@@ -915,6 +908,13 @@ void JITBuilder::runPasses()
 	if(!fpm.isEmpty())
 	{
 		pm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(fpm)));
+	}
+
+	if(__has_feature(memory_sanitizer) && msanInstrumentation)
+	{
+		llvm::MemorySanitizerOptions msanOpts(0 /* TrackOrigins */, false /* Recover */, false /* Kernel */, true /* EagerChecks */);
+		pm.addPass(llvm::ModuleMemorySanitizerPass(msanOpts));
+		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
 	}
 
 	pm.run(*module, mam);
@@ -931,15 +931,15 @@ void JITBuilder::runPasses()
 		passManager.add(llvm::createCoroCleanupLegacyPass());
 	}
 
-	if(__has_feature(memory_sanitizer) && msanInstrumentation)
-	{
-		passManager.add(llvm::createMemorySanitizerLegacyPassPass());
-	}
-
 	if(optimizationLevel > 0)
 	{
 		passManager.add(llvm::createSROAPass());
 		passManager.add(llvm::createInstructionCombiningPass());
+	}
+
+	if(__has_feature(memory_sanitizer) && msanInstrumentation)
+	{
+		passManager.add(llvm::createMemorySanitizerLegacyPassPass());
 	}
 
 	passManager.run(*module);
