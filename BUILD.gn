@@ -27,17 +27,7 @@ config("swiftshader_config") {
     if (swiftshader_startup_dialog) {
       defines += [ "DEBUGGER_WAIT_DIALOG" ]
     }
-  } else {
-    defines += [ "ANGLE_DISABLE_TRACE" ]
   }
-
-  if (!is_win || is_clang) {
-    defines +=
-        [ "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))" ]
-  } else {
-    defines += [ "NO_SANITIZE_FUNCTION=" ]
-  }
-
   if (is_win) {
     # Disable MSVC warnings about std::aligned_storage being broken before
     # VS 2017 15.8

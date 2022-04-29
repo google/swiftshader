@@ -90,7 +90,6 @@ cc_defaults {
         "-DHAVE_GRALLOC1",
         "-DHAVE_GRALLOC3",
         "-DHAVE_GRALLOC4",
-        "-DNO_SANITIZE_FUNCTION=",
         // FIXME: Use <android/api-level.h> instead?
         "-DANDROID_PLATFORM_SDK_VERSION=10000",
         "-Wno-implicit-fallthrough",
