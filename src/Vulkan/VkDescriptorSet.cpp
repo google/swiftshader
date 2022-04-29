@@ -42,7 +42,7 @@ void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const Pipeline
 				VkDescriptorType type = layout->getDescriptorType(i, j);
 				uint32_t descriptorCount = layout->getDescriptorCount(i, j);
 				uint32_t descriptorSize = layout->getDescriptorSize(i, j);
-				uint8_t *descriptorMemory = descriptorSet->GetDataAddress() + layout->getBindingOffset(i, j);
+				uint8_t *descriptorMemory = descriptorSet->getDataAddress() + layout->getBindingOffset(i, j);
 
 				for(uint32_t k = 0; k < descriptorCount; k++)
 				{
@@ -88,9 +88,13 @@ void DescriptorSet::PrepareForSampling(const Array &descriptorSets, const Pipeli
 	ParseDescriptors(descriptorSets, layout, device, PREPARE_FOR_SAMPLING);
 }
 
-uint8_t *DescriptorSet::GetDataAddress()
+uint8_t *DescriptorSet::getDataAddress()
 {
-	static_assert(sizeof(DescriptorSetHeader) == sizeof(DescriptorSet));
+	// Descriptor sets consist of a header followed by a variable amount of descriptor data, depending
+	// on the descriptor set layout. Therefore the size of this class must match the size of the header.
+	static_assert(sizeof(DescriptorSet) == sizeof(DescriptorSetHeader));
+
+	// Return a pointer to the first byte after the header.
 	return reinterpret_cast<uint8_t *>(this) + sizeof(DescriptorSetHeader);
 }
 

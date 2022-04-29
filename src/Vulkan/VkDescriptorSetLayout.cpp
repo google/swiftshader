@@ -164,9 +164,9 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 {
 	ASSERT(descriptorSet->header.layout == nullptr);
 
-	// Use a pointer to this descriptor set layout as the descriptor set's header
+	// Set a pointer to this descriptor set layout in the descriptor set's header.
 	descriptorSet->header.layout = this;
-	uint8_t *mem = descriptorSet->GetDataAddress();
+	uint8_t *data = descriptorSet->getDataAddress();  // Descriptor payload
 
 	for(uint32_t i = 0; i < bindingsArraySize; i++)
 	{
@@ -176,10 +176,10 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 		{
 			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 			{
-				SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(mem);
+				SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(data);
 				imageSamplerDescriptor->samplerId = bindings[i].immutableSamplers[j]->id;
 				imageSamplerDescriptor->memoryOwner = nullptr;
-				mem += descriptorSize;
+				data += descriptorSize;
 			}
 		}
 		else
@@ -192,9 +192,9 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 			case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
 				for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 				{
-					SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(mem);
+					SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(data);
 					imageSamplerDescriptor->memoryOwner = nullptr;
-					mem += descriptorSize;
+					data += descriptorSize;
 				}
 				break;
 			case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
@@ -202,19 +202,19 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 			case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
 				for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 				{
-					StorageImageDescriptor *storageImage = reinterpret_cast<StorageImageDescriptor *>(mem);
+					StorageImageDescriptor *storageImage = reinterpret_cast<StorageImageDescriptor *>(data);
 					storageImage->memoryOwner = nullptr;
-					mem += descriptorSize;
+					data += descriptorSize;
 				}
 				break;
 			case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
 			case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 			case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 			case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-				mem += bindings[i].descriptorCount * descriptorSize;
+				data += bindings[i].descriptorCount * descriptorSize;
 				break;
 			case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK:
-				mem += bindings[i].descriptorCount;
+				data += bindings[i].descriptorCount;
 				break;
 			default:
 				UNSUPPORTED("Unsupported Descriptor Type: %d", int(bindings[i].descriptorType));
@@ -279,7 +279,7 @@ uint8_t *DescriptorSetLayout::getDescriptorPointer(DescriptorSet *descriptorSet,
 	size_t byteOffset = bindings[bindingNumber].offset + (*typeSize * arrayElement);
 	ASSERT(((*typeSize * count) + byteOffset) <= getDescriptorSetDataSize());  // Make sure the operation will not go out of bounds
 
-	return descriptorSet->GetDataAddress() + byteOffset;
+	return descriptorSet->getDataAddress() + byteOffset;
 }
 
 static void WriteTextureLevelInfo(sw::Texture *texture, uint32_t level, uint32_t width, uint32_t height, uint32_t depth, uint32_t pitchP, uint32_t sliceP, uint32_t samplePitchP, uint32_t sampleMax)

@@ -43,7 +43,8 @@ public:
 
 	static void ContentsChanged(const Array &descriptorSets, const PipelineLayout *layout, Device *device);
 	static void PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout, Device *device);
-	uint8_t *GetDataAddress();
+
+	uint8_t *getDataAddress();  // Returns a pointer to the descriptor payload following the header.
 
 	DescriptorSetHeader header;
 
