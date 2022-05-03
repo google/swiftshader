@@ -3042,6 +3042,44 @@ struct MemorySanitizerVisitor : public InstVisitor<MemorySanitizerVisitor> {
     SOC.Done(&I);
   }
 
+  // Instrument mm*_sd|ss intrinsics
+  void handleUnarySdSsIntrinsic(IntrinsicInst &I) {
+    IRBuilder<> IRB(&I);
+    unsigned Width =
+        cast<VectorType>(I.getArgOperand(0)->getType())->getNumElements();
+    Value *First = getShadow(&I, 0);
+    Value *Second = getShadow(&I, 1);
+    // First element of second operand, remaining elements of first operand
+    SmallVector<uint32_t, 16> Mask;
+    Mask.push_back(Width);
+    for (uint32_t i = 1; i < Width; i++) {
+      Mask.push_back(i);
+    }
+    Value *Shadow = IRB.CreateShuffleVector(First, Second, Mask);
+
+    setShadow(&I, Shadow);
+    setOriginForNaryOp(I);
+  }
+
+  void handleBinarySdSsIntrinsic(IntrinsicInst &I) {
+    IRBuilder<> IRB(&I);
+    unsigned Width =
+        cast<VectorType>(I.getArgOperand(0)->getType())->getNumElements();
+    Value *First = getShadow(&I, 0);
+    Value *Second = getShadow(&I, 1);
+    Value *OrShadow = IRB.CreateOr(First, Second);
+    // First element of both OR'd together, remaining elements of first operand
+    SmallVector<uint32_t, 16> Mask;
+    Mask.push_back(Width);
+    for (uint32_t i = 1; i < Width; i++) {
+      Mask.push_back(i);
+    }
+    Value *Shadow = IRB.CreateShuffleVector(First, OrShadow, Mask);
+
+    setShadow(&I, Shadow);
+    setOriginForNaryOp(I);
+  }
+
   void visitIntrinsicInst(IntrinsicInst &I) {
     switch (I.getIntrinsicID()) {
     case Intrinsic::lifetime_start:
@@ -3279,6 +3317,19 @@ struct MemorySanitizerVisitor : public InstVisitor<MemorySanitizerVisitor> {
     case Intrinsic::x86_pclmulqdq_256:
     case Intrinsic::x86_pclmulqdq_512:
       handlePclmulIntrinsic(I);
+      break;
+
+    case Intrinsic::x86_sse41_round_sd:
+    case Intrinsic::x86_sse41_round_ss:
+    case Intrinsic::x86_sse_rcp_ss:
+    case Intrinsic::x86_sse_rsqrt_ss:
+      handleUnarySdSsIntrinsic(I);
+      break;
+    case Intrinsic::x86_sse2_max_sd:
+    case Intrinsic::x86_sse_max_ss:
+    case Intrinsic::x86_sse2_min_sd:
+    case Intrinsic::x86_sse_min_ss:
+      handleBinarySdSsIntrinsic(I);
       break;
 
     case Intrinsic::is_constant:
