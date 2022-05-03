@@ -97,8 +97,6 @@ VertexProcessor::RoutineType VertexProcessor::routine(const State &state,
 
 	if(!routine)  // Create one
 	{
-		ScopedPragma msan(MemorySanitizerInstrumentation, true);
-
 		VertexRoutine *generator = new VertexProgram(state, pipelineLayout, vertexShader, descriptorSets);
 		generator->generate();
 		routine = (*generator)("VertexRoutine_%0.8X", state.shaderID);
