@@ -451,6 +451,7 @@ SpirvShader::SpirvShader(
 				case spv::CapabilityShaderNonUniform: capabilities.ShaderNonUniform = true; break;
 				case spv::CapabilityRuntimeDescriptorArray: capabilities.RuntimeDescriptorArray = true; break;
 				case spv::CapabilityStorageBufferArrayNonUniformIndexing: capabilities.StorageBufferArrayNonUniformIndexing = true; break;
+				case spv::CapabilityStorageTexelBufferArrayNonUniformIndexing: capabilities.StorageTexelBufferArrayNonUniformIndexing = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}
@@ -1363,7 +1364,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, Obje
 	return ptr;
 }
 
-SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, EmitState const *state) const
+SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, bool nonUniform, EmitState const *state) const
 {
 	// TODO: avoid doing per-lane work in some cases if we can?
 	auto routine = state->routine;
@@ -1418,8 +1419,25 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID element
 					}
 					else
 					{
-						// Note: the value of indexIds[i] must be dynamically uniform.
-						ptr += Int(descriptorSize * Extract(state->getIntermediate(indexIds[i]).Int(0), 0));
+						nonUniform |= GetDecorationsForId(indexIds[i]).NonUniform;
+						SIMD::Int intermediate = state->getIntermediate(indexIds[i]).Int(0);
+						if(nonUniform)
+						{
+							// NonUniform array data can deal with pointers not bound by a 32-bit address
+							// space, so we need to ensure we're using an array pointer, and not a base+offset
+							// pointer.
+							std::array<Pointer<Byte>, SIMD::Width> pointers;
+							for(int i = 0; i < SIMD::Width; i++)
+							{
+								pointers[i] = ptr.getPointerForLane(i);
+							}
+							ptr = SIMD::Pointer(pointers);
+							ptr += descriptorSize * intermediate;
+						}
+						else
+						{
+							ptr += descriptorSize * Extract(intermediate, 0);
+						}
 					}
 				}
 				else
@@ -2241,6 +2259,19 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 
 	Object::ID elementId = (insn.opcode() == spv::OpPtrAccessChain) ? insn.word(4) : 0;
 	int indexId = (insn.opcode() == spv::OpPtrAccessChain) ? 5 : 4;
+	// TODO(b/236280746): Eliminate lookahead by optimizing inside SIMD::Pointer.
+	for(auto it = insn; it != end(); it++)
+	{
+		if(it.opcode() == spv::OpLoad)
+		{
+			Object::ID pointerId = it.word(3);
+			if(pointerId.value() == resultId.value())
+			{
+				nonUniform |= GetDecorationsForId(it.word(2)).NonUniform;
+				break;
+			}
+		}
+	}
 
 	if(type.storageClass == spv::StorageClassPushConstant ||
 	   type.storageClass == spv::StorageClassUniform ||
@@ -2251,7 +2282,7 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 	}
 	else
 	{
-		auto ptr = WalkAccessChain(baseId, elementId, Span(insn, indexId, insn.wordCount() - indexId), state);
+		auto ptr = WalkAccessChain(baseId, elementId, Span(insn, indexId, insn.wordCount() - indexId), nonUniform, state);
 		state->createPointer(resultId, ptr);
 	}
 

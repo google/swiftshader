@@ -245,20 +245,20 @@ static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 {
 	features->shaderInputAttachmentArrayDynamicIndexing = VK_FALSE;
 	features->shaderUniformTexelBufferArrayDynamicIndexing = VK_FALSE;
-	features->shaderStorageTexelBufferArrayDynamicIndexing = VK_FALSE;
+	features->shaderStorageTexelBufferArrayDynamicIndexing = VK_TRUE;
 	features->shaderUniformBufferArrayNonUniformIndexing = VK_FALSE;
 	features->shaderSampledImageArrayNonUniformIndexing = VK_FALSE;
 	features->shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
 	features->shaderStorageImageArrayNonUniformIndexing = VK_FALSE;
 	features->shaderInputAttachmentArrayNonUniformIndexing = VK_FALSE;
 	features->shaderUniformTexelBufferArrayNonUniformIndexing = VK_FALSE;
-	features->shaderStorageTexelBufferArrayNonUniformIndexing = VK_FALSE;
+	features->shaderStorageTexelBufferArrayNonUniformIndexing = VK_TRUE;
 	features->descriptorBindingUniformBufferUpdateAfterBind = VK_FALSE;
 	features->descriptorBindingSampledImageUpdateAfterBind = VK_FALSE;
 	features->descriptorBindingStorageImageUpdateAfterBind = VK_FALSE;
 	features->descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
 	features->descriptorBindingUniformTexelBufferUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingStorageTexelBufferUpdateAfterBind = VK_FALSE;
+	features->descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE;
 	features->descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
 	features->descriptorBindingPartiallyBound = VK_TRUE;
 	features->descriptorBindingVariableDescriptorCount = VK_FALSE;

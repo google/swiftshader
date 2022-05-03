@@ -726,6 +726,7 @@ public:
 		bool ShaderNonUniform : 1;
 		bool RuntimeDescriptorArray : 1;
 		bool StorageBufferArrayNonUniformIndexing : 1;
+		bool StorageTexelBufferArrayNonUniformIndexing : 1;
 	};
 
 	const Capabilities &getUsedCapabilities() const
@@ -1304,7 +1305,7 @@ private:
 	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, EmitState const *state) const;
 
 	SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, Object::ID elementId, const Span &indexIds, bool nonUniform, const EmitState *state) const;
-	SIMD::Pointer WalkAccessChain(Object::ID id, Object::ID elementId, const Span &indexIds, const EmitState *state) const;
+	SIMD::Pointer WalkAccessChain(Object::ID id, Object::ID elementId, const Span &indexIds, bool nonUniform, const EmitState *state) const;
 
 	// Returns the *component* offset in the literal for the given access chain.
 	uint32_t WalkLiteralAccessChain(Type::ID id, const Span &indexes) const;
@@ -1390,6 +1391,15 @@ private:
 	void callSamplerFunction(Pointer<Byte> samplerFunction, Array<SIMD::Float> &out, Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, EmitState *state) const;
 
 	void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
+	struct TexelAddressData
+	{
+		bool isArrayed;
+		spv::Dim dim;
+		int dims, texelSize;
+		SIMD::Int u, v, w, ptrOffset;
+	};
+	static TexelAddressData setupTexelAddressData(SIMD::Int rowPitch, SIMD::Int slicePitch, SIMD::Int samplePitch, ImageInstructionSignature instruction, SIMD::Int coordinate[], SIMD::Int sample, vk::Format imageFormat, const EmitState *state);
+	static SIMD::Pointer GetNonUniformTexelAddress(ImageInstructionSignature instruction, SIMD::Pointer descriptor, SIMD::Int coordinate[], SIMD::Int sample, vk::Format imageFormat, OutOfBoundsBehavior outOfBoundsBehavior, const EmitState *state);
 	static SIMD::Pointer GetTexelAddress(ImageInstructionSignature instruction, Pointer<Byte> descriptor, SIMD::Int coordinate[], SIMD::Int sample, vk::Format imageFormat, OutOfBoundsBehavior outOfBoundsBehavior, const EmitState *state);
 	static void WriteImage(ImageInstructionSignature instruction, Pointer<Byte> descriptor, const Pointer<SIMD::Int> &coord, const Pointer<SIMD::Int> &texelAndMask, vk::Format imageFormat);
 	uint32_t GetConstScalarInt(Object::ID id) const;
