@@ -3596,17 +3596,7 @@ RValue<Int4> cvtps2dq(RValue<Float4> val)
 
 RValue<Float> rcpss(RValue<Float> val)
 {
-	Value *undef = V(llvm::UndefValue::get(T(Float4::type())));
-
-	// TODO(b/172238865): MemorySanitizer does not support the rcpss instruction,
-	// which makes it look at the entire 128-bit input operand for undefined bits.
-	// Use zero-initialized values instead.
-	if(__has_feature(memory_sanitizer))
-	{
-		undef = Float4(0).loadValue();
-	}
-
-	Value *vector = Nucleus::createInsertElement(undef, val.value(), 0);
+	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::type()))), val.value(), 0);
 
 	return RValue<Float>(Nucleus::createExtractElement(createInstruction(llvm::Intrinsic::x86_sse_rcp_ss, vector), Float::type(), 0));
 }
@@ -3618,17 +3608,7 @@ RValue<Float> sqrtss(RValue<Float> val)
 
 RValue<Float> rsqrtss(RValue<Float> val)
 {
-	Value *undef = V(llvm::UndefValue::get(T(Float4::type())));
-
-	// TODO(b/172238865): MemorySanitizer does not support the rsqrtss instruction,
-	// which makes it look at the entire 128-bit input operand for undefined bits.
-	// Use zero-initialized values instead.
-	if(__has_feature(memory_sanitizer))
-	{
-		undef = Float4(0).loadValue();
-	}
-
-	Value *vector = Nucleus::createInsertElement(undef, val.value(), 0);
+	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::type()))), val.value(), 0);
 
 	return RValue<Float>(Nucleus::createExtractElement(createInstruction(llvm::Intrinsic::x86_sse_rsqrt_ss, vector), Float::type(), 0));
 }
@@ -3663,15 +3643,6 @@ RValue<Float> roundss(RValue<Float> val, unsigned char imm)
 	llvm::Function *roundss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse41_round_ss);
 
 	Value *undef = V(llvm::UndefValue::get(T(Float4::type())));
-
-	// TODO(b/172238865): MemorySanitizer does not support the roundss instruction,
-	// which makes it look at the entire 128-bit input operands for undefined bits.
-	// Use zero-initialized values instead.
-	if(__has_feature(memory_sanitizer))
-	{
-		undef = Float4(0).loadValue();
-	}
-
 	Value *vector = Nucleus::createInsertElement(undef, val.value(), 0);
 
 	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(roundss, { V(undef), V(vector), V(Nucleus::createConstantInt(imm)) })), Float::type(), 0));
