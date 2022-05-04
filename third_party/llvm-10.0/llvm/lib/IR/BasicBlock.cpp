@@ -308,7 +308,7 @@ iterator_range<BasicBlock::phi_iterator> BasicBlock::phis() {
 void BasicBlock::removePredecessor(BasicBlock *Pred,
                                    bool KeepOneInputPHIs) {
   assert((hasNUsesOrMore(16)||// Reduce cost of this assertion for complex CFGs.
-          find(pred_begin(this), pred_end(this), Pred) != pred_end(this)) &&
+          std::find(pred_begin(this), pred_end(this), Pred) != pred_end(this)) &&
          "removePredecessor: BB is not a predecessor!");
 
   if (InstList.empty()) return;

@@ -1344,8 +1344,7 @@ class NamedMDNode : public ilist_node<NamedMDNode> {
   explicit NamedMDNode(const Twine &N);
 
   template<class T1, class T2>
-  class op_iterator_impl :
-      public std::iterator<std::bidirectional_iterator_tag, T2> {
+  class op_iterator_impl {
     friend class NamedMDNode;
 
     const NamedMDNode *Node = nullptr;
@@ -1354,6 +1353,12 @@ class NamedMDNode : public ilist_node<NamedMDNode> {
     op_iterator_impl(const NamedMDNode *N, unsigned i) : Node(N), Idx(i) {}
 
   public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = T2;
+    using difference_type = std::ptrdiff_t;
+    using pointer = T2*;
+    using reference = T2&;
+
     op_iterator_impl() = default;
 
     bool operator==(const op_iterator_impl &o) const { return Idx == o.Idx; }

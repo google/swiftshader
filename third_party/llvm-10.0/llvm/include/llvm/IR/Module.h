@@ -698,14 +698,19 @@ public:
   }
 
   /// An iterator for DICompileUnits that skips those marked NoDebug.
-  class debug_compile_units_iterator
-      : public std::iterator<std::input_iterator_tag, DICompileUnit *> {
+  class debug_compile_units_iterator {
     NamedMDNode *CUs;
     unsigned Idx;
 
     void SkipNoDebugCUs();
 
   public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = DICompileUnit *;
+    using difference_type = std::ptrdiff_t;
+    using pointer = DICompileUnit **;
+    using reference = DICompileUnit *&;
+
     explicit debug_compile_units_iterator(NamedMDNode *CUs, unsigned Idx)
         : CUs(CUs), Idx(Idx) {
       SkipNoDebugCUs();

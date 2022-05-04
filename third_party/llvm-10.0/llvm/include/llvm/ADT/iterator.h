@@ -64,9 +64,7 @@ namespace llvm {
 template <typename DerivedT, typename IteratorCategoryT, typename T,
           typename DifferenceTypeT = std::ptrdiff_t, typename PointerT = T *,
           typename ReferenceT = T &>
-class iterator_facade_base
-    : public std::iterator<IteratorCategoryT, T, DifferenceTypeT, PointerT,
-                           ReferenceT> {
+class iterator_facade_base {
 protected:
   enum {
     IsRandomAccess = std::is_base_of<std::random_access_iterator_tag,
@@ -92,6 +90,12 @@ protected:
   };
 
 public:
+  using iterator_category = IteratorCategoryT;
+  using value_type = T;
+  using difference_type = DifferenceTypeT;
+  using pointer = PointerT;
+  using reference = ReferenceT;
+
   DerivedT operator+(DifferenceTypeT n) const {
     static_assert(std::is_base_of<iterator_facade_base, DerivedT>::value,
                   "Must pass the derived type to this template!");
