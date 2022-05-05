@@ -104,5 +104,48 @@ OpFunctionEnd
                         "GLCompute, was already defined."));
 }
 
+TEST_F(EntryPoints, LinkedVariables) {
+  const std::string body1 = R"(
+               OpCapability Addresses
+OpCapability Linkage
+OpCapability Kernel
+OpMemoryModel Physical64 OpenCL
+OpDecorate %7 LinkageAttributes "foo" Export
+%1 = OpTypeInt 32 0
+%2 = OpTypeVector %1 3
+%3 = OpTypePointer Input %2
+%4 = OpVariable %3 Input
+%5 = OpTypeVoid
+%6 = OpTypeFunction %5
+%7 = OpFunction %5 None %6
+%8 = OpLabel
+%9 = OpLoad %2 %4 Aligned 32
+OpReturn
+OpFunctionEnd
+)";
+  const std::string body2 = R"(
+OpCapability Linkage
+OpCapability Kernel
+OpMemoryModel Physical64 OpenCL
+OpEntryPoint Kernel %4 "bar"
+OpDecorate %3 LinkageAttributes "foo" Import
+%1 = OpTypeVoid
+%2 = OpTypeFunction %1
+%3 = OpFunction %1 None %2
+OpFunctionEnd
+%4 = OpFunction %1 None %2
+%5 = OpLabel
+%6 = OpFunctionCall %1 %3
+OpReturn
+OpFunctionEnd
+)";
+
+  spvtest::Binary linked_binary;
+  EXPECT_EQ(SPV_SUCCESS, AssembleAndLink({body1, body2}, &linked_binary));
+  EXPECT_THAT(GetErrorMessage(), std::string());
+  EXPECT_TRUE(Validate(linked_binary));
+  EXPECT_THAT(GetErrorMessage(), std::string());
+}
+
 }  // namespace
 }  // namespace spvtools

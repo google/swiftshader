@@ -4185,6 +4185,7 @@ spv_result_t BuiltInsValidator::ValidateSingleBuiltInAtDefinition(
     case SpvBuiltInBaryCoordNV:
     case SpvBuiltInBaryCoordNoPerspNV:
     case SpvBuiltInCurrentRayTimeNV:
+    case SpvBuiltInCullMaskKHR:
       // No validation rules (for the moment).
       break;
 

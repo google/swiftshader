@@ -302,7 +302,7 @@ $(1)/build-version.inc: \
         $(LOCAL_PATH)/utils/update_build_version.py \
         $(LOCAL_PATH)/CHANGES
 		@$(HOST_PYTHON) $(LOCAL_PATH)/utils/update_build_version.py \
-		                $(LOCAL_PATH) $(1)/build-version.inc
+		                $(LOCAL_PATH)/CHANGES $(1)/build-version.inc
 		@echo "[$(TARGET_ARCH_ABI)] Generate       : build-version.inc <= CHANGES"
 $(LOCAL_PATH)/source/software_version.cpp: $(1)/build-version.inc
 endef
