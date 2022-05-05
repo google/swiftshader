@@ -89,9 +89,14 @@ if (SPIRV_HEADERS_ENABLE_INSTALL)
     set(namespace "${PROJECT_NAME}::")
 
     include(CMakePackageConfigHelpers)
+
+    if (NOT CMAKE_VERSION VERSION_LESS 3.14)
+        set(arch_independent_str ARCH_INDEPENDENT)
+    endif()
     write_basic_package_version_file(
         "${version_config}"
         COMPATIBILITY SameMajorVersion
+        ${arch_independent_str}
     )
 
     configure_package_config_file(

@@ -513,6 +513,9 @@ namespace {
                 }
 
                 out << "#ifdef SPV_ENABLE_UTILITY_CODE" << std::endl;
+                out << "#ifndef __cplusplus" << std::endl;
+                out << "#include <stdbool.h>" << std::endl;
+                out << "#endif" << std::endl;
                 out << "inline void " << pre() << "HasResultAndType(" << pre() << opName << " opcode, bool *hasResult, bool *hasResultType) {" << std::endl;
                 out << "    *hasResult = *hasResultType = false;" << std::endl;
                 out << "    switch (opcode) {" << std::endl;
