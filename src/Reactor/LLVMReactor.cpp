@@ -3210,7 +3210,7 @@ RValue<Int4> CmpUNLE(RValue<Float4> x, RValue<Float4> y)
 RValue<Float4> Round(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
+#if(defined(__i386__) || defined(__x86_64__)) && !__has_feature(memory_sanitizer)
 	if(CPUID::supportsSSE4_1())
 	{
 		return x86::roundps(x, 0);
@@ -3227,7 +3227,7 @@ RValue<Float4> Round(RValue<Float4> x)
 RValue<Float4> Trunc(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
+#if(defined(__i386__) || defined(__x86_64__)) && !__has_feature(memory_sanitizer)
 	if(CPUID::supportsSSE4_1())
 	{
 		return x86::roundps(x, 3);
@@ -3246,7 +3246,7 @@ RValue<Float4> Frac(RValue<Float4> x)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Float4 frc;
 
-#if defined(__i386__) || defined(__x86_64__)
+#if(defined(__i386__) || defined(__x86_64__)) && !__has_feature(memory_sanitizer)
 	if(CPUID::supportsSSE4_1())
 	{
 		frc = x - x86::floorps(x);
@@ -3269,7 +3269,7 @@ RValue<Float4> Frac(RValue<Float4> x)
 RValue<Float4> Floor(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
+#if(defined(__i386__) || defined(__x86_64__)) && !__has_feature(memory_sanitizer)
 	if(CPUID::supportsSSE4_1())
 	{
 		return x86::floorps(x);
@@ -3286,7 +3286,7 @@ RValue<Float4> Floor(RValue<Float4> x)
 RValue<Float4> Ceil(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-#if defined(__i386__) || defined(__x86_64__)
+#if(defined(__i386__) || defined(__x86_64__)) && !__has_feature(memory_sanitizer)
 	if(CPUID::supportsSSE4_1())
 	{
 		return x86::ceilps(x);
@@ -3691,6 +3691,8 @@ RValue<Float> ceilss(RValue<Float> val)
 
 RValue<Float4> roundps(RValue<Float4> val, unsigned char imm)
 {
+	ASSERT(!__has_feature(memory_sanitizer));  // TODO(b/172238865): Not correctly instrumented by MemorySanitizer.
+
 	return RValue<Float4>(createInstruction(llvm::Intrinsic::x86_sse41_round_ps, val.value(), Nucleus::createConstantInt(imm)));
 }
 
