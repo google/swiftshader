@@ -54,6 +54,7 @@ OpSource GLSL 460
 OpSourceExtension "GL_EXT_nonuniform_qualifier"
 OpSourceExtension "GL_KHR_ray_tracing"
 OpName %main "main"
+OpName %fn "fn"
 OpName %StorageBuffer "StorageBuffer"
 OpMemberName %StorageBuffer 0 "index"
 OpMemberName %StorageBuffer 1 "red"
@@ -109,6 +110,11 @@ OpDecorate %var BuiltIn )") + built_in + std::string(R"(
 %29 = OpCompositeExtract %float %27 0
 %31 = OpAccessChain %_ptr_Uniform_float %sbo %int_1
 OpStore %31 %29
+%32 = OpFunctionCall %void %fn
+OpReturn
+OpFunctionEnd
+%fn = OpFunction %void None %3
+%33 = OpLabel
 OpReturn
 OpFunctionEnd
 )");
@@ -782,12 +788,7 @@ OpReturn
 OpFunctionEnd
 )";
 
-  EXPECT_EQ(RunPass(text), Pass::Status::Failure);
-  const char expected_error[] =
-      "ERROR: 0: Functions of SPIR-V for spread-volatile-semantics pass "
-      "input must be inlined except entry points";
-  EXPECT_STREQ(GetErrorMessage().substr(0, sizeof(expected_error) - 1).c_str(),
-               expected_error);
+  EXPECT_EQ(RunPass(text), Pass::Status::SuccessWithoutChange);
 }
 
 TEST_F(VolatileSpreadErrorTest, VarNotUsedInEntryPointForVolatile) {
@@ -1131,6 +1132,134 @@ OpFunctionEnd
       SinglePassRunToBinary<SpreadVolatileSemantics>(text,
                                                      /* skip_nop = */ false);
   EXPECT_EQ(status, Pass::Status::SuccessWithoutChange);
+}
+
+TEST_F(VolatileSpreadTest, NoInlinedfuncCalls) {
+  const std::string text = R"(
+OpCapability RayTracingNV
+OpCapability VulkanMemoryModel
+OpCapability GroupNonUniform
+OpExtension "SPV_NV_ray_tracing"
+OpExtension "SPV_KHR_vulkan_memory_model"
+OpMemoryModel Logical Vulkan
+OpEntryPoint RayGenerationNV %main "main" %SubgroupSize
+OpSource HLSL 630
+OpName %main "main"
+OpName %src_main "src.main"
+OpName %bb_entry "bb.entry"
+OpName %func0 "func0"
+OpName %bb_entry_0 "bb.entry"
+OpName %func2 "func2"
+OpName %bb_entry_1 "bb.entry"
+OpName %param_var_count "param.var.count"
+OpName %func1 "func1"
+OpName %bb_entry_2 "bb.entry"
+OpName %func3 "func3"
+OpName %count "count"
+OpName %bb_entry_3 "bb.entry"
+OpDecorate %SubgroupSize BuiltIn SubgroupSize
+%uint = OpTypeInt 32 0
+%_ptr_Input_uint = OpTypePointer Input %uint
+%void = OpTypeVoid
+%6 = OpTypeFunction %void
+%_ptr_Function_uint = OpTypePointer Function %uint
+%25 = OpTypeFunction %void %_ptr_Function_uint
+%SubgroupSize = OpVariable %_ptr_Input_uint Input
+%main = OpFunction %void None %6
+%7 = OpLabel
+%8 = OpFunctionCall %void %src_main
+OpReturn
+OpFunctionEnd
+%src_main = OpFunction %void None %6
+%bb_entry = OpLabel
+%11 = OpFunctionCall %void %func0
+OpReturn
+OpFunctionEnd
+%func0 = OpFunction %void DontInline %6
+%bb_entry_0 = OpLabel
+%14 = OpFunctionCall %void %func2
+%16 = OpFunctionCall %void %func1
+OpReturn
+OpFunctionEnd
+%func2 = OpFunction %void DontInline %6
+%bb_entry_1 = OpLabel
+%param_var_count = OpVariable %_ptr_Function_uint Function
+; CHECK: {{%\w+}} = OpLoad %uint %SubgroupSize Volatile
+%21 = OpLoad %uint %SubgroupSize
+OpStore %param_var_count %21
+%22 = OpFunctionCall %void %func3 %param_var_count
+OpReturn
+OpFunctionEnd
+%func1 = OpFunction %void DontInline %6
+%bb_entry_2 = OpLabel
+OpReturn
+OpFunctionEnd
+%func3 = OpFunction %void DontInline %25
+%count = OpFunctionParameter %_ptr_Function_uint
+%bb_entry_3 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+  SinglePassRunAndMatch<SpreadVolatileSemantics>(text, true);
+}
+
+TEST_F(VolatileSpreadErrorTest, NoInlinedMultiEntryfuncCalls) {
+  const std::string text = R"(
+OpCapability RayTracingNV
+OpCapability SubgroupBallotKHR
+OpExtension "SPV_NV_ray_tracing"
+OpExtension "SPV_KHR_shader_ballot"
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint RayGenerationNV %main "main" %SubgroupSize
+OpEntryPoint GLCompute %main2 "main2" %gl_LocalInvocationIndex %SubgroupSize
+OpSource HLSL 630
+OpName %main "main"
+OpName %bb_entry "bb.entry"
+OpName %main2 "main2"
+OpName %bb_entry_0 "bb.entry"
+OpName %func "func"
+OpName %count "count"
+OpName %bb_entry_1 "bb.entry"
+OpDecorate %gl_LocalInvocationIndex BuiltIn LocalInvocationIndex
+OpDecorate %SubgroupSize BuiltIn SubgroupSize
+%uint = OpTypeInt 32 0
+%uint_0 = OpConstant %uint 0
+%_ptr_Input_uint = OpTypePointer Input %uint
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%void = OpTypeVoid
+%12 = OpTypeFunction %void
+%_ptr_Function_uint = OpTypePointer Function %uint
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%29 = OpTypeFunction %void %_ptr_Function_v4float
+%34 = OpTypeFunction %void %_ptr_Function_uint
+%SubgroupSize = OpVariable %_ptr_Input_uint Input
+%gl_LocalInvocationIndex = OpVariable %_ptr_Input_uint Input
+%main = OpFunction %void None %12
+%bb_entry = OpLabel
+%20 = OpFunctionCall %void %func
+OpReturn
+OpFunctionEnd
+%main2 = OpFunction %void None %12
+%bb_entry_0 = OpLabel
+%33 = OpFunctionCall %void %func
+OpReturn
+OpFunctionEnd
+%func = OpFunction %void DontInline %12
+%bb_entry_1 = OpLabel
+%count = OpVariable %_ptr_Function_uint Function
+%35 = OpLoad %uint %SubgroupSize
+OpStore %count %35
+OpReturn
+OpFunctionEnd
+)";
+  EXPECT_EQ(RunPass(text), Pass::Status::Failure);
+  const char expected_error[] =
+      "ERROR: 0: Variable is a target for Volatile semantics for an entry "
+      "point, but it is not for another entry point";
+  EXPECT_STREQ(GetErrorMessage().substr(0, sizeof(expected_error) - 1).c_str(),
+               expected_error);
 }
 
 }  // namespace

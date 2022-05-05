@@ -3789,6 +3789,40 @@ TEST_F(PassClassTest, PartialUnrollWithPhiReferencesPhi) {
   SinglePassRunAndMatch<PartialUnrollerTestPass<2>>(text, true);
 }
 
+TEST_F(PassClassTest, DontUnrollInfiteLoop) {
+  // This is an infinite loop that because the step is 0.  We want to make sure
+  // the unroller does not try to unroll it.
+  const std::string text = R"(OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %2 "main"
+OpExecutionMode %2 OriginUpperLeft
+%void = OpTypeVoid
+%4 = OpTypeFunction %void
+%int = OpTypeInt 32 1
+%int_0 = OpConstant %int 0
+%int_50 = OpConstant %int 50
+%bool = OpTypeBool
+%int_0_0 = OpConstant %int 0
+%2 = OpFunction %void None %4
+%10 = OpLabel
+OpBranch %11
+%11 = OpLabel
+%12 = OpPhi %int %int_0 %10 %13 %14
+%15 = OpSLessThan %bool %12 %int_50
+OpLoopMerge %16 %14 Unroll
+OpBranchConditional %15 %14 %16
+%14 = OpLabel
+%13 = OpIAdd %int %12 %int_0_0
+OpBranch %11
+%16 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<LoopUnroller>(text, text, false);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

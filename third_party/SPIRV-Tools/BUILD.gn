@@ -256,12 +256,12 @@ action("spvtools_generators_inc") {
 action("spvtools_build_version") {
   script = "utils/update_build_version.py"
 
-  src_dir = "."
+  changes_file = "CHANGES"
   inc_file = "${target_gen_dir}/build-version.inc"
 
   outputs = [ inc_file ]
   args = [
-    rebase_path(src_dir, root_build_dir),
+    rebase_path(changes_file, root_build_dir),
     rebase_path(inc_file, root_build_dir),
   ]
 }
