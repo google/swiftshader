@@ -30,7 +30,10 @@ if (defined(is_fuchsia_tree) && is_fuchsia_tree) {
   spvtools_build_executables = true
 }
 
-spirv_headers = spirv_tools_spirv_headers_dir
+# TODO(b/158002593): The line below is modified from the upstream build file to
+# override the SPIRV-Headers path with that of SwiftShader. This needs to be
+# fixed upstream so we don't need this local change.
+spirv_headers = "../SPIRV-Headers"
 spirv_is_winuwp = is_win && target_os == "winuwp"
 
 template("spvtools_core_tables") {
