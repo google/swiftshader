@@ -119,7 +119,7 @@ genrule { // FIXME this relies on `git` which is no good on build machines
     out: ["build-version.inc"],
     srcs: ["CHANGES"],
     tool_files: ["utils/update_build_version.py"],
-    cmd: "$(location) $$(dirname $(location CHANGES)) " +
+    cmd: "$(location) $(location CHANGES) " +
          "$(location build-version.inc)",
 }
 
