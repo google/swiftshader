@@ -8416,6 +8416,7 @@ dEQP-VK.texture.shadow.cube_array.linear_mipmap_linear.never_r16_unorm
 dEQP-VK.texture.shadow.cube_array.linear_mipmap_linear.sparse_never_r16_unorm
 dEQP-VK.texture.shadow.cube_array.linear_mipmap_linear.never_r32_sfloat
 dEQP-VK.texture.shadow.cube_array.linear_mipmap_linear.sparse_never_r32_sfloat
+dEQP-VK.texture.shadow.texel_replacement.d32_sfloat
 dEQP-VK.texture.filtering_anisotropy.basic.anisotropy_2.mag_nearest_min_nearest
 dEQP-VK.texture.filtering_anisotropy.basic.anisotropy_2.mag_linear_min_nearest
 dEQP-VK.texture.filtering_anisotropy.basic.anisotropy_2.mag_nearest_min_linear
