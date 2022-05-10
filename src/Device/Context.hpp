@@ -129,6 +129,7 @@ struct DynamicState
 	float depthBiasSlopeFactor = 0.0f;
 	float minDepthBounds = 0.0f;
 	float maxDepthBounds = 0.0f;
+	float lineWidth = 0.0f;
 
 	VkCullModeFlags cullMode = VK_CULL_MODE_NONE;
 	VkBool32 depthBoundsTestEnable = VK_FALSE;

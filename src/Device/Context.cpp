@@ -426,7 +426,10 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 		depthBiasClamp = 0.0f;
 	}
 
-	lineWidth = rasterizationState->lineWidth;
+	if (!dynamicStateFlags.dynamicLineWidth)
+	{
+		lineWidth = rasterizationState->lineWidth;
+	}
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(rasterizationState->pNext);
 	while(extensionCreateInfo)
@@ -827,6 +830,11 @@ const GraphicsState GraphicsState::combineStates(const DynamicState &dynamicStat
 	if(dynamicStateFlags.dynamicViewport)
 	{
 		combinedState.viewport = dynamicState.viewport;
+	}
+
+	if(dynamicStateFlags.dynamicLineWidth)
+	{
+		combinedState.lineWidth = dynamicState.lineWidth;
 	}
 
 	if(dynamicStateFlags.dynamicBlendConstants)
