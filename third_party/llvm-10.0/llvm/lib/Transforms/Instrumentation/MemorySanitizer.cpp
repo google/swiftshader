@@ -3321,8 +3321,6 @@ struct MemorySanitizerVisitor : public InstVisitor<MemorySanitizerVisitor> {
 
     case Intrinsic::x86_sse41_round_sd:
     case Intrinsic::x86_sse41_round_ss:
-    case Intrinsic::x86_sse_rcp_ss:
-    case Intrinsic::x86_sse_rsqrt_ss:
       handleUnarySdSsIntrinsic(I);
       break;
     case Intrinsic::x86_sse2_max_sd:
