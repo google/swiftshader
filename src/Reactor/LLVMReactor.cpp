@@ -878,7 +878,6 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 	case Type_LLVM:
 		{
 			auto elTy = T(type);
-			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
 
 			if(!atomic)
 			{
@@ -962,7 +961,6 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 	case Type_LLVM:
 		{
 			auto elTy = T(type);
-			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
 
 			if(__has_feature(memory_sanitizer) && !jit->msanInstrumentation)
 			{
@@ -1238,7 +1236,7 @@ void Nucleus::createFence(std::memory_order memoryOrder)
 Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	ASSERT(V(ptr)->getType()->getContainedType(0) == T(type));
+
 	if(sizeof(void *) == 8)
 	{
 		// LLVM manual: "When indexing into an array, pointer or vector,
