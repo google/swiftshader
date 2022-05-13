@@ -27,11 +27,6 @@ config("swiftshader_llvm_reactor_private_config") {
     ]
   } else {
     cflags = [ "-Wno-unused-local-typedef" ]
-    defines = [
-      # Enable instrumentation of Reactor routines for MemorySanitizer builds (LLVM backend).
-      # TODO(b/155148722): Remove when unconditionally instrumenting for all build systems.
-      "REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION=1",
-    ]
   }
 }
 

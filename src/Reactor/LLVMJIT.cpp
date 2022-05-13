@@ -852,11 +852,7 @@ JITBuilder::JITBuilder()
 	module->setTargetTriple(LLVM_DEFAULT_TARGET_TRIPLE);
 	module->setDataLayout(JITGlobals::get()->getDataLayout());
 
-	if(REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION ||
-	   getPragmaState(MemorySanitizerInstrumentation))
-	{
-		msanInstrumentation = true;
-	}
+	msanInstrumentation = getPragmaState(MemorySanitizerInstrumentation);
 }
 
 void JITBuilder::runPasses()

@@ -30,7 +30,7 @@ namespace {
 
 struct PragmaState
 {
-	bool memorySanitizerInstrumentation = false;
+	bool memorySanitizerInstrumentation = true;
 	int optimizationLevel = 2;  // Default
 };
 

@@ -194,8 +194,6 @@ option_if_not_defined(REACTOR_EMIT_PRINT_LOCATION "Emit printing of location inf
 option_if_not_defined(REACTOR_EMIT_ASM_FILE "Emit asm files for JIT functions" FALSE)
 option_if_not_defined(REACTOR_ENABLE_PRINT "Enable RR_PRINT macros" FALSE)
 option_if_not_defined(REACTOR_VERIFY_LLVM_IR "Check reactor-generated LLVM IR is valid even in release builds" FALSE)
-# TODO(b/155148722): Remove when unconditionally instrumenting for all build systems.
-option_if_not_defined(REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION "Include JIT in MSAN instrumentation (LLVM backend)" TRUE)
 option_if_not_defined(SWIFTSHADER_LESS_DEBUG_INFO "Generate less debug info to reduce file size" FALSE)
 option_if_not_defined(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER "Enable Vulkan debugger support" FALSE)
 option_if_not_defined(SWIFTSHADER_ENABLE_ASTC "Enable ASTC compressed textures support" TRUE)  # TODO(b/150130101)
