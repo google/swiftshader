@@ -10,6 +10,7 @@ dEQP-VK.wsi.xlib.surface.query_surface_counters
 dEQP-VK.wsi.xlib.surface.query_formats
 dEQP-VK.wsi.xlib.surface.query_formats2
 dEQP-VK.wsi.xlib.surface.query_present_modes
+dEQP-VK.wsi.xlib.surface.query_present_modes2
 dEQP-VK.wsi.xlib.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.xlib.surface.query_devgroup_present_modes
 dEQP-VK.wsi.xlib.surface.destroy_null_handle
@@ -17,6 +18,7 @@ dEQP-VK.wsi.xlib.surface.initial_size
 dEQP-VK.wsi.xlib.surface.resize
 dEQP-VK.wsi.xlib.surface.query_formats_surfaceless
 dEQP-VK.wsi.xlib.surface.query_present_modes_surfaceless
+dEQP-VK.wsi.xlib.surface.query_present_modes2_surfaceless
 dEQP-VK.wsi.xlib.surface.query_formats2_surfaceless
 dEQP-VK.wsi.xlib.swapchain.create.min_image_count
 dEQP-VK.wsi.xlib.swapchain.create.image_format
@@ -468,6 +470,7 @@ dEQP-VK.wsi.xcb.surface.query_surface_counters
 dEQP-VK.wsi.xcb.surface.query_formats
 dEQP-VK.wsi.xcb.surface.query_formats2
 dEQP-VK.wsi.xcb.surface.query_present_modes
+dEQP-VK.wsi.xcb.surface.query_present_modes2
 dEQP-VK.wsi.xcb.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.xcb.surface.query_devgroup_present_modes
 dEQP-VK.wsi.xcb.surface.destroy_null_handle
@@ -475,6 +478,7 @@ dEQP-VK.wsi.xcb.surface.initial_size
 dEQP-VK.wsi.xcb.surface.resize
 dEQP-VK.wsi.xcb.surface.query_formats_surfaceless
 dEQP-VK.wsi.xcb.surface.query_present_modes_surfaceless
+dEQP-VK.wsi.xcb.surface.query_present_modes2_surfaceless
 dEQP-VK.wsi.xcb.surface.query_formats2_surfaceless
 dEQP-VK.wsi.xcb.swapchain.create.min_image_count
 dEQP-VK.wsi.xcb.swapchain.create.image_format
@@ -926,11 +930,13 @@ dEQP-VK.wsi.wayland.surface.query_surface_counters
 dEQP-VK.wsi.wayland.surface.query_formats
 dEQP-VK.wsi.wayland.surface.query_formats2
 dEQP-VK.wsi.wayland.surface.query_present_modes
+dEQP-VK.wsi.wayland.surface.query_present_modes2
 dEQP-VK.wsi.wayland.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.wayland.surface.query_devgroup_present_modes
 dEQP-VK.wsi.wayland.surface.destroy_null_handle
 dEQP-VK.wsi.wayland.surface.query_formats_surfaceless
 dEQP-VK.wsi.wayland.surface.query_present_modes_surfaceless
+dEQP-VK.wsi.wayland.surface.query_present_modes2_surfaceless
 dEQP-VK.wsi.wayland.surface.query_formats2_surfaceless
 dEQP-VK.wsi.wayland.swapchain.create.min_image_count
 dEQP-VK.wsi.wayland.swapchain.create.image_format
@@ -1383,12 +1389,14 @@ dEQP-VK.wsi.android.surface.query_surface_counters
 dEQP-VK.wsi.android.surface.query_formats
 dEQP-VK.wsi.android.surface.query_formats2
 dEQP-VK.wsi.android.surface.query_present_modes
+dEQP-VK.wsi.android.surface.query_present_modes2
 dEQP-VK.wsi.android.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.android.surface.query_devgroup_present_modes
 dEQP-VK.wsi.android.surface.destroy_null_handle
 dEQP-VK.wsi.android.surface.initial_size
 dEQP-VK.wsi.android.surface.query_formats_surfaceless
 dEQP-VK.wsi.android.surface.query_present_modes_surfaceless
+dEQP-VK.wsi.android.surface.query_present_modes2_surfaceless
 dEQP-VK.wsi.android.surface.query_formats2_surfaceless
 dEQP-VK.wsi.android.swapchain.create.min_image_count
 dEQP-VK.wsi.android.swapchain.create.image_format
@@ -2561,6 +2569,7 @@ dEQP-VK.wsi.win32.surface.query_surface_counters
 dEQP-VK.wsi.win32.surface.query_formats
 dEQP-VK.wsi.win32.surface.query_formats2
 dEQP-VK.wsi.win32.surface.query_present_modes
+dEQP-VK.wsi.win32.surface.query_present_modes2
 dEQP-VK.wsi.win32.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.win32.surface.query_devgroup_present_modes
 dEQP-VK.wsi.win32.surface.destroy_null_handle
@@ -2568,6 +2577,7 @@ dEQP-VK.wsi.win32.surface.initial_size
 dEQP-VK.wsi.win32.surface.resize
 dEQP-VK.wsi.win32.surface.query_formats_surfaceless
 dEQP-VK.wsi.win32.surface.query_present_modes_surfaceless
+dEQP-VK.wsi.win32.surface.query_present_modes2_surfaceless
 dEQP-VK.wsi.win32.surface.query_formats2_surfaceless
 dEQP-VK.wsi.win32.swapchain.create.min_image_count
 dEQP-VK.wsi.win32.swapchain.create.image_format
@@ -3019,6 +3029,7 @@ dEQP-VK.wsi.macos.surface.query_surface_counters
 dEQP-VK.wsi.macos.surface.query_formats
 dEQP-VK.wsi.macos.surface.query_formats2
 dEQP-VK.wsi.macos.surface.query_present_modes
+dEQP-VK.wsi.macos.surface.query_present_modes2
 dEQP-VK.wsi.macos.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.macos.surface.query_devgroup_present_modes
 dEQP-VK.wsi.macos.surface.destroy_null_handle
@@ -3026,6 +3037,7 @@ dEQP-VK.wsi.macos.surface.initial_size
 dEQP-VK.wsi.macos.surface.resize
 dEQP-VK.wsi.macos.surface.query_formats_surfaceless
 dEQP-VK.wsi.macos.surface.query_present_modes_surfaceless
+dEQP-VK.wsi.macos.surface.query_present_modes2_surfaceless
 dEQP-VK.wsi.macos.surface.query_formats2_surfaceless
 dEQP-VK.wsi.macos.swapchain.create.min_image_count
 dEQP-VK.wsi.macos.swapchain.create.image_format
@@ -3477,11 +3489,13 @@ dEQP-VK.wsi.headless.surface.query_surface_counters
 dEQP-VK.wsi.headless.surface.query_formats
 dEQP-VK.wsi.headless.surface.query_formats2
 dEQP-VK.wsi.headless.surface.query_present_modes
+dEQP-VK.wsi.headless.surface.query_present_modes2
 dEQP-VK.wsi.headless.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.headless.surface.query_devgroup_present_modes
 dEQP-VK.wsi.headless.surface.destroy_null_handle
 dEQP-VK.wsi.headless.surface.query_formats_surfaceless
 dEQP-VK.wsi.headless.surface.query_present_modes_surfaceless
+dEQP-VK.wsi.headless.surface.query_present_modes2_surfaceless
 dEQP-VK.wsi.headless.surface.query_formats2_surfaceless
 dEQP-VK.wsi.headless.swapchain.create.min_image_count
 dEQP-VK.wsi.headless.swapchain.create.image_format

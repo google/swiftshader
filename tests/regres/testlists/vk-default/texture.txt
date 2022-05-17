@@ -1767,12 +1767,6 @@ dEQP-VK.texture.filtering.3d.formats.r5g6b5_unorm.r5g6b5_unorm_nearest_mipmap_ne
 dEQP-VK.texture.filtering.3d.formats.r5g6b5_unorm.r5g6b5_unorm_linear_mipmap_nearest
 dEQP-VK.texture.filtering.3d.formats.r5g6b5_unorm.r5g6b5_unorm_nearest_mipmap_linear
 dEQP-VK.texture.filtering.3d.formats.r5g6b5_unorm.r5g6b5_unorm_linear_mipmap_linear
-dEQP-VK.texture.filtering.3d.formats.r10x6g10x6b10x6a10x6_unorm.r10x6g10x6b10x6a10x6_unorm_nearest
-dEQP-VK.texture.filtering.3d.formats.r10x6g10x6b10x6a10x6_unorm.r10x6g10x6b10x6a10x6_unorm_linear
-dEQP-VK.texture.filtering.3d.formats.r10x6g10x6b10x6a10x6_unorm.r10x6g10x6b10x6a10x6_unorm_nearest_mipmap_nearest
-dEQP-VK.texture.filtering.3d.formats.r10x6g10x6b10x6a10x6_unorm.r10x6g10x6b10x6a10x6_unorm_linear_mipmap_nearest
-dEQP-VK.texture.filtering.3d.formats.r10x6g10x6b10x6a10x6_unorm.r10x6g10x6b10x6a10x6_unorm_nearest_mipmap_linear
-dEQP-VK.texture.filtering.3d.formats.r10x6g10x6b10x6a10x6_unorm.r10x6g10x6b10x6a10x6_unorm_linear_mipmap_linear
 dEQP-VK.texture.filtering.3d.formats.r4g4b4a4_unorm.r4g4b4a4_unorm_nearest
 dEQP-VK.texture.filtering.3d.formats.r4g4b4a4_unorm.r4g4b4a4_unorm_linear
 dEQP-VK.texture.filtering.3d.formats.r4g4b4a4_unorm.r4g4b4a4_unorm_nearest_mipmap_nearest
