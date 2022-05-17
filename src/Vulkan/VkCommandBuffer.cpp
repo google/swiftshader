@@ -899,6 +899,7 @@ public:
 		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_GRAPHICS];
 
 		auto *pipeline = static_cast<vk::GraphicsPipeline *>(pipelineState.pipeline);
+		bool hasDynamicVertexStride = pipeline->hasDynamicVertexStride();
 
 		vk::Attachments &attachments = pipeline->getAttachments();
 		executionState.bindAttachments(&attachments);
@@ -908,7 +909,7 @@ public:
 		                            pipelineState.descriptorSets,
 		                            pipelineState.descriptorDynamicOffsets);
 		inputs.setVertexInputBinding(executionState.vertexInputBindings);
-		inputs.bindVertexInputs(firstInstance);
+		inputs.bindVertexInputs(firstInstance, hasDynamicVertexStride);
 
 		vk::IndexBuffer &indexBuffer = pipeline->getIndexBuffer();
 		indexBuffer.setIndexBufferBinding(executionState.indexBufferBinding, executionState.indexType);
@@ -935,7 +936,7 @@ public:
 				}
 			}
 
-			inputs.advanceInstanceAttributes();
+			inputs.advanceInstanceAttributes(hasDynamicVertexStride);
 		}
 	}
 };

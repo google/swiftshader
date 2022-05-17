@@ -23,6 +23,7 @@ struct Stream
 {
 	const void *buffer = nullptr;
 	unsigned int robustnessSize = 0;
+	VkVertexInputRate inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 	unsigned int vertexStride = 0;
 	unsigned int instanceStride = 0;
 	VkFormat format = VK_FORMAT_UNDEFINED;

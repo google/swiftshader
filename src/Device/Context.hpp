@@ -74,10 +74,11 @@ struct Inputs
 	inline const DescriptorSet::DynamicOffsets &getDescriptorDynamicOffsets() const { return descriptorDynamicOffsets; }
 	inline const sw::Stream &getStream(uint32_t i) const { return stream[i]; }
 
-	void bindVertexInputs(int firstInstance);
+	void bindVertexInputs(int firstInstance, bool dynamicInstanceStride);
 	void setVertexInputBinding(const VertexInputBinding vertexInputBindings[]);
-	void advanceInstanceAttributes();
+	void advanceInstanceAttributes(bool dynamicInstanceStride);
 	VkDeviceSize getVertexStride(uint32_t i, bool dynamicVertexStride) const;
+	VkDeviceSize getInstanceStride(uint32_t i, bool dynamicVertexStride) const;
 
 private:
 	VertexInputBinding vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS] = {};

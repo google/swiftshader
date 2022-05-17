@@ -173,9 +173,11 @@ Inputs::Inputs(const VkPipelineVertexInputStateCreateInfo *vertexInputState)
 	// when considering attributes. TODO: unfuse buffers from attributes in backend, is old GL model.
 	uint32_t vertexStrides[MAX_VERTEX_INPUT_BINDINGS];
 	uint32_t instanceStrides[MAX_VERTEX_INPUT_BINDINGS];
+	VkVertexInputRate inputRates[MAX_VERTEX_INPUT_BINDINGS];
 	for(uint32_t i = 0; i < vertexInputState->vertexBindingDescriptionCount; i++)
 	{
 		auto const &desc = vertexInputState->pVertexBindingDescriptions[i];
+		inputRates[desc.binding] = desc.inputRate;
 		vertexStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? desc.stride : 0;
 		instanceStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE ? desc.stride : 0;
 	}
@@ -187,6 +189,7 @@ Inputs::Inputs(const VkPipelineVertexInputStateCreateInfo *vertexInputState)
 		input.format = desc.format;
 		input.offset = desc.offset;
 		input.binding = desc.binding;
+		input.inputRate = inputRates[desc.binding];
 		input.vertexStride = vertexStrides[desc.binding];
 		input.instanceStride = instanceStrides[desc.binding];
 	}
@@ -201,7 +204,7 @@ void Inputs::updateDescriptorSets(const DescriptorSet::Array &dso,
 	descriptorDynamicOffsets = ddo;
 }
 
-void Inputs::bindVertexInputs(int firstInstance)
+void Inputs::bindVertexInputs(int firstInstance, bool dynamicInstanceStride)
 {
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
@@ -210,7 +213,7 @@ void Inputs::bindVertexInputs(int firstInstance)
 		{
 			const auto &vertexInput = vertexInputBindings[attrib.binding];
 			VkDeviceSize offset = attrib.offset + vertexInput.offset +
-			                      attrib.instanceStride * firstInstance;
+			                      getInstanceStride(i, dynamicInstanceStride) * firstInstance;
 			attrib.buffer = vertexInput.buffer ? vertexInput.buffer->getOffsetPointer(offset) : nullptr;
 
 			VkDeviceSize size = vertexInput.buffer ? vertexInput.buffer->getSize() : 0;
@@ -228,16 +231,18 @@ void Inputs::setVertexInputBinding(const VertexInputBinding bindings[])
 }
 
 // TODO(b/137740918): Optimize instancing to use a single draw call.
-void Inputs::advanceInstanceAttributes()
+void Inputs::advanceInstanceAttributes(bool dynamicInstanceStride)
 {
 	for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
 		auto &attrib = stream[i];
-		if((attrib.format != VK_FORMAT_UNDEFINED) && attrib.instanceStride && (attrib.instanceStride < attrib.robustnessSize))
+
+		VkDeviceSize instanceStride = getInstanceStride(i, dynamicInstanceStride);
+		if((attrib.format != VK_FORMAT_UNDEFINED) && instanceStride && (instanceStride < attrib.robustnessSize))
 		{
-			// Under the casts: attrib.buffer += attrib.instanceStride
-			attrib.buffer = (void const *)((uintptr_t)attrib.buffer + attrib.instanceStride);
-			attrib.robustnessSize -= attrib.instanceStride;
+			// Under the casts: attrib.buffer += instanceStride
+			attrib.buffer = (void const *)((uintptr_t)attrib.buffer + instanceStride);
+			attrib.robustnessSize -= instanceStride;
 		}
 	}
 }
@@ -343,7 +348,7 @@ GraphicsState::DynamicStateFlags GraphicsState::ParseDynamicStateFlags(const VkP
 VkDeviceSize Inputs::getVertexStride(uint32_t i, bool dynamicVertexStride) const
 {
 	auto &attrib = stream[i];
-	if(attrib.format != VK_FORMAT_UNDEFINED)
+	if(attrib.format != VK_FORMAT_UNDEFINED && attrib.inputRate == VK_VERTEX_INPUT_RATE_VERTEX)
 	{
 		if(dynamicVertexStride)
 		{
@@ -352,6 +357,24 @@ VkDeviceSize Inputs::getVertexStride(uint32_t i, bool dynamicVertexStride) const
 		else
 		{
 			return attrib.vertexStride;
+		}
+	}
+
+	return 0;
+}
+
+VkDeviceSize Inputs::getInstanceStride(uint32_t i, bool dynamicInstanceStride) const
+{
+	auto &attrib = stream[i];
+	if(attrib.format != VK_FORMAT_UNDEFINED && attrib.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE)
+	{
+		if(dynamicInstanceStride)
+		{
+			return vertexInputBindings[attrib.binding].stride;
+		}
+		else
+		{
+			return attrib.instanceStride;
 		}
 	}
 
