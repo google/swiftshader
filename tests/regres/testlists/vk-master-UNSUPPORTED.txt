@@ -1,3 +1,4 @@
+dEQP-VK.pipeline.pipeline_library.graphics_library.fast.4
 dEQP-VK.texture.compressed.astc_10x10_srgb_block_2d_npot
 dEQP-VK.texture.compressed.astc_10x10_srgb_block_2d_npot_mip1
 dEQP-VK.texture.compressed.astc_10x10_srgb_block_2d_pot
