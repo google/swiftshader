@@ -123,8 +123,6 @@ std::shared_ptr<sw::ComputeProgram> createProgram(vk::Device *device, std::share
 {
 	MARL_SCOPED_EVENT("createProgram");
 
-	rr::ScopedPragma msan(rr::MemorySanitizerInstrumentation, true);
-
 	vk::DescriptorSet::Bindings descriptorSets;  // TODO(b/129523279): Delay code generation until dispatch time.
 	// TODO(b/119409619): use allocator.
 	auto program = std::make_shared<sw::ComputeProgram>(device, shader, layout, descriptorSets);

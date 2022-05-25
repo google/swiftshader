@@ -100,8 +100,6 @@ SetupProcessor::RoutineType SetupProcessor::routine(const State &state)
 
 	if(!routine)
 	{
-		ScopedPragma msan(MemorySanitizerInstrumentation, true);
-
 		SetupRoutine *generator = new SetupRoutine(state);
 		generator->generate();
 		routine = generator->getRoutine();
