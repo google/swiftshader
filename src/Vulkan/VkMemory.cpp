@@ -21,12 +21,10 @@ namespace vk {
 
 void *allocateDeviceMemory(size_t bytes, size_t alignment)
 {
-	// TODO(b/140991626): Use allocateZeroOrPoison() instead of allocateZero() to detect MemorySanitizer errors.
 #if defined(SWIFTSHADER_ZERO_INITIALIZE_DEVICE_MEMORY)
-	return sw::allocateZero(bytes, alignment);
-#else
-	// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
 	return sw::allocateZeroOrPoison(bytes, alignment);
+#else
+	return sw::allocate(bytes, alignment);
 #endif
 }
 
@@ -43,7 +41,7 @@ void *allocateHostMemory(size_t bytes, size_t alignment, const VkAllocationCallb
 	}
 	else
 	{
-		// TODO(b/140991626): Use allocateUninitialized() instead of allocateZeroOrPoison() to improve startup peformance.
+		// TODO(b/140991626): Use allocate() instead of allocateZeroOrPoison() to improve startup performance.
 		return sw::allocateZeroOrPoison(bytes, alignment);
 	}
 }

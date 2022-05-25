@@ -22,9 +22,9 @@ namespace sw {
 
 size_t memoryPageSize();
 
-void *allocateUninitialized(size_t bytes, size_t alignment = 16);  // Never initialized.
-void *allocateZero(size_t bytes, size_t alignment = 16);           // Always initialized to zero.
-void *allocateZeroOrPoison(size_t bytes, size_t alignment = 16);   // Initialized to zero, except in MemorySanitizer builds.
+void *allocate(size_t bytes, size_t alignment = 16);              // Never initialized.
+void *allocateZero(size_t bytes, size_t alignment = 16);          // Always initialized to zero.
+void *allocateZeroOrPoison(size_t bytes, size_t alignment = 16);  // Initialized to zero, except in MemorySanitizer builds.
 
 void freeMemory(void *memory);
 

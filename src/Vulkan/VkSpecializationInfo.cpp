@@ -26,12 +26,12 @@ SpecializationInfo::SpecializationInfo(const VkSpecializationInfo *specializatio
 	{
 		info.mapEntryCount = specializationInfo->mapEntryCount;
 		size_t entriesSize = specializationInfo->mapEntryCount * sizeof(VkSpecializationMapEntry);
-		void *mapEntries = sw::allocateUninitialized(entriesSize);
+		void *mapEntries = sw::allocate(entriesSize);
 		memcpy(mapEntries, specializationInfo->pMapEntries, entriesSize);
 		info.pMapEntries = reinterpret_cast<VkSpecializationMapEntry *>(mapEntries);
 
 		info.dataSize = specializationInfo->dataSize;
-		void *data = sw::allocateUninitialized(specializationInfo->dataSize);
+		void *data = sw::allocate(specializationInfo->dataSize);
 		memcpy(data, specializationInfo->pData, specializationInfo->dataSize);
 		info.pData = data;
 	}

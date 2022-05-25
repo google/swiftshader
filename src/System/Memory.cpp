@@ -98,8 +98,7 @@ static void *allocate(size_t bytes, size_t alignment, bool clearToZero)
 	return aligned;
 }
 
-// TODO(b/140991626): Rename to allocate().
-void *allocateUninitialized(size_t bytes, size_t alignment)
+void *allocate(size_t bytes, size_t alignment)
 {
 	return allocate(bytes, alignment, false);
 }
