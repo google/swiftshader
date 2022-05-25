@@ -26,15 +26,15 @@ constexpr float PI = 3.141592653589793f;
 
 sw::SIMD::Float Interpolate(const sw::SIMD::Float &x, const sw::SIMD::Float &y, const sw::SIMD::Float &rhw,
                             const sw::SIMD::Float &A, const sw::SIMD::Float &B, const sw::SIMD::Float &C,
-                            bool flat, bool perspective)
+                            sw::SpirvRoutine::Interpolation interpolation)
 {
 	sw::SIMD::Float interpolant = C;
 
-	if(!flat)
+	if(interpolation != sw::SpirvRoutine::Flat)
 	{
 		interpolant += x * A + y * B;
 
-		if(perspective)
+		if(interpolation == sw::SpirvRoutine::Perspective)
 		{
 			interpolant *= rhw;
 		}
@@ -1099,7 +1099,7 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 			B = Insert(B, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, B), 16), i), i);
 			C = Insert(C, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, C), 16), i), i);
 		}
-		return ::Interpolate(x, y, rhw, A, B, C, false, true);
+		return ::Interpolate(x, y, rhw, A, B, C, state->routine->inputsInterpolation[packedInterpolant]);
 	}
 	else
 	{
@@ -1113,22 +1113,22 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 		planeEquation += offset * sizeof(PlaneEquation);
 	}
 
-	return SpirvRoutine::interpolateAtXY(x, y, rhw, planeEquation, false, true);
+	return SpirvRoutine::interpolateAtXY(x, y, rhw, planeEquation, state->routine->inputsInterpolation[packedInterpolant]);
 }
 
-SIMD::Float SpirvRoutine::interpolateAtXY(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective)
+SIMD::Float SpirvRoutine::interpolateAtXY(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw, Pointer<Byte> planeEquation, Interpolation interpolation)
 {
 	SIMD::Float A;
 	SIMD::Float B;
 	SIMD::Float C = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, C), 16);
 
-	if(!flat)
+	if(interpolation != SpirvRoutine::Flat)
 	{
 		A = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, A), 16);
 		B = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, B), 16);
 	}
 
-	return ::Interpolate(x, y, rhw, A, B, C, flat, perspective);
+	return ::Interpolate(x, y, rhw, A, B, C, interpolation);
 }
 
 }  // namespace sw

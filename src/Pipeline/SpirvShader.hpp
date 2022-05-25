@@ -1515,6 +1515,13 @@ public:
 		Pointer<Byte> function;
 	};
 
+	enum Interpolation
+	{
+		Perspective = 0,
+		Linear,
+		Flat,
+	};
+
 	struct InterpolationData
 	{
 		Pointer<Byte> primitive;
@@ -1531,6 +1538,7 @@ public:
 	std::unordered_map<SpirvShader::Object::ID, Variable> variables;
 	std::unordered_map<uint32_t, SamplerCache> samplerCache;  // Indexed by the instruction position, in words.
 	SIMD::Float inputs[MAX_INTERFACE_COMPONENTS];
+	Interpolation inputsInterpolation[MAX_INTERFACE_COMPONENTS];
 	SIMD::Float outputs[MAX_INTERFACE_COMPONENTS];
 	InterpolationData interpolationData;
 
@@ -1583,7 +1591,7 @@ public:
 	// common for all shader types.
 	void setImmutableInputBuiltins(SpirvShader const *shader);
 
-	static SIMD::Float interpolateAtXY(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
+	static SIMD::Float interpolateAtXY(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw, Pointer<Byte> planeEquation, Interpolation interpolation);
 
 	// setInputBuiltin() calls f() with the builtin and value if the shader
 	// uses the input builtin, otherwise the call is a no-op.
