@@ -1023,18 +1023,28 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 	SIMD::Float y;
 	SIMD::Float rhw;
 
+	bool multisample = (state->getMultiSampleCount() > 1);
 	switch(type)
 	{
 	case Centroid:
-		x = interpolationData.xCentroid;
-		y = interpolationData.yCentroid;
-		rhw = interpolationData.rhwCentroid;
+		if(multisample)
+		{
+			x = interpolationData.xCentroid;
+			y = interpolationData.yCentroid;
+			rhw = interpolationData.rhwCentroid;
+		}
+		else
+		{
+			x = interpolationData.x;
+			y = interpolationData.y;
+			rhw = interpolationData.rhw;
+		}
 		break;
 	case AtSample:
 		x = SIMD::Float(0.0f);
 		y = SIMD::Float(0.0f);
 
-		if(state->getMultiSampleCount() > 1)
+		if(multisample)
 		{
 			static constexpr int NUM_SAMPLES = 4;
 			ASSERT(state->getMultiSampleCount() == NUM_SAMPLES);
