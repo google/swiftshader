@@ -104,6 +104,8 @@ Ice::Variable *allocateStackVariable(Ice::Cfg *function, Ice::Type type, int arr
 	auto alloca = Ice::InstAlloca::create(function, address, bytes, typeSize);  // SRoA depends on the alignment to match the type size.
 	function->getEntryNode()->getInsts().push_front(alloca);
 
+	ASSERT(!rr::getPragmaState(rr::InitializeLocalVariables) && "Subzero does not support initializing local variables");
+
 	return address;
 }
 

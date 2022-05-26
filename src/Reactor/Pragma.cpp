@@ -31,6 +31,7 @@ namespace {
 struct PragmaState
 {
 	bool memorySanitizerInstrumentation = true;
+	bool initializeLocalVariables = false;
 	int optimizationLevel = 2;  // Default
 };
 
@@ -69,6 +70,9 @@ void Pragma(BooleanPragmaOption option, bool enable)
 	case MemorySanitizerInstrumentation:
 		state.memorySanitizerInstrumentation = enable;
 		break;
+	case InitializeLocalVariables:
+		state.initializeLocalVariables = enable;
+		break;
 	default:
 		UNSUPPORTED("Unknown Boolean pragma option %d", int(option));
 	}
@@ -96,6 +100,8 @@ bool getPragmaState(BooleanPragmaOption option)
 	{
 	case MemorySanitizerInstrumentation:
 		return state.memorySanitizerInstrumentation;
+	case InitializeLocalVariables:
+		return state.initializeLocalVariables;
 	default:
 		UNSUPPORTED("Unknown Boolean pragma option %d", int(option));
 		return false;

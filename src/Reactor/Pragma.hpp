@@ -22,6 +22,7 @@ namespace rr {
 enum BooleanPragmaOption
 {
 	MemorySanitizerInstrumentation,
+	InitializeLocalVariables,
 };
 
 enum IntegerPragmaOption

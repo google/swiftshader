@@ -17,6 +17,7 @@
 #include "CPUID.hpp"
 #include "Debug.hpp"
 #include "LLVMReactorDebugInfo.hpp"
+#include "PragmaInternals.hpp"
 #include "Print.hpp"
 #include "Reactor.hpp"
 #include "x86.hpp"
@@ -630,6 +631,18 @@ Value *Nucleus::allocateStackVariable(Type *type, int arraySize)
 	}
 
 	entryBlock.getInstList().push_front(declaration);
+
+	if(getPragmaState(InitializeLocalVariables))
+	{
+		llvm::Type *i8PtrTy = llvm::Type::getInt8Ty(*jit->context)->getPointerTo();
+		llvm::Type *i32Ty = llvm::Type::getInt32Ty(*jit->context);
+		llvm::Function *memset = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::memset, { i8PtrTy, i32Ty });
+
+		jit->builder->CreateCall(memset, { jit->builder->CreatePointerCast(declaration, i8PtrTy),
+		                                   V(Nucleus::createConstantByte((unsigned char)0)),
+		                                   V(Nucleus::createConstantInt((int)typeSize(type) * (arraySize ? arraySize : 1))),
+		                                   V(Nucleus::createConstantBool(false)) });
+	}
 
 	return V(declaration);
 }
