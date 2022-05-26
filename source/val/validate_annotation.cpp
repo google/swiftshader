@@ -136,8 +136,8 @@ std::string LogStringForDecoration(uint32_t decoration) {
       return "PerViewNV";
     case SpvDecorationPerTaskNV:
       return "PerTaskNV";
-    case SpvDecorationPerVertexNV:
-      return "PerVertexNV";
+    case SpvDecorationPerVertexKHR:
+      return "PerVertexKHR";
     case SpvDecorationNonUniform:
       return "NonUniform";
     case SpvDecorationRestrictPointer:
@@ -364,6 +364,11 @@ spv_result_t ValidateDecorationTarget(ValidationState_t& _, SpvDecoration dec,
       case SpvDecorationSample:
         if (sc != SpvStorageClassInput && sc != SpvStorageClassOutput) {
           return fail(4670) << "storage class must be Input or Output";
+        }
+        break;
+      case SpvDecorationPerVertexKHR:
+        if (sc != SpvStorageClassInput) {
+          return fail(6777) << "storage class must be Input";
         }
         break;
       default:

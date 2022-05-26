@@ -147,6 +147,7 @@ OpName %main "main"
 %v2double = OpTypeVector %double 2
 %v2half = OpTypeVector %half 2
 %v2bool = OpTypeVector %bool 2
+%m2x2int = OpTypeMatrix %v2int 2
 %struct_v2int_int_int = OpTypeStruct %v2int %int %int
 %_ptr_int = OpTypePointer Function %int
 %_ptr_uint = OpTypePointer Function %uint
@@ -218,7 +219,9 @@ OpName %main "main"
 %struct_v2int_int_int_null = OpConstantNull %struct_v2int_int_int
 %v2int_null = OpConstantNull %v2int
 %102 = OpConstantComposite %v2int %103 %103
+%v4int_undef = OpUndef %v4int
 %v4int_0_0_0_0 = OpConstantComposite %v4int %int_0 %int_0 %int_0 %int_0
+%m2x2int_undef = OpUndef %m2x2int
 %struct_undef_0_0 = OpConstantComposite %struct_v2int_int_int %v2int_undef %int_0 %int_0
 %float_n1 = OpConstant %float -1
 %104 = OpConstant %float 0 ; Need a def with an numerical id to define id maps.
@@ -6862,7 +6865,7 @@ INSTANTIATE_TEST_SUITE_P(SelectFoldingTest, MatchingInstructionFoldingTest,
       4, true)
 ));
 
-INSTANTIATE_TEST_SUITE_P(CompositeExtractMatchingTest, MatchingInstructionFoldingTest,
+INSTANTIATE_TEST_SUITE_P(CompositeExtractOrInsertMatchingTest, MatchingInstructionFoldingTest,
 ::testing::Values(
     // Test case 0: Extracting from result of consecutive shuffles of differing
     // size.
@@ -7002,7 +7005,145 @@ INSTANTIATE_TEST_SUITE_P(CompositeExtractMatchingTest, MatchingInstructionFoldin
             "%4 = OpCompositeExtract %int %3 1\n" +
             "OpReturn\n" +
             "OpFunctionEnd",
-        4, true)
+        4, true),
+    // Test case 8: Inserting every element of a vector turns into a composite construct.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "; CHECK: [[int:%\\w+]] = OpTypeInt 32 1\n" +
+            "; CHECK-DAG: [[v4:%\\w+]] = OpTypeVector [[int]] 4\n" +
+            "; CHECK-DAG: [[int1:%\\w+]] = OpConstant [[int]] 1\n" +
+            "; CHECK-DAG: [[int2:%\\w+]] = OpConstant [[int]] 2\n" +
+            "; CHECK-DAG: [[int3:%\\w+]] = OpConstant [[int]] 3\n" +
+            "; CHECK: [[construct:%\\w+]] = OpCompositeConstruct [[v4]] %100 [[int1]] [[int2]] [[int3]]\n" +
+            "; CHECK: %5 = OpCopyObject [[v4]] [[construct]]\n" +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpCompositeInsert %v4int %100 %v4int_undef 0\n" +
+            "%3 = OpCompositeInsert %v4int %int_1 %2 1\n" +
+            "%4 = OpCompositeInsert %v4int %int_2 %3 2\n" +
+            "%5 = OpCompositeInsert %v4int %int_3 %4 3\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        5, true),
+    // Test case 9: Inserting every element of a vector turns into a composite construct in a different order.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "; CHECK: [[int:%\\w+]] = OpTypeInt 32 1\n" +
+            "; CHECK-DAG: [[v4:%\\w+]] = OpTypeVector [[int]] 4\n" +
+            "; CHECK-DAG: [[int1:%\\w+]] = OpConstant [[int]] 1\n" +
+            "; CHECK-DAG: [[int2:%\\w+]] = OpConstant [[int]] 2\n" +
+            "; CHECK-DAG: [[int3:%\\w+]] = OpConstant [[int]] 3\n" +
+            "; CHECK: [[construct:%\\w+]] = OpCompositeConstruct [[v4]] %100 [[int1]] [[int2]] [[int3]]\n" +
+            "; CHECK: %5 = OpCopyObject [[v4]] [[construct]]\n" +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpCompositeInsert %v4int %100 %v4int_undef 0\n" +
+            "%4 = OpCompositeInsert %v4int %int_2 %2 2\n" +
+            "%3 = OpCompositeInsert %v4int %int_1 %4 1\n" +
+            "%5 = OpCompositeInsert %v4int %int_3 %3 3\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        5, true),
+    // Test case 10: Check multiple inserts to the same position are handled correctly.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "; CHECK: [[int:%\\w+]] = OpTypeInt 32 1\n" +
+            "; CHECK-DAG: [[v4:%\\w+]] = OpTypeVector [[int]] 4\n" +
+            "; CHECK-DAG: [[int1:%\\w+]] = OpConstant [[int]] 1\n" +
+            "; CHECK-DAG: [[int2:%\\w+]] = OpConstant [[int]] 2\n" +
+            "; CHECK-DAG: [[int3:%\\w+]] = OpConstant [[int]] 3\n" +
+            "; CHECK: [[construct:%\\w+]] = OpCompositeConstruct [[v4]] %100 [[int1]] [[int2]] [[int3]]\n" +
+            "; CHECK: %6 = OpCopyObject [[v4]] [[construct]]\n" +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpCompositeInsert %v4int %100 %v4int_undef 0\n" +
+            "%3 = OpCompositeInsert %v4int %int_2 %2 2\n" +
+            "%4 = OpCompositeInsert %v4int %int_4 %3 1\n" +
+            "%5 = OpCompositeInsert %v4int %int_1 %4 1\n" +
+            "%6 = OpCompositeInsert %v4int %int_3 %5 3\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        6, true),
+    // Test case 11: The last indexes are 0 and 1, but they have different first indexes.  This should not be folded.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpCompositeInsert %m2x2int %100 %m2x2int_undef 0 0\n" +
+            "%3 = OpCompositeInsert %m2x2int %int_1 %2 1 1\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        3, false),
+    // Test case 12: Don't fold when there is a partial insertion.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpCompositeInsert %m2x2int %v2int_1_0 %m2x2int_undef 0\n" +
+            "%3 = OpCompositeInsert %m2x2int %int_4 %2 0 0\n" +
+            "%4 = OpCompositeInsert %m2x2int %v2int_2_3 %3 1\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        4, false),
+    // Test case 13: Insert into a column of a matrix
+    InstructionFoldingCase<bool>(
+        Header() +
+            "; CHECK: [[int:%\\w+]] = OpTypeInt 32 1\n" +
+            "; CHECK-DAG: [[v2:%\\w+]] = OpTypeVector [[int]] 2\n" +
+            "; CHECK: [[m2x2:%\\w+]] = OpTypeMatrix [[v2]] 2\n" +
+            "; CHECK-DAG: [[m2x2_undef:%\\w+]] = OpUndef [[m2x2]]\n" +
+            "; CHECK-DAG: [[int1:%\\w+]] = OpConstant [[int]] 1\n" +
+// We keep this insert in the chain.  DeadInsertElimPass should remove it.
+            "; CHECK: [[insert:%\\w+]] = OpCompositeInsert [[m2x2]] %100 [[m2x2_undef]] 0 0\n" +
+            "; CHECK: [[construct:%\\w+]] = OpCompositeConstruct [[v2]] %100 [[int1]]\n" +
+            "; CHECK: %3 = OpCompositeInsert [[m2x2]] [[construct]] [[insert]] 0\n" +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpCompositeInsert %m2x2int %100 %m2x2int_undef 0 0\n" +
+            "%3 = OpCompositeInsert %m2x2int %int_1 %2 0 1\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        3, true),
+    // Test case 14: Insert all elements of the matrix.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "; CHECK: [[int:%\\w+]] = OpTypeInt 32 1\n" +
+            "; CHECK-DAG: [[v2:%\\w+]] = OpTypeVector [[int]] 2\n" +
+            "; CHECK: [[m2x2:%\\w+]] = OpTypeMatrix [[v2]] 2\n" +
+            "; CHECK-DAG: [[m2x2_undef:%\\w+]] = OpUndef [[m2x2]]\n" +
+            "; CHECK-DAG: [[int1:%\\w+]] = OpConstant [[int]] 1\n" +
+            "; CHECK-DAG: [[int2:%\\w+]] = OpConstant [[int]] 2\n" +
+            "; CHECK-DAG: [[int3:%\\w+]] = OpConstant [[int]] 3\n" +
+            "; CHECK: [[c0:%\\w+]] = OpCompositeConstruct [[v2]] %100 [[int1]]\n" +
+            "; CHECK: [[c1:%\\w+]] = OpCompositeConstruct [[v2]] [[int2]] [[int3]]\n" +
+            "; CHECK: [[matrix:%\\w+]] = OpCompositeConstruct [[m2x2]] [[c0]] [[c1]]\n" +
+            "; CHECK: %5 = OpCopyObject [[m2x2]] [[matrix]]\n" +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpCompositeConstruct %v2int %100 %int_1\n" +
+            "%3 = OpCompositeInsert %m2x2int %2 %m2x2int_undef 0\n" +
+            "%4 = OpCompositeInsert %m2x2int %int_2 %3 1 0\n" +
+            "%5 = OpCompositeInsert %m2x2int %int_3 %4 1 1\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        5, true),
+    // Test case 15: Replace construct with extract when reconstructing a member
+    // of another object.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "; CHECK: [[int:%\\w+]] = OpTypeInt 32 1\n" +
+            "; CHECK: [[v2:%\\w+]] = OpTypeVector [[int]] 2\n" +
+            "; CHECK: [[m2x2:%\\w+]] = OpTypeMatrix [[v2]] 2\n" +
+            "; CHECK: [[m2x2_undef:%\\w+]] = OpUndef [[m2x2]]\n" +
+            "; CHECK: %5 = OpCompositeExtract [[v2]] [[m2x2_undef]]\n" +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%3 = OpCompositeExtract %int %m2x2int_undef 1 0\n" +
+            "%4 = OpCompositeExtract %int %m2x2int_undef 1 1\n" +
+            "%5 = OpCompositeConstruct %v2int %3 %4\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        5, true)
 ));
 
 INSTANTIATE_TEST_SUITE_P(DotProductMatchingTest, MatchingInstructionFoldingTest,
