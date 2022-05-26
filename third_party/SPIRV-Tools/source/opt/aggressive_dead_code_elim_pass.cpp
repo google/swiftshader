@@ -968,6 +968,7 @@ void AggressiveDCEPass::InitExtensions() {
       "SPV_EXT_shader_image_int64",
       "SPV_KHR_non_semantic_info",
       "SPV_KHR_uniform_group_instructions",
+      "SPV_KHR_fragment_shader_barycentric",
   });
 }
 

@@ -39,6 +39,8 @@ if [[ $(git diff --stat) != '' ]]; then
     exit 1
 fi
 
+echo "*** Ignore messages about running 'git cl upload' ***"
+
 old_head=$(git rev-parse HEAD)
 
 set +e

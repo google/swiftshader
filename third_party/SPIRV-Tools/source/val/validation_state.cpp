@@ -1411,6 +1411,18 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
   // Clang format adds spaces between hyphens
   // clang-format off
   switch (id) {
+    case 4154:
+      return VUID_WRAP(VUID-BaryCoordKHR-BaryCoordKHR-04154);
+    case 4155:
+      return VUID_WRAP(VUID-BaryCoordKHR-BaryCoordKHR-04155);
+    case 4156:
+      return VUID_WRAP(VUID-BaryCoordKHR-BaryCoordKHR-04156);
+    case 4160:
+      return VUID_WRAP(VUID-BaryCoordNoPerspKHR-BaryCoordNoPerspKHR-04160);
+    case 4161:
+      return VUID_WRAP(VUID-BaryCoordNoPerspKHR-BaryCoordNoPerspKHR-04161);
+    case 4162:
+      return VUID_WRAP(VUID-BaryCoordNoPerspKHR-BaryCoordNoPerspKHR-04162);
     case 4181:
       return VUID_WRAP(VUID-BaseInstance-BaseInstance-04181);
     case 4182:
@@ -1443,6 +1455,12 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-CullDistance-CullDistance-04199);
     case 4200:
       return VUID_WRAP(VUID-CullDistance-CullDistance-04200);
+    case 6735:
+      return VUID_WRAP(VUID-CullMaskKHR-CullMaskKHR-06735); // Execution Model
+    case 6736:
+      return VUID_WRAP(VUID-CullMaskKHR-CullMaskKHR-06736); // input storage
+    case 6737:
+      return VUID_WRAP(VUID-CullMaskKHR-CullMaskKHR-06737); // 32 int scalar
     case 4205:
       return VUID_WRAP(VUID-DeviceIndex-DeviceIndex-04205);
     case 4206:
@@ -1919,6 +1937,10 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-UniformConstant-06677);
     case 6678:
       return VUID_WRAP(VUID-StandaloneSpirv-InputAttachmentIndex-06678);
+    case 6777:
+      return VUID_WRAP(VUID-StandaloneSpirv-PerVertexKHR-06777);
+    case 6778:
+      return VUID_WRAP(VUID-StandaloneSpirv-Input-06778);
     default:
       return "";  // unknown id
   }

@@ -406,6 +406,83 @@ TEST_F(ReplaceDescArrayAccessUsingVarIndexTest,
   SinglePassRunAndMatch<ReplaceDescArrayAccessUsingVarIndex>(text, true);
 }
 
+TEST_F(ReplaceDescArrayAccessUsingVarIndexTest, ReplaceMultipleAccessChains) {
+  const std::string text = R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %1 "TestFragment" %2
+               OpExecutionMode %1 OriginUpperLeft
+               OpName %11 "type.ConstantBuffer.TestStruct"
+               OpMemberName %11 0 "val1"
+               OpMemberName %11 1 "val2"
+               OpName %3 "TestResources"
+               OpName %13 "type.2d.image"
+               OpName %4 "OutBuffer"
+               OpName %2 "in.var.SV_INSTANCEID"
+               OpName %1 "TestFragment"
+               OpDecorate %2 Flat
+               OpDecorate %2 Location 0
+               OpDecorate %3 DescriptorSet 0
+               OpDecorate %3 Binding 0
+               OpDecorate %4 DescriptorSet 0
+               OpDecorate %4 Binding 1
+               OpMemberDecorate %11 0 Offset 0
+               OpMemberDecorate %11 1 Offset 4
+               OpDecorate %11 Block
+         %9  = OpTypeInt 32 0
+         %10 = OpConstant %9 2
+         %11 = OpTypeStruct %9 %9
+         %8  = OpTypeArray %11 %10
+         %7  = OpTypePointer Uniform %8
+         %13 = OpTypeImage %9 2D 2 0 0 2 R32ui
+         %12 = OpTypePointer UniformConstant %13
+         %14 = OpTypePointer Input %9
+         %15 = OpTypeVoid
+         %16 = OpTypeFunction %15
+         %40 = OpTypeVector %9 2
+         %3  = OpVariable %7 Uniform
+         %4  = OpVariable %12 UniformConstant
+         %2  = OpVariable %14 Input
+         %57 = OpTypePointer Uniform %11
+         %61 = OpTypePointer Uniform %9
+         %62 = OpConstant %9 0
+         %1  = OpFunction %15 None %16
+         %17 = OpLabel
+         %20 = OpLoad %9 %2
+         %47 = OpAccessChain %57 %3 %20
+         %63 = OpAccessChain %61 %47 %62
+         %64 = OpLoad %9 %63
+
+; CHECK: [[null_value:%\w+]] = OpConstantNull %uint
+
+; CHECK: [[var_index:%\w+]] = OpLoad %uint %in_var_SV_INSTANCEID
+; CHECK: OpSelectionMerge [[merge:%\w+]] None
+; CHECK: OpSwitch [[var_index]] [[default:%\w+]] 0 [[case0:%\w+]] 1 [[case1:%\w+]]
+; CHECK: [[case0]] = OpLabel
+; CHECK: OpAccessChain
+; CHECK: OpAccessChain
+; CHECK: [[result0:%\w+]] = OpLoad
+; CHECK: OpBranch [[merge]]
+; CHECK: [[case1]] = OpLabel
+; CHECK: OpAccessChain
+; CHECK: OpAccessChain
+; CHECK: [[result1:%\w+]] = OpLoad
+; CHECK: OpBranch [[merge]]
+; CHECK: [[default]] = OpLabel
+; CHECK: OpBranch [[merge]]
+; CHECK: [[merge]] = OpLabel
+; CHECK: OpPhi %uint [[result0]] [[case0]] [[result1]] [[case1]] [[null_value]] [[default]]
+
+         %55 = OpCompositeConstruct %40 %20 %20
+         %56 = OpLoad %13 %4
+               OpImageWrite %56 %55 %64 None
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<ReplaceDescArrayAccessUsingVarIndex>(text, true);
+}
+
 TEST_F(ReplaceDescArrayAccessUsingVarIndexTest,
        ReplaceAccessChainToTextureArrayWithNonUniformIndex) {
   const std::string text = R"(
