@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set(SPIRV_TOOLS_OPT_SOURCES
+  fix_func_call_arguments.h
   aggressive_dead_code_elim_pass.h
   amd_ext_to_khr.h
   basic_block.h
@@ -67,6 +68,7 @@ set(SPIRV_TOOLS_OPT_SOURCES
   instruction.h
   instruction_list.h
   instrument_pass.h
+  interface_var_sroa.h
   interp_fixup_pass.h
   ir_builder.h
   ir_context.h
@@ -126,6 +128,7 @@ set(SPIRV_TOOLS_OPT_SOURCES
   workaround1209.h
   wrap_opkill.h
 
+  fix_func_call_arguments.cpp
   aggressive_dead_code_elim_pass.cpp
   amd_ext_to_khr.cpp
   basic_block.cpp
@@ -180,6 +183,7 @@ set(SPIRV_TOOLS_OPT_SOURCES
   instruction.cpp
   instruction_list.cpp
   instrument_pass.cpp
+  interface_var_sroa.cpp
   interp_fixup_pass.cpp
   ir_context.cpp
   ir_loader.cpp
