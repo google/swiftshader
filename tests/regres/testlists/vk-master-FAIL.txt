@@ -1,16 +1,4 @@
 dEQP-VK.api.driver_properties.conformance_version
-dEQP-VK.draw.dynamic_rendering.linear_interpolation.no_offset_1_sample
-dEQP-VK.draw.dynamic_rendering.linear_interpolation.no_offset_4_samples
-dEQP-VK.draw.dynamic_rendering.linear_interpolation.offset_max_1_sample
-dEQP-VK.draw.dynamic_rendering.linear_interpolation.offset_max_4_samples
-dEQP-VK.draw.dynamic_rendering.linear_interpolation.offset_min_1_sample
-dEQP-VK.draw.dynamic_rendering.linear_interpolation.offset_min_4_samples
-dEQP-VK.draw.renderpass.linear_interpolation.no_offset_1_sample
-dEQP-VK.draw.renderpass.linear_interpolation.no_offset_4_samples
-dEQP-VK.draw.renderpass.linear_interpolation.offset_max_1_sample
-dEQP-VK.draw.renderpass.linear_interpolation.offset_max_4_samples
-dEQP-VK.draw.renderpass.linear_interpolation.offset_min_1_sample
-dEQP-VK.draw.renderpass.linear_interpolation.offset_min_4_samples
 dEQP-VK.fragment_operations.early_fragment.discard_early_fragment_tests_stencil
 dEQP-VK.fragment_operations.early_fragment.early_fragment_tests_depth
 dEQP-VK.fragment_operations.early_fragment.no_early_fragment_tests_depth
