@@ -50,7 +50,7 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesVector(InsnIterator insn, Em
 		SIMD::Float v = lhs.Float(i) * rhs.Float(0);
 		for(auto j = 1u; j < rhs.componentCount; j++)
 		{
-			v += lhs.Float(i + type.componentCount * j) * rhs.Float(j);
+			v = MulAdd(lhs.Float(i + type.componentCount * j), rhs.Float(j), v);
 		}
 		dst.move(i, v);
 	}
@@ -70,7 +70,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesMatrix(InsnIterator insn, Em
 		SIMD::Float v = lhs.Float(0) * rhs.Float(i * lhs.componentCount);
 		for(auto j = 1u; j < lhs.componentCount; j++)
 		{
-			v += lhs.Float(j) * rhs.Float(i * lhs.componentCount + j);
+			v = MulAdd(lhs.Float(j), rhs.Float(i * lhs.componentCount + j), v);
 		}
 		dst.move(i, v);
 	}
@@ -93,10 +93,10 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, Em
 	{
 		for(auto col = 0u; col < numColumns; col++)
 		{
-			SIMD::Float v = SIMD::Float(0);
-			for(auto i = 0u; i < numAdds; i++)
+			SIMD::Float v = lhs.Float(row) * rhs.Float(col * numAdds);
+			for(auto i = 1u; i < numAdds; i++)
 			{
-				v += lhs.Float(i * numRows + row) * rhs.Float(col * numAdds + i);
+				v = MulAdd(lhs.Float(i * numRows + row), rhs.Float(col * numAdds + i), v);
 			}
 			dst.move(numRows * col + row, v);
 		}
@@ -581,7 +581,7 @@ SIMD::Float SpirvShader::FDot(unsigned numComponents, Operand const &x, Operand 
 
 	for(auto i = 1u; i < numComponents; i++)
 	{
-		d += x.Float(i) * y.Float(i);
+		d = MulAdd(x.Float(i), y.Float(i), d);
 	}
 
 	return d;
