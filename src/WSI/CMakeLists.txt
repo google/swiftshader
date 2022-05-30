@@ -41,10 +41,12 @@ elseif(LINUX)
         )
     endif()
 
-    if(WAYLAND)
+    if(HAVE_WAYLAND_CLIENT_H)
         list(APPEND WSI_SRC_FILES
             WaylandSurfaceKHR.cpp
             WaylandSurfaceKHR.hpp
+            libWaylandClient.cpp
+            libWaylandClient.hpp
         )
     endif()
 

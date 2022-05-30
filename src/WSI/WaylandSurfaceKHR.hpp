@@ -34,6 +34,7 @@ struct WaylandImage
 class WaylandSurfaceKHR : public SurfaceKHR, public ObjectBase<WaylandSurfaceKHR, VkSurfaceKHR>
 {
 public:
+	static bool isSupported();
 	WaylandSurfaceKHR(const VkWaylandSurfaceCreateInfoKHR *pCreateInfo, void *mem);
 
 	void destroySurface(const VkAllocationCallbacks *pAllocator) override;
