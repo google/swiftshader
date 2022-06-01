@@ -138,6 +138,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 			if(earlyFragmentTests)
 			{
 				writeDepth(zBuffer, x, zMask, samples);
+				occlusionSampleCount(zMask, sMask, samples);
 			}
 
 			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16);
@@ -311,11 +312,10 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 					if(!earlyFragmentTests)
 					{
 						writeDepth(zBuffer, x, zMask, samples);
+						occlusionSampleCount(zMask, sMask, samples);
 					}
 
 					blendColor(cBuffer, x, sMask, zMask, cMask, samples);
-
-					occlusionSampleCount(zMask, sMask, samples);
 				}
 			}
 		}
