@@ -129,6 +129,8 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				depthPass = depthPass || depthTest(zBuffer, q, x, z[q], sMask[q], zMask[q], cMask[q]);
 				depthBoundsTest(zBuffer, q, x, zMask[q], cMask[q]);
 			}
+
+			writeStencil(sBuffer, x, sMask, zMask, cMask, samples);
 		}
 
 		If(depthPass || !earlyFragmentTests)
@@ -318,7 +320,10 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 			}
 		}
 
-		writeStencil(sBuffer, x, sMask, zMask, cMask, samples);
+		if(!earlyFragmentTests)
+		{
+			writeStencil(sBuffer, x, sMask, zMask, cMask, samples);
+		}
 	}
 }
 
