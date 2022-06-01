@@ -2141,7 +2141,7 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 {
 	Vector4i border;
 
-	const bool scaled = hasNormalizedFormat() && !state.compareEnable;
+	const bool scaled = hasNormalizedFormat();
 	const sw::float4 scaleComp = scaled ? getComponentScale() : sw::float4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	switch(state.border)
