@@ -1,7 +1,20 @@
 Revision history for SPIRV-Tools
 
-v2022.3-dev 2022-04-07
-  - Start v2022.3-dev
+v2022.3-dev 2022-05-31
+  - General
+    - Add SPV_KHR_fragment_shader_barycentric support (#4805)
+    - Add support for SPV_KHR_subgroup_rotate (#4786)
+  - Optimizer
+    - Fold multiply and subtraction into FMA with negation (#4808)
+    - Add more folding for composite instructions (#4802)
+    - spirv-opt: add pass for interface variable scalar replacement (#4779)
+    - Don't try to unroll loop with step count 0. (#4769)
+  - Validator
+    - spirv-val: Add PerVertexKHR (#4807)
+    - spirv-opt : Add FixFuncCallArgumentsPass (#4775)
+    - spirv-val: Add CullMaskKHR support (#4792)
+  - Linker
+    - linker: Recalculate interface variables (#4784)
 
 v2022.2 2022-04-07
   - General

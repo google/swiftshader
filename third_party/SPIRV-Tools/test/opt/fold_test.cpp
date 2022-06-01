@@ -7359,7 +7359,7 @@ INSTANTIATE_TEST_SUITE_P(FmaGenerationMatchingTest, MatchingInstructionFoldingTe
            "OpReturn\n" +
            "OpFunctionEnd",
        3, true),
-    // Test 5: that the OpExtInstImport instruction is generated if it is missing.
+    // Test 4: that the OpExtInstImport instruction is generated if it is missing.
    InstructionFoldingCase<bool>(
            std::string() +
            "; CHECK: [[ext:%\\w+]] = OpExtInstImport \"GLSL.std.450\"\n" +
@@ -7454,7 +7454,63 @@ INSTANTIATE_TEST_SUITE_P(FmaGenerationMatchingTest, MatchingInstructionFoldingTe
                "OpStore %a %3\n" +
                "OpReturn\n" +
                "OpFunctionEnd",
-           3, false)
+           3, false),
+    // Test case 7: (x * y) - a = Fma(x, y, -a)
+    InstructionFoldingCase<bool>(
+       Header() +
+           "; CHECK: [[ext:%\\w+]] = OpExtInstImport \"GLSL.std.450\"\n" +
+           "; CHECK: OpFunction\n" +
+           "; CHECK: [[x:%\\w+]] = OpVariable {{%\\w+}} Function\n" +
+           "; CHECK: [[y:%\\w+]] = OpVariable {{%\\w+}} Function\n" +
+           "; CHECK: [[a:%\\w+]] = OpVariable {{%\\w+}} Function\n" +
+           "; CHECK: [[lx:%\\w+]] = OpLoad {{%\\w+}} [[x]]\n" +
+           "; CHECK: [[ly:%\\w+]] = OpLoad {{%\\w+}} [[y]]\n" +
+           "; CHECK: [[la:%\\w+]] = OpLoad {{%\\w+}} [[a]]\n" +
+           "; CHECK: [[na:%\\w+]] = OpFNegate {{%\\w+}} [[la]]\n" +
+           "; CHECK: [[fma:%\\w+]] = OpExtInst {{%\\w+}} [[ext]] Fma [[lx]] [[ly]] [[na]]\n" +
+           "; CHECK: OpStore {{%\\w+}} [[fma]]\n" +
+           "%main = OpFunction %void None %void_func\n" +
+           "%main_lab = OpLabel\n" +
+           "%x = OpVariable %_ptr_float Function\n" +
+           "%y = OpVariable %_ptr_float Function\n" +
+           "%a = OpVariable %_ptr_float Function\n" +
+           "%lx = OpLoad %float %x\n" +
+           "%ly = OpLoad %float %y\n" +
+           "%mul = OpFMul %float %lx %ly\n" +
+           "%la = OpLoad %float %a\n" +
+           "%3 = OpFSub %float %mul %la\n" +
+           "OpStore %a %3\n" +
+           "OpReturn\n" +
+           "OpFunctionEnd",
+       3, true),
+   // Test case 8: a - (x * y) = Fma(-x, y, a)
+   InstructionFoldingCase<bool>(
+       Header() +
+           "; CHECK: [[ext:%\\w+]] = OpExtInstImport \"GLSL.std.450\"\n" +
+           "; CHECK: OpFunction\n" +
+           "; CHECK: [[x:%\\w+]] = OpVariable {{%\\w+}} Function\n" +
+           "; CHECK: [[y:%\\w+]] = OpVariable {{%\\w+}} Function\n" +
+           "; CHECK: [[a:%\\w+]] = OpVariable {{%\\w+}} Function\n" +
+           "; CHECK: [[lx:%\\w+]] = OpLoad {{%\\w+}} [[x]]\n" +
+           "; CHECK: [[ly:%\\w+]] = OpLoad {{%\\w+}} [[y]]\n" +
+           "; CHECK: [[la:%\\w+]] = OpLoad {{%\\w+}} [[a]]\n" +
+           "; CHECK: [[nx:%\\w+]] = OpFNegate {{%\\w+}} [[lx]]\n" +
+           "; CHECK: [[fma:%\\w+]] = OpExtInst {{%\\w+}} [[ext]] Fma [[nx]] [[ly]] [[la]]\n" +
+           "; CHECK: OpStore {{%\\w+}} [[fma]]\n" +
+           "%main = OpFunction %void None %void_func\n" +
+           "%main_lab = OpLabel\n" +
+           "%x = OpVariable %_ptr_float Function\n" +
+           "%y = OpVariable %_ptr_float Function\n" +
+           "%a = OpVariable %_ptr_float Function\n" +
+           "%lx = OpLoad %float %x\n" +
+           "%ly = OpLoad %float %y\n" +
+           "%mul = OpFMul %float %lx %ly\n" +
+           "%la = OpLoad %float %a\n" +
+           "%3 = OpFSub %float %la %mul\n" +
+           "OpStore %a %3\n" +
+           "OpReturn\n" +
+           "OpFunctionEnd",
+       3, true)
 ));
 
 using MatchingInstructionWithNoResultFoldingTest =
