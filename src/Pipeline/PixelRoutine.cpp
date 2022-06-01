@@ -836,29 +836,20 @@ void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, const Int &x, const Int 
 
 Byte8 PixelRoutine::stencilOperation(const Byte8 &bufferValue, const PixelProcessor::States::StencilOpState &ops, bool isBack, const Int &zMask, const Int &sMask)
 {
-	Byte8 fail;
-	Byte8 zFail;
-
 	Byte8 pass = stencilOperation(bufferValue, ops.passOp, isBack);
 
-	if(ops.depthFailOp != ops.passOp)
+	if(state.depthTestActive && ops.depthFailOp != ops.passOp)  // zMask valid and values not the same
 	{
-		zFail = stencilOperation(bufferValue, ops.depthFailOp, isBack);
+		Byte8 zFail = stencilOperation(bufferValue, ops.depthFailOp, isBack);
+
+		pass &= *Pointer<Byte8>(constants + OFFSET(Constants, maskB4Q) + 8 * zMask);
+		zFail &= *Pointer<Byte8>(constants + OFFSET(Constants, invMaskB4Q) + 8 * zMask);
+		pass |= zFail;
 	}
 
-	if(ops.failOp != ops.passOp || ops.failOp != ops.depthFailOp)
+	if(ops.failOp != ops.passOp || (state.depthTestActive && ops.failOp != ops.depthFailOp))
 	{
-		fail = stencilOperation(bufferValue, ops.failOp, isBack);
-	}
-
-	if(ops.failOp != ops.passOp || ops.failOp != ops.depthFailOp)
-	{
-		if(state.depthTestActive && ops.depthFailOp != ops.passOp)  // zMask valid and values not the same
-		{
-			pass &= *Pointer<Byte8>(constants + OFFSET(Constants, maskB4Q) + 8 * zMask);
-			zFail &= *Pointer<Byte8>(constants + OFFSET(Constants, invMaskB4Q) + 8 * zMask);
-			pass |= zFail;
-		}
+		Byte8 fail = stencilOperation(bufferValue, ops.failOp, isBack);
 
 		pass &= *Pointer<Byte8>(constants + OFFSET(Constants, maskB4Q) + 8 * sMask);
 		fail &= *Pointer<Byte8>(constants + OFFSET(Constants, invMaskB4Q) + 8 * sMask);
