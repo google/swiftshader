@@ -20,6 +20,7 @@
 #include "PragmaInternals.hpp"
 #include "Print.hpp"
 #include "Reactor.hpp"
+#include "SIMD.hpp"
 #include "x86.hpp"
 
 #include "llvm/IR/Intrinsics.h"
@@ -358,6 +359,8 @@ llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
 }  // namespace
 
 namespace rr {
+
+const int SIMD::Width = 8;
 
 std::string Caps::backendName()
 {
@@ -4310,6 +4313,11 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name)
 Nucleus::CoroutineHandle Nucleus::invokeCoroutineBegin(Routine &routine, std::function<Nucleus::CoroutineHandle()> func)
 {
 	return func();
+}
+
+Type *SIMD::Int::type()
+{
+	return T(llvm::VectorType::get(T(rr::Int::type()), SIMD::Width, false));
 }
 
 }  // namespace rr

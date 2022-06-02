@@ -34,6 +34,8 @@ set(REACTOR_SRC_FILES
     ReactorDebugInfo.cpp
     ReactorDebugInfo.hpp
     Routine.hpp
+    SIMD.cpp
+    SIMD.hpp
     Swizzle.hpp
 )
 

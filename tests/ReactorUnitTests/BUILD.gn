@@ -29,6 +29,7 @@ if (supports_llvm) {
 
     sources = [
       "//gpu/swiftshader_tests_main.cc",
+      "ReactorSIMD.cpp",
       "ReactorUnitTests.cpp",
     ]
 
@@ -52,6 +53,7 @@ if (supports_subzero) {
 
     sources = [
       "//gpu/swiftshader_tests_main.cc",
+      "ReactorSIMD.cpp",
       "ReactorUnitTests.cpp",
     ]
 

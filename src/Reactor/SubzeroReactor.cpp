@@ -16,6 +16,7 @@
 #include "Print.hpp"
 #include "Reactor.hpp"
 #include "ReactorDebugInfo.hpp"
+#include "SIMD.hpp"
 
 #include "ExecutableMemory.hpp"
 #include "Optimizer.hpp"
@@ -341,6 +342,8 @@ static_assert(!subzeroEmitTextAsm, "Compile Subzero with ALLOW_DUMP=1 for subzer
 }  // anonymous namespace
 
 namespace rr {
+
+const int SIMD::Width = 4;
 
 std::string Caps::backendName()
 {
@@ -5080,6 +5083,11 @@ Nucleus::CoroutineHandle Nucleus::invokeCoroutineBegin(Routine &routine, std::fu
 		// For regular routines, just invoke the begin func directly
 		return func();
 	}
+}
+
+Type *SIMD::Int::type()
+{
+	return T(Ice::IceType_v4i32);
 }
 
 }  // namespace rr

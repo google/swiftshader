@@ -43,6 +43,7 @@ swiftshader_source_set("swiftshader_reactor_base") {
     "ExecutableMemory.cpp",
     "Pragma.cpp",
     "Reactor.cpp",
+    "SIMD.cpp",
   ]
 
   configs = [

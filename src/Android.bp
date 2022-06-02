@@ -39,6 +39,7 @@ cc_defaults {
         "Reactor/LLVMReactor.cpp",
         "Reactor/Pragma.cpp",
         "Reactor/Reactor.cpp",
+        "Reactor/SIMD.cpp",
     ],
 
     cflags: [

@@ -23,6 +23,7 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 
 set(REACTOR_UNIT_TESTS_SRC_FILES
     main.cpp
+    ReactorSIMD.cpp
     ReactorUnitTests.cpp
 )
 
