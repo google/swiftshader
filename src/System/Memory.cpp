@@ -103,11 +103,6 @@ void *allocate(size_t bytes, size_t alignment)
 	return allocate(bytes, alignment, false);
 }
 
-void *allocateZero(size_t bytes, size_t alignment)
-{
-	return allocate(bytes, alignment, true);
-}
-
 // This funtion allocates memory that is zero-initialized for security reasons
 // only. In MemorySanitizer enabled builds it is left uninitialized.
 void *allocateZeroOrPoison(size_t bytes, size_t alignment)
