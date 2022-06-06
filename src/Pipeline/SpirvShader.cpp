@@ -556,6 +556,7 @@ SpirvShader::SpirvShader(
 		case spv::OpLoad:
 		case spv::OpAccessChain:
 		case spv::OpInBoundsAccessChain:
+		case spv::OpPtrAccessChain:
 		case spv::OpSampledImage:
 		case spv::OpImage:
 			{
@@ -571,7 +572,7 @@ SpirvShader::SpirvShader(
 
 				DefineResult(insn);
 
-				if(opcode == spv::OpAccessChain || opcode == spv::OpInBoundsAccessChain)
+				if(opcode == spv::OpAccessChain || opcode == spv::OpInBoundsAccessChain || opcode == spv::OpPtrAccessChain)
 				{
 					Decorations dd{};
 					ApplyDecorationsForAccessChain(&dd, &descriptorDecorations[resultId], pointerId, Span(insn, 4, insn.wordCount() - 4));
@@ -1242,7 +1243,7 @@ void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecor
 	}
 }
 
-SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, const Span &indexIds, const EmitState *state) const
+SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, const EmitState *state) const
 {
 	// Produce a offset into external memory in sizeof(float) units
 
@@ -1275,6 +1276,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, cons
 	}
 
 	auto ptr = GetPointerToData(baseId, arrayIndex, state);
+	OffsetToElement(ptr, elementId, d.ArrayStride, state);
 
 	int constantOffset = 0;
 
@@ -1353,14 +1355,16 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, cons
 	return ptr;
 }
 
-SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, const Span &indexIds, EmitState const *state) const
+SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, EmitState const *state) const
 {
 	// TODO: avoid doing per-lane work in some cases if we can?
 	auto routine = state->routine;
 	auto &baseObject = getObject(baseId);
 	Type::ID typeId = getType(baseObject).element;
+	Decorations d = GetDecorationsForId(baseObject.typeId());
 
 	auto ptr = state->getPointer(baseId);
+	OffsetToElement(ptr, elementId, d.ArrayStride, state);
 
 	int constantOffset = 0;
 
@@ -1925,6 +1929,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 
 	case spv::OpAccessChain:
 	case spv::OpInBoundsAccessChain:
+	case spv::OpPtrAccessChain:
 		return EmitAccessChain(insn, state);
 
 	case spv::OpCompositeConstruct:
@@ -2206,16 +2211,19 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 	ASSERT(type.componentCount == 1);
 	ASSERT(getObject(resultId).kind == Object::Kind::Pointer);
 
+	Object::ID elementId = (insn.opcode() == spv::OpPtrAccessChain) ? insn.word(4) : 0;
+	int indexId = (insn.opcode() == spv::OpPtrAccessChain) ? 5 : 4;
+
 	if(type.storageClass == spv::StorageClassPushConstant ||
 	   type.storageClass == spv::StorageClassUniform ||
 	   type.storageClass == spv::StorageClassStorageBuffer)
 	{
-		auto ptr = WalkExplicitLayoutAccessChain(baseId, Span(insn, 4, insn.wordCount() - 4), state);
+		auto ptr = WalkExplicitLayoutAccessChain(baseId, elementId, Span(insn, indexId, insn.wordCount() - indexId), state);
 		state->createPointer(resultId, ptr);
 	}
 	else
 	{
-		auto ptr = WalkAccessChain(baseId, Span(insn, 4, insn.wordCount() - 4), state);
+		auto ptr = WalkAccessChain(baseId, elementId, Span(insn, indexId, insn.wordCount() - indexId), state);
 		state->createPointer(resultId, ptr);
 	}
 
