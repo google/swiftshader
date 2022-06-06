@@ -1094,6 +1094,11 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 
 	uint32_t packedInterpolant = GetPackedInterpolant(location);
 	Pointer<Byte> planeEquation = interpolationData.primitive + OFFSET(Primitive, V[packedInterpolant]);
+
+	// The pointer's offsets index into the input variable array, which are SIMD::Float vectors.
+	// To obtain the index into the interpolant's plane equation we must unscale by the vector size.
+	const int offsetShift = log2i(sizeof(float) * SIMD::Width);
+
 	if(ptr.hasDynamicOffsets)
 	{
 		// Combine plane equations into one
@@ -1103,7 +1108,7 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 
 		for(int i = 0; i < SIMD::Width; ++i)
 		{
-			Int offset = ((Extract(ptr.dynamicOffsets, i) + ptr.staticOffsets[i]) >> 2) + component;
+			Int offset = ((Extract(ptr.dynamicOffsets, i) + ptr.staticOffsets[i]) >> offsetShift) + component;
 			Pointer<Byte> planeEquationI = planeEquation + (offset * sizeof(PlaneEquation));
 			A = Insert(A, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, A), 16), i), i);
 			B = Insert(B, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, B), 16), i), i);
@@ -1115,7 +1120,7 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 	{
 		ASSERT(ptr.hasStaticEqualOffsets());
 
-		uint32_t offset = (ptr.staticOffsets[0] >> 2) + component;
+		uint32_t offset = (ptr.staticOffsets[0] >> offsetShift) + component;
 		if((interpolant + offset) >= inputs.size())
 		{
 			return SIMD::Float(0.0f);

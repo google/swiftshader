@@ -1366,6 +1366,8 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID element
 	auto &baseObject = getObject(baseId);
 	Type::ID typeId = getType(baseObject).element;
 	Decorations d = GetDecorationsForId(baseObject.typeId());
+	auto storageClass = getType(baseObject).storageClass;
+	bool interleavedByLane = IsStorageInterleavedByLane(storageClass);
 
 	auto ptr = state->getPointer(baseId);
 	OffsetToElement(ptr, elementId, d.ArrayStride, state);
@@ -1397,7 +1399,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID element
 		case spv::OpTypeRuntimeArray:
 			{
 				// TODO(b/127950082): Check bounds.
-				if(getType(baseObject).storageClass == spv::StorageClassUniformConstant)
+				if(storageClass == spv::StorageClassUniformConstant)
 				{
 					// indexing into an array of descriptors.
 					auto d = descriptorDecorations.at(baseId);
@@ -1419,8 +1421,13 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID element
 				else
 				{
 					auto stride = getType(type.element).componentCount * static_cast<uint32_t>(sizeof(float));
-					auto &obj = getObject(indexIds[i]);
-					if(obj.kind == Object::Kind::Constant)
+
+					if(interleavedByLane)
+					{
+						stride *= SIMD::Width;
+					}
+
+					if(getObject(indexIds[i]).kind == Object::Kind::Constant)
 					{
 						ptr += stride * GetConstScalarInt(indexIds[i]);
 					}
@@ -1440,8 +1447,14 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID element
 
 	if(constantOffset != 0)
 	{
+		if(interleavedByLane)
+		{
+			constantOffset *= SIMD::Width;
+		}
+
 		ptr += constantOffset;
 	}
+
 	return ptr;
 }
 

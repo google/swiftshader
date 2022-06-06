@@ -59,8 +59,7 @@ SpirvShader::EmitResult SpirvShader::EmitLoad(InsnIterator insn, EmitState *stat
 	auto robustness = getOutOfBoundsBehavior(pointerId, state);
 
 	VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
-		auto p = ptr + el.offset;
-		if(interleavedByLane) { p = InterleaveByLane(p); }  // TODO: Interleave once, then add offset?
+		auto p = GetElementPointer(ptr, el.offset, interleavedByLane);
 		dst.move(el.index, p.Load<SIMD::Float>(robustness, state->activeLaneMask(), atomic, memoryOrder));
 	});
 
@@ -111,8 +110,7 @@ void SpirvShader::Store(Object::ID pointerId, const Operand &value, bool atomic,
 	SPIRV_SHADER_DBG("Store(atomic: {0}, order: {1}, ptr: {2}, val: {3}, mask: {4}", atomic, int(memoryOrder), ptr, value, mask);
 
 	VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
-		auto p = ptr + el.offset;
-		if(interleavedByLane) { p = InterleaveByLane(p); }
+		auto p = GetElementPointer(ptr, el.offset, interleavedByLane);
 		p.Store(value.Float(el.index), robustness, mask, atomic, memoryOrder);
 	});
 }
@@ -225,8 +223,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 				auto ptr = GetPointerToData(resultId, 0, false, state);
 				Operand initialValue(this, state, initializerId);
 				VisitMemoryObject(resultId, [&](const MemoryElement &el) {
-					auto p = ptr + el.offset;
-					if(interleavedByLane) { p = InterleaveByLane(p); }
+					auto p = GetElementPointer(ptr, el.offset, interleavedByLane);
 					auto robustness = OutOfBoundsBehavior::UndefinedBehavior;  // Local variables are always within bounds.
 					p.Store(initialValue.Float(el.index), robustness, state->activeLaneMask());
 				});
@@ -269,10 +266,8 @@ SpirvShader::EmitResult SpirvShader::EmitCopyMemory(InsnIterator insn, EmitState
 		auto srcOffset = it->second;
 		auto dstOffset = el.offset;
 
-		auto dst = dstPtr + dstOffset;
-		auto src = srcPtr + srcOffset;
-		if(dstInterleavedByLane) { dst = InterleaveByLane(dst); }
-		if(srcInterleavedByLane) { src = InterleaveByLane(src); }
+		auto dst = GetElementPointer(dstPtr, dstOffset, dstInterleavedByLane);
+		auto src = GetElementPointer(srcPtr, srcOffset, srcInterleavedByLane);
 
 		// TODO(b/131224163): Optimize based on src/dst storage classes.
 		auto robustness = OutOfBoundsBehavior::RobustBufferAccess;
@@ -538,14 +533,21 @@ bool SpirvShader::IsExplicitLayout(spv::StorageClass storageClass)
 	}
 }
 
-sw::SIMD::Pointer SpirvShader::InterleaveByLane(sw::SIMD::Pointer p)
+sw::SIMD::Pointer SpirvShader::GetElementPointer(sw::SIMD::Pointer structure, uint32_t offset, bool interleavedByLane)
 {
-	p *= sw::SIMD::Width;
-	p.staticOffsets[0] += 0 * sizeof(float);
-	p.staticOffsets[1] += 1 * sizeof(float);
-	p.staticOffsets[2] += 2 * sizeof(float);
-	p.staticOffsets[3] += 3 * sizeof(float);
-	return p;
+	if(interleavedByLane)
+	{
+		structure.staticOffsets[0] += 0 * sizeof(float);
+		structure.staticOffsets[1] += 1 * sizeof(float);
+		structure.staticOffsets[2] += 2 * sizeof(float);
+		structure.staticOffsets[3] += 3 * sizeof(float);
+
+		return structure + offset * sw::SIMD::Width;
+	}
+	else
+	{
+		return structure + offset;
+	}
 }
 
 bool SpirvShader::IsStorageInterleavedByLane(spv::StorageClass storageClass)

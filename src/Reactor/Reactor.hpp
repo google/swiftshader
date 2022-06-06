@@ -2158,16 +2158,9 @@ struct Pointer4
 	Pointer4(std::array<Pointer<Byte>, 4> pointers);
 
 	Pointer4 &operator+=(Int4 i);
-	Pointer4 &operator*=(Int4 i);
-
 	Pointer4 operator+(Int4 i);
-	Pointer4 operator*(Int4 i);
-
 	Pointer4 &operator+=(int i);
-	Pointer4 &operator*=(int i);
-
 	Pointer4 operator+(int i);
-	Pointer4 operator*(int i);
 
 	Int4 offsets() const;
 

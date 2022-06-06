@@ -1959,7 +1959,7 @@ void SpirvShader::Impl::Debugger::Shadow::create(const SpirvShader *shader, cons
 	case Object::Kind::Intermediate:
 		{
 			size += objTy.componentCount * sizeof(uint32_t) * sw::SIMD::Width;
-			auto dst = InterleaveByLane(SIMD::Pointer(base, 0));
+			auto dst = GetElementPointer(SIMD::Pointer(base, 0), 0, true);
 			for(uint32_t i = 0u; i < objTy.componentCount; i++)
 			{
 				auto val = SpirvShader::Operand(shader, state, objId).Int(i);
@@ -1974,7 +1974,7 @@ void SpirvShader::Impl::Debugger::Shadow::create(const SpirvShader *shader, cons
 		{
 			size += sizeof(void *) + sizeof(uint32_t) * SIMD::Width;
 			auto ptr = state->getPointer(objId);
-			store(base, ptr.base);
+			store(base, ptr.getUniformPointer());
 			store(base + sizeof(void *), ptr.offsets());
 			entry.kind = Entry::Kind::Pointer;
 		}
