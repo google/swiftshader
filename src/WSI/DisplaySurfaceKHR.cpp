@@ -17,6 +17,7 @@
 #include "Vulkan/VkDeviceMemory.hpp"
 #include "Vulkan/VkImage.hpp"
 
+#include <dirent.h>
 #include <fcntl.h>
 #include <string.h>
 #include <sys/mman.h>
@@ -25,13 +26,61 @@
 
 namespace vk {
 
+static int openCard()
+{
+	constexpr size_t DIR_NAME_MAX = sizeof("/dev/dri/") - 1;
+	constexpr size_t PRE_NODE_NAME_MAX = sizeof("card") - 1;
+	constexpr size_t POST_NODE_NAME_MAX = sizeof("255") - 1;
+	constexpr size_t NODE_NAME_MAX =
+	    DIR_NAME_MAX + PRE_NODE_NAME_MAX + POST_NODE_NAME_MAX;
+	char name[NODE_NAME_MAX] = "/dev/dri/";
+	int fd = -VK_NOT_READY;
+
+	/*
+	 * Open the first DRM/KMS device. The libdrm drmOpen*() functions
+	 * from drmOpen() is of no practical use as any modern system will
+	 * handle that through udev or an equivalent component.
+	 */
+	DIR *folder = opendir(name);
+	if(!folder)
+	{
+		return -errno;
+	}
+
+	strncat(name, "card", 5);
+	for(struct dirent *res; (res = readdir(folder));)
+	{
+		if(!strncmp(res->d_name, "card", 4))
+		{
+			strncat(name, res->d_name + PRE_NODE_NAME_MAX, 4);
+			fd = open(name, O_RDWR);
+			if(fd >= 0)
+			{
+				break;
+			}
+
+			name[DIR_NAME_MAX + PRE_NODE_NAME_MAX] = 0;
+			fd = -errno;
+		}
+	}
+
+	closedir(folder);
+
+	return fd;
+}
+
 VkResult DisplaySurfaceKHR::GetDisplayModeProperties(uint32_t *pPropertyCount, VkDisplayModePropertiesKHR *pProperties)
 {
 	*pPropertyCount = 1;
 
 	if(pProperties)
 	{
-		int fd = open("/dev/dri/card0", O_RDWR);
+		const int fd = openCard();
+		if(fd < 0)
+		{
+			return VK_NOT_READY;
+		}
+
 		drmModeRes *res = drmModeGetResources(fd);
 		drmModeConnector *connector = drmModeGetConnector(fd, res->connectors[0]);
 		pProperties->displayMode = (uintptr_t)connector->modes[0].name;
@@ -48,7 +97,12 @@ VkResult DisplaySurfaceKHR::GetDisplayModeProperties(uint32_t *pPropertyCount, V
 
 VkResult DisplaySurfaceKHR::GetDisplayPlaneCapabilities(VkDisplayPlaneCapabilitiesKHR *pCapabilities)
 {
-	int fd = open("/dev/dri/card0", O_RDWR);
+	const int fd = openCard();
+	if(fd < 0)
+	{
+		return VK_NOT_READY;
+	}
+
 	drmModeRes *res = drmModeGetResources(fd);
 	drmModeConnector *connector = drmModeGetConnector(fd, res->connectors[0]);
 	pCapabilities->supportedAlpha = VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR;
@@ -81,7 +135,12 @@ VkResult DisplaySurfaceKHR::GetDisplayPlaneSupportedDisplays(uint32_t *pDisplayC
 
 	if(pDisplays)
 	{
-		int fd = open("/dev/dri/card0", O_RDWR);
+		const int fd = openCard();
+		if(fd < 0)
+		{
+			return VK_NOT_READY;
+		}
+
 		drmModeRes *res = drmModeGetResources(fd);
 		*pDisplays = res->connectors[0];
 		drmModeFreeResources(res);
@@ -97,7 +156,12 @@ VkResult DisplaySurfaceKHR::GetPhysicalDeviceDisplayPlaneProperties(uint32_t *pP
 
 	if(pProperties)
 	{
-		int fd = open("/dev/dri/card0", O_RDWR);
+		const int fd = openCard();
+		if(fd < 0)
+		{
+			return VK_NOT_READY;
+		}
+
 		drmModeRes *res = drmModeGetResources(fd);
 		pProperties->currentDisplay = res->connectors[0];
 		pProperties->currentStackIndex = 0;
@@ -114,7 +178,12 @@ VkResult DisplaySurfaceKHR::GetPhysicalDeviceDisplayProperties(uint32_t *pProper
 
 	if(pProperties)
 	{
-		int fd = open("/dev/dri/card0", O_RDWR);
+		const int fd = openCard();
+		if(fd < 0)
+		{
+			return VK_NOT_READY;
+		}
+
 		drmModeRes *res = drmModeGetResources(fd);
 		drmModeConnector *connector = drmModeGetConnector(fd, res->connectors[0]);
 		pProperties->display = res->connectors[0];
@@ -141,7 +210,12 @@ VkResult DisplaySurfaceKHR::GetPhysicalDeviceDisplayProperties(uint32_t *pProper
 
 DisplaySurfaceKHR::DisplaySurfaceKHR(const VkDisplaySurfaceCreateInfoKHR *pCreateInfo, void *mem)
 {
-	fd = open("/dev/dri/card0", O_RDWR);
+	fd = openCard();
+	if(fd < 0)
+	{
+		return;
+	}
+
 	drmModeRes *res = drmModeGetResources(fd);
 	connector_id = res->connectors[0];
 	drmModeFreeResources(res);
