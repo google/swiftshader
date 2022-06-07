@@ -4621,6 +4621,23 @@ Pointer<Byte> Pointer4::getPointerForLane(int lane) const
 	}
 }
 
+Pointer4 Pointer4::IfThenElse(Int4 condition, const Pointer4 &lhs, const Pointer4 &rhs)
+{
+	std::array<Pointer<Byte>, 4> pointers;
+	for(int i = 0; i < 4; i++)
+	{
+		If(Extract(condition, i) != 0)
+		{
+			pointers[i] = lhs.getPointerForLane(i);
+		}
+		Else
+		{
+			pointers[i] = rhs.getPointerForLane(i);
+		}
+	}
+	return { pointers };
+}
+
 #ifdef ENABLE_RR_PRINT
 std::vector<rr::Value *> Pointer4::getPrintValues() const
 {
