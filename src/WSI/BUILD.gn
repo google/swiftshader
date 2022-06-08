@@ -13,8 +13,12 @@
 # limitations under the License.
 
 import("../swiftshader.gni")
+
 if (is_linux) {
-  import("//third_party/wayland/features.gni")
+  import("//build/config/ozone.gni")
+  if (ozone_platform_wayland) {
+    import("//third_party/wayland/features.gni")
+  }
 }
 
 config("WSI_metal_weak_framework") {
