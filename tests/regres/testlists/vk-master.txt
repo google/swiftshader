@@ -11,6 +11,7 @@ vk-default/dynamic-rendering.txt
 vk-default/dynamic-state.txt
 vk-default/fragment-operations.txt
 vk-default/fragment-shader-interlock.txt
+vk-default/fragment-shading-barycentric.txt
 vk-default/fragment-shading-rate.txt
 vk-default/geometry.txt
 vk-default/glsl.txt
@@ -22,7 +23,9 @@ vk-default/memory-model.txt
 vk-default/memory.txt
 vk-default/mesh-shader.txt
 vk-default/multiview.txt
-vk-default/pipeline.txt
+vk-default/pipeline/fast-linked-library.txt
+vk-default/pipeline/monolithic.txt
+vk-default/pipeline/pipeline-library.txt
 vk-default/protected-memory.txt
 vk-default/query-pool.txt
 vk-default/rasterization.txt
