@@ -162,6 +162,8 @@ swiftshader_shared_library("swiftshader_libvulkan") {
 
   configs = [ ":swiftshader_libvulkan_private_config" ]
 
+  libs = []
+
   # TODO(capn): Use the same ICD name on both Windows and non-Windows.
   if (is_win) {
     output_name = "vk_swiftshader"
@@ -173,6 +175,10 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     sources += [
       "Vulkan.rc",
       "vk_swiftshader.def",
+    ]
+    libs += [
+      "gdi32.lib",
+      "user32.lib",
     ]
   }
 
