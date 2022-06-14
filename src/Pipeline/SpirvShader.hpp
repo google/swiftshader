@@ -1048,10 +1048,10 @@ private:
 	// VisitMemoryObject() walks a type tree in an explicitly laid out
 	// storage class, calling the MemoryVisitor for each scalar element
 	// within the
-	void VisitMemoryObject(Object::ID id, const MemoryVisitor &v) const;
+	void VisitMemoryObject(Object::ID id, bool resultIsPointer, const MemoryVisitor &v) const;
 
 	// VisitMemoryObjectInner() is internally called by VisitMemoryObject()
-	void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, const MemoryVisitor &v) const;
+	void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, bool resultIsPointer, const MemoryVisitor &v) const;
 
 	Object &CreateConstant(InsnIterator it);
 
