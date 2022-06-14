@@ -2198,6 +2198,14 @@ struct Pointer4
 	Pointer<Byte> getPointerForLane(int lane) const;
 	static Pointer4 IfThenElse(Int4 condition, const Pointer4 &lhs, const Pointer4 &rhs);
 
+	// 64-bit pointer bit cast utilities
+	void castFrom(UInt4 lowerBits, UInt4 upperBits);
+	void castTo(UInt4 &lowerBits, UInt4 &upperBits) const;
+
+	// 32-bit pointer bit cast utilities
+	void castFrom(UInt4 bits);
+	void castTo(UInt4 &bits) const;
+
 #ifdef ENABLE_RR_PRINT
 	std::vector<rr::Value *> getPrintValues() const;
 #endif
