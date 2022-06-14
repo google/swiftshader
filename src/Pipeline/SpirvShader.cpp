@@ -276,6 +276,7 @@ SpirvShader::SpirvShader(
 		case spv::OpTypeRuntimeArray:
 		case spv::OpTypeStruct:
 		case spv::OpTypePointer:
+		case spv::OpTypeForwardPointer:
 		case spv::OpTypeFunction:
 			DeclareType(insn);
 			break;
@@ -855,7 +856,8 @@ void SpirvShader::DeclareType(InsnIterator insn)
 
 	// A structure is a builtin block if it has a builtin
 	// member. All members of such a structure are builtins.
-	switch(insn.opcode())
+	spv::Op opcode = insn.opcode();
+	switch(opcode)
 	{
 	case spv::OpTypeStruct:
 		{
@@ -874,8 +876,9 @@ void SpirvShader::DeclareType(InsnIterator insn)
 		}
 		break;
 	case spv::OpTypePointer:
+	case spv::OpTypeForwardPointer:
 		{
-			Type::ID elementTypeId = insn.word(3);
+			Type::ID elementTypeId = insn.word((opcode == spv::OpTypeForwardPointer) ? 1 : 3);
 			type.element = elementTypeId;
 			type.isBuiltInBlock = getType(elementTypeId).isBuiltInBlock;
 			type.storageClass = static_cast<spv::StorageClass>(insn.word(2));
@@ -1078,6 +1081,7 @@ uint32_t SpirvShader::ComputeTypeSize(InsnIterator insn)
 	case spv::OpTypeSampler:
 	case spv::OpTypeImage:
 	case spv::OpTypeSampledImage:
+	case spv::OpTypeForwardPointer:
 	case spv::OpTypeFunction:
 	case spv::OpTypeRuntimeArray:
 		// Objects that don't consume any space.
@@ -1871,6 +1875,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 	case spv::OpTypeMatrix:
 	case spv::OpTypeStruct:
 	case spv::OpTypePointer:
+	case spv::OpTypeForwardPointer:
 	case spv::OpTypeFunction:
 	case spv::OpTypeImage:
 	case spv::OpTypeSampledImage:
