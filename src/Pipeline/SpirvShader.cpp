@@ -306,6 +306,7 @@ SpirvShader::SpirvShader(
 
 				case spv::StorageClassUniform:
 				case spv::StorageClassStorageBuffer:
+				case spv::StorageClassPhysicalStorageBuffer:
 					object.kind = Object::Kind::DescriptorSet;
 					break;
 
@@ -579,8 +580,9 @@ SpirvShader::SpirvShader(
 
 				if(opcode == spv::OpAccessChain || opcode == spv::OpInBoundsAccessChain || opcode == spv::OpPtrAccessChain)
 				{
+					int indexId = (insn.opcode() == spv::OpPtrAccessChain) ? 5 : 4;
 					Decorations dd{};
-					ApplyDecorationsForAccessChain(&dd, &descriptorDecorations[resultId], pointerId, Span(insn, 4, insn.wordCount() - 4));
+					ApplyDecorationsForAccessChain(&dd, &descriptorDecorations[resultId], pointerId, Span(insn, indexId, insn.wordCount() - indexId));
 					// Note: offset is the one thing that does *not* propagate, as the access chain accounts for it.
 					dd.HasOffset = false;
 					decorations[resultId].Apply(dd);
@@ -1733,6 +1735,9 @@ OutOfBoundsBehavior SpirvShader::getOutOfBoundsBehavior(Object::ID pointerId, Em
 		return robustBufferAccess ? OutOfBoundsBehavior::RobustBufferAccess
 		                          : OutOfBoundsBehavior::UndefinedBehavior;
 
+	case spv::StorageClassPhysicalStorageBuffer:
+		return OutOfBoundsBehavior::UndefinedBehavior;
+
 	case spv::StorageClassImage:
 		// VK_EXT_image_robustness requires nullifying out-of-bounds accesses.
 		// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
@@ -2275,7 +2280,8 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 
 	if(type.storageClass == spv::StorageClassPushConstant ||
 	   type.storageClass == spv::StorageClassUniform ||
-	   type.storageClass == spv::StorageClassStorageBuffer)
+	   type.storageClass == spv::StorageClassStorageBuffer ||
+	   type.storageClass == spv::StorageClassPhysicalStorageBuffer)
 	{
 		auto ptr = WalkExplicitLayoutAccessChain(baseId, elementId, Span(insn, indexId, insn.wordCount() - indexId), nonUniform, state);
 		state->createPointer(resultId, ptr);
