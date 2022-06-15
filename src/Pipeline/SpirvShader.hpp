@@ -1592,22 +1592,22 @@ public:
 	// are only used when debugging. See b/146486064 for more information.
 	// Give careful consideration to the runtime performance loss before adding
 	// more state here.
-	std::array<SIMD::Int, 2> windowSpacePosition;
-	Int layer;  // slice offset into input attachments for multiview, even if the shader doesn't use ViewIndex
+	std::array<SIMD::Int, 2> windowSpacePosition;  // TODO(b/236162233): SIMD::Int2
+	Int layer;                                     // slice offset into input attachments for multiview, even if the shader doesn't use ViewIndex
 	Int instanceID;
 	SIMD::Int vertexIndex;
-	std::array<SIMD::Float, 4> fragCoord;
-	std::array<SIMD::Float, 4> pointCoord;
+	std::array<SIMD::Float, 4> fragCoord;   // TODO(b/236162233): SIMD::Float4
+	std::array<SIMD::Float, 2> pointCoord;  // TODO(b/236162233): SIMD::Float2
 	SIMD::Int helperInvocation;
-	SIMD::Int numWorkgroups;
-	SIMD::Int workgroupID;
-	SIMD::Int workgroupSize;
+	Int4 numWorkgroups;
+	Int4 workgroupID;
+	Int4 workgroupSize;
 	Int subgroupsPerWorkgroup;
 	Int invocationsPerSubgroup;
 	Int subgroupIndex;
 	SIMD::Int localInvocationIndex;
-	std::array<SIMD::Int, 3> localInvocationID;
-	std::array<SIMD::Int, 3> globalInvocationID;
+	std::array<SIMD::Int, 3> localInvocationID;   // TODO(b/236162233): SIMD::Int3
+	std::array<SIMD::Int, 3> globalInvocationID;  // TODO(b/236162233): SIMD::Int3
 
 	Pointer<Byte> dbgState;  // Pointer to a debugger state.
 

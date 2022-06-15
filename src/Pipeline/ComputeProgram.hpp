@@ -72,8 +72,8 @@ protected:
 	{
 		vk::DescriptorSet::Bindings descriptorSets;
 		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets;
-		uint4 numWorkgroups;               // [x, y, z, 0]
-		uint4 workgroupSize;               // [x, y, z, 0]
+		uint4 numWorkgroups;               // [x, y, z, -]
+		uint4 workgroupSize;               // [x, y, z, -]
 		uint32_t invocationsPerSubgroup;   // SPIR-V: "SubgroupSize"
 		uint32_t subgroupsPerWorkgroup;    // SPIR-V: "NumSubgroups"
 		uint32_t invocationsPerWorkgroup;  // Total number of invocations per workgroup.
