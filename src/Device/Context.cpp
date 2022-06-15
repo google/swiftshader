@@ -449,7 +449,7 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 		depthBiasClamp = 0.0f;
 	}
 
-	if (!dynamicStateFlags.dynamicLineWidth)
+	if(!dynamicStateFlags.dynamicLineWidth)
 	{
 		lineWidth = rasterizationState->lineWidth;
 	}
@@ -645,9 +645,10 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 
 void GraphicsState::setDepthStencilState(const VkPipelineDepthStencilStateCreateInfo *depthStencilState)
 {
-	if(depthStencilState->flags != 0)
+	if((depthStencilState->flags &
+	    ~(VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_EXT |
+	      VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_EXT)) != 0)
 	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("depthStencilState->flags %d", int(depthStencilState->flags));
 	}
 
@@ -669,9 +670,9 @@ void GraphicsState::setDepthStencilState(const VkPipelineDepthStencilStateCreate
 
 void GraphicsState::setColorBlendState(const VkPipelineColorBlendStateCreateInfo *colorBlendState)
 {
-	if(colorBlendState->flags != 0)
+	if(colorBlendState->flags != 0 &&
+	   colorBlendState->flags != VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_EXT)
 	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("colorBlendState->flags %d", int(colorBlendState->flags));
 	}
 
