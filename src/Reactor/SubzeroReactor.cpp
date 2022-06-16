@@ -1683,7 +1683,7 @@ Value *Nucleus::createBitCast(Value *v, Type *destType)
 	// Bitcasts must be between types of the same logical size. But with emulated narrow vectors we need
 	// support for casting between scalars and wide vectors. For platforms where this is not supported,
 	// emulate them by writing to the stack and reading back as the destination type.
-	if(emulateMismatchedBitCast)
+	if(emulateMismatchedBitCast || (v->getType() == Ice::Type::IceType_i64))
 	{
 		if(!Ice::isVectorType(v->getType()) && Ice::isVectorType(T(destType)))
 		{
