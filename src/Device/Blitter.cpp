@@ -61,16 +61,28 @@ void Blitter::clear(const void *pixel, vk::Format format, vk::Image *dest, const
 		return;
 	}
 
-	VkClearColorValue clampedPixel;
+	VkClearValue clampedPixel;
 	if(viewFormat.isSignedNormalized() || viewFormat.isUnsignedNormalized())
 	{
 		const float minValue = viewFormat.isSignedNormalized() ? -1.0f : 0.0f;
-		memcpy(clampedPixel.float32, pixel, sizeof(VkClearColorValue));
-		clampedPixel.float32[0] = sw::clamp(clampedPixel.float32[0], minValue, 1.0f);
-		clampedPixel.float32[1] = sw::clamp(clampedPixel.float32[1], minValue, 1.0f);
-		clampedPixel.float32[2] = sw::clamp(clampedPixel.float32[2], minValue, 1.0f);
-		clampedPixel.float32[3] = sw::clamp(clampedPixel.float32[3], minValue, 1.0f);
-		pixel = clampedPixel.float32;
+
+		if(aspect & VK_IMAGE_ASPECT_COLOR_BIT)
+		{
+			memcpy(clampedPixel.color.float32, pixel, sizeof(VkClearColorValue));
+			clampedPixel.color.float32[0] = sw::clamp(clampedPixel.color.float32[0], minValue, 1.0f);
+			clampedPixel.color.float32[1] = sw::clamp(clampedPixel.color.float32[1], minValue, 1.0f);
+			clampedPixel.color.float32[2] = sw::clamp(clampedPixel.color.float32[2], minValue, 1.0f);
+			clampedPixel.color.float32[3] = sw::clamp(clampedPixel.color.float32[3], minValue, 1.0f);
+			pixel = clampedPixel.color.float32;
+		}
+
+		// Stencil never requires clamping, so we can check for Depth only
+		if(aspect & VK_IMAGE_ASPECT_DEPTH_BIT)
+		{
+			memcpy(&(clampedPixel.depthStencil), pixel, sizeof(VkClearDepthStencilValue));
+			clampedPixel.depthStencil.depth = sw::clamp(clampedPixel.depthStencil.depth, minValue, 1.0f);
+			pixel = &(clampedPixel.depthStencil);
+		}
 	}
 
 	if(fastClear(pixel, format, dest, dstFormat, subresourceRange, renderArea))
