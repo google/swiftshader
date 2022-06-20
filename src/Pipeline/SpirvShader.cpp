@@ -453,6 +453,7 @@ SpirvShader::SpirvShader(
 				case spv::CapabilityRuntimeDescriptorArray: capabilities.RuntimeDescriptorArray = true; break;
 				case spv::CapabilityStorageBufferArrayNonUniformIndexing: capabilities.StorageBufferArrayNonUniformIndexing = true; break;
 				case spv::CapabilityStorageTexelBufferArrayNonUniformIndexing: capabilities.StorageTexelBufferArrayNonUniformIndexing = true; break;
+				case spv::CapabilityStorageTexelBufferArrayDynamicIndexing: capabilities.StorageTexelBufferArrayDynamicIndexing = true; break;
 				case spv::CapabilityPhysicalStorageBufferAddresses: capabilities.PhysicalStorageBufferAddresses = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
@@ -2769,7 +2770,7 @@ SpirvShader::Operand::Operand(const SpirvShader *shader, const EmitState *state,
 SpirvShader::Operand::Operand(const EmitState *state, const Object &object)
     : constant(object.kind == SpirvShader::Object::Kind::Constant ? object.constantValue.data() : nullptr)
     , intermediate(object.kind == SpirvShader::Object::Kind::Intermediate ? &state->getIntermediate(object.id()) : nullptr)
-	, pointer(object.kind == SpirvShader::Object::Kind::Pointer ? &state->getPointer(object.id()) : nullptr)
+    , pointer(object.kind == SpirvShader::Object::Kind::Pointer ? &state->getPointer(object.id()) : nullptr)
     , componentCount(intermediate ? intermediate->componentCount : object.constantValue.size())
 {
 	ASSERT(intermediate || constant || pointer);
