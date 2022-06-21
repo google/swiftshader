@@ -100,6 +100,12 @@ class Float;
 class Float2;
 class Float4;
 
+namespace SIMD {
+class Int;
+class UInt;
+class Float;
+}  // namespace SIMD
+
 template<>
 struct Scalar<Float4>
 {
@@ -114,6 +120,24 @@ struct Scalar<Int4>
 
 template<>
 struct Scalar<UInt4>
+{
+	using Type = UInt;
+};
+
+template<>
+struct Scalar<SIMD::Float>
+{
+	using Type = Float;
+};
+
+template<>
+struct Scalar<SIMD::Int>
+{
+	using Type = Int;
+};
+
+template<>
+struct Scalar<SIMD::UInt>
 {
 	using Type = UInt;
 };
@@ -311,6 +335,24 @@ struct BroadcastLiteral<UInt4>
 
 template<>
 struct BroadcastLiteral<Float4>
+{
+	using Type = float;
+};
+
+template<>
+struct BroadcastLiteral<SIMD::Int>
+{
+	using Type = int;
+};
+
+template<>
+struct BroadcastLiteral<SIMD::UInt>
+{
+	using Type = unsigned int;
+};
+
+template<>
+struct BroadcastLiteral<SIMD::Float>
 {
 	using Type = float;
 };
@@ -1125,7 +1167,6 @@ RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs);
 
 RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y);
 RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y);
-RValue<Int4> Abs(RValue<Int4> x);
 
 class UShort8 : public LValue<UShort8>
 {
@@ -1619,6 +1660,7 @@ inline RValue<Int4> CmpGE(RValue<Int4> x, RValue<Int4> y)
 {
 	return CmpNLT(x, y);
 }
+RValue<Int4> Abs(RValue<Int4> x);
 RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
 // Convert to nearest integer. If a converted value is outside of the integer
@@ -2591,44 +2633,38 @@ inline RValue<Float>::RValue(float f)
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
-inline Value *broadcastInt4(int i)
+inline Value *broadcast(int i, Type *type)
 {
 	std::vector<int64_t> constantVector = { i };
-	return Nucleus::createConstantVector(constantVector, Int4::type());
+	return Nucleus::createConstantVector(constantVector, type);
 }
 
 template<>
 inline RValue<Int4>::RValue(int i)
-    : val(broadcastInt4(i))
+    : val(broadcast(i, Int4::type()))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
-}
-
-inline Value *broadcastUInt4(unsigned int i)
-{
-	std::vector<int64_t> constantVector = { i };
-	return Nucleus::createConstantVector(constantVector, UInt4::type());
 }
 
 template<>
 inline RValue<UInt4>::RValue(unsigned int i)
-    : val(broadcastInt4(i))
+    : val(broadcast(int(i), UInt4::type()))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
-inline Value *broadcastFloat4(float f)
+inline Value *broadcast(float f, Type *type)
 {
 	// See Float(float) constructor for the rationale behind this assert.
 	assert(std::isfinite(f));
 
 	std::vector<double> constantVector = { f };
-	return Nucleus::createConstantVector(constantVector, Float4::type());
+	return Nucleus::createConstantVector(constantVector, type);
 }
 
 template<>
 inline RValue<Float4>::RValue(float f)
-    : val(broadcastFloat4(f))
+    : val(broadcast(f, Float4::type()))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }

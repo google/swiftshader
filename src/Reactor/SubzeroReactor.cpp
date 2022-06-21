@@ -4732,9 +4732,554 @@ Nucleus::CoroutineHandle Nucleus::invokeCoroutineBegin(Routine &routine, std::fu
 	}
 }
 
+SIMD::Int::Int(RValue<scalar::Int> rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Value *vector = Nucleus::createBitCast(rhs.value(), SIMD::Int::type());
+
+	std::vector<int> swizzle = { 0 };
+	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
+
+	storeValue(replicate);
+}
+
+RValue<SIMD::Int> operator<<(RValue<SIMD::Int> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(emulateIntrinsics)
+	{
+		return Scalarize([rhs](auto x) { return x << rhs; }, lhs);
+	}
+	else
+	{
+		return RValue<SIMD::Int>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
+	}
+}
+
+RValue<SIMD::Int> operator>>(RValue<SIMD::Int> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(emulateIntrinsics)
+	{
+		return Scalarize([rhs](auto x) { return x >> rhs; }, lhs);
+	}
+	else
+	{
+		return RValue<SIMD::Int>(Nucleus::createAShr(lhs.value(), V(::context->getConstantInt32(rhs))));
+	}
+}
+
+RValue<SIMD::Int> CmpEQ(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createICmpEQ(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpLT(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createICmpSLT(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpLE(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createICmpSLE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpNEQ(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createICmpNE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpNLT(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createICmpSGE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpNLE(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createICmpSGT(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> Abs(RValue<SIMD::Int> x)
+{
+	// TODO: Optimize.
+	auto negative = x >> 31;
+	return (x ^ negative) - negative;
+}
+
+RValue<SIMD::Int> Max(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sle, condition, x.value(), y.value());
+	::basicBlock->appendInst(cmp);
+
+	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
+	::basicBlock->appendInst(select);
+
+	return RValue<SIMD::Int>(V(result));
+}
+
+RValue<SIMD::Int> Min(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sgt, condition, x.value(), y.value());
+	::basicBlock->appendInst(cmp);
+
+	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
+	::basicBlock->appendInst(select);
+
+	return RValue<SIMD::Int>(V(result));
+}
+
+RValue<SIMD::Int> RoundInt(RValue<SIMD::Float> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(emulateIntrinsics || CPUID::ARM)
+	{
+		// Push the fractional part off the mantissa. Accurate up to +/-2^22.
+		return SIMD::Int((cast + SIMD::Float(0x00C00000)) - SIMD::Float(0x00C00000));
+	}
+	else
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto nearbyint = Ice::InstIntrinsic::create(::function, 1, result, intrinsic);
+		nearbyint->addArg(cast.value());
+		::basicBlock->appendInst(nearbyint);
+
+		return RValue<SIMD::Int>(V(result));
+	}
+}
+
+RValue<SIMD::Int> RoundIntClamped(RValue<SIMD::Float> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+
+	// cvtps2dq produces 0x80000000, a negative value, for input larger than
+	// 2147483520.0, so clamp to 2147483520. Values less than -2147483520.0
+	// saturate to 0x80000000.
+	RValue<SIMD::Float> clamped = Min(cast, SIMD::Float(0x7FFFFF80));
+
+	if(emulateIntrinsics || CPUID::ARM)
+	{
+		// Push the fractional part off the mantissa. Accurate up to +/-2^22.
+		return SIMD::Int((clamped + SIMD::Float(0x00C00000)) - SIMD::Float(0x00C00000));
+	}
+	else
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto nearbyint = Ice::InstIntrinsic::create(::function, 1, result, intrinsic);
+		nearbyint->addArg(clamped.value());
+		::basicBlock->appendInst(nearbyint);
+
+		return RValue<SIMD::Int>(V(result));
+	}
+}
+
 Type *SIMD::Int::type()
 {
 	return T(Ice::IceType_v4i32);
+}
+
+SIMD::UInt::UInt(RValue<SIMD::Float> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	// Smallest positive value representable in UInt, but not in Int
+	const unsigned int ustart = 0x80000000u;
+	const float ustartf = float(ustart);
+
+	// Check if the value can be represented as an Int
+	SIMD::Int uiValue = CmpNLT(cast, SIMD::Float(ustartf));
+	// If the value is too large, subtract ustart and re-add it after conversion.
+	uiValue = (uiValue & As<SIMD::Int>(As<SIMD::UInt>(SIMD::Int(cast - SIMD::Float(ustartf))) + SIMD::UInt(ustart))) |
+	          // Otherwise, just convert normally
+	          (~uiValue & SIMD::Int(cast));
+	// If the value is negative, store 0, otherwise store the result of the conversion
+	storeValue((~(As<SIMD::Int>(cast) >> 31) & uiValue).value());
+}
+
+SIMD::UInt::UInt(RValue<scalar::UInt> rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Value *vector = Nucleus::createBitCast(rhs.value(), SIMD::UInt::type());
+
+	std::vector<int> swizzle = { 0 };
+	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
+
+	storeValue(replicate);
+}
+
+RValue<SIMD::UInt> operator<<(RValue<SIMD::UInt> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(emulateIntrinsics)
+	{
+		return Scalarize([rhs](auto x) { return x << rhs; }, lhs);
+	}
+	else
+	{
+		return RValue<SIMD::UInt>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
+	}
+}
+
+RValue<SIMD::UInt> operator>>(RValue<SIMD::UInt> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(emulateIntrinsics)
+	{
+		return Scalarize([rhs](auto x) { return x >> rhs; }, lhs);
+	}
+	else
+	{
+		return RValue<SIMD::UInt>(Nucleus::createLShr(lhs.value(), V(::context->getConstantInt32(rhs))));
+	}
+}
+
+RValue<SIMD::UInt> CmpEQ(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createICmpEQ(x.value(), y.value()));
+}
+
+RValue<SIMD::UInt> CmpLT(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createICmpULT(x.value(), y.value()));
+}
+
+RValue<SIMD::UInt> CmpLE(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createICmpULE(x.value(), y.value()));
+}
+
+RValue<SIMD::UInt> CmpNEQ(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createICmpNE(x.value(), y.value()));
+}
+
+RValue<SIMD::UInt> CmpNLT(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createICmpUGE(x.value(), y.value()));
+}
+
+RValue<SIMD::UInt> CmpNLE(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createICmpUGT(x.value(), y.value()));
+}
+
+RValue<SIMD::UInt> Max(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ule, condition, x.value(), y.value());
+	::basicBlock->appendInst(cmp);
+
+	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
+	::basicBlock->appendInst(select);
+
+	return RValue<SIMD::UInt>(V(result));
+}
+
+RValue<SIMD::UInt> Min(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ugt, condition, x.value(), y.value());
+	::basicBlock->appendInst(cmp);
+
+	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
+	::basicBlock->appendInst(select);
+
+	return RValue<SIMD::UInt>(V(result));
+}
+
+Type *SIMD::UInt::type()
+{
+	return T(Ice::IceType_v4i32);
+}
+
+SIMD::Float::Float(RValue<scalar::Float> rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Value *vector = Nucleus::createBitCast(rhs.value(), SIMD::Float::type());
+
+	std::vector<int> swizzle = { 0 };
+	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
+
+	storeValue(replicate);
+}
+
+RValue<SIMD::Float> operator%(RValue<SIMD::Float> lhs, RValue<SIMD::Float> rhs)
+{
+	return ScalarizeCall(fmodf, lhs, rhs);
+}
+
+RValue<SIMD::Float> MulAdd(RValue<SIMD::Float> x, RValue<SIMD::Float> y, RValue<SIMD::Float> z)
+{
+	// TODO(b/214591655): Use FMA when available.
+	return x * y + z;
+}
+
+RValue<SIMD::Float> FMA(RValue<SIMD::Float> x, RValue<SIMD::Float> y, RValue<SIMD::Float> z)
+{
+	// TODO(b/214591655): Use FMA instructions when available.
+	return ScalarizeCall(fmaf, x, y, z);
+}
+
+RValue<SIMD::Float> Abs(RValue<SIMD::Float> x)
+{
+	// TODO: Optimize.
+	Value *vector = Nucleus::createBitCast(x.value(), SIMD::Int::type());
+	std::vector<int64_t> constantVector = { 0x7FFFFFFF };
+	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, SIMD::Int::type()));
+
+	return As<SIMD::Float>(result);
+}
+
+RValue<SIMD::Float> Max(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
+	auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Ogt, condition, x.value(), y.value());
+	::basicBlock->appendInst(cmp);
+
+	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+	auto select = Ice::InstSelect::create(::function, result, condition, x.value(), y.value());
+	::basicBlock->appendInst(select);
+
+	return RValue<SIMD::Float>(V(result));
+}
+
+RValue<SIMD::Float> Min(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
+	auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Olt, condition, x.value(), y.value());
+	::basicBlock->appendInst(cmp);
+
+	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+	auto select = Ice::InstSelect::create(::function, result, condition, x.value(), y.value());
+	::basicBlock->appendInst(select);
+
+	return RValue<SIMD::Float>(V(result));
+}
+
+RValue<SIMD::Float> Sqrt(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(emulateIntrinsics || CPUID::ARM)
+	{
+		return Scalarize([](auto a) { return Sqrt(a); }, x);
+	}
+	else
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Sqrt, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto sqrt = Ice::InstIntrinsic::create(::function, 1, result, intrinsic);
+		sqrt->addArg(x.value());
+		::basicBlock->appendInst(sqrt);
+
+		return RValue<SIMD::Float>(V(result));
+	}
+}
+
+RValue<SIMD::Int> CmpEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpOEQ(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpLT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpOLT(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpLE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpOLE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpNEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpONE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpNLT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpOGE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpNLE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpOGT(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpUEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpUEQ(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpULT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpULT(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpULE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpULE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpUNEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpUNE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpUNLT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpUGE(x.value(), y.value()));
+}
+
+RValue<SIMD::Int> CmpUNLE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createFCmpUGT(x.value(), y.value()));
+}
+
+RValue<SIMD::Float> Round(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(emulateIntrinsics || CPUID::ARM)
+	{
+		// Push the fractional part off the mantissa. Accurate up to +/-2^22.
+		return (x + SIMD::Float(0x00C00000)) - SIMD::Float(0x00C00000);
+	}
+	else if(CPUID::SSE4_1)
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto round = Ice::InstIntrinsic::create(::function, 2, result, intrinsic);
+		round->addArg(x.value());
+		round->addArg(::context->getConstantInt32(0));
+		::basicBlock->appendInst(round);
+
+		return RValue<SIMD::Float>(V(result));
+	}
+	else
+	{
+		return SIMD::Float(RoundInt(x));
+	}
+}
+
+RValue<SIMD::Float> Trunc(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(CPUID::SSE4_1)
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto round = Ice::InstIntrinsic::create(::function, 2, result, intrinsic);
+		round->addArg(x.value());
+		round->addArg(::context->getConstantInt32(3));
+		::basicBlock->appendInst(round);
+
+		return RValue<SIMD::Float>(V(result));
+	}
+	else
+	{
+		return SIMD::Float(SIMD::Int(x));
+	}
+}
+
+RValue<SIMD::Float> Frac(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	SIMD::Float frc;
+
+	if(CPUID::SSE4_1)
+	{
+		frc = x - Floor(x);
+	}
+	else
+	{
+		frc = x - SIMD::Float(SIMD::Int(x));  // Signed fractional part.
+
+		frc += As<SIMD::Float>(As<SIMD::Int>(CmpNLE(SIMD::Float(0.0f), frc)) & As<SIMD::Int>(SIMD::Float(1.0f)));  // Add 1.0 if negative.
+	}
+
+	// x - floor(x) can be 1.0 for very small negative x.
+	// Clamp against the value just below 1.0.
+	return Min(frc, As<SIMD::Float>(SIMD::Int(0x3F7FFFFF)));
+}
+
+RValue<SIMD::Float> Floor(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(CPUID::SSE4_1)
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto round = Ice::InstIntrinsic::create(::function, 2, result, intrinsic);
+		round->addArg(x.value());
+		round->addArg(::context->getConstantInt32(1));
+		::basicBlock->appendInst(round);
+
+		return RValue<SIMD::Float>(V(result));
+	}
+	else
+	{
+		return x - Frac(x);
+	}
+}
+
+RValue<SIMD::Float> Ceil(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	if(CPUID::SSE4_1)
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto round = Ice::InstIntrinsic::create(::function, 2, result, intrinsic);
+		round->addArg(x.value());
+		round->addArg(::context->getConstantInt32(2));
+		::basicBlock->appendInst(round);
+
+		return RValue<SIMD::Float>(V(result));
+	}
+	else
+	{
+		return -Floor(-x);
+	}
+}
+
+Type *SIMD::Float::type()
+{
+	return T(Ice::IceType_v4f32);
 }
 
 }  // namespace rr

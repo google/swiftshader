@@ -67,3 +67,30 @@ TEST(ReactorSIMD, Add)
 		ASSERT_EQ(r[i], arrayLength + 2 * i);
 	}
 }
+
+TEST(ReactorSIMD, Broadcast)
+{
+	FunctionT<void(int *, int)> function;
+	{
+		Pointer<Int> r = Pointer<Int>(function.Arg<0>());
+		Int a = function.Arg<1>();
+
+		SIMD::Int x = a;
+
+		*Pointer<SIMD::Int>(r) = x;
+	}
+
+	auto routine = function(testName().c_str());
+
+	std::vector<int> r(SIMD::Width);
+
+	for(int a = -2; a <= 2; a++)
+	{
+		routine(r.data(), a);
+
+		for(int i = 0; i < SIMD::Width; i++)
+		{
+			ASSERT_EQ(r[i], a);
+		}
+	}
+}

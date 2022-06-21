@@ -4147,9 +4147,370 @@ Nucleus::CoroutineHandle Nucleus::invokeCoroutineBegin(Routine &routine, std::fu
 	return func();
 }
 
+SIMD::Int::Int(RValue<scalar::Int> rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Value *vector = loadValue();
+	Value *insert = Nucleus::createInsertElement(vector, rhs.value(), 0);
+
+	std::vector<int> swizzle = { 0 };
+	Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+
+	storeValue(replicate);
+}
+
+RValue<SIMD::Int> operator<<(RValue<SIMD::Int> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::Int>(V(lowerVectorShl(V(lhs.value()), rhs)));
+}
+
+RValue<SIMD::Int> operator>>(RValue<SIMD::Int> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::Int>(V(lowerVectorAShr(V(lhs.value()), rhs)));
+}
+
+RValue<SIMD::Int> CmpEQ(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpLT(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createICmpSLT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpLE(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createICmpSLE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpNEQ(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createICmpNE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpNLT(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createICmpSGE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpNLE(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createICmpSGT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> Abs(RValue<SIMD::Int> x)
+{
+#if LLVM_VERSION_MAJOR >= 12
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::abs, { V(x.value())->getType() });
+	return RValue<SIMD::Int>(V(jit->builder->CreateCall(func, { V(x.value()), llvm::ConstantInt::getFalse(*jit->context) })));
+#else
+	auto negative = x >> 31;
+	return (x ^ negative) - negative;
+#endif
+}
+
+RValue<SIMD::Int> Max(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	RValue<SIMD::Int> greater = CmpNLE(x, y);
+	return (x & greater) | (y & ~greater);
+}
+
+RValue<SIMD::Int> Min(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	RValue<SIMD::Int> less = CmpLT(x, y);
+	return (x & less) | (y & ~less);
+}
+
+RValue<SIMD::Int> RoundInt(RValue<SIMD::Float> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::Int>(V(lowerRoundInt(V(cast.value()), T(SIMD::Int::type()))));
+}
+
+RValue<SIMD::Int> RoundIntClamped(RValue<SIMD::Float> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+
+// TODO(b/165000222): Check if fptosi_sat produces optimal code for x86 and ARM.
+#if defined(__arm__) || defined(__aarch64__)
+	// ARM saturates to the largest positive or negative integer. Unit tests
+	// verify that lowerRoundInt() behaves as desired.
+	return As<SIMD::Int>(V(lowerRoundInt(V(cast.value()), T(SIMD::Int::type()))));
+#elif LLVM_VERSION_MAJOR >= 14
+	llvm::Value *rounded = lowerRound(V(cast.value()));
+	llvm::Function *fptosi_sat = llvm::Intrinsic::getDeclaration(
+	    jit->module.get(), llvm::Intrinsic::fptosi_sat, { T(SIMD::Int::type()), T(SIMD::Float::type()) });
+	return RValue<SIMD::Int>(V(jit->builder->CreateCall(fptosi_sat, { rounded })));
+#else
+	RValue<SIMD::Float> clamped = Max(Min(cast, SIMD::Float(0x7FFFFF80)), SIMD::Float(static_cast<int>(0x80000000)));
+	return As<SIMD::Int>(V(lowerRoundInt(V(clamped.value()), T(SIMD::Int::type()))));
+#endif
+}
+
 Type *SIMD::Int::type()
 {
-	return T(llvm::VectorType::get(T(rr::Int::type()), SIMD::Width, false));
+	return T(llvm::VectorType::get(T(scalar::Int::type()), SIMD::Width, false));
+}
+
+SIMD::UInt::UInt(RValue<SIMD::Float> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Value *xyzw = Nucleus::createFPToUI(cast.value(), SIMD::UInt::type());
+	storeValue(xyzw);
+}
+
+SIMD::UInt::UInt(RValue<scalar::UInt> rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Value *vector = loadValue();
+	Value *insert = Nucleus::createInsertElement(vector, rhs.value(), 0);
+
+	std::vector<int> swizzle = { 0 };
+	Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+
+	storeValue(replicate);
+}
+
+RValue<SIMD::UInt> operator<<(RValue<SIMD::UInt> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::UInt>(V(lowerVectorShl(V(lhs.value()), rhs)));
+}
+
+RValue<SIMD::UInt> operator>>(RValue<SIMD::UInt> lhs, unsigned char rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::UInt>(V(lowerVectorLShr(V(lhs.value()), rhs)));
+}
+
+RValue<SIMD::UInt> CmpEQ(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::UInt> CmpLT(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createSExt(Nucleus::createICmpULT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::UInt> CmpLE(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createSExt(Nucleus::createICmpULE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::UInt> CmpNEQ(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createSExt(Nucleus::createICmpNE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::UInt> CmpNLT(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createSExt(Nucleus::createICmpUGE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::UInt> CmpNLE(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::UInt>(Nucleus::createSExt(Nucleus::createICmpUGT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::UInt> Max(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	RValue<SIMD::UInt> greater = CmpNLE(x, y);
+	return (x & greater) | (y & ~greater);
+}
+
+RValue<SIMD::UInt> Min(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	RValue<SIMD::UInt> less = CmpLT(x, y);
+	return (x & less) | (y & ~less);
+}
+
+Type *SIMD::UInt::type()
+{
+	return T(llvm::VectorType::get(T(scalar::UInt::type()), SIMD::Width, false));
+}
+
+SIMD::Float::Float(RValue<scalar::Float> rhs)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	Value *vector = loadValue();
+	Value *insert = Nucleus::createInsertElement(vector, rhs.value(), 0);
+
+	std::vector<int> swizzle = { 0 };
+	Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+
+	storeValue(replicate);
+}
+
+RValue<SIMD::Float> operator%(RValue<SIMD::Float> lhs, RValue<SIMD::Float> rhs)
+{
+	return RValue<SIMD::Float>(Nucleus::createFRem(lhs.value(), rhs.value()));
+}
+
+RValue<SIMD::Float> MulAdd(RValue<SIMD::Float> x, RValue<SIMD::Float> y, RValue<SIMD::Float> z)
+{
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::fmuladd, { T(SIMD::Float::type()) });
+	return RValue<SIMD::Float>(V(jit->builder->CreateCall(func, { V(x.value()), V(y.value()), V(z.value()) })));
+}
+
+RValue<SIMD::Float> FMA(RValue<SIMD::Float> x, RValue<SIMD::Float> y, RValue<SIMD::Float> z)
+{
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::fma, { T(SIMD::Float::type()) });
+	return RValue<SIMD::Float>(V(jit->builder->CreateCall(func, { V(x.value()), V(y.value()), V(z.value()) })));
+}
+
+RValue<SIMD::Float> Abs(RValue<SIMD::Float> x)
+{
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::fabs, { V(x.value())->getType() });
+	return RValue<SIMD::Float>(V(jit->builder->CreateCall(func, V(x.value()))));
+}
+
+RValue<SIMD::Float> Max(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::Float>(V(lowerPFMINMAX(V(x.value()), V(y.value()), llvm::FCmpInst::FCMP_OGT)));
+}
+
+RValue<SIMD::Float> Min(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::Float>(V(lowerPFMINMAX(V(x.value()), V(y.value()), llvm::FCmpInst::FCMP_OLT)));
+}
+
+RValue<SIMD::Float> Sqrt(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return As<SIMD::Float>(V(lowerSQRT(V(x.value()))));
+}
+
+RValue<SIMD::Int> CmpEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpOEQ(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpLT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpOLT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpLE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpOLE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpNEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpONE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpNLT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpOGE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpNLE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpOGT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpUEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpUEQ(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpULT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpULT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpULE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpULE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpUNEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpUNE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpUNLT(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpUGE(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Int> CmpUNLE(RValue<SIMD::Float> x, RValue<SIMD::Float> y)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Int>(Nucleus::createSExt(Nucleus::createFCmpUGT(x.value(), y.value()), SIMD::Int::type()));
+}
+
+RValue<SIMD::Float> Round(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Float>(V(lowerRound(V(x.value()))));
+}
+
+RValue<SIMD::Float> Trunc(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Float>(V(lowerTrunc(V(x.value()))));
+}
+
+RValue<SIMD::Float> Frac(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	SIMD::Float frc = x - Floor(x);
+
+	// x - floor(x) can be 1.0 for very small negative x.
+	// Clamp against the value just below 1.0.
+	return Min(frc, As<SIMD::Float>(SIMD::Int(0x3F7FFFFF)));
+}
+
+RValue<SIMD::Float> Floor(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return RValue<SIMD::Float>(V(lowerFloor(V(x.value()))));
+}
+
+RValue<SIMD::Float> Ceil(RValue<SIMD::Float> x)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+	return -Floor(-x);
+}
+
+Type *SIMD::Float::type()
+{
+	return T(llvm::VectorType::get(T(scalar::Float::type()), SIMD::Width, false));
 }
 
 }  // namespace rr
