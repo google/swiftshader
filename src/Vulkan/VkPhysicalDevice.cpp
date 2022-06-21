@@ -1112,7 +1112,7 @@ static void getDriverProperties(T *properties)
 	properties->driverID = VK_DRIVER_ID_GOOGLE_SWIFTSHADER_KHR;
 	strcpy(properties->driverName, "SwiftShader driver");
 	strcpy(properties->driverInfo, "");
-	properties->conformanceVersion = { 1, 1, 3, 3 };
+	properties->conformanceVersion = { 1, 3, 3, 1 };
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceDriverProperties *properties) const
