@@ -479,23 +479,6 @@ static size_t typeSize(Type *type)
 	}
 }
 
-static unsigned int elementCount(Type *type)
-{
-	switch(asInternalType(type))
-	{
-	case Type_v2i32: return 2;
-	case Type_v4i16: return 4;
-	case Type_v2i16: return 2;
-	case Type_v8i8: return 8;
-	case Type_v4i8: return 4;
-	case Type_v2f32: return 2;
-	case Type_LLVM: return llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();
-	default:
-		UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
-		return 0;
-	}
-}
-
 static llvm::Function *createFunction(const char *name, llvm::Type *retTy, const std::vector<llvm::Type *> &params)
 {
 	llvm::FunctionType *functionType = llvm::FunctionType::get(retTy, params, false);
@@ -1632,15 +1615,18 @@ Value *Nucleus::createInsertElement(Value *vector, Value *element, int index)
 	return V(jit->builder->CreateInsertElement(V(vector), V(element), V(createConstantInt(index))));
 }
 
-Value *Nucleus::createShuffleVector(Value *v1, Value *v2, const int *select)
+Value *Nucleus::createShuffleVector(Value *v1, Value *v2, std::vector<int> select)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 
-	int size = llvm::cast<llvm::FixedVectorType>(V(v1)->getType())->getNumElements();
+	size_t size = llvm::cast<llvm::FixedVectorType>(V(v1)->getType())->getNumElements();
+	ASSERT(size == llvm::cast<llvm::FixedVectorType>(V(v2)->getType())->getNumElements());
+
 	llvm::SmallVector<int, 16> mask;
-	for(int i = 0; i < size; i++)
+	const size_t selectSize = select.size();
+	for(size_t i = 0; i < size; i++)
 	{
-		mask.push_back(select[i]);
+		mask.push_back(select[i % selectSize]);
 	}
 
 	return V(lowerShuffleVector(V(v1), V(v2), mask));
@@ -1773,38 +1759,36 @@ Value *Nucleus::createNullPointer(Type *Ty)
 	return V(llvm::ConstantPointerNull::get(llvm::PointerType::get(T(Ty), 0)));
 }
 
-Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
+Value *Nucleus::createConstantVector(std::vector<int64_t> constants, Type *type)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	ASSERT(llvm::isa<llvm::VectorType>(T(type)));
-	const int numConstants = elementCount(type);                                           // Number of provided constants for the (emulated) type.
-	const int numElements = llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
-	ASSERT(numElements <= 16 && numConstants <= numElements);
-	llvm::Constant *constantVector[16];
+	const size_t numConstants = constants.size();                                             // Number of provided constants for the (emulated) type.
+	const size_t numElements = llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
+	llvm::SmallVector<llvm::Constant *, 16> constantVector;
 
-	for(int i = 0; i < numElements; i++)
+	for(size_t i = 0; i < numElements; i++)
 	{
-		constantVector[i] = llvm::ConstantInt::get(T(type)->getContainedType(0), constants[i % numConstants]);
+		constantVector.push_back(llvm::ConstantInt::get(T(type)->getContainedType(0), constants[i % numConstants]));
 	}
 
-	return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant *>(constantVector, numElements)));
+	return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant *>(constantVector)));
 }
 
-Value *Nucleus::createConstantVector(const double *constants, Type *type)
+Value *Nucleus::createConstantVector(std::vector<double> constants, Type *type)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	ASSERT(llvm::isa<llvm::VectorType>(T(type)));
-	const int numConstants = elementCount(type);                                           // Number of provided constants for the (emulated) type.
-	const int numElements = llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
-	ASSERT(numElements <= 8 && numConstants <= numElements);
-	llvm::Constant *constantVector[8];
+	const size_t numConstants = constants.size();                                             // Number of provided constants for the (emulated) type.
+	const size_t numElements = llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
+	llvm::SmallVector<llvm::Constant *, 16> constantVector;
 
-	for(int i = 0; i < numElements; i++)
+	for(size_t i = 0; i < numElements; i++)
 	{
-		constantVector[i] = llvm::ConstantFP::get(T(type)->getContainedType(0), constants[i % numConstants]);
+		constantVector.push_back(llvm::ConstantFP::get(T(type)->getContainedType(0), constants[i % numConstants]));
 	}
 
-	return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant *>(constantVector, numElements)));
+	return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant *>(constantVector)));
 }
 
 Value *Nucleus::createConstantString(const char *v)
@@ -1992,7 +1976,7 @@ Type *UShort2::type()
 Short4::Short4(RValue<Int4> cast)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	int select[8] = { 0, 2, 4, 6, 0, 2, 4, 6 };
+	std::vector<int> select = { 0, 2, 4, 6, 0, 2, 4, 6 };
 	Value *short8 = Nucleus::createBitCast(cast.value(), Short8::type());
 
 	Value *packed = Nucleus::createShuffleVector(short8, short8, select);
@@ -2526,11 +2510,11 @@ Int4::Int4(RValue<Byte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	int swizzle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
+	std::vector<int> swizzle = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
 	Value *a = Nucleus::createBitCast(cast.value(), Byte16::type());
 	Value *b = Nucleus::createShuffleVector(a, Nucleus::createNullValue(Byte16::type()), swizzle);
 
-	int swizzle2[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
+	std::vector<int> swizzle2 = { 0, 8, 1, 9, 2, 10, 3, 11 };
 	Value *c = Nucleus::createBitCast(b, Short8::type());
 	Value *d = Nucleus::createShuffleVector(c, Nucleus::createNullValue(Short8::type()), swizzle2);
 
@@ -2541,11 +2525,11 @@ Int4::Int4(RValue<SByte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	int swizzle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
+	std::vector<int> swizzle = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
 	Value *a = Nucleus::createBitCast(cast.value(), Byte16::type());
 	Value *b = Nucleus::createShuffleVector(a, a, swizzle);
 
-	int swizzle2[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
+	std::vector<int> swizzle2 = { 0, 0, 1, 1, 2, 2, 3, 3 };
 	Value *c = Nucleus::createBitCast(b, Short8::type());
 	Value *d = Nucleus::createShuffleVector(c, c, swizzle2);
 
@@ -2556,7 +2540,7 @@ Int4::Int4(RValue<Short4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	int swizzle[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
+	std::vector<int> swizzle = { 0, 0, 1, 1, 2, 2, 3, 3 };
 	Value *c = Nucleus::createShuffleVector(cast.value(), cast.value(), swizzle);
 	*this = As<Int4>(c) >> 16;
 }
@@ -2565,7 +2549,7 @@ Int4::Int4(RValue<UShort4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	int swizzle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
+	std::vector<int> swizzle = { 0, 8, 1, 9, 2, 10, 3, 11 };
 	Value *c = Nucleus::createShuffleVector(cast.value(), Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
 	*this = As<Int4>(c);
 }
@@ -2577,7 +2561,7 @@ Int4::Int4(RValue<Int> rhs)
 	Value *vector = loadValue();
 	Value *insert = Nucleus::createInsertElement(vector, rhs.value(), 0);
 
-	int swizzle[4] = { 0, 0, 0, 0 };
+	std::vector<int> swizzle = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
 
 	storeValue(replicate);
@@ -2781,7 +2765,7 @@ UInt4::UInt4(RValue<UInt> rhs)
 	Value *vector = loadValue();
 	Value *insert = Nucleus::createInsertElement(vector, rhs.value(), 0);
 
-	int swizzle[4] = { 0, 0, 0, 0 };
+	std::vector<int> swizzle = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
 
 	storeValue(replicate);
@@ -3079,7 +3063,7 @@ Float4::Float4(RValue<Float> rhs)
 	Value *vector = loadValue();
 	Value *insert = Nucleus::createInsertElement(vector, rhs.value(), 0);
 
-	int swizzle[4] = { 0, 0, 0, 0 };
+	std::vector<int> swizzle = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
 
 	storeValue(replicate);

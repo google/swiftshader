@@ -2495,7 +2495,7 @@ inline RValue<Float>::RValue(float f)
 
 inline Value *broadcastInt4(int i)
 {
-	int64_t constantVector[4] = { i, i, i, i };
+	std::vector<int64_t> constantVector = { i };
 	return Nucleus::createConstantVector(constantVector, Int4::type());
 }
 
@@ -2508,7 +2508,7 @@ inline RValue<Int4>::RValue(int i)
 
 inline Value *broadcastUInt4(unsigned int i)
 {
-	int64_t constantVector[4] = { i, i, i, i };
+	std::vector<int64_t> constantVector = { i };
 	return Nucleus::createConstantVector(constantVector, UInt4::type());
 }
 
@@ -2524,7 +2524,7 @@ inline Value *broadcastFloat4(float f)
 	// See Float(float) constructor for the rationale behind this assert.
 	assert(std::isfinite(f));
 
-	double constantVector[4] = { f, f, f, f };
+	std::vector<double> constantVector = { f };
 	return Nucleus::createConstantVector(constantVector, Float4::type());
 }
 

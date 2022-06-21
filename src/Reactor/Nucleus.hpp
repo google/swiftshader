@@ -184,7 +184,7 @@ public:
 	// Vector instructions
 	static Value *createExtractElement(Value *vector, Type *type, int index);
 	static Value *createInsertElement(Value *vector, Value *element, int index);
-	static Value *createShuffleVector(Value *V1, Value *V2, const int *select);
+	static Value *createShuffleVector(Value *V1, Value *V2, std::vector<int> select);
 
 	// Other instructions
 	static Value *createSelect(Value *C, Value *ifTrue, Value *ifFalse);
@@ -204,8 +204,8 @@ public:
 	static Value *createConstantShort(unsigned short i);
 	static Value *createConstantFloat(float x);
 	static Value *createNullPointer(Type *type);
-	static Value *createConstantVector(const int64_t *constants, Type *type);
-	static Value *createConstantVector(const double *constants, Type *type);
+	static Value *createConstantVector(std::vector<int64_t> constants, Type *type);
+	static Value *createConstantVector(std::vector<double> constants, Type *type);
 	static Value *createConstantString(const char *v);
 	static Value *createConstantString(const std::string &v) { return createConstantString(v.c_str()); }
 

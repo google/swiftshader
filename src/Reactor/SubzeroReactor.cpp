@@ -1334,7 +1334,7 @@ Value *Nucleus::createNeg(Value *v)
 Value *Nucleus::createFNeg(Value *v)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	double c[4] = { -0.0, -0.0, -0.0, -0.0 };
+	std::vector<double> c = { -0.0 };
 	Value *negativeZero = Ice::isVectorType(v->getType()) ? createConstantVector(c, T(v->getType())) : V(::context->getConstantFloat(-0.0f));
 
 	return createFSub(negativeZero, v);
@@ -1349,7 +1349,7 @@ Value *Nucleus::createNot(Value *v)
 	}
 	else  // Vector
 	{
-		int64_t c[16] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+		std::vector<int64_t> c = { -1 };
 		return createXor(v, createConstantVector(c, T(v->getType())));
 	}
 }
@@ -1892,18 +1892,19 @@ Value *Nucleus::createInsertElement(Value *vector, Value *element, int index)
 	return V(result);
 }
 
-Value *Nucleus::createShuffleVector(Value *V1, Value *V2, const int *select)
+Value *Nucleus::createShuffleVector(Value *V1, Value *V2, std::vector<int> select)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	ASSERT(V1->getType() == V2->getType());
 
-	int size = Ice::typeNumElements(V1->getType());
+	size_t size = Ice::typeNumElements(V1->getType());
 	auto result = ::function->makeVariable(V1->getType());
 	auto shuffle = Ice::InstShuffleVector::create(::function, result, V1, V2);
 
-	for(int i = 0; i < size; i++)
+	const size_t selectSize = select.size();
+	for(size_t i = 0; i < size; i++)
 	{
-		shuffle->addIndex(llvm::cast<Ice::ConstantInteger32>(::context->getConstantInt32(select[i])));
+		shuffle->addIndex(llvm::cast<Ice::ConstantInteger32>(::context->getConstantInt32(select[i % selectSize])));
 	}
 
 	::basicBlock->appendInst(shuffle);
@@ -2003,7 +2004,7 @@ Value *Nucleus::createNullValue(Type *Ty)
 	if(Ice::isVectorType(T(Ty)))
 	{
 		ASSERT(Ice::typeNumElements(T(Ty)) <= 16);
-		int64_t c[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		std::vector<int64_t> c = { 0 };
 		return createConstantVector(c, Ty);
 	}
 	else
@@ -2077,15 +2078,15 @@ static Ice::Constant *IceConstantData(void const *data, size_t size, size_t alig
 	return sz::getConstantPointer(::context, ::routine->addConstantData(data, size, alignment));
 }
 
-Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
+Value *Nucleus::createConstantVector(std::vector<int64_t> constants, Type *type)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	const int vectorSize = 16;
 	ASSERT(Ice::typeWidthInBytes(T(type)) == vectorSize);
 	const int alignment = vectorSize;
 
-	const int64_t *i = constants;
-	const double *f = reinterpret_cast<const double *>(constants);
+	const auto &i = constants;
+	const size_t s = constants.size();
 
 	// TODO(b/148082873): Fix global variable constants when generating multiple functions
 	Ice::Constant *ptr = nullptr;
@@ -2095,66 +2096,53 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 	case Ice::IceType_v4i32:
 	case Ice::IceType_v4i1:
 		{
-			const int initializer[4] = { (int)i[0], (int)i[1], (int)i[2], (int)i[3] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
-			ptr = IceConstantData(initializer, vectorSize, alignment);
-		}
-		break;
-	case Ice::IceType_v4f32:
-		{
-			const float initializer[4] = { (float)f[0], (float)f[1], (float)f[2], (float)f[3] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
+			const int initializer[4] = { (int)i[0 % s], (int)i[1 % s], (int)i[2 % s], (int)i[3 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
 			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 	case Ice::IceType_v8i16:
 	case Ice::IceType_v8i1:
 		{
-			const short initializer[8] = { (short)i[0], (short)i[1], (short)i[2], (short)i[3], (short)i[4], (short)i[5], (short)i[6], (short)i[7] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
+			const short initializer[8] = { (short)i[0 % s], (short)i[1 % s], (short)i[2 % s], (short)i[3 % s], (short)i[4 % s], (short)i[5 % s], (short)i[6 % s], (short)i[7 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
 			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 	case Ice::IceType_v16i8:
 	case Ice::IceType_v16i1:
 		{
-			const char initializer[16] = { (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7], (char)i[8], (char)i[9], (char)i[10], (char)i[11], (char)i[12], (char)i[13], (char)i[14], (char)i[15] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
+			const char initializer[16] = { (char)i[0 % s], (char)i[1 % s], (char)i[2 % s], (char)i[3 % s], (char)i[4 % s], (char)i[5 % s], (char)i[6 % s], (char)i[7 % s],
+				                           (char)i[8 % s], (char)i[9 % s], (char)i[10 % s], (char)i[11 % s], (char)i[12 % s], (char)i[13 % s], (char)i[14 % s], (char)i[15 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
 			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 	case Type_v2i32:
 		{
-			const int initializer[4] = { (int)i[0], (int)i[1], (int)i[0], (int)i[1] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
-			ptr = IceConstantData(initializer, vectorSize, alignment);
-		}
-		break;
-	case Type_v2f32:
-		{
-			const float initializer[4] = { (float)f[0], (float)f[1], (float)f[0], (float)f[1] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
+			const int initializer[4] = { (int)i[0 % s], (int)i[1 % s], (int)i[0 % s], (int)i[1 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
 			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 	case Type_v4i16:
 		{
-			const short initializer[8] = { (short)i[0], (short)i[1], (short)i[2], (short)i[3], (short)i[0], (short)i[1], (short)i[2], (short)i[3] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
+			const short initializer[8] = { (short)i[0 % s], (short)i[1 % s], (short)i[2 % s], (short)i[3 % s], (short)i[0 % s], (short)i[1 % s], (short)i[2 % s], (short)i[3 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
 			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 	case Type_v8i8:
 		{
-			const char initializer[16] = { (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
+			const char initializer[16] = { (char)i[0 % s], (char)i[1 % s], (char)i[2 % s], (char)i[3 % s], (char)i[4 % s], (char)i[5 % s], (char)i[6 % s], (char)i[7 % s], (char)i[0 % s], (char)i[1 % s], (char)i[2 % s], (char)i[3 % s], (char)i[4 % s], (char)i[5 % s], (char)i[6 % s], (char)i[7 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
 			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 	case Type_v4i8:
 		{
-			const char initializer[16] = { (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3] };
-			static_assert(sizeof(initializer) == vectorSize, "!");
+			const char initializer[16] = { (char)i[0 % s], (char)i[1 % s], (char)i[2 % s], (char)i[3 % s], (char)i[0 % s], (char)i[1 % s], (char)i[2 % s], (char)i[3 % s], (char)i[0 % s], (char)i[1 % s], (char)i[2 % s], (char)i[3 % s], (char)i[0 % s], (char)i[1 % s], (char)i[2 % s], (char)i[3 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
 			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
@@ -2168,9 +2156,43 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 	return V(result);
 }
 
-Value *Nucleus::createConstantVector(const double *constants, Type *type)
+Value *Nucleus::createConstantVector(std::vector<double> constants, Type *type)
 {
-	return createConstantVector((const int64_t *)constants, type);
+	RR_DEBUG_INFO_UPDATE_LOC();
+	const int vectorSize = 16;
+	ASSERT(Ice::typeWidthInBytes(T(type)) == vectorSize);
+	const int alignment = vectorSize;
+
+	const auto &f = constants;
+	const size_t s = constants.size();
+
+	// TODO(b/148082873): Fix global variable constants when generating multiple functions
+	Ice::Constant *ptr = nullptr;
+
+	switch((int)reinterpret_cast<intptr_t>(type))
+	{
+	case Ice::IceType_v4f32:
+		{
+			const float initializer[4] = { (float)f[0 % s], (float)f[1 % s], (float)f[2 % s], (float)f[3 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
+		}
+		break;
+	case Type_v2f32:
+		{
+			const float initializer[4] = { (float)f[0 % s], (float)f[1 % s], (float)f[0 % s], (float)f[1 % s] };
+			static_assert(sizeof(initializer) == vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
+		}
+		break;
+	default:
+		UNREACHABLE("Unknown constant vector type: %d", (int)reinterpret_cast<intptr_t>(type));
+	}
+
+	ASSERT(ptr);
+
+	Ice::Variable *result = sz::createLoad(::function, ::basicBlock, ptr, T(type), alignment);
+	return V(result);
 }
 
 Value *Nucleus::createConstantString(const char *v)
@@ -2515,7 +2537,7 @@ Type *UShort2::type()
 
 Short4::Short4(RValue<Int4> cast)
 {
-	int select[8] = { 0, 2, 4, 6, 0, 2, 4, 6 };
+	std::vector<int> select = { 0, 2, 4, 6, 0, 2, 4, 6 };
 	Value *short8 = Nucleus::createBitCast(cast.value(), Short8::type());
 	Value *packed = Nucleus::createShuffleVector(short8, short8, select);
 
@@ -3396,11 +3418,11 @@ Int4::Int4(RValue<Byte4> cast)
 	Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
 
 	Value *e;
-	int swizzle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
+	std::vector<int> swizzle = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
 	Value *b = Nucleus::createBitCast(a, Byte16::type());
 	Value *c = Nucleus::createShuffleVector(b, Nucleus::createNullValue(Byte16::type()), swizzle);
 
-	int swizzle2[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
+	std::vector<int> swizzle2 = { 0, 8, 1, 9, 2, 10, 3, 11 };
 	Value *d = Nucleus::createBitCast(c, Short8::type());
 	e = Nucleus::createShuffleVector(d, Nucleus::createNullValue(Short8::type()), swizzle2);
 
@@ -3415,11 +3437,11 @@ Int4::Int4(RValue<SByte4> cast)
 	Value *x = Nucleus::createBitCast(cast.value(), Int::type());
 	Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
 
-	int swizzle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
+	std::vector<int> swizzle = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
 	Value *b = Nucleus::createBitCast(a, Byte16::type());
 	Value *c = Nucleus::createShuffleVector(b, b, swizzle);
 
-	int swizzle2[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
+	std::vector<int> swizzle2 = { 0, 0, 1, 1, 2, 2, 3, 3 };
 	Value *d = Nucleus::createBitCast(c, Short8::type());
 	Value *e = Nucleus::createShuffleVector(d, d, swizzle2);
 
@@ -3430,7 +3452,7 @@ Int4::Int4(RValue<Short4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	int swizzle[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
+	std::vector<int> swizzle = { 0, 0, 1, 1, 2, 2, 3, 3 };
 	Value *c = Nucleus::createShuffleVector(cast.value(), cast.value(), swizzle);
 
 	*this = As<Int4>(c) >> 16;
@@ -3440,7 +3462,7 @@ Int4::Int4(RValue<UShort4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	int swizzle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
+	std::vector<int> swizzle = { 0, 8, 1, 9, 2, 10, 3, 11 };
 	Value *c = Nucleus::createShuffleVector(cast.value(), Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
 	Value *d = Nucleus::createBitCast(c, Int4::type());
 	storeValue(d);
@@ -3452,7 +3474,7 @@ Int4::Int4(RValue<Int> rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Value *vector = Nucleus::createBitCast(rhs.value(), Int4::type());
 
-	int swizzle[4] = { 0, 0, 0, 0 };
+	std::vector<int> swizzle = { 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
 
 	storeValue(replicate);
@@ -3718,7 +3740,7 @@ UInt4::UInt4(RValue<UInt> rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Value *vector = Nucleus::createBitCast(rhs.value(), UInt4::type());
 
-	int swizzle[4] = { 0, 0, 0, 0 };
+	std::vector<int> swizzle = { 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
 
 	storeValue(replicate);
@@ -3894,7 +3916,7 @@ Float4::Float4(RValue<Float> rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Value *vector = Nucleus::createBitCast(rhs.value(), Float4::type());
 
-	int swizzle[4] = { 0, 0, 0, 0 };
+	std::vector<int> swizzle = { 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
 
 	storeValue(replicate);
@@ -3957,7 +3979,7 @@ RValue<Float4> Abs(RValue<Float4> x)
 {
 	// TODO: Optimize.
 	Value *vector = Nucleus::createBitCast(x.value(), Int4::type());
-	int64_t constantVector[4] = { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+	std::vector<int64_t> constantVector = { 0x7FFFFFFF };
 	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, Int4::type()));
 
 	return As<Float4>(result);

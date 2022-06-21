@@ -181,7 +181,7 @@ void Variable::killUnmaterialized()
 //
 static Value *createShuffle4(Value *lhs, Value *rhs, uint16_t select)
 {
-	int swizzle[4] = {
+	std::vector<int> swizzle = {
 		(select >> 12) & 0x07,
 		(select >> 8) & 0x07,
 		(select >> 4) & 0x07,
@@ -207,7 +207,7 @@ static Value *createShuffle4(Value *lhs, Value *rhs, uint16_t select)
 //
 static Value *createSwizzle4(Value *val, uint16_t select)
 {
-	int swizzle[4] = {
+	std::vector<int> swizzle = {
 		(select >> 12) & 0x03,
 		(select >> 8) & 0x03,
 		(select >> 4) & 0x03,
@@ -226,7 +226,7 @@ static Value *createMask4(Value *lhs, Value *rhs, uint16_t select)
 	mask[(select >> 4) & 0x03] = true;
 	mask[(select >> 0) & 0x03] = true;
 
-	int swizzle[4] = {
+	std::vector<int> swizzle = {
 		mask[0] ? 4 : 0,
 		mask[1] ? 5 : 1,
 		mask[2] ? 6 : 2,
@@ -1314,7 +1314,7 @@ RValue<Byte4> Insert(RValue<Byte4> val, RValue<Byte> element, int i)
 
 Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 {
-	int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
+	std::vector<int64_t> constantVector = { x0, x1, x2, x3, x4, x5, x6, x7 };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -1467,7 +1467,7 @@ RValue<Byte8> Swizzle(RValue<Byte8> x, uint32_t select)
 {
 	// Real type is v16i8
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[16] = {
+	std::vector<int> shuffle = {
 		static_cast<int>((select >> 28) & 0x07),
 		static_cast<int>((select >> 24) & 0x07),
 		static_cast<int>((select >> 20) & 0x07),
@@ -1492,7 +1492,7 @@ RValue<Byte8> Swizzle(RValue<Byte8> x, uint32_t select)
 RValue<Short4> Unpack(RValue<Byte4> x)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };  // Real type is v16i8
+	std::vector<int> shuffle = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };  // Real type is v16i8
 	return As<Short4>(Nucleus::createShuffleVector(x.value(), x.value(), shuffle));
 }
 
@@ -1504,21 +1504,21 @@ RValue<Short4> Unpack(RValue<Byte4> x, RValue<Byte4> y)
 RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
+	std::vector<int> shuffle = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	return As<Short4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
+	std::vector<int> shuffle = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Short4>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
 
 SByte8::SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 {
-	int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
+	std::vector<int64_t> constantVector = { x0, x1, x2, x3, x4, x5, x6, x7 };
 	Value *vector = Nucleus::createConstantVector(constantVector, type());
 
 	storeValue(Nucleus::createBitCast(vector, type()));
@@ -1672,14 +1672,14 @@ RValue<SByte8> operator~(RValue<SByte8> val)
 RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
+	std::vector<int> shuffle = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	return As<Short4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<SByte8> x, RValue<SByte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
+	std::vector<int> shuffle = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Short4>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
@@ -1716,7 +1716,7 @@ RValue<Byte16> Byte16::operator=(const Reference<Byte16> &rhs)
 
 RValue<Byte16> Swizzle(RValue<Byte16> x, uint64_t select)
 {
-	int shuffle[16] = {
+	std::vector<int> shuffle = {
 		static_cast<int>((select >> 60) & 0x0F),
 		static_cast<int>((select >> 56) & 0x0F),
 		static_cast<int>((select >> 52) & 0x0F),
@@ -1769,13 +1769,13 @@ Short4::Short4(RValue<UInt4> cast)
 
 Short4::Short4(short xyzw)
 {
-	int64_t constantVector[4] = { xyzw, xyzw, xyzw, xyzw };
+	std::vector<int64_t> constantVector = { xyzw };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Short4::Short4(short x, short y, short z, short w)
 {
-	int64_t constantVector[4] = { x, y, z, w };
+	std::vector<int64_t> constantVector = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -1952,14 +1952,14 @@ RValue<Short4> RoundShort4(RValue<Float4> cast)
 
 RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y)
 {
-	int shuffle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
+	std::vector<int> shuffle = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
 	return As<Int2>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
+	std::vector<int> shuffle = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
 	auto lowHigh = RValue<Short8>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Int2>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
@@ -1968,7 +1968,7 @@ RValue<Short4> Swizzle(RValue<Short4> x, uint16_t select)
 {
 	// Real type is v8i16
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[8] = {
+	std::vector<int> shuffle = {
 		(select >> 12) & 0x03,
 		(select >> 8) & 0x03,
 		(select >> 4) & 0x03,
@@ -2004,13 +2004,13 @@ UShort4::UShort4(RValue<Int4> cast)
 
 UShort4::UShort4(unsigned short xyzw)
 {
-	int64_t constantVector[4] = { xyzw, xyzw, xyzw, xyzw };
+	std::vector<int64_t> constantVector = { xyzw };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UShort4::UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 {
-	int64_t constantVector[4] = { x, y, z, w };
+	std::vector<int64_t> constantVector = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -2126,13 +2126,13 @@ RValue<UShort4> Insert(RValue<UShort4> val, RValue<UShort> element, int i)
 
 Short8::Short8(short c)
 {
-	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
+	std::vector<int64_t> constantVector = { c };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Short8::Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7)
 {
-	int64_t constantVector[8] = { c0, c1, c2, c3, c4, c5, c6, c7 };
+	std::vector<int64_t> constantVector = { c0, c1, c2, c3, c4, c5, c6, c7 };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -2148,7 +2148,7 @@ Short8::Short8(const Reference<Short8> &rhs)
 
 Short8::Short8(RValue<Short4> lo, RValue<Short4> hi)
 {
-	int shuffle[8] = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
+	std::vector<int> shuffle = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
 	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
@@ -2181,13 +2181,13 @@ RValue<Short8> operator&(RValue<Short8> lhs, RValue<Short8> rhs)
 
 UShort8::UShort8(unsigned short c)
 {
-	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
+	std::vector<int64_t> constantVector = { c };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UShort8::UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7)
 {
-	int64_t constantVector[8] = { c0, c1, c2, c3, c4, c5, c6, c7 };
+	std::vector<int64_t> constantVector = { c0, c1, c2, c3, c4, c5, c6, c7 };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -2203,7 +2203,7 @@ UShort8::UShort8(const Reference<UShort8> &rhs)
 
 UShort8::UShort8(RValue<UShort4> lo, RValue<UShort4> hi)
 {
-	int shuffle[8] = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
+	std::vector<int> shuffle = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
 	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
@@ -2251,7 +2251,7 @@ RValue<UShort8> operator~(RValue<UShort8> val)
 
 RValue<UShort8> Swizzle(RValue<UShort8> x, uint32_t select)
 {
-	int swizzle[16] = {
+	std::vector<int> swizzle = {
 		static_cast<int>((select >> 28) & 0x07),
 		static_cast<int>((select >> 24) & 0x07),
 		static_cast<int>((select >> 20) & 0x07),
@@ -2921,7 +2921,7 @@ Int2::Int2(RValue<Int4> cast)
 
 Int2::Int2(int x, int y)
 {
-	int64_t constantVector[2] = { x, y };
+	std::vector<int64_t> constantVector = { x, y };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -2942,7 +2942,7 @@ Int2::Int2(const Reference<Int2> &rhs)
 
 Int2::Int2(RValue<Int> lo, RValue<Int> hi)
 {
-	int shuffle[4] = { 0, 4, 1, 5 };
+	std::vector<int> shuffle = { 0, 4, 1, 5 };
 	Value *packed = Nucleus::createShuffleVector(Int4(lo).loadValue(), Int4(hi).loadValue(), shuffle);
 
 	storeValue(Nucleus::createBitCast(packed, Int2::type()));
@@ -3071,14 +3071,14 @@ RValue<Int2> operator~(RValue<Int2> val)
 RValue<Short4> UnpackLow(RValue<Int2> x, RValue<Int2> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[4] = { 0, 4, 1, 5 };  // Real type is v4i32
+	std::vector<int> shuffle = { 0, 4, 1, 5 };  // Real type is v4i32
 	return As<Short4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
-	int shuffle[4] = { 0, 4, 1, 5 };  // Real type is v4i32
+	std::vector<int> shuffle = { 0, 4, 1, 5 };  // Real type is v4i32
 	auto lowHigh = RValue<Int4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Short4>(Swizzle(lowHigh, 0x2323));
 }
@@ -3095,7 +3095,7 @@ RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
 
 UInt2::UInt2(unsigned int x, unsigned int y)
 {
-	int64_t constantVector[2] = { x, y };
+	std::vector<int64_t> constantVector = { x, y };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -3283,7 +3283,7 @@ Int4::Int4(int x, int y, int z, int w)
 
 void Int4::constant(int x, int y, int z, int w)
 {
-	int64_t constantVector[4] = { x, y, z, w };
+	std::vector<int64_t> constantVector = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -3326,7 +3326,7 @@ Int4::Int4(const Reference<UInt4> &rhs)
 Int4::Int4(RValue<Int2> lo, RValue<Int2> hi)
     : XYZW(this)
 {
-	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
+	std::vector<int> shuffle = { 0, 1, 4, 5 };  // Real type is v4i32
 	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
@@ -3530,7 +3530,7 @@ UInt4::UInt4(int x, int y, int z, int w)
 
 void UInt4::constant(int x, int y, int z, int w)
 {
-	int64_t constantVector[4] = { x, y, z, w };
+	std::vector<int64_t> constantVector = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -3573,7 +3573,7 @@ UInt4::UInt4(const Reference<Int4> &rhs)
 UInt4::UInt4(RValue<UInt2> lo, RValue<UInt2> hi)
     : XYZW(this)
 {
-	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
+	std::vector<int> shuffle = { 0, 1, 4, 5 };  // Real type is v4i32
 	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
@@ -4075,7 +4075,7 @@ Float4 Float4::infinity()
 	Float4 result;
 
 	constexpr double inf = std::numeric_limits<double>::infinity();
-	double constantVector[4] = { inf, inf, inf, inf };
+	std::vector<double> constantVector = { inf };
 	result.storeValue(Nucleus::createConstantVector(constantVector, type()));
 
 	return result;
@@ -4086,7 +4086,7 @@ void Float4::constant(float x, float y, float z, float w)
 	// See Float(float) constructor for the rationale behind this assert.
 	ASSERT(std::isfinite(x) && std::isfinite(y) && std::isfinite(z) && std::isfinite(w));
 
-	double constantVector[4] = { x, y, z, w };
+	std::vector<double> constantVector = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -4123,7 +4123,7 @@ Float4::Float4(const Reference<Float> &rhs)
 Float4::Float4(RValue<Float2> lo, RValue<Float2> hi)
     : XYZW(this)
 {
-	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
+	std::vector<int> shuffle = { 0, 1, 4, 5 };  // Real type is v4i32
 	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
@@ -4241,7 +4241,7 @@ RValue<Float4> Shuffle(RValue<Float4> x, RValue<Float4> y, uint16_t select)
 
 RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm)
 {
-	int shuffle[4] = {
+	std::vector<int> shuffle = {
 		((imm >> 12) & 0x03) + 0,
 		((imm >> 8) & 0x03) + 0,
 		((imm >> 4) & 0x03) + 4,
@@ -4253,13 +4253,13 @@ RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm)
 
 RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y)
 {
-	int shuffle[4] = { 0, 4, 1, 5 };
+	std::vector<int> shuffle = { 0, 4, 1, 5 };
 	return RValue<Float4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y)
 {
-	int shuffle[4] = { 2, 6, 3, 7 };
+	std::vector<int> shuffle = { 2, 6, 3, 7 };
 	return RValue<Float4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
