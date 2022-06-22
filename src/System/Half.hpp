@@ -51,10 +51,17 @@ inline half shortAsHalf(short s)
 
 class RGB9E5
 {
-	unsigned int R : 9;
-	unsigned int G : 9;
-	unsigned int B : 9;
-	unsigned int E : 5;
+	union
+	{
+		struct
+		{
+			unsigned int R : 9;
+			unsigned int G : 9;
+			unsigned int B : 9;
+			unsigned int E : 5;
+		};
+		uint32_t packed;
+	};
 
 public:
 	RGB9E5(const float rgb[3])
@@ -111,7 +118,7 @@ public:
 
 	operator unsigned int() const
 	{
-		return *reinterpret_cast<const unsigned int *>(this);
+		return packed;
 	}
 
 	void toRGB16F(half rgb[3]) const
@@ -127,6 +134,17 @@ public:
 
 class R11G11B10F
 {
+	union
+	{
+		struct
+		{
+			unsigned int R : 11;
+			unsigned int G : 11;
+			unsigned int B : 10;
+		};
+		uint32_t packed;
+	};
+
 public:
 	R11G11B10F(const float rgb[3])
 	{
@@ -137,7 +155,7 @@ public:
 
 	operator unsigned int() const
 	{
-		return *reinterpret_cast<const unsigned int *>(this);
+		return packed;
 	}
 
 	void toRGB16F(half rgb[3]) const
@@ -314,11 +332,6 @@ public:
 			return ((float32Val + 0x1FFFF + ((float32Val >> 18) & 1)) >> 18) & float10BitMask;
 		}
 	}
-
-private:
-	unsigned int R : 11;
-	unsigned int G : 11;
-	unsigned int B : 10;
 };
 
 }  // namespace sw
