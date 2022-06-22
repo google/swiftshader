@@ -2246,39 +2246,27 @@ Type *SByte4::type()
 	return T(Type_v4i8);
 }
 
-namespace {
-RValue<Byte> SaturateUnsigned(RValue<Short> x)
+static RValue<Byte> SaturateUnsigned(RValue<Short> x)
 {
 	return Byte(IfThenElse(Int(x) > 0xFF, Int(0xFF), IfThenElse(Int(x) < 0, Int(0), Int(x))));
 }
 
-RValue<Byte> Extract(RValue<Byte8> val, int i)
+static RValue<Byte> Extract(RValue<Byte8> val, int i)
 {
 	return RValue<Byte>(Nucleus::createExtractElement(val.value(), Byte::type(), i));
 }
 
-RValue<Byte8> Insert(RValue<Byte8> val, RValue<Byte> element, int i)
+static RValue<Byte8> Insert(RValue<Byte8> val, RValue<Byte> element, int i)
 {
 	return RValue<Byte8>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
-}  // namespace
 
 RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Byte8 result;
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 0)) + Int(Extract(y, 0)))), 0);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 1)) + Int(Extract(y, 1)))), 1);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 2)) + Int(Extract(y, 2)))), 2);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 3)) + Int(Extract(y, 3)))), 3);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 4)) + Int(Extract(y, 4)))), 4);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 5)) + Int(Extract(y, 5)))), 5);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 6)) + Int(Extract(y, 6)))), 6);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 7)) + Int(Extract(y, 7)))), 7);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateUnsigned(Short(Int(a) + Int(b))); }, x, y);
 	}
 	else
 	{
@@ -2298,17 +2286,7 @@ RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Byte8 result;
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 0)) - Int(Extract(y, 0)))), 0);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 1)) - Int(Extract(y, 1)))), 1);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 2)) - Int(Extract(y, 2)))), 2);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 3)) - Int(Extract(y, 3)))), 3);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 4)) - Int(Extract(y, 4)))), 4);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 5)) - Int(Extract(y, 5)))), 5);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 6)) - Int(Extract(y, 6)))), 6);
-		result = Insert(result, SaturateUnsigned(Short(Int(Extract(x, 7)) - Int(Extract(y, 7)))), 7);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateUnsigned(Short(Int(a) - Int(b))); }, x, y);
 	}
 	else
 	{
@@ -2340,17 +2318,7 @@ RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		SByte8 result;
-		result = Insert(result, Extract(lhs, 0) >> SByte(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> SByte(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) >> SByte(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) >> SByte(rhs), 3);
-		result = Insert(result, Extract(lhs, 4) >> SByte(rhs), 4);
-		result = Insert(result, Extract(lhs, 5) >> SByte(rhs), 5);
-		result = Insert(result, Extract(lhs, 6) >> SByte(rhs), 6);
-		result = Insert(result, Extract(lhs, 7) >> SByte(rhs), 7);
-
-		return result;
+		return Scalarize([rhs](auto a) { return a >> SByte(rhs); }, lhs);
 	}
 	else
 	{
@@ -2423,17 +2391,7 @@ RValue<SByte8> AddSat(RValue<SByte8> x, RValue<SByte8> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		SByte8 result;
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 0)) + Int(Extract(y, 0)))), 0);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 1)) + Int(Extract(y, 1)))), 1);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 2)) + Int(Extract(y, 2)))), 2);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 3)) + Int(Extract(y, 3)))), 3);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 4)) + Int(Extract(y, 4)))), 4);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 5)) + Int(Extract(y, 5)))), 5);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 6)) + Int(Extract(y, 6)))), 6);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 7)) + Int(Extract(y, 7)))), 7);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateSigned(Short(Int(a) + Int(b))); }, x, y);
 	}
 	else
 	{
@@ -2453,17 +2411,7 @@ RValue<SByte8> SubSat(RValue<SByte8> x, RValue<SByte8> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		SByte8 result;
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 0)) - Int(Extract(y, 0)))), 0);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 1)) - Int(Extract(y, 1)))), 1);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 2)) - Int(Extract(y, 2)))), 2);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 3)) - Int(Extract(y, 3)))), 3);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 4)) - Int(Extract(y, 4)))), 4);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 5)) - Int(Extract(y, 5)))), 5);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 6)) - Int(Extract(y, 6)))), 6);
-		result = Insert(result, SaturateSigned(Short(Int(Extract(x, 7)) - Int(Extract(y, 7)))), 7);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateSigned(Short(Int(a) - Int(b))); }, x, y);
 	}
 	else
 	{
@@ -2564,13 +2512,7 @@ RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Short4 result;
-		result = Insert(result, Extract(lhs, 0) << Short(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << Short(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) << Short(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) << Short(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << Short(rhs); }, lhs);
 	}
 	else
 	{
@@ -2583,13 +2525,7 @@ RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Short4 result;
-		result = Insert(result, Extract(lhs, 0) >> Short(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> Short(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) >> Short(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) >> Short(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> Short(rhs); }, lhs);
 	}
 	else
 	{
@@ -2636,13 +2572,7 @@ RValue<Short4> AddSat(RValue<Short4> x, RValue<Short4> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Short4 result;
-		result = Insert(result, SaturateSigned(Int(Extract(x, 0)) + Int(Extract(y, 0))), 0);
-		result = Insert(result, SaturateSigned(Int(Extract(x, 1)) + Int(Extract(y, 1))), 1);
-		result = Insert(result, SaturateSigned(Int(Extract(x, 2)) + Int(Extract(y, 2))), 2);
-		result = Insert(result, SaturateSigned(Int(Extract(x, 3)) + Int(Extract(y, 3))), 3);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateSigned(Int(a) + Int(b)); }, x, y);
 	}
 	else
 	{
@@ -2662,13 +2592,7 @@ RValue<Short4> SubSat(RValue<Short4> x, RValue<Short4> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Short4 result;
-		result = Insert(result, SaturateSigned(Int(Extract(x, 0)) - Int(Extract(y, 0))), 0);
-		result = Insert(result, SaturateSigned(Int(Extract(x, 1)) - Int(Extract(y, 1))), 1);
-		result = Insert(result, SaturateSigned(Int(Extract(x, 2)) - Int(Extract(y, 2))), 2);
-		result = Insert(result, SaturateSigned(Int(Extract(x, 3)) - Int(Extract(y, 3))), 3);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateSigned(Int(a) - Int(b)); }, x, y);
 	}
 	else
 	{
@@ -2688,13 +2612,7 @@ RValue<Short4> MulHigh(RValue<Short4> x, RValue<Short4> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Short4 result;
-		result = Insert(result, Short((Int(Extract(x, 0)) * Int(Extract(y, 0))) >> 16), 0);
-		result = Insert(result, Short((Int(Extract(x, 1)) * Int(Extract(y, 1))) >> 16), 1);
-		result = Insert(result, Short((Int(Extract(x, 2)) * Int(Extract(y, 2))) >> 16), 2);
-		result = Insert(result, Short((Int(Extract(x, 3)) * Int(Extract(y, 3))) >> 16), 3);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return Short((Int(a) * Int(b)) >> 16); }, x, y);
 	}
 	else
 	{
@@ -2847,15 +2765,8 @@ RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
-
 	{
-		UShort4 result;
-		result = Insert(result, Extract(lhs, 0) << UShort(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << UShort(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) << UShort(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) << UShort(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << UShort(rhs); }, lhs);
 	}
 	else
 	{
@@ -2868,13 +2779,7 @@ RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UShort4 result;
-		result = Insert(result, Extract(lhs, 0) >> UShort(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> UShort(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) >> UShort(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) >> UShort(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> UShort(rhs); }, lhs);
 	}
 	else
 	{
@@ -2920,13 +2825,7 @@ RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UShort4 result;
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 0)) + Int(Extract(y, 0))), 0);
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 1)) + Int(Extract(y, 1))), 1);
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 2)) + Int(Extract(y, 2))), 2);
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 3)) + Int(Extract(y, 3))), 3);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateUnsigned(Int(a) + Int(b)); }, x, y);
 	}
 	else
 	{
@@ -2946,13 +2845,7 @@ RValue<UShort4> SubSat(RValue<UShort4> x, RValue<UShort4> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UShort4 result;
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 0)) - Int(Extract(y, 0))), 0);
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 1)) - Int(Extract(y, 1))), 1);
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 2)) - Int(Extract(y, 2))), 2);
-		result = Insert(result, SaturateUnsigned(Int(Extract(x, 3)) - Int(Extract(y, 3))), 3);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return SaturateUnsigned(Int(a) - Int(b)); }, x, y);
 	}
 	else
 	{
@@ -2972,13 +2865,7 @@ RValue<UShort4> MulHigh(RValue<UShort4> x, RValue<UShort4> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UShort4 result;
-		result = Insert(result, UShort((UInt(Extract(x, 0)) * UInt(Extract(y, 0))) >> 16), 0);
-		result = Insert(result, UShort((UInt(Extract(x, 1)) * UInt(Extract(y, 1))) >> 16), 1);
-		result = Insert(result, UShort((UInt(Extract(x, 2)) * UInt(Extract(y, 2))) >> 16), 2);
-		result = Insert(result, UShort((UInt(Extract(x, 3)) * UInt(Extract(y, 3))) >> 16), 3);
-
-		return result;
+		return Scalarize([](auto a, auto b) { return UShort((UInt(a) * UInt(b)) >> 16); }, x, y);
 	}
 	else
 	{
@@ -2998,14 +2885,7 @@ RValue<Int4> MulHigh(RValue<Int4> x, RValue<Int4> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	// TODO: For x86, build an intrinsics version of this which uses shuffles + pmuludq.
 
-	// Scalarized implementation.
-	Int4 result;
-	result = Insert(result, Int((Long(Extract(x, 0)) * Long(Extract(y, 0))) >> Long(Int(32))), 0);
-	result = Insert(result, Int((Long(Extract(x, 1)) * Long(Extract(y, 1))) >> Long(Int(32))), 1);
-	result = Insert(result, Int((Long(Extract(x, 2)) * Long(Extract(y, 2))) >> Long(Int(32))), 2);
-	result = Insert(result, Int((Long(Extract(x, 3)) * Long(Extract(y, 3))) >> Long(Int(32))), 3);
-
-	return result;
+	return Scalarize([](auto a, auto b) { return Int((Long(a) * Long(b)) >> Long(Int(32))); }, x, y);
 }
 
 RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y)
@@ -3031,14 +2911,7 @@ RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y)
 		return (xh * yh) + (xlyhh + xhylh) + oflow;
 	}
 
-	// Scalarized implementation.
-	Int4 result;
-	result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 0))) * Long(UInt(Extract(As<Int4>(y), 0)))) >> Long(Int(32))), 0);
-	result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 1))) * Long(UInt(Extract(As<Int4>(y), 1)))) >> Long(Int(32))), 1);
-	result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 2))) * Long(UInt(Extract(As<Int4>(y), 2)))) >> Long(Int(32))), 2);
-	result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 3))) * Long(UInt(Extract(As<Int4>(y), 3)))) >> Long(Int(32))), 3);
-
-	return As<UInt4>(result);
+	return Scalarize([](auto a, auto b) { return UInt((Long(a) * Long(b)) >> Long(Int(32))); }, x, y);
 }
 
 RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)
@@ -3070,17 +2943,7 @@ RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Short8 result;
-		result = Insert(result, Extract(lhs, 0) << Short(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << Short(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) << Short(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) << Short(rhs), 3);
-		result = Insert(result, Extract(lhs, 4) << Short(rhs), 4);
-		result = Insert(result, Extract(lhs, 5) << Short(rhs), 5);
-		result = Insert(result, Extract(lhs, 6) << Short(rhs), 6);
-		result = Insert(result, Extract(lhs, 7) << Short(rhs), 7);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << Short(rhs); }, lhs);
 	}
 	else
 	{
@@ -3093,17 +2956,7 @@ RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Short8 result;
-		result = Insert(result, Extract(lhs, 0) >> Short(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> Short(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) >> Short(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) >> Short(rhs), 3);
-		result = Insert(result, Extract(lhs, 4) >> Short(rhs), 4);
-		result = Insert(result, Extract(lhs, 5) >> Short(rhs), 5);
-		result = Insert(result, Extract(lhs, 6) >> Short(rhs), 6);
-		result = Insert(result, Extract(lhs, 7) >> Short(rhs), 7);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> Short(rhs); }, lhs);
 	}
 	else
 	{
@@ -3147,17 +3000,7 @@ RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UShort8 result;
-		result = Insert(result, Extract(lhs, 0) << UShort(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << UShort(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) << UShort(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) << UShort(rhs), 3);
-		result = Insert(result, Extract(lhs, 4) << UShort(rhs), 4);
-		result = Insert(result, Extract(lhs, 5) << UShort(rhs), 5);
-		result = Insert(result, Extract(lhs, 6) << UShort(rhs), 6);
-		result = Insert(result, Extract(lhs, 7) << UShort(rhs), 7);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << UShort(rhs); }, lhs);
 	}
 	else
 	{
@@ -3170,17 +3013,7 @@ RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UShort8 result;
-		result = Insert(result, Extract(lhs, 0) >> UShort(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> UShort(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) >> UShort(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) >> UShort(rhs), 3);
-		result = Insert(result, Extract(lhs, 4) >> UShort(rhs), 4);
-		result = Insert(result, Extract(lhs, 5) >> UShort(rhs), 5);
-		result = Insert(result, Extract(lhs, 6) >> UShort(rhs), 6);
-		result = Insert(result, Extract(lhs, 7) >> UShort(rhs), 7);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> UShort(rhs); }, lhs);
 	}
 	else
 	{
@@ -3337,11 +3170,7 @@ RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Int2 result;
-		result = Insert(result, Extract(lhs, 0) << Int(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << Int(rhs), 1);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << rhs; }, lhs);
 	}
 	else
 	{
@@ -3354,11 +3183,7 @@ RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Int2 result;
-		result = Insert(result, Extract(lhs, 0) >> Int(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> Int(rhs), 1);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> rhs; }, lhs);
 	}
 	else
 	{
@@ -3376,11 +3201,7 @@ RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UInt2 result;
-		result = Insert(result, Extract(lhs, 0) << UInt(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << UInt(rhs), 1);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << rhs; }, lhs);
 	}
 	else
 	{
@@ -3393,11 +3214,7 @@ RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UInt2 result;
-		result = Insert(result, Extract(lhs, 0) >> UInt(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> UInt(rhs), 1);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> rhs; }, lhs);
 	}
 	else
 	{
@@ -3485,13 +3302,7 @@ RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Int4 result;
-		result = Insert(result, Extract(lhs, 0) << Int(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << Int(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) << Int(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) << Int(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << rhs; }, lhs);
 	}
 	else
 	{
@@ -3504,13 +3315,7 @@ RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		Int4 result;
-		result = Insert(result, Extract(lhs, 0) >> Int(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> Int(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) >> Int(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) >> Int(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> rhs; }, lhs);
 	}
 	else
 	{
@@ -3751,13 +3556,7 @@ RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UInt4 result;
-		result = Insert(result, Extract(lhs, 0) << UInt(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) << UInt(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) << UInt(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) << UInt(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x << rhs; }, lhs);
 	}
 	else
 	{
@@ -3770,13 +3569,7 @@ RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	if(emulateIntrinsics)
 	{
-		UInt4 result;
-		result = Insert(result, Extract(lhs, 0) >> UInt(rhs), 0);
-		result = Insert(result, Extract(lhs, 1) >> UInt(rhs), 1);
-		result = Insert(result, Extract(lhs, 2) >> UInt(rhs), 2);
-		result = Insert(result, Extract(lhs, 3) >> UInt(rhs), 3);
-
-		return result;
+		return Scalarize([rhs](auto x) { return x >> rhs; }, lhs);
 	}
 	else
 	{
@@ -3922,45 +3715,9 @@ Float4::Float4(RValue<Float> rhs)
 	storeValue(replicate);
 }
 
-// Call single arg function on a vector type
-template<typename Func, typename T>
-static RValue<T> call4(Func func, const RValue<T> &x)
-{
-	T result;
-	result = Insert(result, Call(func, Extract(x, 0)), 0);
-	result = Insert(result, Call(func, Extract(x, 1)), 1);
-	result = Insert(result, Call(func, Extract(x, 2)), 2);
-	result = Insert(result, Call(func, Extract(x, 3)), 3);
-	return result;
-}
-
-// Call two arg function on a vector type
-template<typename Func, typename T>
-static RValue<T> call4(Func func, const RValue<T> &x, const RValue<T> &y)
-{
-	T result;
-	result = Insert(result, Call(func, Extract(x, 0), Extract(y, 0)), 0);
-	result = Insert(result, Call(func, Extract(x, 1), Extract(y, 1)), 1);
-	result = Insert(result, Call(func, Extract(x, 2), Extract(y, 2)), 2);
-	result = Insert(result, Call(func, Extract(x, 3), Extract(y, 3)), 3);
-	return result;
-}
-
-// Call three arg function on a vector type
-template<typename Func, typename T>
-static RValue<T> call4(Func func, const RValue<T> &x, const RValue<T> &y, const RValue<T> &z)
-{
-	T result;
-	result = Insert(result, Call(func, Extract(x, 0), Extract(y, 0), Extract(z, 0)), 0);
-	result = Insert(result, Call(func, Extract(x, 1), Extract(y, 1), Extract(z, 1)), 1);
-	result = Insert(result, Call(func, Extract(x, 2), Extract(y, 2), Extract(z, 2)), 2);
-	result = Insert(result, Call(func, Extract(x, 3), Extract(y, 3), Extract(z, 3)), 3);
-	return result;
-}
-
 RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
 {
-	return call4(fmodf, lhs, rhs);
+	return ScalarizeCall(fmodf, lhs, rhs);
 }
 
 RValue<Float4> MulAdd(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
@@ -3972,7 +3729,7 @@ RValue<Float4> MulAdd(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
 RValue<Float4> FMA(RValue<Float4> x, RValue<Float4> y, RValue<Float4> z)
 {
 	// TODO(b/214591655): Use FMA instructions when available.
-	return call4(fmaf, x, y, z);
+	return ScalarizeCall(fmaf, x, y, z);
 }
 
 RValue<Float4> Abs(RValue<Float4> x)
@@ -4227,7 +3984,7 @@ RValue<Float4> Frac(RValue<Float4> x)
 	{
 		frc = x - Float4(Int4(x));  // Signed fractional part.
 
-		frc += As<Float4>(As<Int4>(CmpNLE(Float4(0.0f), frc)) & As<Int4>(Float4(1, 1, 1, 1)));  // Add 1.0 if negative.
+		frc += As<Float4>(As<Int4>(CmpNLE(Float4(0.0f), frc)) & As<Int4>(Float4(1.0f)));  // Add 1.0 if negative.
 	}
 
 	// x - floor(x) can be 1.0 for very small negative x.
@@ -4415,126 +4172,6 @@ void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, 
 	scatter<Int4>(base, val, offsets, mask, alignment);
 }
 
-RValue<Float> Exp2(RValue<Float> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return Call(exp2f, x);
-}
-
-RValue<Float> Log2(RValue<Float> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return Call(log2f, x);
-}
-
-RValue<Float4> Sin(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(sinf, x);
-}
-
-RValue<Float4> Cos(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(cosf, x);
-}
-
-RValue<Float4> Tan(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(tanf, x);
-}
-
-RValue<Float4> Asin(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(asinf, x);
-}
-
-RValue<Float4> Acos(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(acosf, x);
-}
-
-RValue<Float4> Atan(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(atanf, x);
-}
-
-RValue<Float4> Sinh(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(sinhf, x);
-}
-
-RValue<Float4> Cosh(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(coshf, x);
-}
-
-RValue<Float4> Tanh(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(tanhf, x);
-}
-
-RValue<Float4> Asinh(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(asinhf, x);
-}
-
-RValue<Float4> Acosh(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(acoshf, x);
-}
-
-RValue<Float4> Atanh(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(atanhf, x);
-}
-
-RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(atan2f, x, y);
-}
-
-RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(powf, x, y);
-}
-
-RValue<Float4> Exp(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(expf, x);
-}
-
-RValue<Float4> Log(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(logf, x);
-}
-
-RValue<Float4> Exp2(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(exp2f, x);
-}
-
-RValue<Float4> Log2(RValue<Float4> x)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return call4(log2f, x);
-}
-
 RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
@@ -4565,13 +4202,7 @@ RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef)
 	}
 	else
 	{
-		// TODO: implement vectorized version in Subzero
-		UInt4 result;
-		result = Insert(result, Ctlz(Extract(x, 0), isZeroUndef), 0);
-		result = Insert(result, Ctlz(Extract(x, 1), isZeroUndef), 1);
-		result = Insert(result, Ctlz(Extract(x, 2), isZeroUndef), 2);
-		result = Insert(result, Ctlz(Extract(x, 3), isZeroUndef), 3);
-		return result;
+		return Scalarize([isZeroUndef](auto a) { return Ctlz(a, isZeroUndef); }, x);
 	}
 }
 
@@ -4587,9 +4218,9 @@ RValue<UInt> Cttz(RValue<UInt> x, bool isZeroUndef)
 	{
 		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Cttz, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
-		auto ctlz = Ice::InstIntrinsic::create(::function, 1, result, intrinsic);
-		ctlz->addArg(x.value());
-		::basicBlock->appendInst(ctlz);
+		auto cttz = Ice::InstIntrinsic::create(::function, 1, result, intrinsic);
+		cttz->addArg(x.value());
+		::basicBlock->appendInst(cttz);
 
 		return RValue<UInt>(V(result));
 	}
@@ -4605,13 +4236,7 @@ RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef)
 	}
 	else
 	{
-		// TODO: implement vectorized version in Subzero
-		UInt4 result;
-		result = Insert(result, Cttz(Extract(x, 0), isZeroUndef), 0);
-		result = Insert(result, Cttz(Extract(x, 1), isZeroUndef), 1);
-		result = Insert(result, Cttz(Extract(x, 2), isZeroUndef), 2);
-		result = Insert(result, Cttz(Extract(x, 3), isZeroUndef), 3);
-		return result;
+		return Scalarize([isZeroUndef](auto a) { return Cttz(a, isZeroUndef); }, x);
 	}
 }
 

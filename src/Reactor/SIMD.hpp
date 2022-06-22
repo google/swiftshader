@@ -28,6 +28,7 @@ public:
 	Int(const Reference<Int> &rhs);
 
 	static Type *type();
+	static int element_count() { return SIMD::Width; }
 };
 
 RValue<Int> operator+(RValue<Int> lhs, RValue<Int> rhs);

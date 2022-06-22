@@ -4282,6 +4282,106 @@ RValue<Int4> IsNan(RValue<Float4> x)
 	return ~CmpEQ(x, x);
 }
 
+RValue<Float> Exp2(RValue<Float> x)
+{
+	return Call(exp2f, x);
+}
+
+RValue<Float> Log2(RValue<Float> x)
+{
+	return Call(log2f, x);
+}
+
+RValue<Float4> Sin(RValue<Float4> x)
+{
+	return ScalarizeCall(sinf, x);
+}
+
+RValue<Float4> Cos(RValue<Float4> x)
+{
+	return ScalarizeCall(cosf, x);
+}
+
+RValue<Float4> Tan(RValue<Float4> x)
+{
+	return ScalarizeCall(tanf, x);
+}
+
+RValue<Float4> Asin(RValue<Float4> x)
+{
+	return ScalarizeCall(asinf, x);
+}
+
+RValue<Float4> Acos(RValue<Float4> x)
+{
+	return ScalarizeCall(acosf, x);
+}
+
+RValue<Float4> Atan(RValue<Float4> x)
+{
+	return ScalarizeCall(atanf, x);
+}
+
+RValue<Float4> Sinh(RValue<Float4> x)
+{
+	return ScalarizeCall(sinhf, x);
+}
+
+RValue<Float4> Cosh(RValue<Float4> x)
+{
+	return ScalarizeCall(coshf, x);
+}
+
+RValue<Float4> Tanh(RValue<Float4> x)
+{
+	return ScalarizeCall(tanhf, x);
+}
+
+RValue<Float4> Asinh(RValue<Float4> x)
+{
+	return ScalarizeCall(asinhf, x);
+}
+
+RValue<Float4> Acosh(RValue<Float4> x)
+{
+	return ScalarizeCall(acoshf, x);
+}
+
+RValue<Float4> Atanh(RValue<Float4> x)
+{
+	return ScalarizeCall(atanhf, x);
+}
+
+RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
+{
+	return ScalarizeCall(atan2f, x, y);
+}
+
+RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
+{
+	return ScalarizeCall(powf, x, y);
+}
+
+RValue<Float4> Exp(RValue<Float4> x)
+{
+	return ScalarizeCall(expf, x);
+}
+
+RValue<Float4> Log(RValue<Float4> x)
+{
+	return ScalarizeCall(logf, x);
+}
+
+RValue<Float4> Exp2(RValue<Float4> x)
+{
+	return ScalarizeCall(exp2f, x);
+}
+
+RValue<Float4> Log2(RValue<Float4> x)
+{
+	return ScalarizeCall(log2f, x);
+}
+
 RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, int offset)
 {
 	return lhs + RValue<Int>(Nucleus::createConstantInt(offset));
