@@ -4886,6 +4886,22 @@ RValue<SIMD::Int> RoundIntClamped(RValue<SIMD::Float> cast)
 	}
 }
 
+RValue<Int4> Extract128(RValue<SIMD::Int> val, int i)
+{
+	ASSERT(SIMD::Width == 4);
+	ASSERT(i == 0);
+
+	return As<Int4>(val);
+}
+
+RValue<SIMD::Int> Insert128(RValue<SIMD::Int> val, RValue<Int4> element, int i)
+{
+	ASSERT(SIMD::Width == 4);
+	ASSERT(i == 0);
+
+	return As<SIMD::Int>(element);
+}
+
 Type *SIMD::Int::type()
 {
 	return T(Ice::IceType_v4i32);
@@ -5007,6 +5023,22 @@ RValue<SIMD::UInt> Min(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
 	::basicBlock->appendInst(select);
 
 	return RValue<SIMD::UInt>(V(result));
+}
+
+RValue<UInt4> Extract128(RValue<SIMD::UInt> val, int i)
+{
+	ASSERT(SIMD::Width == 4);
+	ASSERT(i == 0);
+
+	return As<UInt4>(val);
+}
+
+RValue<SIMD::UInt> Insert128(RValue<SIMD::UInt> val, RValue<UInt4> element, int i)
+{
+	ASSERT(SIMD::Width == 4);
+	ASSERT(i == 0);
+
+	return As<SIMD::UInt>(element);
 }
 
 Type *SIMD::UInt::type()
@@ -5275,6 +5307,22 @@ RValue<SIMD::Float> Ceil(RValue<SIMD::Float> x)
 	{
 		return -Floor(-x);
 	}
+}
+
+RValue<Float4> Extract128(RValue<SIMD::Float> val, int i)
+{
+	ASSERT(SIMD::Width == 4);
+	ASSERT(i == 0);
+
+	return As<Float4>(val);
+}
+
+RValue<SIMD::Float> Insert128(RValue<SIMD::Float> val, RValue<Float4> element, int i)
+{
+	ASSERT(SIMD::Width == 4);
+	ASSERT(i == 0);
+
+	return As<SIMD::Float>(element);
 }
 
 Type *SIMD::Float::type()

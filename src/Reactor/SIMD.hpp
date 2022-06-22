@@ -27,6 +27,12 @@ using UInt = rr::UInt;
 using Float = rr::Float;
 }  // namespace scalar
 
+namespace packed {
+using Int4 = rr::Int4;
+using UInt4 = rr::UInt4;
+using Float4 = rr::Float4;
+}  // namespace packed
+
 namespace SIMD {
 
 extern const int Width;
@@ -252,6 +258,8 @@ RValue<SIMD::Int> RoundInt(RValue<SIMD::Float> cast);
 RValue<SIMD::Int> RoundIntClamped(RValue<SIMD::Float> cast);
 RValue<scalar::Int> Extract(RValue<SIMD::Int> val, int i);
 RValue<SIMD::Int> Insert(RValue<SIMD::Int> val, RValue<scalar::Int> element, int i);
+RValue<packed::Int4> Extract128(RValue<SIMD::Int> val, int i);
+RValue<SIMD::Int> Insert128(RValue<SIMD::Int> val, RValue<packed::Int4> element, int i);
 
 RValue<SIMD::UInt> operator+(RValue<SIMD::UInt> lhs, RValue<SIMD::UInt> rhs);
 RValue<SIMD::UInt> operator-(RValue<SIMD::UInt> lhs, RValue<SIMD::UInt> rhs);
@@ -307,6 +315,8 @@ RValue<SIMD::UInt> Max(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y);
 RValue<SIMD::UInt> Min(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y);
 RValue<scalar::UInt> Extract(RValue<SIMD::UInt> val, int i);
 RValue<SIMD::UInt> Insert(RValue<SIMD::UInt> val, RValue<scalar::UInt> element, int i);
+RValue<packed::UInt4> Extract128(RValue<SIMD::UInt> val, int i);
+RValue<SIMD::UInt> Insert128(RValue<SIMD::UInt> val, RValue<packed::UInt4> element, int i);
 //	RValue<SIMD::UInt> RoundInt(RValue<SIMD::Float> cast);
 
 RValue<SIMD::Float> operator+(RValue<SIMD::Float> lhs, RValue<SIMD::Float> rhs);
@@ -336,6 +346,8 @@ RValue<SIMD::Float> RcpSqrt(RValue<SIMD::Float> x, bool relaxedPrecision);
 RValue<SIMD::Float> Sqrt(RValue<SIMD::Float> x);
 RValue<SIMD::Float> Insert(RValue<SIMD::Float> val, RValue<rr ::Float> element, int i);
 RValue<rr ::Float> Extract(RValue<SIMD::Float> x, int i);
+RValue<packed::Float4> Extract128(RValue<SIMD::Float> val, int i);
+RValue<SIMD::Float> Insert128(RValue<SIMD::Float> val, RValue<packed::Float4> element, int i);
 
 // Ordered comparison functions
 RValue<SIMD::Int> CmpEQ(RValue<SIMD::Float> x, RValue<SIMD::Float> y);

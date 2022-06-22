@@ -4258,6 +4258,21 @@ RValue<SIMD::Int> RoundIntClamped(RValue<SIMD::Float> cast)
 #endif
 }
 
+RValue<Int4> Extract128(RValue<SIMD::Int> val, int i)
+{
+	llvm::Value *v128 = jit->builder->CreateBitCast(V(val.value()), llvm::FixedVectorType::get(llvm::IntegerType::get(*jit->context, 128), SIMD::Width / 4));
+
+	return As<Int4>(V(jit->builder->CreateExtractElement(v128, i)));
+}
+
+RValue<SIMD::Int> Insert128(RValue<SIMD::Int> val, RValue<Int4> element, int i)
+{
+	llvm::Value *v128 = jit->builder->CreateBitCast(V(val.value()), llvm::FixedVectorType::get(llvm::IntegerType::get(*jit->context, 128), SIMD::Width / 4));
+	llvm::Value *a = jit->builder->CreateBitCast(V(element.value()), llvm::IntegerType::get(*jit->context, 128));
+
+	return As<SIMD::Int>(V(jit->builder->CreateInsertElement(v128, a, i)));
+}
+
 Type *SIMD::Int::type()
 {
 	return T(llvm::VectorType::get(T(scalar::Int::type()), SIMD::Width, false));
@@ -4342,6 +4357,21 @@ RValue<SIMD::UInt> Min(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	RValue<SIMD::UInt> less = CmpLT(x, y);
 	return (x & less) | (y & ~less);
+}
+
+RValue<UInt4> Extract128(RValue<SIMD::UInt> val, int i)
+{
+	llvm::Value *v128 = jit->builder->CreateBitCast(V(val.value()), llvm::FixedVectorType::get(llvm::IntegerType::get(*jit->context, 128), SIMD::Width / 4));
+
+	return As<UInt4>(V(jit->builder->CreateExtractElement(v128, i)));
+}
+
+RValue<SIMD::UInt> Insert128(RValue<SIMD::UInt> val, RValue<UInt4> element, int i)
+{
+	llvm::Value *v128 = jit->builder->CreateBitCast(V(val.value()), llvm::FixedVectorType::get(llvm::IntegerType::get(*jit->context, 128), SIMD::Width / 4));
+	llvm::Value *a = jit->builder->CreateBitCast(V(element.value()), llvm::IntegerType::get(*jit->context, 128));
+
+	return As<SIMD::UInt>(V(jit->builder->CreateInsertElement(v128, a, i)));
 }
 
 Type *SIMD::UInt::type()
@@ -4506,6 +4536,21 @@ RValue<SIMD::Float> Ceil(RValue<SIMD::Float> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return -Floor(-x);
+}
+
+RValue<Float4> Extract128(RValue<SIMD::Float> val, int i)
+{
+	llvm::Value *v128 = jit->builder->CreateBitCast(V(val.value()), llvm::FixedVectorType::get(llvm::IntegerType::get(*jit->context, 128), SIMD::Width / 4));
+
+	return As<Float4>(V(jit->builder->CreateExtractElement(v128, i)));
+}
+
+RValue<SIMD::Float> Insert128(RValue<SIMD::Float> val, RValue<Float4> element, int i)
+{
+	llvm::Value *v128 = jit->builder->CreateBitCast(V(val.value()), llvm::FixedVectorType::get(llvm::IntegerType::get(*jit->context, 128), SIMD::Width / 4));
+	llvm::Value *a = jit->builder->CreateBitCast(V(element.value()), llvm::IntegerType::get(*jit->context, 128));
+
+	return As<SIMD::Float>(V(jit->builder->CreateInsertElement(v128, a, i)));
 }
 
 Type *SIMD::Float::type()

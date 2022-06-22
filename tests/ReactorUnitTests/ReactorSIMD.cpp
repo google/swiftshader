@@ -95,6 +95,45 @@ TEST(ReactorSIMD, Broadcast)
 	}
 }
 
+TEST(ReactorSIMD, InsertExtract128)
+{
+	FunctionT<void(int *, int *)> function;
+	{
+		Pointer<Int> r = Pointer<Int>(function.Arg<0>());
+		Pointer<Int> a = Pointer<Int>(function.Arg<1>());
+
+		SIMD::Int x = *Pointer<SIMD::Int>(a);
+		SIMD::Int y = *Pointer<SIMD::Int>(r);
+
+		x -= y;
+
+		for(int i = 0; i < SIMD::Width / 4; i++)
+		{
+			y = Insert128(y, Extract128(x, i) << (i + 1), i);
+		}
+
+		*Pointer<SIMD::Int>(r) = y;
+	}
+
+	auto routine = function(testName().c_str());
+
+	std::vector<int> r(SIMD::Width);
+	std::vector<int> a(SIMD::Width);
+
+	for(int i = 0; i < SIMD::Width; i++)
+	{
+		r[i] = 0;
+		a[i] = 1 + i;
+	}
+
+	routine(r.data(), a.data());
+
+	for(int i = 0; i < SIMD::Width; i++)
+	{
+		ASSERT_EQ(r[i], a[i] << (i / 4 + 1));
+	}
+}
+
 TEST(ReactorSIMD, Intrinsics_Scatter)
 {
 	Function<Void(Pointer<Float> base, Pointer<Float4> val, Pointer<Int4> offsets)> function;
