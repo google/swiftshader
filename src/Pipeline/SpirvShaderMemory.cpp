@@ -64,6 +64,8 @@ SpirvShader::EmitResult SpirvShader::EmitLoad(InsnIterator insn, EmitState *stat
 			auto p = GetElementPointer(ptr, el.offset, interleavedByLane);
 			state->createPointer(resultId, p.Load<SIMD::Pointer>(robustness, state->activeLaneMask(), atomic, memoryOrder, sizeof(void *)));
 		});
+
+		SPIRV_SHADER_DBG("Load(atomic: {0}, order: {1}, ptr: {2}, mask: {3})", atomic, int(memoryOrder), ptr, state->activeLaneMask());
 	}
 	else
 	{
@@ -72,9 +74,9 @@ SpirvShader::EmitResult SpirvShader::EmitLoad(InsnIterator insn, EmitState *stat
 			auto p = GetElementPointer(ptr, el.offset, interleavedByLane);
 			dst.move(el.index, p.Load<SIMD::Float>(robustness, state->activeLaneMask(), atomic, memoryOrder));
 		});
-	}
 
-	SPIRV_SHADER_DBG("Load(atomic: {0}, order: {1}, ptr: {2}, val: {3}, mask: {4})", atomic, int(memoryOrder), ptr, dst, state->activeLaneMask());
+		SPIRV_SHADER_DBG("Load(atomic: {0}, order: {1}, ptr: {2}, val: {3}, mask: {4})", atomic, int(memoryOrder), ptr, dst, state->activeLaneMask());
+	}
 
 	return EmitResult::Continue;
 }

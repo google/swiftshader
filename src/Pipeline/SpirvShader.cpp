@@ -2456,6 +2456,10 @@ SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *st
 			auto &lhs = state->getPointer(insn.word(4));
 			auto &rhs = state->getPointer(insn.word(5));
 			state->createPointer(insn.resultId(), SIMD::Pointer::IfThenElse(cond.Int(0), lhs, rhs));
+
+			SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), cond);
+			SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), lhs);
+			SPIRV_SHADER_DBG("{0}: {1}", insn.word(5), rhs);
 		}
 		break;
 	default:
@@ -2468,14 +2472,14 @@ SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *st
 				auto sel = cond.Int(condIsScalar ? 0 : i);
 				dst.move(i, (sel & lhs.Int(i)) | (~sel & rhs.Int(i)));  // TODO: IfThenElse()
 			}
+
+			SPIRV_SHADER_DBG("{0}: {1}", insn.word(2), dst);
+			SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), cond);
+			SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), lhs);
+			SPIRV_SHADER_DBG("{0}: {1}", insn.word(5), rhs);
 		}
 		break;
 	}
-
-	SPIRV_SHADER_DBG("{0}: {1}", insn.word(2), result);
-	SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), cond);
-	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), lhs);
-	SPIRV_SHADER_DBG("{0}: {1}", insn.word(5), rhs);
 
 	return EmitResult::Continue;
 }
