@@ -443,6 +443,7 @@ SpirvShader::SpirvShader(
 				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
 				case spv::CapabilityGroupNonUniformShuffle: capabilities.GroupNonUniformShuffle = true; break;
 				case spv::CapabilityGroupNonUniformShuffleRelative: capabilities.GroupNonUniformShuffleRelative = true; break;
+				case spv::CapabilityGroupNonUniformQuad: capabilities.GroupNonUniformQuad = true; break;
 				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
 				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
 				case spv::CapabilityDemoteToHelperInvocation: capabilities.DemoteToHelperInvocation = true; break;
@@ -732,6 +733,8 @@ SpirvShader::SpirvShader(
 		case spv::OpGroupNonUniformAllEqual:
 		case spv::OpGroupNonUniformBroadcast:
 		case spv::OpGroupNonUniformBroadcastFirst:
+		case spv::OpGroupNonUniformQuadBroadcast:
+		case spv::OpGroupNonUniformQuadSwap:
 		case spv::OpGroupNonUniformBallot:
 		case spv::OpGroupNonUniformInverseBallot:
 		case spv::OpGroupNonUniformBallotBitExtract:
@@ -2216,6 +2219,8 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 	case spv::OpGroupNonUniformAllEqual:
 	case spv::OpGroupNonUniformBroadcast:
 	case spv::OpGroupNonUniformBroadcastFirst:
+	case spv::OpGroupNonUniformQuadBroadcast:
+	case spv::OpGroupNonUniformQuadSwap:
 	case spv::OpGroupNonUniformBallot:
 	case spv::OpGroupNonUniformInverseBallot:
 	case spv::OpGroupNonUniformBallotBitExtract:

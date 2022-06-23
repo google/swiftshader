@@ -717,6 +717,7 @@ public:
 		bool GroupNonUniformShuffle : 1;
 		bool GroupNonUniformShuffleRelative : 1;
 		bool GroupNonUniformArithmetic : 1;
+		bool GroupNonUniformQuad : 1;
 		bool DeviceGroup : 1;
 		bool MultiView : 1;
 		bool DemoteToHelperInvocation : 1;
