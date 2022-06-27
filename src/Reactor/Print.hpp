@@ -18,6 +18,7 @@
 #ifdef ENABLE_RR_PRINT
 
 #	include "Reactor.hpp"
+#	include "SIMD.hpp"
 
 #	include <string>
 #	include <vector>
@@ -336,6 +337,39 @@ struct PrintValue::Ty<Pointer4>
 	{
 		return v.getPrintValues();
 	}
+};
+template<>
+struct PrintValue::Ty<SIMD::Int>
+{
+	static std::string fmt(const RValue<SIMD::Int> &v)
+	{
+		std::string format;
+		for(int i = 1; i < SIMD::Width; i++) { format += ", %d"; }
+		return "[%d" + format + "]";
+	}
+	static std::vector<Value *> val(const RValue<SIMD::Int> &v);
+};
+template<>
+struct PrintValue::Ty<SIMD::UInt>
+{
+	static std::string fmt(const RValue<SIMD::UInt> &v)
+	{
+		std::string format;
+		for(int i = 1; i < SIMD::Width; i++) { format += ", %u"; }
+		return "[%u" + format + "]";
+	}
+	static std::vector<Value *> val(const RValue<SIMD::UInt> &v);
+};
+template<>
+struct PrintValue::Ty<SIMD::Float>
+{
+	static std::string fmt(const RValue<SIMD::Float> &v)
+	{
+		std::string format;
+		for(int i = 1; i < SIMD::Width; i++) { format += ", %f"; }
+		return "[%f" + format + "]";
+	}
+	static std::vector<Value *> val(const RValue<SIMD::Float> &v);
 };
 template<typename T>
 struct PrintValue::Ty<Reference<T>>
