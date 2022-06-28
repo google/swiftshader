@@ -43,8 +43,9 @@ public:
 			VkStencilOp passOp;
 			VkStencilOp depthFailOp;
 			VkCompareOp compareOp;
-			uint32_t compareMask;
-			uint32_t writeMask;
+			bool useCompareMask;
+			bool useWriteMask;
+			bool writeEnabled;
 
 			void operator=(const VkStencilOpState &rhs)
 			{
@@ -52,8 +53,9 @@ public:
 				passOp = rhs.passOp;
 				depthFailOp = rhs.depthFailOp;
 				compareOp = rhs.compareOp;
-				compareMask = rhs.compareMask;
-				writeMask = rhs.writeMask;
+				useCompareMask = (rhs.compareMask != 0xff);
+				useWriteMask = ((rhs.writeMask & 0xFF) != 0xFF);
+				writeEnabled = (rhs.writeMask != 0);
 			}
 		};
 

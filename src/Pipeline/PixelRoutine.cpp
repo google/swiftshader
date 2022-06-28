@@ -350,14 +350,14 @@ void PixelRoutine::stencilTest(const Pointer<Byte> &sBuffer, const Int &x, Int s
 		value = value | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
 		Byte8 valueBack = value;
 
-		if(state.frontStencil.compareMask != 0xff)
+		if(state.frontStencil.useCompareMask)
 		{
 			value &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].testMaskQ));
 		}
 
 		stencilTest(value, state.frontStencil.compareOp, false);
 
-		if(state.backStencil.compareMask != 0xff)
+		if(state.backStencil.useCompareMask)
 		{
 			valueBack &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].testMaskQ));
 		}
@@ -789,7 +789,7 @@ void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, const Int &x, const Int 
 		}
 	}
 
-	if((state.frontStencil.writeMask == 0) && (state.backStencil.writeMask == 0))
+	if(!state.frontStencil.writeEnabled && !state.backStencil.writeEnabled)
 	{
 		return;
 	}
@@ -808,7 +808,7 @@ void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, const Int &x, const Int 
 		bufferValue = bufferValue | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
 		Byte8 newValue = stencilOperation(bufferValue, state.frontStencil, false, zMask[q], sMask[q]);
 
-		if((state.frontStencil.writeMask & 0xFF) != 0xFF)  // Assume 8-bit stencil buffer
+		if(state.frontStencil.useWriteMask)  // Assume 8-bit stencil buffer
 		{
 			Byte8 maskedValue = bufferValue;
 			newValue &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[0].writeMaskQ));
@@ -818,7 +818,7 @@ void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, const Int &x, const Int 
 
 		Byte8 newValueBack = stencilOperation(bufferValue, state.backStencil, true, zMask[q], sMask[q]);
 
-		if((state.backStencil.writeMask & 0xFF) != 0xFF)  // Assume 8-bit stencil buffer
+		if(state.backStencil.useWriteMask)  // Assume 8-bit stencil buffer
 		{
 			Byte8 maskedValue = bufferValue;
 			newValueBack &= *Pointer<Byte8>(data + OFFSET(DrawData, stencil[1].writeMaskQ));
