@@ -74,12 +74,12 @@ struct DrawData
 	PixelProcessor::Factor factor;
 	unsigned int occlusion[MaxClusterCount];  // Number of pixels passing depth test
 
-	float4 WxF;
-	float4 HxF;
-	float4 X0xF;
-	float4 Y0xF;
-	float4 halfPixelX;
-	float4 halfPixelY;
+	float WxF;
+	float HxF;
+	float X0xF;
+	float Y0xF;
+	float halfPixelX;
+	float halfPixelY;
 	float viewportHeight;
 	float depthRange;
 	float depthNear;
@@ -104,10 +104,10 @@ struct DrawData
 	int scissorY0;
 	int scissorY1;
 
-	float4 a2c0;
-	float4 a2c1;
-	float4 a2c2;
-	float4 a2c3;
+	float a2c0;
+	float a2c1;
+	float a2c2;
+	float a2c3;
 
 	vk::Pipeline::PushConstantStorage pushConstants;
 };

@@ -132,10 +132,10 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 				if(state.enableMultiSampling)
 				{
-					y += *Pointer<Float4>(constants + OFFSET(Constants, Y) + q * sizeof(float4));
+					y += Float4(*Pointer<Float>(constants + OFFSET(Constants, SampleLocationsY) + q * sizeof(float)));
 				}
 
-				Dz[q] = *Pointer<Float4>(primitive + OFFSET(Primitive, z.C), 16) + y * *Pointer<Float4>(primitive + OFFSET(Primitive, z.B), 16);
+				Dz[q] = Float4(*Pointer<Float>(primitive + OFFSET(Primitive, z.C))) + y * Float4(*Pointer<Float>(primitive + OFFSET(Primitive, z.B)));
 			}
 		}
 
@@ -143,7 +143,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 		{
 			if(interpolateW())
 			{
-				Dw = *Pointer<Float4>(primitive + OFFSET(Primitive, w.C), 16) + yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, w.B), 16);
+				Dw = Float4(*Pointer<Float>(primitive + OFFSET(Primitive, w.C))) + yyyy * Float4(*Pointer<Float>(primitive + OFFSET(Primitive, w.B)));
 			}
 
 			if(spirvShader)
@@ -151,28 +151,28 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 				int packedInterpolant = 0;
 				for(int interfaceInterpolant = 0; interfaceInterpolant < MAX_INTERFACE_COMPONENTS; interfaceInterpolant++)
 				{
-					if(spirvShader->inputs[interfaceInterpolant].Type == SpirvShader::ATTRIBTYPE_UNUSED)
-						continue;
-
-					Dv[interfaceInterpolant] = *Pointer<Float4>(primitive + OFFSET(Primitive, V[packedInterpolant].C), 16);
-					if(!spirvShader->inputs[interfaceInterpolant].Flat)
+					if(spirvShader->inputs[interfaceInterpolant].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 					{
-						Dv[interfaceInterpolant] +=
-						    yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, V[packedInterpolant].B), 16);
+						Dv[interfaceInterpolant] = Float4(*Pointer<Float>(primitive + OFFSET(Primitive, V[packedInterpolant].C)));
+						if(!spirvShader->inputs[interfaceInterpolant].Flat)
+						{
+							Dv[interfaceInterpolant] +=
+							    yyyy * Float4(*Pointer<Float>(primitive + OFFSET(Primitive, V[packedInterpolant].B)));
+						}
+						packedInterpolant++;
 					}
-					packedInterpolant++;
 				}
 
 				for(unsigned int i = 0; i < state.numClipDistances; i++)
 				{
-					DclipDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].C), 16) +
-					                   yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].B), 16);
+					DclipDistance[i] = Float4(*Pointer<Float>(primitive + OFFSET(Primitive, clipDistance[i].C))) +
+					                   yyyy * Float4(*Pointer<Float>(primitive + OFFSET(Primitive, clipDistance[i].B)));
 				}
 
 				for(unsigned int i = 0; i < state.numCullDistances; i++)
 				{
-					DcullDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].C), 16) +
-					                   yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].B), 16);
+					DcullDistance[i] = Float4(*Pointer<Float>(primitive + OFFSET(Primitive, cullDistance[i].C))) +
+					                   yyyy * Float4(*Pointer<Float>(primitive + OFFSET(Primitive, cullDistance[i].B)));
 				}
 			}
 
@@ -237,7 +237,7 @@ Float4 QuadRasterizer::interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<By
 		return D;
 	}
 
-	Float4 interpolant = mulAdd(x, *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation, A), 16), D);
+	Float4 interpolant = mulAdd(x, Float4(*Pointer<Float>(planeEquation + OFFSET(PlaneEquation, A))), D);
 
 	if(perspective)
 	{

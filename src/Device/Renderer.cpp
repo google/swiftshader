@@ -304,19 +304,19 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	{
 		if(ms == 4)
 		{
-			data->a2c0 = float4(0.2f);
-			data->a2c1 = float4(0.4f);
-			data->a2c2 = float4(0.6f);
-			data->a2c3 = float4(0.8f);
+			data->a2c0 = 0.2f;
+			data->a2c1 = 0.4f;
+			data->a2c2 = 0.6f;
+			data->a2c3 = 0.8f;
 		}
 		else if(ms == 2)
 		{
-			data->a2c0 = float4(0.25f);
-			data->a2c1 = float4(0.75f);
+			data->a2c0 = 0.25f;
+			data->a2c1 = 0.75f;
 		}
 		else if(ms == 1)
 		{
-			data->a2c0 = float4(0.5f);
+			data->a2c0 = 0.5f;
 		}
 		else
 			ASSERT(false);
@@ -343,12 +343,12 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		float Z = F - N;
 		constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
 
-		data->WxF = float4(W * subPixF);
-		data->HxF = float4(H * subPixF);
-		data->X0xF = float4(X0 * subPixF - subPixF / 2);
-		data->Y0xF = float4(Y0 * subPixF - subPixF / 2);
-		data->halfPixelX = float4(0.5f / W);
-		data->halfPixelY = float4(0.5f / H);
+		data->WxF = W * subPixF;
+		data->HxF = H * subPixF;
+		data->X0xF = X0 * subPixF - subPixF / 2;
+		data->Y0xF = Y0 * subPixF - subPixF / 2;
+		data->halfPixelX = 0.5f / W;
+		data->halfPixelY = 0.5f / H;
 		data->viewportHeight = abs(viewport.height);
 		data->depthRange = Z;
 		data->depthNear = N;
@@ -870,8 +870,8 @@ bool DrawCall::setupLine(vk::Device *device, Primitive &primitive, Triangle &tri
 
 	constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
 
-	const float W = data.WxF[0] * (1.0f / subPixF);
-	const float H = data.HxF[0] * (1.0f / subPixF);
+	const float W = data.WxF * (1.0f / subPixF);
+	const float H = data.HxF * (1.0f / subPixF);
 
 	float dx = W * (P1.x / P1.w - P0.x / P0.w);
 	float dy = H * (P1.y / P1.w - P0.y / P0.w);
@@ -1166,8 +1166,8 @@ bool DrawCall::setupPoint(vk::Device *device, Primitive &primitive, Triangle &tr
 	P[2] = v.position;
 	P[3] = v.position;
 
-	const float X = pSize * P[0].w * data.halfPixelX[0];
-	const float Y = pSize * P[0].w * data.halfPixelY[0];
+	const float X = pSize * P[0].w * data.halfPixelX;
+	const float Y = pSize * P[0].w * data.halfPixelY;
 
 	P[0].x -= X;
 	P[0].y += Y;

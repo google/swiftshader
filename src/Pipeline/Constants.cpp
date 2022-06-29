@@ -21,10 +21,6 @@
 
 namespace sw {
 
-constexpr float Constants::VkSampleLocations4[][2];
-constexpr float Constants::SampleLocationsX[4];
-constexpr float Constants::SampleLocationsY[4];
-
 Constants::Constants()
 {
 	static const unsigned int transposeBit0[16] = {
@@ -287,28 +283,14 @@ Constants::Constants()
 		sRGBtoLinear12_16[i] = (unsigned short)(clamp(sRGBtoLinear((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
 	}
 
-	const float4 X[4] = {
-		float4(SampleLocationsX[0]),
-		float4(SampleLocationsX[1]),
-		float4(SampleLocationsX[2]),
-		float4(SampleLocationsX[3]),
-	};
-
-	const float4 Y[4] = {
-		float4(SampleLocationsY[0]),
-		float4(SampleLocationsY[1]),
-		float4(SampleLocationsY[2]),
-		float4(SampleLocationsY[3]),
-	};
-
 	for(int q = 0; q < 4; q++)
 	{
 		for(int c = 0; c < 16; c++)
 		{
 			for(int i = 0; i < 4; i++)
 			{
-				sampleX[q][c][i] = c & (1 << i) ? X[q][0] : 0.0f;
-				sampleY[q][c][i] = c & (1 << i) ? Y[q][0] : 0.0f;
+				sampleX[q][c][i] = c & (1 << i) ? SampleLocationsX[q] : 0.0f;
+				sampleY[q][c][i] = c & (1 << i) ? SampleLocationsY[q] : 0.0f;
 				weight[c][i] = c & (1 << i) ? 1.0f : 0.0f;
 			}
 		}
@@ -316,14 +298,11 @@ Constants::Constants()
 
 	constexpr auto subPixB = vk::SUBPIXEL_PRECISION_BITS;
 
-	const int Xf[4] = { toFixedPoint(X[0][0], subPixB), toFixedPoint(X[1][0], subPixB), toFixedPoint(X[2][0], subPixB), toFixedPoint(X[3][0], subPixB) };
-	const int Yf[4] = { toFixedPoint(Y[0][0], subPixB), toFixedPoint(Y[1][0], subPixB), toFixedPoint(Y[2][0], subPixB), toFixedPoint(Y[3][0], subPixB) };
+	const int Xf[4] = { toFixedPoint(SampleLocationsX[0], subPixB), toFixedPoint(SampleLocationsX[1], subPixB), toFixedPoint(SampleLocationsX[2], subPixB), toFixedPoint(SampleLocationsX[3], subPixB) };
+	const int Yf[4] = { toFixedPoint(SampleLocationsY[0], subPixB), toFixedPoint(SampleLocationsY[1], subPixB), toFixedPoint(SampleLocationsY[2], subPixB), toFixedPoint(SampleLocationsY[3], subPixB) };
 
 	memcpy(&this->Xf, &Xf, sizeof(Xf));
 	memcpy(&this->Yf, &Yf, sizeof(Yf));
-
-	memcpy(&this->X, &X, sizeof(X));
-	memcpy(&this->Y, &Y, sizeof(Y));
 
 	const dword maxX[16] = { 0x00000000, 0x00000001, 0x00000100, 0x00000101, 0x00010000, 0x00010001, 0x00010100, 0x00010101, 0x01000000, 0x01000001, 0x01000100, 0x01000101, 0x01010000, 0x01010001, 0x01010100, 0x01010101 };
 	const dword maxY[16] = { 0x00000000, 0x00000002, 0x00000200, 0x00000202, 0x00020000, 0x00020002, 0x00020200, 0x00020202, 0x02000000, 0x02000002, 0x02000200, 0x02000202, 0x02020000, 0x02020002, 0x02020200, 0x02020202 };

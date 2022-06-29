@@ -1049,14 +1049,6 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 			static constexpr int NUM_SAMPLES = 4;
 			ASSERT(state->getMultiSampleCount() == NUM_SAMPLES);
 
-			Array<Float> sampleX(NUM_SAMPLES);
-			Array<Float> sampleY(NUM_SAMPLES);
-			for(int i = 0; i < NUM_SAMPLES; ++i)
-			{
-				sampleX[i] = Constants::SampleLocationsX[i];
-				sampleY[i] = Constants::SampleLocationsY[i];
-			}
-
 			auto sampleOperand = Operand(this, state, paramId);
 			ASSERT(sampleOperand.componentCount == 1);
 
@@ -1067,8 +1059,8 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 			for(int i = 0; i < SIMD::Width; ++i)
 			{
 				Int sample = Extract(samples, i);
-				x = Insert(x, sampleX[sample], i);
-				y = Insert(y, sampleY[sample], i);
+				x = Insert(x, *Pointer<Float>(state->routine->constants + OFFSET(Constants, SampleLocationsX) + sample * sizeof(float)), i);
+				y = Insert(y, *Pointer<Float>(state->routine->constants + OFFSET(Constants, SampleLocationsY) + sample * sizeof(float)), i);
 			}
 		}
 
@@ -1110,10 +1102,11 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 		{
 			Int offset = ((Extract(ptr.dynamicOffsets, i) + ptr.staticOffsets[i]) >> offsetShift) + component;
 			Pointer<Byte> planeEquationI = planeEquation + (offset * sizeof(PlaneEquation));
-			A = Insert(A, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, A), 16), i), i);
-			B = Insert(B, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, B), 16), i), i);
-			C = Insert(C, Extract(*Pointer<SIMD::Float>(planeEquationI + OFFSET(PlaneEquation, C), 16), i), i);
+			A = Insert(A, *Pointer<Float>(planeEquationI + OFFSET(PlaneEquation, A)), i);
+			B = Insert(B, *Pointer<Float>(planeEquationI + OFFSET(PlaneEquation, B)), i);
+			C = Insert(C, *Pointer<Float>(planeEquationI + OFFSET(PlaneEquation, C)), i);
 		}
+
 		return ::Interpolate(x, y, rhw, A, B, C, state->routine->inputsInterpolation[packedInterpolant]);
 	}
 	else
@@ -1135,12 +1128,12 @@ SIMD::Float SpirvRoutine::interpolateAtXY(const SIMD::Float &x, const SIMD::Floa
 {
 	SIMD::Float A;
 	SIMD::Float B;
-	SIMD::Float C = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, C), 16);
+	SIMD::Float C = *Pointer<Float>(planeEquation + OFFSET(PlaneEquation, C));
 
 	if(interpolation != SpirvRoutine::Flat)
 	{
-		A = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, A), 16);
-		B = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, B), 16);
+		A = *Pointer<Float>(planeEquation + OFFSET(PlaneEquation, A));
+		B = *Pointer<Float>(planeEquation + OFFSET(PlaneEquation, B));
 	}
 
 	return ::Interpolate(x, y, rhw, A, B, C, interpolation);

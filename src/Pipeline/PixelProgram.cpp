@@ -83,8 +83,8 @@ void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cM
 	//  the x and y components of FragCoord reflect the location of the center of the fragment."
 	if(state.sampleShadingEnabled && state.multiSampleCount > 1)
 	{
-		x0 = Constants::VkSampleLocations4[samples[0]][0];
-		y0 = Constants::VkSampleLocations4[samples[0]][1];
+		x0 = VkSampleLocations4[samples[0]][0];
+		y0 = VkSampleLocations4[samples[0]][1];
 		x1 = 1.0f + x0;
 		y1 = 1.0f + y0;
 	}
@@ -188,9 +188,9 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 		ASSERT(samples.size() == 1);
 		int sampleId = samples[0];
 		routine.getVariable(it->second.Id)[it->second.FirstComponent + 0] =
-		    SIMD::Float((state.multiSampleCount > 1) ? Constants::VkSampleLocations4[sampleId][0] : 0.5f);
+		    SIMD::Float((state.multiSampleCount > 1) ? VkSampleLocations4[sampleId][0] : 0.5f);
 		routine.getVariable(it->second.Id)[it->second.FirstComponent + 1] =
-		    SIMD::Float((state.multiSampleCount > 1) ? Constants::VkSampleLocations4[sampleId][1] : 0.5f);
+		    SIMD::Float((state.multiSampleCount > 1) ? VkSampleLocations4[sampleId][1] : 0.5f);
 	}
 
 	// Note: all lanes initially active to facilitate derivatives etc. Actual coverage is
