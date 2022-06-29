@@ -360,7 +360,7 @@ llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
 
 namespace rr {
 
-const int SIMD::Width = 8;
+const int SIMD::Width = 4;
 
 std::string Caps::backendName()
 {
@@ -1153,14 +1153,14 @@ static llvm::Value *createGather(llvm::Value *base, llvm::Type *elTy, llvm::Valu
 	}
 }
 
-RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
+RValue<SIMD::Float> Gather(RValue<Pointer<Float>> base, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return As<Float4>(V(createGather(V(base.value()), T(Float::type()), V(offsets.value()), V(mask.value()), alignment, zeroMaskedLanes)));
+	return As<SIMD::Float>(V(createGather(V(base.value()), T(Float::type()), V(offsets.value()), V(mask.value()), alignment, zeroMaskedLanes)));
 }
 
-RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
+RValue<SIMD::Int> Gather(RValue<Pointer<Int>> base, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return As<Int4>(V(createGather(V(base.value()), T(Int::type()), V(offsets.value()), V(mask.value()), alignment, zeroMaskedLanes)));
+	return As<SIMD::Int>(V(createGather(V(base.value()), T(Int::type()), V(offsets.value()), V(mask.value()), alignment, zeroMaskedLanes)));
 }
 
 static void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offsets, llvm::Value *mask, unsigned int alignment)
@@ -1216,12 +1216,12 @@ static void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offs
 	}
 }
 
-void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+void Scatter(RValue<Pointer<Float>> base, RValue<SIMD::Float> val, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment)
 {
 	return createScatter(V(base.value()), V(val.value()), V(offsets.value()), V(mask.value()), alignment);
 }
 
-void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+void Scatter(RValue<Pointer<Int>> base, RValue<SIMD::Int> val, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment)
 {
 	return createScatter(V(base.value()), V(val.value()), V(offsets.value()), V(mask.value()), alignment);
 }

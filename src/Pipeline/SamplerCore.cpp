@@ -28,7 +28,35 @@ SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler &state, Sampler
 {
 }
 
-Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, SIMD::Float uvwa[4], SIMD::Float &dRef, Float &&lodOrBias, SIMD::Float &dsx, SIMD::Float &dsy, Vector4i offset, SIMD::Int &sample)
+SIMD::Float4 SamplerCore::sampleTexture(Pointer<Byte> &texture, SIMD::Float uvwa[4], const SIMD::Float &dRef, const Float &lodOrBias, const SIMD::Float &dsx, const SIMD::Float &dsy, SIMD::Int offset[4], const SIMD::Int &sample)
+{
+	SIMD::Float4 c;
+
+	for(int i = 0; i < SIMD::Width / 4; i++)
+	{
+		Float4 uvwa128[4];
+		uvwa128[0] = Extract128(uvwa[0], i);
+		uvwa128[1] = Extract128(uvwa[1], i);
+		uvwa128[2] = Extract128(uvwa[2], i);
+		uvwa128[3] = Extract128(uvwa[3], i);
+
+		Vector4i offset128;
+		offset128[0] = Extract128(offset[0], i);
+		offset128[1] = Extract128(offset[1], i);
+		offset128[2] = Extract128(offset[2], i);
+		offset128[3] = Extract128(offset[3], i);
+
+		Vector4f c128 = sampleTexture128(texture, uvwa128, Extract128(dRef, i), lodOrBias, Extract128(dsx, i), Extract128(dsy, i), offset128, Extract128(sample, i));
+		c.x = Insert128(c.x, c128.x, i);
+		c.y = Insert128(c.y, c128.y, i);
+		c.z = Insert128(c.z, c128.z, i);
+		c.w = Insert128(c.w, c128.w, i);
+	}
+
+	return c;
+}
+
+Vector4f SamplerCore::sampleTexture128(Pointer<Byte> &texture, Float4 uvwa[4], const Float4 &dRef, const Float &lodOrBias, const Float4 &dsx, const Float4 &dsy, Vector4i &offset, const Int4 &sample)
 {
 	Vector4f c;
 
@@ -797,7 +825,7 @@ Vector4s SamplerCore::sample3D(Pointer<Byte> &texture, Float4 &u_, Float4 &v_, F
 	return c_;
 }
 
-Vector4f SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta)
+Vector4f SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, const Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta)
 {
 	Vector4f c = sampleFloatAniso(texture, u, v, w, a, dRef, offset, sample, lod, anisotropy, uDelta, vDelta, false);
 
@@ -821,7 +849,7 @@ Vector4f SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Float4 &u, Float
 	return c;
 }
 
-Vector4f SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, bool secondLOD)
+Vector4f SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, const Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, bool secondLOD)
 {
 	Vector4f c;
 
@@ -879,7 +907,7 @@ Vector4f SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Float4 &u, Float4
 	return c;
 }
 
-Vector4f SamplerCore::sampleFloat(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, bool secondLOD)
+Vector4f SamplerCore::sampleFloat(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, const Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, bool secondLOD)
 {
 	if(state.textureType != VK_IMAGE_VIEW_TYPE_3D)
 	{
@@ -891,7 +919,7 @@ Vector4f SamplerCore::sampleFloat(Pointer<Byte> &texture, Float4 &u, Float4 &v, 
 	}
 }
 
-Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, bool secondLOD)
+Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &a, const Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, bool secondLOD)
 {
 	Vector4f c;
 
@@ -984,7 +1012,7 @@ Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	return c;
 }
 
-Vector4f SamplerCore::sampleFloat3D(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, bool secondLOD)
+Vector4f SamplerCore::sampleFloat3D(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, const Float4 &dRef, Vector4i &offset, const Int4 &sample, Float &lod, bool secondLOD)
 {
 	Vector4f c;
 
@@ -1084,7 +1112,7 @@ static Float log2(Float lod)
 	return lod;
 }
 
-void SamplerCore::computeLod1D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &dsx, Float4 &dsy)
+void SamplerCore::computeLod1D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, const Float4 &dsx, const Float4 &dsy)
 {
 	Float4 dudxy;
 
@@ -1108,7 +1136,7 @@ void SamplerCore::computeLod1D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu,
 	lod = log2sqrt(lod);
 }
 
-void SamplerCore::computeLod2D(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Float4 &dsx, Float4 &dsy)
+void SamplerCore::computeLod2D(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, const Float4 &dsx, const Float4 &dsy)
 {
 	Float4 duvdxy;
 
@@ -1156,7 +1184,7 @@ void SamplerCore::computeLod2D(Pointer<Byte> &texture, Float &lod, Float &anisot
 	lod = log2sqrt(lod);  // log2(sqrt(lod))
 }
 
-void SamplerCore::computeLodCube(Pointer<Byte> &texture, Float &lod, Float4 &u, Float4 &v, Float4 &w, Float4 &dsx, Float4 &dsy, Float4 &M)
+void SamplerCore::computeLodCube(Pointer<Byte> &texture, Float &lod, Float4 &u, Float4 &v, Float4 &w, const Float4 &dsx, const Float4 &dsy, Float4 &M)
 {
 	Float4 dudxy, dvdxy, dsdxy;
 
@@ -1197,7 +1225,7 @@ void SamplerCore::computeLodCube(Pointer<Byte> &texture, Float &lod, Float4 &u, 
 	lod = log2(lod);
 }
 
-void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, Float4 &dsx, Float4 &dsy)
+void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, const Float4 &dsx, const Float4 &dsy)
 {
 	Float4 dudxy, dvdxy, dsdxy;
 
@@ -1236,9 +1264,9 @@ Int4 SamplerCore::cubeFace(Float4 &U, Float4 &V, Float4 &x, Float4 &y, Float4 &z
 	// TODO: Comply with Vulkan recommendation:
 	// Vulkan 1.1: "The rules should have as the first rule that rz wins over ry and rx, and the second rule that ry wins over rx."
 
-	Int4 xn = CmpLT(x, Float4(0.0f));  // x < 0
-	Int4 yn = CmpLT(y, Float4(0.0f));  // y < 0
-	Int4 zn = CmpLT(z, Float4(0.0f));  // z < 0
+	Int4 xn = CmpLT(x, 0.0f);  // x < 0
+	Int4 yn = CmpLT(y, 0.0f);  // y < 0
+	Int4 zn = CmpLT(z, 0.0f);  // z < 0
 
 	Float4 absX = Abs(x);
 	Float4 absY = Abs(y);
@@ -1282,9 +1310,9 @@ Int4 SamplerCore::cubeFace(Float4 &U, Float4 &V, Float4 &x, Float4 &y, Float4 &z
 	// V = !yMajor ? -y : (n ^ z)
 	V = As<Float4>((~yMajor & As<Int4>(-y)) | (yMajor & (n ^ As<Int4>(z))));
 
-	M = reciprocal(M) * Float4(0.5f);
-	U = U * M + Float4(0.5f);
-	V = V * M + Float4(0.5f);
+	M = reciprocal(M) * 0.5f;
+	U = U * M + 0.5f;
+	V = V * M + 0.5f;
 
 	return face;
 }
@@ -1941,7 +1969,7 @@ Vector4s SamplerCore::sampleTexel(Short4 &uuuu, Short4 &vvvv, Short4 &wwww, cons
 	return c;
 }
 
-Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dRef, const Int4 &sample, Pointer<Byte> &mipmap, Pointer<Byte> buffer)
+Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, const Float4 &dRef, const Int4 &sample, Pointer<Byte> &mipmap, Pointer<Byte> buffer)
 {
 	Int4 valid;
 

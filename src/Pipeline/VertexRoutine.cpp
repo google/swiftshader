@@ -567,6 +567,8 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCache, Pointer<UInt> &batch)
 {
+	ASSERT(SIMD::Width == 4);
+
 	UInt index0 = batch[0];
 	UInt index1 = batch[1];
 	UInt index2 = batch[2];
@@ -590,7 +592,7 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		assert(it->second.SizeInComponents == 4);
 		auto &position = routine.getVariable(it->second.Id);
 
-		Vector4f pos;
+		SIMD::Float4 pos;
 		pos.x = position[it->second.FirstComponent + 0];
 		pos.y = position[it->second.FirstComponent + 1];
 		pos.z = position[it->second.FirstComponent + 2];
@@ -600,30 +602,38 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		SIMD::Float w = As<SIMD::Float>(As<SIMD::Int>(pos.w) | (As<SIMD::Int>(CmpEQ(pos.w, 0.0f)) & As<SIMD::Int>(SIMD::Float(1.0f))));
 		SIMD::Float rhw = 1.0f / w;
 
-		Vector4f proj;
+		SIMD::Float4 proj;
 		proj.x = As<Float4>(RoundIntClamped(SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, X0xF))) + pos.x * rhw * SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, WxF)))));
 		proj.y = As<Float4>(RoundIntClamped(SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, Y0xF))) + pos.y * rhw * SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, HxF)))));
 		proj.z = pos.z * rhw;
 		proj.w = rhw;
 
-		transpose4x4(pos.x, pos.y, pos.z, pos.w);
+		Float4 pos_x = Extract128(pos.x, 0);
+		Float4 pos_y = Extract128(pos.y, 0);
+		Float4 pos_z = Extract128(pos.z, 0);
+		Float4 pos_w = Extract128(pos.w, 0);
+		transpose4x4(pos_x, pos_y, pos_z, pos_w);
 
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, position), 16) = pos.w;
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, position), 16) = pos.z;
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, position), 16) = pos.y;
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, position), 16) = pos.x;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, position), 16) = pos_w;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, position), 16) = pos_z;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, position), 16) = pos_y;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, position), 16) = pos_x;
 
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 16) & 0x0000000FF;
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 8) & 0x0000000FF;
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 0) & 0x0000000FF;
 
-		transpose4x4(proj.x, proj.y, proj.z, proj.w);
+		Float4 proj_x = Extract128(proj.x, 0);
+		Float4 proj_y = Extract128(proj.y, 0);
+		Float4 proj_z = Extract128(proj.z, 0);
+		Float4 proj_w = Extract128(proj.w, 0);
+		transpose4x4(proj_x, proj_y, proj_z, proj_w);
 
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, projected), 16) = proj.w;
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, projected), 16) = proj.z;
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, projected), 16) = proj.y;
-		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, projected), 16) = proj.x;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, projected), 16) = proj_w;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, projected), 16) = proj_z;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, projected), 16) = proj_y;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, projected), 16) = proj_x;
 	}
 
 	it = spirvShader->outputBuiltins.find(spv::BuiltInPointSize);
@@ -679,10 +689,10 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		   spirvShader->outputs[i + 3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 		{
 			Vector4f v;
-			v.x = routine.outputs[i + 0];
-			v.y = routine.outputs[i + 1];
-			v.z = routine.outputs[i + 2];
-			v.w = routine.outputs[i + 3];
+			v.x = Extract128(routine.outputs[i + 0], 0);
+			v.y = Extract128(routine.outputs[i + 1], 0);
+			v.z = Extract128(routine.outputs[i + 2], 0);
+			v.w = Extract128(routine.outputs[i + 3], 0);
 
 			transpose4x4(v.x, v.y, v.z, v.w);
 

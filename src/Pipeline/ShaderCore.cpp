@@ -513,7 +513,75 @@ RValue<SIMD::Float> Sqrt(RValue<SIMD::Float> x, bool relaxedPrecision)
 	return Sqrt(x);  // TODO(b/222218659): Optimize for relaxed precision.
 }
 
+UInt4 halfToFloatBits(RValue<UInt4> halfBits)
+{
+	auto magic = UInt4(126 << 23);
+
+	auto sign16 = halfBits & UInt4(0x8000);
+	auto man16 = halfBits & UInt4(0x03FF);
+	auto exp16 = halfBits & UInt4(0x7C00);
+
+	auto isDnormOrZero = CmpEQ(exp16, UInt4(0));
+	auto isInfOrNaN = CmpEQ(exp16, UInt4(0x7C00));
+
+	auto sign32 = sign16 << 16;
+	auto man32 = man16 << 13;
+	auto exp32 = (exp16 + UInt4(0x1C000)) << 13;
+	auto norm32 = (man32 | exp32) | (isInfOrNaN & UInt4(0x7F800000));
+
+	auto denorm32 = As<UInt4>(As<Float4>(magic + man16) - As<Float4>(magic));
+
+	return sign32 | (norm32 & ~isDnormOrZero) | (denorm32 & isDnormOrZero);
+}
+
+UInt4 floatToHalfBits(RValue<UInt4> floatBits, bool storeInUpperBits)
+{
+	UInt4 sign = floatBits & UInt4(0x80000000);
+	UInt4 abs = floatBits & UInt4(0x7FFFFFFF);
+
+	UInt4 normal = CmpNLE(abs, UInt4(0x38800000));
+
+	UInt4 mantissa = (abs & UInt4(0x007FFFFF)) | UInt4(0x00800000);
+	UInt4 e = UInt4(113) - (abs >> 23);
+	UInt4 denormal = CmpLT(e, UInt4(24)) & (mantissa >> e);
+
+	UInt4 base = (normal & abs) | (~normal & denormal);  // TODO: IfThenElse()
+
+	// float exponent bias is 127, half bias is 15, so adjust by -112
+	UInt4 bias = normal & UInt4(0xC8000000);
+
+	UInt4 rounded = base + bias + UInt4(0x00000FFF) + ((base >> 13) & UInt4(1));
+	UInt4 fp16u = rounded >> 13;
+
+	// Infinity
+	fp16u |= CmpNLE(abs, UInt4(0x47FFEFFF)) & UInt4(0x7FFF);
+
+	return storeInUpperBits ? (sign | (fp16u << 16)) : ((sign >> 16) | fp16u);
+}
+
+SIMD::Float linearToSRGB(const SIMD::Float &c)
+{
+	SIMD::Float lc = Min(c, 0.0031308f) * 12.92f;
+	SIMD::Float ec = MulAdd(1.055f, Pow<Mediump>(c, (1.0f / 2.4f)), -0.055f);  // TODO(b/149574741): Use a custom approximation.
+
+	return Max(lc, ec);
+}
+
+SIMD::Float sRGBtoLinear(const SIMD::Float &c)
+{
+	SIMD::Float lc = c * (1.0f / 12.92f);
+	SIMD::Float ec = Pow<Mediump>(MulAdd(c, 1.0f / 1.055f, 0.055f / 1.055f), 2.4f);  // TODO(b/149574741): Use a custom approximation.
+
+	SIMD::Int linear = CmpLT(c, 0.04045f);
+	return As<SIMD::Float>((linear & As<SIMD::Int>(lc)) | (~linear & As<SIMD::Int>(ec)));  // TODO: IfThenElse()
+}
+
 RValue<Float4> reciprocal(RValue<Float4> x, bool pp, bool exactAtPow2)
+{
+	return Rcp(x, pp, exactAtPow2);
+}
+
+RValue<SIMD::Float> reciprocal(RValue<SIMD::Float> x, bool pp, bool exactAtPow2)
 {
 	return Rcp(x, pp, exactAtPow2);
 }
@@ -539,6 +607,24 @@ RValue<SIMD::Float> mulAdd(RValue<SIMD::Float> x, RValue<SIMD::Float> y, RValue<
 	}
 
 	return MulAdd(x, y, z);
+}
+
+RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision)
+{
+	// TODO(b/214588983): Eliminate by using only the wide SIMD variant (or specialize or templatize the implementation).
+	SIMD::Float xx;
+	SIMD::Float yy;
+	xx = Insert128(xx, x, 0);
+	yy = Insert128(yy, y, 0);
+	return Extract128(Pow(xx, yy, relaxedPrecision), 0);
+}
+
+RValue<Float4> Sqrt(RValue<Float4> x, bool relaxedPrecision)
+{
+	// TODO(b/214588983): Eliminate by using only the wide SIMD variant (or specialize or templatize the implementation).
+	SIMD::Float xx;
+	xx = Insert128(xx, x, 0);
+	return Extract128(Sqrt(xx, relaxedPrecision), 0);
 }
 
 void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3)

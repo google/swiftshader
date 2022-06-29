@@ -25,6 +25,8 @@ namespace scalar {
 using Int = rr::Int;
 using UInt = rr::UInt;
 using Float = rr::Float;
+template<class T>
+using Pointer = rr::Pointer<T>;
 }  // namespace scalar
 
 namespace packed {
@@ -40,6 +42,7 @@ extern const int Width;
 class Int;
 class UInt;
 class Float;
+class Pointer;
 
 class Int : public LValue<SIMD::Int>,
             public XYZW<SIMD::Int>  // TODO(b/214583550): Eliminate and replace with SwizzleQuad() and/or other intrinsics.
@@ -49,6 +52,8 @@ public:
 
 	Int();
 	Int(int broadcast);
+	Int(int x, int y, int z, int w);
+	Int(std::vector<int> v);
 	Int(RValue<SIMD::Int> rhs);
 	Int(const Int &rhs);
 	Int(const Reference<SIMD::Int> &rhs);
@@ -58,6 +63,9 @@ public:
 	Int(RValue<scalar::Int> rhs);
 	Int(const scalar::Int &rhs);
 	Int(const Reference<scalar::Int> &rhs);
+
+	template<int T>
+	Int(const SwizzleMask1<packed::Int4, T> &rhs);
 
 	RValue<SIMD::Int> operator=(int broadcast);
 	RValue<SIMD::Int> operator=(RValue<SIMD::Int> rhs);
@@ -76,6 +84,8 @@ public:
 
 	UInt();
 	UInt(int broadcast);
+	UInt(int x, int y, int z, int w);
+	UInt(std::vector<int> v);
 	UInt(RValue<SIMD::UInt> rhs);
 	UInt(const UInt &rhs);
 	UInt(const Reference<SIMD::UInt> &rhs);
@@ -103,12 +113,19 @@ public:
 
 	Float();
 	Float(float broadcast);
+	Float(float x, float y, float z, float w);
+	Float(std::vector<float> v);
 	Float(RValue<SIMD::Float> rhs);
 	Float(const Float &rhs);
 	Float(const Reference<SIMD::Float> &rhs);
 	Float(RValue<scalar::Float> rhs);
 	Float(const scalar::Float &rhs);
 	Float(const Reference<scalar::Float> &rhs);
+
+	Float(RValue<packed::Float4> rhs);
+	RValue<SIMD::Float> operator=(RValue<packed::Float4> rhs);
+	template<int T>
+	Float(const SwizzleMask1<packed::Float4, T> &rhs);
 
 	RValue<SIMD::Float> operator=(float broadcast);
 	RValue<SIMD::Float> operator=(RValue<SIMD::Float> rhs);
@@ -124,27 +141,25 @@ public:
 	static int element_count() { return SIMD::Width; }
 };
 
-}  // namespace SIMD
-
-class Pointer4
+class Pointer
 {
 public:
-	Pointer4(Pointer<Byte> base, Int limit);
-	Pointer4(Pointer<Byte> base, unsigned int limit);
-	Pointer4(Pointer<Byte> base, Int limit, Int4 offset);
-	Pointer4(Pointer<Byte> base, unsigned int limit, Int4 offset);
-	Pointer4(std::vector<Pointer<Byte>> pointers);
-	explicit Pointer4(UInt4 cast);                      // Cast from 32-bit integers to 32-bit pointers
-	explicit Pointer4(UInt4 castLow, UInt4 castHight);  // Cast from pairs of 32-bit integers to 64-bit pointers
+	Pointer(scalar::Pointer<Byte> base, scalar::Int limit);
+	Pointer(scalar::Pointer<Byte> base, unsigned int limit);
+	Pointer(scalar::Pointer<Byte> base, scalar::Int limit, SIMD::Int offset);
+	Pointer(scalar::Pointer<Byte> base, unsigned int limit, SIMD::Int offset);
+	Pointer(std::vector<scalar::Pointer<Byte>> pointers);
+	explicit Pointer(SIMD::UInt cast);                           // Cast from 32-bit integers to 32-bit pointers
+	explicit Pointer(SIMD::UInt castLow, SIMD::UInt castHight);  // Cast from pairs of 32-bit integers to 64-bit pointers
 
-	Pointer4 &operator+=(Int4 i);
-	Pointer4 operator+(Int4 i);
-	Pointer4 &operator+=(int i);
-	Pointer4 operator+(int i);
+	Pointer &operator+=(SIMD::Int i);
+	Pointer operator+(SIMD::Int i);
+	Pointer &operator+=(int i);
+	Pointer operator+(int i);
 
-	Int4 offsets() const;
+	SIMD::Int offsets() const;
 
-	Int4 isInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const;
+	SIMD::Int isInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const;
 
 	bool isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const;
 
@@ -159,20 +174,20 @@ public:
 	bool hasStaticEqualOffsets() const;
 
 	template<typename T>
-	inline T Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
+	inline T Load(OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
 
 	template<typename T>
-	inline void Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+	inline void Store(T val, OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
 
 	template<typename T>
-	inline void Store(RValue<T> val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+	inline void Store(RValue<T> val, OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
 
-	Pointer<Byte> getUniformPointer() const;
-	Pointer<Byte> getPointerForLane(int lane) const;
-	static Pointer4 IfThenElse(Int4 condition, const Pointer4 &lhs, const Pointer4 &rhs);
+	scalar::Pointer<Byte> getUniformPointer() const;
+	scalar::Pointer<Byte> getPointerForLane(int lane) const;
+	static Pointer IfThenElse(SIMD::Int condition, const Pointer &lhs, const Pointer &rhs);
 
-	void castTo(UInt4 &bits) const;                         // Cast from 32-bit pointers to 32-bit integers
-	void castTo(UInt4 &lowerBits, UInt4 &upperBits) const;  // Cast from 64-bit pointers to pairs of 32-bit integers
+	void castTo(SIMD::UInt &bits) const;                              // Cast from 32-bit pointers to 32-bit integers
+	void castTo(SIMD::UInt &lowerBits, SIMD::UInt &upperBits) const;  // Cast from 64-bit pointers to pairs of 32-bit integers
 
 #ifdef ENABLE_RR_PRINT
 	std::vector<rr::Value *> getPrintValues() const;
@@ -180,23 +195,25 @@ public:
 
 private:
 	// Base address for the pointer, common across all lanes.
-	Pointer<Byte> base;
+	scalar::Pointer<Byte> base;
 	// Per-lane address for dealing with non-uniform data
-	std::vector<Pointer<Byte>> pointers;
+	std::vector<scalar::Pointer<Byte>> pointers;
 
 public:
 	// Upper (non-inclusive) limit for offsets from base.
-	Int dynamicLimit;  // If hasDynamicLimit is false, dynamicLimit is zero.
+	scalar::Int dynamicLimit;  // If hasDynamicLimit is false, dynamicLimit is zero.
 	unsigned int staticLimit = 0;
 
 	// Per lane offsets from base.
-	Int4 dynamicOffsets;  // If hasDynamicOffsets is false, all dynamicOffsets are zero.
+	SIMD::Int dynamicOffsets;  // If hasDynamicOffsets is false, all dynamicOffsets are zero.
 	std::vector<int32_t> staticOffsets;
 
 	bool hasDynamicLimit = false;    // True if dynamicLimit is non-zero.
 	bool hasDynamicOffsets = false;  // True if any dynamicOffsets are non-zero.
-	bool isBasePlusOffset = false;   // True if this uses base+offsets. False if this is a collection of Pointers
+	bool isBasePlusOffset = false;   // True if this uses base+offset. False if this is a collection of Pointers
 };
+
+}  // namespace SIMD
 
 RValue<SIMD::Int> operator+(RValue<SIMD::Int> lhs, RValue<SIMD::Int> rhs);
 RValue<SIMD::Int> operator-(RValue<SIMD::Int> lhs, RValue<SIMD::Int> rhs);
@@ -429,10 +446,10 @@ RValue<SIMD::Int> Shuffle(RValue<SIMD::Int> x, RValue<SIMD::Int> y, uint16_t sel
 RValue<SIMD::UInt> Shuffle(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y, uint16_t select);
 RValue<SIMD::Float> Shuffle(RValue<SIMD::Float> x, RValue<SIMD::Float> y, uint16_t select);
 
-RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
-RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
-void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
-void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+RValue<SIMD::Float> Gather(RValue<Pointer<Float>> base, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment, bool zeroMaskedLanes = false);
+RValue<SIMD::Int> Gather(RValue<Pointer<Int>> base, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment, bool zeroMaskedLanes = false);
+void Scatter(RValue<Pointer<Float>> base, RValue<SIMD::Float> val, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment);
+void Scatter(RValue<Pointer<Int>> base, RValue<SIMD::Int> val, RValue<SIMD::Int> offsets, RValue<SIMD::Int> mask, unsigned int alignment);
 
 template<>
 inline RValue<SIMD::Int>::RValue(int i)
@@ -455,38 +472,33 @@ inline RValue<SIMD::Float>::RValue(float f)
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
-template<typename T>
-struct Element
-{};
-template<>
-struct Element<Float4>
+template<int T>
+SIMD::Int::Int(const SwizzleMask1<packed::Int4, T> &rhs)
+    : XYZW(this)
 {
-	using type = Float;
-};
-template<>
-struct Element<Int4>
+	*this = rhs.operator RValue<scalar::Int>();
+}
+
+template<int T>
+SIMD::Float::Float(const SwizzleMask1<packed::Float4, T> &rhs)
+    : XYZW(this)
 {
-	using type = Int;
-};
-template<>
-struct Element<UInt4>
-{
-	using type = UInt;
-};
+	*this = rhs.operator RValue<scalar::Float>();
+}
 
 template<typename T>
-inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
+inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
 {
-	using EL = typename Element<T>::type;
+	using EL = typename Scalar<T>::Type;
 
 	if(!isBasePlusOffset)
 	{
 		T out = T(0);
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < SIMD::Width; i++)
 		{
 			If(Extract(mask, i) != 0)
 			{
-				auto el = rr::Load(Pointer<EL>(pointers[i]), alignment, atomic, order);
+				auto el = rr::Load(scalar::Pointer<EL>(pointers[i]), alignment, atomic, order);
 				out = Insert(out, el, i);
 			}
 		}
@@ -501,13 +513,13 @@ inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /
 		if(hasStaticSequentialOffsets(sizeof(float)))
 		{
 			// Offsets are sequential. Perform regular load.
-			return rr::Load(Pointer<T>(base + staticOffsets[0]), alignment, atomic, order);
+			return rr::Load(scalar::Pointer<T>(base + staticOffsets[0]), alignment, atomic, order);
 		}
 
 		if(hasStaticEqualOffsets())
 		{
 			// Load one, replicate.
-			return T(*Pointer<EL>(base + staticOffsets[0], alignment));
+			return T(*scalar::Pointer<EL>(base + staticOffsets[0], alignment));
 		}
 	}
 	else
@@ -537,7 +549,7 @@ inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /
 			T out = T(0);
 			If(AnyTrue(mask))
 			{
-				EL el = *Pointer<EL>(base + staticOffsets[0], alignment);
+				EL el = *scalar::Pointer<EL>(base + staticOffsets[0], alignment);
 				out = T(el);
 			}
 			return out;
@@ -558,7 +570,7 @@ inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /
 
 		// TODO(b/195446858): Optimize static sequential offsets case by using masked load.
 
-		return Gather(Pointer<EL>(base), offs, mask, alignment, zeroMaskedLanes);
+		return Gather(scalar::Pointer<EL>(base), offs, mask, alignment, zeroMaskedLanes);
 	}
 	else
 	{
@@ -568,24 +580,24 @@ inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /
 		{
 			// Load one, replicate.
 			auto offset = Extract(offs, 0);
-			out = T(rr::Load(Pointer<EL>(&base[offset]), alignment, atomic, order));
+			out = T(rr::Load(scalar::Pointer<EL>(&base[offset]), alignment, atomic, order));
 		}
 		Else If(hasStaticSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
 		{
 			// Load all elements in a single SIMD instruction.
 			auto offset = Extract(offs, 0);
-			out = rr::Load(Pointer<T>(&base[offset]), alignment, atomic, order);
+			out = rr::Load(scalar::Pointer<T>(&base[offset]), alignment, atomic, order);
 		}
 		Else
 		{
 			// Divergent offsets or masked lanes.
 			out = T(0);
-			for(int i = 0; i < 4; i++)
+			for(int i = 0; i < SIMD::Width; i++)
 			{
 				If(Extract(mask, i) != 0)
 				{
 					auto offset = Extract(offs, i);
-					auto el = rr::Load(Pointer<EL>(&base[offset]), alignment, atomic, order);
+					auto el = rr::Load(scalar::Pointer<EL>(&base[offset]), alignment, atomic, order);
 					out = Insert(out, el, i);
 				}
 			}
@@ -595,34 +607,34 @@ inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /
 }
 
 template<>
-inline Pointer4 Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
+inline SIMD::Pointer SIMD::Pointer::Load(OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
 {
-	std::vector<Pointer<Byte>> pointers(4);
+	std::vector<scalar::Pointer<Byte>> pointers(SIMD::Width);
 
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < SIMD::Width; i++)
 	{
 		If(Extract(mask, i) != 0)
 		{
-			pointers[i] = rr::Load(Pointer<Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
+			pointers[i] = rr::Load(scalar::Pointer<scalar::Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
 		}
 	}
 
-	return Pointer4(pointers);
+	return SIMD::Pointer(pointers);
 }
 
 template<typename T>
-inline void Pointer4::Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
 {
-	using EL = typename Element<T>::type;
+	using EL = typename Scalar<T>::Type;
 	constexpr size_t alignment = sizeof(float);
 
 	if(!isBasePlusOffset)
 	{
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < SIMD::Width; i++)
 		{
 			If(Extract(mask, i) != 0)
 			{
-				rr::Store(Extract(val, i), Pointer<EL>(pointers[i]), alignment, atomic, order);
+				rr::Store(Extract(val, i), scalar::Pointer<EL>(pointers[i]), alignment, atomic, order);
 			}
 		}
 		return;
@@ -647,15 +659,17 @@ inline void Pointer4::Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bo
 		{
 			If(AnyTrue(mask))
 			{
+				assert(SIMD::Width == 4);
+
 				// All equal. One of these writes will win -- elect the winning lane.
-				auto v0111 = Int4(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+				auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 				auto elect = mask & ~(v0111 & (mask.xxyz | mask.xxxy | mask.xxxx));
-				auto maskedVal = As<Int4>(val) & elect;
+				auto maskedVal = As<SIMD::Int>(val) & elect;
 				auto scalarVal = Extract(maskedVal, 0) |
 				                 Extract(maskedVal, 1) |
 				                 Extract(maskedVal, 2) |
 				                 Extract(maskedVal, 3);
-				*Pointer<EL>(base + staticOffsets[0], alignment) = As<EL>(scalarVal);
+				*scalar::Pointer<EL>(base + staticOffsets[0], alignment) = As<EL>(scalarVal);
 			}
 		}
 		else if(hasStaticSequentialOffsets(sizeof(float)) &&
@@ -664,13 +678,13 @@ inline void Pointer4::Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bo
 			// TODO(b/195446858): Optimize using masked store.
 			// Pointer has no elements OOB, and the store is not atomic.
 			// Perform a read-modify-write.
-			auto p = Pointer<Int4>(base + staticOffsets[0], alignment);
+			auto p = scalar::Pointer<SIMD::Int>(base + staticOffsets[0], alignment);
 			auto prev = *p;
-			*p = (prev & ~mask) | (As<Int4>(val) & mask);
+			*p = (prev & ~mask) | (As<SIMD::Int>(val) & mask);
 		}
 		else
 		{
-			Scatter(Pointer<EL>(base), val, offs, mask, alignment);
+			Scatter(scalar::Pointer<EL>(base), val, offs, mask, alignment);
 		}
 	}
 	else
@@ -680,17 +694,17 @@ inline void Pointer4::Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bo
 		{
 			// Store all elements in a single SIMD instruction.
 			auto offset = Extract(offs, 0);
-			rr::Store(val, Pointer<T>(&base[offset]), alignment, atomic, order);
+			rr::Store(val, scalar::Pointer<T>(&base[offset]), alignment, atomic, order);
 		}
 		Else
 		{
 			// Divergent offsets or masked lanes.
-			for(int i = 0; i < 4; i++)
+			for(int i = 0; i < SIMD::Width; i++)
 			{
 				If(Extract(mask, i) != 0)
 				{
 					auto offset = Extract(offs, i);
-					rr::Store(Extract(val, i), Pointer<EL>(&base[offset]), alignment, atomic, order);
+					rr::Store(Extract(val, i), scalar::Pointer<EL>(&base[offset]), alignment, atomic, order);
 				}
 			}
 		}
@@ -698,21 +712,21 @@ inline void Pointer4::Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bo
 }
 
 template<>
-inline void Pointer4::Store(Pointer4 val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+inline void SIMD::Pointer::Store(SIMD::Pointer val, OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
 {
 	constexpr size_t alignment = sizeof(void *);
 
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < SIMD::Width; i++)
 	{
 		If(Extract(mask, i) != 0)
 		{
-			rr::Store(val.getPointerForLane(i), Pointer<Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
+			rr::Store(val.getPointerForLane(i), scalar::Pointer<scalar::Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
 		}
 	}
 }
 
 template<typename T>
-inline void Pointer4::Store(RValue<T> val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+inline void SIMD::Pointer::Store(RValue<T> val, OutOfBoundsBehavior robustness, SIMD::Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
 {
 	Store(T(val), robustness, mask, atomic, order);
 }

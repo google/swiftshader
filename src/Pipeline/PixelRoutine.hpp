@@ -55,7 +55,7 @@ protected:
 	void alphaToCoverage(Int cMask[4], const SIMD::Float &alpha, const SampleSet &samples);
 
 	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4f &color, const Int &sMask, const Int &zMask, const Int &cMask);
-	Vector4f alphaBlend(int index, const Pointer<Byte> &cBuffer, const Vector4f &sourceColor, const Int &x);
+	SIMD::Float4 alphaBlend(int index, const Pointer<Byte> &cBuffer, const SIMD::Float4 &sourceColor, const Int &x);
 	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &current, const Int &sMask, const Int &zMask, const Int &cMask);
 
 	bool isSRGB(int index) const;
@@ -77,23 +77,23 @@ private:
 	void readPixel(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &pixel);
 	enum BlendFactorModifier { None, OneMinus };
 	Float blendConstant(vk::Format format, int component, BlendFactorModifier modifier = None);
-	void blendFactorRGB(Vector4f &blendFactorRGB, const Vector4f &sourceColor, const Vector4f &destColor, VkBlendFactor colorBlendFactor, vk::Format format);
+	void blendFactorRGB(SIMD::Float4 &blendFactorRGB, const SIMD::Float4 &sourceColor, const SIMD::Float4 &destColor, VkBlendFactor colorBlendFactor, vk::Format format);
 	void blendFactorAlpha(SIMD::Float &blendFactorAlpha, const SIMD::Float &sourceAlpha, const SIMD::Float &destAlpha, VkBlendFactor alphaBlendFactor, vk::Format format);
 
 	bool blendFactorCanExceedFormatRange(VkBlendFactor blendFactor, vk::Format format);
-	Vector4f computeAdvancedBlendMode(int index, const Vector4f &src, const Vector4f &dst, const Vector4f &srcFactor, const Vector4f &dstFactor);
+	SIMD::Float4 computeAdvancedBlendMode(int index, const SIMD::Float4 &src, const SIMD::Float4 &dst, const SIMD::Float4 &srcFactor, const SIMD::Float4 &dstFactor);
 	SIMD::Float blendOpOverlay(SIMD::Float &src, SIMD::Float &dst);
 	SIMD::Float blendOpColorDodge(SIMD::Float &src, SIMD::Float &dst);
 	SIMD::Float blendOpColorBurn(SIMD::Float &src, SIMD::Float &dst);
 	SIMD::Float blendOpHardlight(SIMD::Float &src, SIMD::Float &dst);
 	SIMD::Float blendOpSoftlight(SIMD::Float &src, SIMD::Float &dst);
-	void setLumSat(Vector4f &cbase, Vector4f &csat, Vector4f &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z);
-	void setLum(Vector4f &cbase, Vector4f &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z);
+	void setLumSat(SIMD::Float4 &cbase, SIMD::Float4 &csat, SIMD::Float4 &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z);
+	void setLum(SIMD::Float4 &cbase, SIMD::Float4 &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z);
 	SIMD::Float computeLum(SIMD::Float &color, SIMD::Float &lum, SIMD::Float &mincol, SIMD::Float &maxcol, SIMD::Int &negative, SIMD::Int &aboveOne);
-	SIMD::Float maxRGB(Vector4f &c);
-	SIMD::Float minRGB(Vector4f &c);
-	SIMD::Float lumRGB(Vector4f &c);
-	void premultiply(Vector4f &c);
+	SIMD::Float maxRGB(SIMD::Float4 &c);
+	SIMD::Float minRGB(SIMD::Float4 &c);
+	SIMD::Float lumRGB(SIMD::Float4 &c);
+	void premultiply(SIMD::Float4 &c);
 
 	void writeStencil(Pointer<Byte> &sBuffer, const Int &x, const Int sMask[4], const Int zMask[4], const Int cMask[4], const SampleSet &samples);
 	void writeDepth(Pointer<Byte> &zBuffer, const Int &x, const Int zMask[4], const SampleSet &samples);

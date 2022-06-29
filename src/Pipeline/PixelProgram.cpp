@@ -302,13 +302,14 @@ void PixelProgram::blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], In
 			{
 				Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
 
-				Vector4f colorf = alphaBlend(index, buffer, c[index], x);
+				SIMD::Float4 colorf = alphaBlend(index, buffer, c[index], x);
 
+				ASSERT(SIMD::Width == 4);
 				Vector4s color;
-				color.x = convertFixed16(colorf.x, true);
-				color.y = convertFixed16(colorf.y, true);
-				color.z = convertFixed16(colorf.z, true);
-				color.w = convertFixed16(colorf.w, true);
+				color.x = convertFixed16(Extract128(colorf.x, 0), true);
+				color.y = convertFixed16(Extract128(colorf.y, 0), true);
+				color.z = convertFixed16(Extract128(colorf.z, 0), true);
+				color.w = convertFixed16(Extract128(colorf.w, 0), true);
 				writeColor(index, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 			}
 			break;
@@ -348,7 +349,13 @@ void PixelProgram::blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], In
 			{
 				Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
 
-				Vector4f color = alphaBlend(index, buffer, c[index], x);
+				SIMD::Float4 C = alphaBlend(index, buffer, c[index], x);
+				ASSERT(SIMD::Width == 4);
+				Vector4f color;
+				color.x = Extract128(C.x, 0);
+				color.y = Extract128(C.y, 0);
+				color.z = Extract128(C.z, 0);
+				color.w = Extract128(C.w, 0);
 				writeColor(index, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 			}
 			break;
@@ -358,7 +365,7 @@ void PixelProgram::blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], In
 	}
 }
 
-void PixelProgram::clampColor(Vector4f color[MAX_COLOR_BUFFERS])
+void PixelProgram::clampColor(SIMD::Float4 color[MAX_COLOR_BUFFERS])
 {
 	// "If the color attachment is fixed-point, the components of the source and destination values and blend factors
 	//  are each clamped to [0,1] or [-1,1] respectively for an unsigned normalized or signed normalized color attachment

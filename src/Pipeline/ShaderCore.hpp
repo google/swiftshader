@@ -76,19 +76,25 @@ public:
 	Int4 w;
 };
 
-// SIMD contains types that represent multiple scalars packed into a single
-// vector data type. Types in the SIMD namespace provide a semantic hint
-// that the data should be treated as a per-execution-lane scalar instead of
-// a typical euclidean-style vector type.
 namespace SIMD {
 
-// Width is the number of per-lane scalars packed into each SIMD vector.
-static constexpr int Width = 4;
+using namespace rr::SIMD;
 
-using Float = rr::Float4;
-using Int = rr::Int4;
-using UInt = rr::UInt4;
-using Pointer = rr::Pointer4;
+struct Float4
+{
+	SIMD::Float x;
+	SIMD::Float y;
+	SIMD::Float z;
+	SIMD::Float w;
+};
+
+struct Int4
+{
+	SIMD::Int x;
+	SIMD::Int y;
+	SIMD::Int z;
+	SIMD::Int w;
+};
 
 }  // namespace SIMD
 
@@ -123,19 +129,38 @@ enum Precision
 };
 
 // clang-format off
-template<Precision precision> RValue<Float4> Sqrt(RValue<Float4> x);
-template<> inline RValue<Float4> Sqrt<Highp>(RValue<Float4> x) { return Sqrt(x, false); }
-template<> inline RValue<Float4> Sqrt<Mediump>(RValue<Float4> x) { return Sqrt(x, true); }
+template<Precision precision> RValue<SIMD::Float> Pow(RValue<SIMD::Float> x, RValue<SIMD::Float> y);
+template<> inline RValue<SIMD::Float> Pow<Highp>(RValue<SIMD::Float> x, RValue<SIMD::Float> y) { return Pow(x, y, false); }
+template<> inline RValue<SIMD::Float> Pow<Mediump>(RValue<SIMD::Float> x, RValue<SIMD::Float> y) { return Pow(x, y, true); }
 
-template<Precision precision> RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y);
-template<> inline RValue<Float4> Pow<Highp>(RValue<Float4> x, RValue<Float4> y) { return Pow(x, y, false); }
-template<> inline RValue<Float4> Pow<Mediump>(RValue<Float4> x, RValue<Float4> y) { return Pow(x, y, true); }
+template<Precision precision> RValue<SIMD::Float> Sqrt(RValue<SIMD::Float> x);
+template<> inline RValue<SIMD::Float> Sqrt<Highp>(RValue<SIMD::Float> x) { return Sqrt(x, false); }
+template<> inline RValue<SIMD::Float> Sqrt<Mediump>(RValue<SIMD::Float> x) { return Sqrt(x, true); }
 // clang-format on
 
+SIMD::UInt halfToFloatBits(SIMD::UInt halfBits);
+SIMD::UInt floatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits);
+SIMD::Float linearToSRGB(const SIMD::Float &c);
+SIMD::Float sRGBtoLinear(const SIMD::Float &c);
+
 RValue<Float4> reciprocal(RValue<Float4> x, bool pp = false, bool exactAtPow2 = false);
+RValue<SIMD::Float> reciprocal(RValue<SIMD::Float> x, bool pp = false, bool exactAtPow2 = false);
 RValue<Float4> reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
 
 RValue<SIMD::Float> mulAdd(RValue<SIMD::Float> x, RValue<SIMD::Float> y, RValue<SIMD::Float> z);  // TODO(chromium:1299047)
+
+RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y, bool relaxedPrecision);
+RValue<Float4> Sqrt(RValue<Float4> x, bool relaxedPrecision);
+
+// clang-format off
+template<Precision precision> RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y);
+template<> inline RValue<Float4> Pow<Highp>(RValue<Float4> x, RValue<Float4> y) { return Pow(x, y, false); }
+template<> inline RValue<Float4> Pow<Mediump>(RValue<Float4> x, RValue<Float4> y) { return Pow(x, y, true); }
+
+template<Precision precision> RValue<Float4> Sqrt(RValue<Float4> x);
+template<> inline RValue<Float4> Sqrt<Highp>(RValue<Float4> x) { return Sqrt(x, false); }
+template<> inline RValue<Float4> Sqrt<Mediump>(RValue<Float4> x) { return Sqrt(x, true); }
+// clang-format on
 
 void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
@@ -146,8 +171,8 @@ void transpose4x1(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 void transpose2x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 void transpose4xN(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3, int N);
 
-sw::SIMD::UInt halfToFloatBits(sw::SIMD::UInt halfBits);
-sw::SIMD::UInt floatToHalfBits(sw::SIMD::UInt floatBits, bool storeInUpperBits);
+UInt4 halfToFloatBits(RValue<UInt4> halfBits);
+UInt4 floatToHalfBits(RValue<UInt4> floatBits, bool storeInUpperBits);
 Float4 r11g11b10Unpack(UInt r11g11b10bits);
 UInt r11g11b10Pack(const Float4 &value);
 Float4 linearToSRGB(const Float4 &c);

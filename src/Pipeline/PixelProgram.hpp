@@ -38,10 +38,10 @@ protected:
 
 private:
 	// Color outputs
-	Vector4f c[MAX_COLOR_BUFFERS];
+	SIMD::Float4 c[MAX_COLOR_BUFFERS];
 
 	// Raster operations
-	void clampColor(Vector4f color[MAX_COLOR_BUFFERS]);
+	void clampColor(SIMD::Float4 color[MAX_COLOR_BUFFERS]);
 
 	static SIMD::Int maskAny(Int cMask[4], const SampleSet &samples);
 	static SIMD::Int maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples);

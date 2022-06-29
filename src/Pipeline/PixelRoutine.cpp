@@ -140,6 +140,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				occlusionSampleCount(zMask, sMask, samples);
 			}
 
+			ASSERT(SIMD::Width == 4);
 			SIMD::Float yyyy = SIMD::Float(Float(y)) + SIMD::Float(*Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16));
 
 			// Centroid locations
@@ -152,6 +153,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 
 				for(unsigned int q : samples)
 				{
+					ASSERT(SIMD::Width == 4);
 					XXXX += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleX[q]) + 16 * cMask[q]));
 					YYYY += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleY[q]) + 16 * cMask[q]));
 					WWWW += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, weight) + 16 * cMask[q]));
@@ -421,6 +423,7 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 {
 	SIMD::Float Z = z;
 
+	ASSERT(SIMD::Width == 4);
 	Pointer<Byte> buffer = zBuffer + 4 * x;
 	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
 
@@ -433,6 +436,7 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 
 	if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
 	{
+		ASSERT(SIMD::Width == 4);
 		zValue = Float4(*Pointer<Float2>(buffer), *Pointer<Float2>(buffer + pitch));
 	}
 
@@ -491,7 +495,8 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 
 Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
 {
-	Short4 Z = convertFixed16(z, true);
+	ASSERT(SIMD::Width == 4);
+	Short4 Z = convertFixed16(Extract128(z, 0), true);
 
 	Pointer<Byte> buffer = zBuffer + 2 * x;
 	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
@@ -744,14 +749,15 @@ void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, const Int &x, const Int zM
 
 	for(unsigned int q : samples)
 	{
+		ASSERT(SIMD::Width == 4);
 		switch(state.depthFormat)
 		{
 		case VK_FORMAT_D16_UNORM:
-			writeDepth16(zBuffer, q, x, z[q], zMask[q]);
+			writeDepth16(zBuffer, q, x, Extract128(z[q], 0), zMask[q]);
 			break;
 		case VK_FORMAT_D32_SFLOAT:
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-			writeDepth32F(zBuffer, q, x, z[q], zMask[q]);
+			writeDepth32F(zBuffer, q, x, Extract128(z[q], 0), zMask[q]);
 			break;
 		default:
 			UNSUPPORTED("Depth format: %d", int(state.depthFormat));
@@ -1814,7 +1820,7 @@ Float PixelRoutine::blendConstant(vk::Format format, int component, BlendFactorM
 	}
 }
 
-void PixelRoutine::blendFactorRGB(Vector4f &blendFactor, const Vector4f &sourceColor, const Vector4f &destColor, VkBlendFactor colorBlendFactor, vk::Format format)
+void PixelRoutine::blendFactorRGB(SIMD::Float4 &blendFactor, const SIMD::Float4 &sourceColor, const SIMD::Float4 &destColor, VkBlendFactor colorBlendFactor, vk::Format format)
 {
 	switch(colorBlendFactor)
 	{
@@ -2028,30 +2034,30 @@ SIMD::Float PixelRoutine::blendOpSoftlight(SIMD::Float &src, SIMD::Float &dst)
 	                 (largeDst & As<SIMD::Int>(dst + (((2.0f * src) - 1.0f) * (Sqrt<Mediump>(dst) - dst)))))));
 }
 
-SIMD::Float PixelRoutine::maxRGB(Vector4f &c)
+SIMD::Float PixelRoutine::maxRGB(SIMD::Float4 &c)
 {
 	return Max(Max(c.x, c.y), c.z);
 }
 
-SIMD::Float PixelRoutine::minRGB(Vector4f &c)
+SIMD::Float PixelRoutine::minRGB(SIMD::Float4 &c)
 {
 	return Min(Min(c.x, c.y), c.z);
 }
 
-void PixelRoutine::setLumSat(Vector4f &cbase, Vector4f &csat, Vector4f &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z)
+void PixelRoutine::setLumSat(SIMD::Float4 &cbase, SIMD::Float4 &csat, SIMD::Float4 &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z)
 {
 	SIMD::Float minbase = minRGB(cbase);
 	SIMD::Float sbase = maxRGB(cbase) - minbase;
 	SIMD::Float ssat = maxRGB(csat) - minRGB(csat);
 	SIMD::Int isNonZero = CmpGT(sbase, 0.0f);
-	Vector4f color;
+	SIMD::Float4 color;
 	color.x = As<SIMD::Float>(isNonZero & As<SIMD::Int>((cbase.x - minbase) * ssat / sbase));
 	color.y = As<SIMD::Float>(isNonZero & As<SIMD::Int>((cbase.y - minbase) * ssat / sbase));
 	color.z = As<SIMD::Float>(isNonZero & As<SIMD::Int>((cbase.z - minbase) * ssat / sbase));
 	setLum(color, clum, x, y, z);
 }
 
-SIMD::Float PixelRoutine::lumRGB(Vector4f &c)
+SIMD::Float PixelRoutine::lumRGB(SIMD::Float4 &c)
 {
 	return c.x * 0.3f + c.y * 0.59f + c.z * 0.11f;
 }
@@ -2064,13 +2070,13 @@ SIMD::Float PixelRoutine::computeLum(SIMD::Float &color, SIMD::Float &lum, SIMD:
 	                  (~aboveOne & As<SIMD::Int>(color)))));
 }
 
-void PixelRoutine::setLum(Vector4f &cbase, Vector4f &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z)
+void PixelRoutine::setLum(SIMD::Float4 &cbase, SIMD::Float4 &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z)
 {
 	SIMD::Float lbase = lumRGB(cbase);
 	SIMD::Float llum = lumRGB(clum);
 	SIMD::Float ldiff = llum - lbase;
 
-	Vector4f color;
+	SIMD::Float4 color;
 	color.x = cbase.x + ldiff;
 	color.y = cbase.y + ldiff;
 	color.z = cbase.z + ldiff;
@@ -2087,7 +2093,7 @@ void PixelRoutine::setLum(Vector4f &cbase, Vector4f &clum, SIMD::Float &x, SIMD:
 	z = computeLum(color.z, lum, mincol, maxcol, negative, aboveOne);
 }
 
-void PixelRoutine::premultiply(Vector4f &c)
+void PixelRoutine::premultiply(SIMD::Float4 &c)
 {
 	SIMD::Int nonZeroAlpha = CmpNEQ(c.w, 0.0f);
 	c.x = As<SIMD::Float>(nonZeroAlpha & As<SIMD::Int>(c.x / c.w));
@@ -2095,15 +2101,15 @@ void PixelRoutine::premultiply(Vector4f &c)
 	c.z = As<SIMD::Float>(nonZeroAlpha & As<SIMD::Int>(c.z / c.w));
 }
 
-Vector4f PixelRoutine::computeAdvancedBlendMode(int index, const Vector4f &src, const Vector4f &dst, const Vector4f &srcFactor, const Vector4f &dstFactor)
+SIMD::Float4 PixelRoutine::computeAdvancedBlendMode(int index, const SIMD::Float4 &src, const SIMD::Float4 &dst, const SIMD::Float4 &srcFactor, const SIMD::Float4 &dstFactor)
 {
-	Vector4f srcColor = src;
+	SIMD::Float4 srcColor = src;
 	srcColor.x *= srcFactor.x;
 	srcColor.y *= srcFactor.y;
 	srcColor.z *= srcFactor.z;
 	srcColor.w *= srcFactor.w;
 
-	Vector4f dstColor = dst;
+	SIMD::Float4 dstColor = dst;
 	dstColor.x *= dstFactor.x;
 	dstColor.y *= dstFactor.y;
 	dstColor.z *= dstFactor.z;
@@ -2112,7 +2118,7 @@ Vector4f PixelRoutine::computeAdvancedBlendMode(int index, const Vector4f &src, 
 	premultiply(srcColor);
 	premultiply(dstColor);
 
-	Vector4f blendedColor;
+	SIMD::Float4 blendedColor;
 
 	switch(state.blendState[index].blendOperation)
 	{
@@ -2242,7 +2248,7 @@ bool PixelRoutine::blendFactorCanExceedFormatRange(VkBlendFactor blendFactor, vk
 	}
 }
 
-Vector4f PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const Vector4f &sourceColor, const Int &x)
+SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const SIMD::Float4 &sourceColor, const Int &x)
 {
 	if(!state.blendState[index].alphaBlendEnable)
 	{
@@ -2255,11 +2261,11 @@ Vector4f PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const
 	Pointer<Byte> buffer = cBuffer;
 	Int pitchB = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 
-	// destColor holds four texel color values.
+	// texelColor holds four texel color values.
 	// Note: Despite the type being Vector4f, the colors may be stored as
 	// integers. Half-floats are stored as full 32-bit floats.
 	// Non-float and non-fixed point formats are not alpha blended.
-	Vector4f destColor;
+	Vector4f texelColor;
 
 	switch(format)
 	{
@@ -2268,161 +2274,168 @@ Vector4f PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, const
 	case VK_FORMAT_R32_SFLOAT:
 		// FIXME: movlps
 		buffer += 4 * x;
-		destColor.x.x = *Pointer<Float>(buffer + 0);
-		destColor.x.y = *Pointer<Float>(buffer + 4);
+		texelColor.x.x = *Pointer<Float>(buffer + 0);
+		texelColor.x.y = *Pointer<Float>(buffer + 4);
 		buffer += pitchB;
 		// FIXME: movhps
-		destColor.x.z = *Pointer<Float>(buffer + 0);
-		destColor.x.w = *Pointer<Float>(buffer + 4);
-		destColor.y = destColor.z = destColor.w = 1.0f;
+		texelColor.x.z = *Pointer<Float>(buffer + 0);
+		texelColor.x.w = *Pointer<Float>(buffer + 4);
+		texelColor.y = texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R32G32_SINT:
 	case VK_FORMAT_R32G32_UINT:
 	case VK_FORMAT_R32G32_SFLOAT:
 		buffer += 8 * x;
-		destColor.x = *Pointer<Float4>(buffer, 16);
+		texelColor.x = *Pointer<Float4>(buffer, 16);
 		buffer += pitchB;
-		destColor.y = *Pointer<Float4>(buffer, 16);
-		destColor.z = destColor.x;
-		destColor.x = ShuffleLowHigh(destColor.x, destColor.y, 0x0202);
-		destColor.z = ShuffleLowHigh(destColor.z, destColor.y, 0x1313);
-		destColor.y = destColor.z;
-		destColor.z = destColor.w = 1.0f;
+		texelColor.y = *Pointer<Float4>(buffer, 16);
+		texelColor.z = texelColor.x;
+		texelColor.x = ShuffleLowHigh(texelColor.x, texelColor.y, 0x0202);
+		texelColor.z = ShuffleLowHigh(texelColor.z, texelColor.y, 0x1313);
+		texelColor.y = texelColor.z;
+		texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 	case VK_FORMAT_R32G32B32A32_SINT:
 	case VK_FORMAT_R32G32B32A32_UINT:
 		buffer += 16 * x;
-		destColor.x = *Pointer<Float4>(buffer + 0, 16);
-		destColor.y = *Pointer<Float4>(buffer + 16, 16);
+		texelColor.x = *Pointer<Float4>(buffer + 0, 16);
+		texelColor.y = *Pointer<Float4>(buffer + 16, 16);
 		buffer += pitchB;
-		destColor.z = *Pointer<Float4>(buffer + 0, 16);
-		destColor.w = *Pointer<Float4>(buffer + 16, 16);
-		transpose4x4(destColor.x, destColor.y, destColor.z, destColor.w);
+		texelColor.z = *Pointer<Float4>(buffer + 0, 16);
+		texelColor.w = *Pointer<Float4>(buffer + 16, 16);
+		transpose4x4(texelColor.x, texelColor.y, texelColor.z, texelColor.w);
 		break;
 	case VK_FORMAT_R16_UNORM:
 		buffer += 2 * x;
-		destColor.x.x = Float(Int(*Pointer<UShort>(buffer + 0)));
-		destColor.x.y = Float(Int(*Pointer<UShort>(buffer + 2)));
+		texelColor.x.x = Float(Int(*Pointer<UShort>(buffer + 0)));
+		texelColor.x.y = Float(Int(*Pointer<UShort>(buffer + 2)));
 		buffer += pitchB;
-		destColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0)));
-		destColor.x.w = Float(Int(*Pointer<UShort>(buffer + 2)));
-		destColor.x *= (1.0f / 0xFFFF);
-		destColor.y = destColor.z = destColor.w = 1.0f;
+		texelColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0)));
+		texelColor.x.w = Float(Int(*Pointer<UShort>(buffer + 2)));
+		texelColor.x *= (1.0f / 0xFFFF);
+		texelColor.y = texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16_SFLOAT:
 		buffer += 2 * x;
-		destColor.x.x = Float(*Pointer<Half>(buffer + 0));
-		destColor.x.y = Float(*Pointer<Half>(buffer + 2));
+		texelColor.x.x = Float(*Pointer<Half>(buffer + 0));
+		texelColor.x.y = Float(*Pointer<Half>(buffer + 2));
 		buffer += pitchB;
-		destColor.x.z = Float(*Pointer<Half>(buffer + 0));
-		destColor.x.w = Float(*Pointer<Half>(buffer + 2));
-		destColor.y = destColor.z = destColor.w = 1.0f;
+		texelColor.x.z = Float(*Pointer<Half>(buffer + 0));
+		texelColor.x.w = Float(*Pointer<Half>(buffer + 2));
+		texelColor.y = texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16G16_UNORM:
 		buffer += 4 * x;
-		destColor.x.x = Float(Int(*Pointer<UShort>(buffer + 0)));
-		destColor.y.x = Float(Int(*Pointer<UShort>(buffer + 2)));
-		destColor.x.y = Float(Int(*Pointer<UShort>(buffer + 4)));
-		destColor.y.y = Float(Int(*Pointer<UShort>(buffer + 6)));
+		texelColor.x.x = Float(Int(*Pointer<UShort>(buffer + 0)));
+		texelColor.y.x = Float(Int(*Pointer<UShort>(buffer + 2)));
+		texelColor.x.y = Float(Int(*Pointer<UShort>(buffer + 4)));
+		texelColor.y.y = Float(Int(*Pointer<UShort>(buffer + 6)));
 		buffer += pitchB;
-		destColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0)));
-		destColor.y.z = Float(Int(*Pointer<UShort>(buffer + 2)));
-		destColor.x.w = Float(Int(*Pointer<UShort>(buffer + 4)));
-		destColor.y.w = Float(Int(*Pointer<UShort>(buffer + 6)));
-		destColor.x *= (1.0f / 0xFFFF);
-		destColor.y *= (1.0f / 0xFFFF);
-		destColor.z = destColor.w = 1.0f;
+		texelColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0)));
+		texelColor.y.z = Float(Int(*Pointer<UShort>(buffer + 2)));
+		texelColor.x.w = Float(Int(*Pointer<UShort>(buffer + 4)));
+		texelColor.y.w = Float(Int(*Pointer<UShort>(buffer + 6)));
+		texelColor.x *= (1.0f / 0xFFFF);
+		texelColor.y *= (1.0f / 0xFFFF);
+		texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16G16_SFLOAT:
 		buffer += 4 * x;
-		destColor.x.x = Float(*Pointer<Half>(buffer + 0));
-		destColor.y.x = Float(*Pointer<Half>(buffer + 2));
-		destColor.x.y = Float(*Pointer<Half>(buffer + 4));
-		destColor.y.y = Float(*Pointer<Half>(buffer + 6));
+		texelColor.x.x = Float(*Pointer<Half>(buffer + 0));
+		texelColor.y.x = Float(*Pointer<Half>(buffer + 2));
+		texelColor.x.y = Float(*Pointer<Half>(buffer + 4));
+		texelColor.y.y = Float(*Pointer<Half>(buffer + 6));
 		buffer += pitchB;
-		destColor.x.z = Float(*Pointer<Half>(buffer + 0));
-		destColor.y.z = Float(*Pointer<Half>(buffer + 2));
-		destColor.x.w = Float(*Pointer<Half>(buffer + 4));
-		destColor.y.w = Float(*Pointer<Half>(buffer + 6));
-		destColor.z = destColor.w = 1.0f;
+		texelColor.x.z = Float(*Pointer<Half>(buffer + 0));
+		texelColor.y.z = Float(*Pointer<Half>(buffer + 2));
+		texelColor.x.w = Float(*Pointer<Half>(buffer + 4));
+		texelColor.y.w = Float(*Pointer<Half>(buffer + 6));
+		texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16G16B16A16_UNORM:
 		buffer += 8 * x;
-		destColor.x.x = Float(Int(*Pointer<UShort>(buffer + 0x0)));
-		destColor.y.x = Float(Int(*Pointer<UShort>(buffer + 0x2)));
-		destColor.z.x = Float(Int(*Pointer<UShort>(buffer + 0x4)));
-		destColor.w.x = Float(Int(*Pointer<UShort>(buffer + 0x6)));
-		destColor.x.y = Float(Int(*Pointer<UShort>(buffer + 0x8)));
-		destColor.y.y = Float(Int(*Pointer<UShort>(buffer + 0xa)));
-		destColor.z.y = Float(Int(*Pointer<UShort>(buffer + 0xc)));
-		destColor.w.y = Float(Int(*Pointer<UShort>(buffer + 0xe)));
+		texelColor.x.x = Float(Int(*Pointer<UShort>(buffer + 0x0)));
+		texelColor.y.x = Float(Int(*Pointer<UShort>(buffer + 0x2)));
+		texelColor.z.x = Float(Int(*Pointer<UShort>(buffer + 0x4)));
+		texelColor.w.x = Float(Int(*Pointer<UShort>(buffer + 0x6)));
+		texelColor.x.y = Float(Int(*Pointer<UShort>(buffer + 0x8)));
+		texelColor.y.y = Float(Int(*Pointer<UShort>(buffer + 0xa)));
+		texelColor.z.y = Float(Int(*Pointer<UShort>(buffer + 0xc)));
+		texelColor.w.y = Float(Int(*Pointer<UShort>(buffer + 0xe)));
 		buffer += pitchB;
-		destColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0x0)));
-		destColor.y.z = Float(Int(*Pointer<UShort>(buffer + 0x2)));
-		destColor.z.z = Float(Int(*Pointer<UShort>(buffer + 0x4)));
-		destColor.w.z = Float(Int(*Pointer<UShort>(buffer + 0x6)));
-		destColor.x.w = Float(Int(*Pointer<UShort>(buffer + 0x8)));
-		destColor.y.w = Float(Int(*Pointer<UShort>(buffer + 0xa)));
-		destColor.z.w = Float(Int(*Pointer<UShort>(buffer + 0xc)));
-		destColor.w.w = Float(Int(*Pointer<UShort>(buffer + 0xe)));
-		destColor.x *= (1.0f / 0xFFFF);
-		destColor.y *= (1.0f / 0xFFFF);
-		destColor.z *= (1.0f / 0xFFFF);
-		destColor.w *= (1.0f / 0xFFFF);
+		texelColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0x0)));
+		texelColor.y.z = Float(Int(*Pointer<UShort>(buffer + 0x2)));
+		texelColor.z.z = Float(Int(*Pointer<UShort>(buffer + 0x4)));
+		texelColor.w.z = Float(Int(*Pointer<UShort>(buffer + 0x6)));
+		texelColor.x.w = Float(Int(*Pointer<UShort>(buffer + 0x8)));
+		texelColor.y.w = Float(Int(*Pointer<UShort>(buffer + 0xa)));
+		texelColor.z.w = Float(Int(*Pointer<UShort>(buffer + 0xc)));
+		texelColor.w.w = Float(Int(*Pointer<UShort>(buffer + 0xe)));
+		texelColor.x *= (1.0f / 0xFFFF);
+		texelColor.y *= (1.0f / 0xFFFF);
+		texelColor.z *= (1.0f / 0xFFFF);
+		texelColor.w *= (1.0f / 0xFFFF);
 		break;
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
 		buffer += 8 * x;
-		destColor.x.x = Float(*Pointer<Half>(buffer + 0x0));
-		destColor.y.x = Float(*Pointer<Half>(buffer + 0x2));
-		destColor.z.x = Float(*Pointer<Half>(buffer + 0x4));
-		destColor.w.x = Float(*Pointer<Half>(buffer + 0x6));
-		destColor.x.y = Float(*Pointer<Half>(buffer + 0x8));
-		destColor.y.y = Float(*Pointer<Half>(buffer + 0xa));
-		destColor.z.y = Float(*Pointer<Half>(buffer + 0xc));
-		destColor.w.y = Float(*Pointer<Half>(buffer + 0xe));
+		texelColor.x.x = Float(*Pointer<Half>(buffer + 0x0));
+		texelColor.y.x = Float(*Pointer<Half>(buffer + 0x2));
+		texelColor.z.x = Float(*Pointer<Half>(buffer + 0x4));
+		texelColor.w.x = Float(*Pointer<Half>(buffer + 0x6));
+		texelColor.x.y = Float(*Pointer<Half>(buffer + 0x8));
+		texelColor.y.y = Float(*Pointer<Half>(buffer + 0xa));
+		texelColor.z.y = Float(*Pointer<Half>(buffer + 0xc));
+		texelColor.w.y = Float(*Pointer<Half>(buffer + 0xe));
 		buffer += pitchB;
-		destColor.x.z = Float(*Pointer<Half>(buffer + 0x0));
-		destColor.y.z = Float(*Pointer<Half>(buffer + 0x2));
-		destColor.z.z = Float(*Pointer<Half>(buffer + 0x4));
-		destColor.w.z = Float(*Pointer<Half>(buffer + 0x6));
-		destColor.x.w = Float(*Pointer<Half>(buffer + 0x8));
-		destColor.y.w = Float(*Pointer<Half>(buffer + 0xa));
-		destColor.z.w = Float(*Pointer<Half>(buffer + 0xc));
-		destColor.w.w = Float(*Pointer<Half>(buffer + 0xe));
+		texelColor.x.z = Float(*Pointer<Half>(buffer + 0x0));
+		texelColor.y.z = Float(*Pointer<Half>(buffer + 0x2));
+		texelColor.z.z = Float(*Pointer<Half>(buffer + 0x4));
+		texelColor.w.z = Float(*Pointer<Half>(buffer + 0x6));
+		texelColor.x.w = Float(*Pointer<Half>(buffer + 0x8));
+		texelColor.y.w = Float(*Pointer<Half>(buffer + 0xa));
+		texelColor.z.w = Float(*Pointer<Half>(buffer + 0xc));
+		texelColor.w.w = Float(*Pointer<Half>(buffer + 0xe));
 		break;
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		buffer += 4 * x;
-		destColor.x = r11g11b10Unpack(*Pointer<UInt>(buffer + 0));
-		destColor.y = r11g11b10Unpack(*Pointer<UInt>(buffer + 4));
+		texelColor.x = r11g11b10Unpack(*Pointer<UInt>(buffer + 0));
+		texelColor.y = r11g11b10Unpack(*Pointer<UInt>(buffer + 4));
 		buffer += pitchB;
-		destColor.z = r11g11b10Unpack(*Pointer<UInt>(buffer + 0));
-		destColor.w = r11g11b10Unpack(*Pointer<UInt>(buffer + 4));
-		transpose4x3(destColor.x, destColor.y, destColor.z, destColor.w);
-		destColor.w = 1.0f;
+		texelColor.z = r11g11b10Unpack(*Pointer<UInt>(buffer + 0));
+		texelColor.w = r11g11b10Unpack(*Pointer<UInt>(buffer + 4));
+		transpose4x3(texelColor.x, texelColor.y, texelColor.z, texelColor.w);
+		texelColor.w = 1.0f;
 		break;
 	default:
 		{
 			// Attempt to read an integer based format and convert it to float
 			Vector4s color;
 			readPixel(index, cBuffer, x, color);
-			destColor.x = convertFloat32(As<UShort4>(color.x));
-			destColor.y = convertFloat32(As<UShort4>(color.y));
-			destColor.z = convertFloat32(As<UShort4>(color.z));
-			destColor.w = convertFloat32(As<UShort4>(color.w));
+			texelColor.x = convertFloat32(As<UShort4>(color.x));
+			texelColor.y = convertFloat32(As<UShort4>(color.y));
+			texelColor.z = convertFloat32(As<UShort4>(color.z));
+			texelColor.w = convertFloat32(As<UShort4>(color.w));
 		}
 		break;
 	}
 
-	Vector4f sourceFactor;
-	Vector4f destFactor;
+	ASSERT(SIMD::Width == 4);
+	SIMD::Float4 destColor;
+	destColor.x = texelColor.x;
+	destColor.y = texelColor.y;
+	destColor.z = texelColor.z;
+	destColor.w = texelColor.w;
+
+	SIMD::Float4 sourceFactor;
+	SIMD::Float4 destFactor;
 
 	blendFactorRGB(sourceFactor, sourceColor, destColor, state.blendState[index].sourceBlendFactor, format);
 	blendFactorRGB(destFactor, sourceColor, destColor, state.blendState[index].destBlendFactor, format);
 	blendFactorAlpha(sourceFactor.w, sourceColor.w, destColor.w, state.blendState[index].sourceBlendFactorAlpha, format);
 	blendFactorAlpha(destFactor.w, sourceColor.w, destColor.w, state.blendState[index].destBlendFactorAlpha, format);
 
-	Vector4f blendedColor;
+	SIMD::Float4 blendedColor;
 
 	switch(state.blendState[index].blendOperation)
 	{

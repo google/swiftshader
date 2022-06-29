@@ -326,14 +326,25 @@ struct PrintValue::Ty<Pointer<T>>
 	static std::vector<Value *> val(const RValue<Pointer<T>> &v) { return { v.value() }; }
 };
 template<>
-struct PrintValue::Ty<Pointer4>
+struct PrintValue::Ty<SIMD::Pointer>
 {
-	static std::string fmt(const Pointer4 &v)
+	static std::string fmt(const SIMD::Pointer &v)
 	{
-		return v.isBasePlusOffset ? "{%p + [%d, %d, %d, %d]}" : "{%p, %p, %p, %p}";
+		if(v.isBasePlusOffset)
+		{
+			std::string format;
+			for(int i = 1; i < SIMD::Width; i++) { format += ", %p"; }
+			return "{%p + [%d" + format + "]}";
+		}
+		else
+		{
+			std::string format;
+			for(int i = 1; i < SIMD::Width; i++) { format += ", %p"; }
+			return "{%p" + format + "}";
+		}
 	}
 
-	static std::vector<Value *> val(const Pointer4 &v)
+	static std::vector<Value *> val(const SIMD::Pointer &v)
 	{
 		return v.getPrintValues();
 	}
