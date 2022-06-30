@@ -31,9 +31,10 @@ PixelProgram::PixelProgram(
 {
 }
 
-// Union all cMask and return it as 4 booleans
-Int4 PixelProgram::maskAny(Int cMask[4], const SampleSet &samples)
+// Union all cMask and return it as Booleans
+SIMD::Int PixelProgram::maskAny(Int cMask[4], const SampleSet &samples)
 {
+	ASSERT(SIMD::Width == 4);
 	// See if at least 1 sample is used
 	Int maskUnion = 0;
 	for(unsigned int q : samples)
@@ -41,17 +42,18 @@ Int4 PixelProgram::maskAny(Int cMask[4], const SampleSet &samples)
 		maskUnion |= cMask[q];
 	}
 
-	// Convert to 4 booleans
-	Int4 laneBits = Int4(1, 2, 4, 8);
-	Int4 laneShiftsToMSB = Int4(31, 30, 29, 28);
-	Int4 mask(maskUnion);
-	mask = ((mask & laneBits) << laneShiftsToMSB) >> Int4(31);
+	// Convert to Booleans
+	SIMD::Int laneBits = SIMD::Int(1, 2, 4, 8);
+	SIMD::Int laneShiftsToMSB = SIMD::Int(31, 30, 29, 28);
+	SIMD::Int mask(maskUnion);
+	mask = ((mask & laneBits) << laneShiftsToMSB) >> 31;
 	return mask;
 }
 
-// Union all cMask/sMask/zMask and return it as 4 booleans
-Int4 PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples)
+// Union all cMask/sMask/zMask and return it as Booleans
+SIMD::Int PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples)
 {
+	ASSERT(SIMD::Width == 4);
 	// See if at least 1 sample is used
 	Int maskUnion = 0;
 	for(unsigned int q : samples)
@@ -59,15 +61,15 @@ Int4 PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const Sampl
 		maskUnion |= (cMask[q] & sMask[q] & zMask[q]);
 	}
 
-	// Convert to 4 booleans
-	Int4 laneBits = Int4(1, 2, 4, 8);
-	Int4 laneShiftsToMSB = Int4(31, 30, 29, 28);
-	Int4 mask(maskUnion);
-	mask = ((mask & laneBits) << laneShiftsToMSB) >> Int4(31);
+	// Convert to Booleans
+	SIMD::Int laneBits = SIMD::Int(1, 2, 4, 8);
+	SIMD::Int laneShiftsToMSB = SIMD::Int(31, 30, 29, 28);
+	SIMD::Int mask(maskUnion);
+	mask = ((mask & laneBits) << laneShiftsToMSB) >> 31;
 	return mask;
 }
 
-void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], const SampleSet &samples)
+void PixelProgram::setBuiltins(Int &x, Int &y, SIMD::Float (&z)[4], SIMD::Float &w, Int cMask[4], const SampleSet &samples)
 {
 	routine.setImmutableInputBuiltins(spirvShader);
 
@@ -148,28 +150,28 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 	if(it != spirvShader->inputBuiltins.end())
 	{
 		ASSERT(it->second.SizeInComponents == 1);
-		auto frontFacing = Int4(*Pointer<Int>(primitive + OFFSET(Primitive, clockwiseMask)));
-		routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<Float4>(frontFacing);
+		auto frontFacing = SIMD::Int(*Pointer<Int>(primitive + OFFSET(Primitive, clockwiseMask)));
+		routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(frontFacing);
 	}
 
 	it = spirvShader->inputBuiltins.find(spv::BuiltInSampleMask);
 	if(it != spirvShader->inputBuiltins.end())
 	{
-		static_assert(SIMD::Width == 4, "Expects SIMD width to be 4");
-		Int4 laneBits = Int4(1, 2, 4, 8);
+		ASSERT(SIMD::Width == 4);
+		SIMD::Int laneBits = SIMD::Int(1, 2, 4, 8);
 
-		Int4 inputSampleMask = 0;
+		SIMD::Int inputSampleMask = 0;
 		for(unsigned int q : samples)
 		{
-			inputSampleMask |= Int4(1 << q) & CmpNEQ(Int4(cMask[q]) & laneBits, Int4(0));
+			inputSampleMask |= SIMD::Int(1 << q) & CmpNEQ(SIMD::Int(cMask[q]) & laneBits, 0);
 		}
 
-		routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<Float4>(inputSampleMask);
+		routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(inputSampleMask);
 		// Sample mask input is an array, as the spec contemplates MSAA levels higher than 32.
 		// Fill any non-zero indices with 0.
 		for(auto i = 1u; i < it->second.SizeInComponents; i++)
 		{
-			routine.getVariable(it->second.Id)[it->second.FirstComponent + i] = Float4(0);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + i] = 0;
 		}
 	}
 
@@ -195,8 +197,8 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 
 	// Note: all lanes initially active to facilitate derivatives etc. Actual coverage is
 	// handled separately, through the cMask.
-	auto activeLaneMask = SIMD::Int(0xFFFFFFFF);
-	auto storesAndAtomicsMask = maskAny(cMask, sMask, zMask, samples);
+	SIMD::Int activeLaneMask = 0xFFFFFFFF;
+	SIMD::Int storesAndAtomicsMask = maskAny(cMask, sMask, zMask, samples);
 	routine.discardMask = 0;
 
 	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets, state.multiSampleCount);
@@ -395,10 +397,10 @@ void PixelProgram::clampColor(Vector4f color[MAX_COLOR_BUFFERS])
 		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-			color[index].x = Min(Max(color[index].x, Float4(0.0f)), Float4(1.0f));
-			color[index].y = Min(Max(color[index].y, Float4(0.0f)), Float4(1.0f));
-			color[index].z = Min(Max(color[index].z, Float4(0.0f)), Float4(1.0f));
-			color[index].w = Min(Max(color[index].w, Float4(0.0f)), Float4(1.0f));
+			color[index].x = Min(Max(color[index].x, 0.0f), 1.0f);
+			color[index].y = Min(Max(color[index].y, 0.0f), 1.0f);
+			color[index].z = Min(Max(color[index].z, 0.0f), 1.0f);
+			color[index].w = Min(Max(color[index].w, 0.0f), 1.0f);
 			break;
 		case VK_FORMAT_R32_SFLOAT:
 		case VK_FORMAT_R32G32_SFLOAT:

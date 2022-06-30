@@ -1027,7 +1027,7 @@ private:
 	static bool IsStorageInterleavedByLane(spv::StorageClass storageClass);
 	static bool IsExplicitLayout(spv::StorageClass storageClass);
 
-	static sw::SIMD::Pointer GetElementPointer(sw::SIMD::Pointer structure, uint32_t offset, bool interleavedByLane);
+	static SIMD::Pointer GetElementPointer(SIMD::Pointer structure, uint32_t offset, bool interleavedByLane);
 
 	// Output storage buffers and images should not be affected by helper invocations
 	static bool StoresInHelperInvocation(spv::StorageClass storageClass);
@@ -1419,8 +1419,8 @@ private:
 		AtSample,
 		AtOffset,
 	};
-	SIMD::Float Interpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId,
-	                        uint32_t component, EmitState *state, InterpolationType type) const;
+	SIMD::Float EmitInterpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId,
+	                            uint32_t component, EmitState *state, InterpolationType type) const;
 
 	// Helper for implementing OpStore, which doesn't take an InsnIterator so it
 	// can also store independent operands.

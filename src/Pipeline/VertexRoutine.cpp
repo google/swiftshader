@@ -124,10 +124,10 @@ void VertexRoutine::computeClipFlags()
 		auto posZ = pos[it->second.FirstComponent + 2];
 		auto posW = pos[it->second.FirstComponent + 3];
 
-		Int4 maxX = CmpLT(posW, posX);
-		Int4 maxY = CmpLT(posW, posY);
-		Int4 minX = CmpNLE(-posW, posX);
-		Int4 minY = CmpNLE(-posW, posY);
+		SIMD::Int maxX = CmpLT(posW, posX);
+		SIMD::Int maxY = CmpLT(posW, posY);
+		SIMD::Int minX = CmpNLE(-posW, posX);
+		SIMD::Int minY = CmpNLE(-posW, posY);
 
 		clipFlags = Pointer<Int>(constants + OFFSET(Constants, maxX))[SignMask(maxX)];
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxY))[SignMask(maxY)];
@@ -135,18 +135,18 @@ void VertexRoutine::computeClipFlags()
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minY))[SignMask(minY)];
 		if(state.depthClipEnable)
 		{
-			Int4 maxZ = CmpLT(posW, posZ);
-			Int4 minZ = CmpNLE(Float4(0.0f), posZ);
+			SIMD::Int maxZ = CmpLT(posW, posZ);
+			SIMD::Int minZ = CmpNLE(0.0f, posZ);
 			clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxZ))[SignMask(maxZ)];
 			clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
 		}
 
-		Float4 maxPos = As<Float4>(Int4(0x7F7FFFFF));
-		Int4 finiteX = CmpLE(Abs(posX), maxPos);
-		Int4 finiteY = CmpLE(Abs(posY), maxPos);
-		Int4 finiteZ = CmpLE(Abs(posZ), maxPos);
+		SIMD::Float maxPos = As<SIMD::Float>(SIMD::Int(0x7F7FFFFF));
+		SIMD::Int finiteX = CmpLE(Abs(posX), maxPos);
+		SIMD::Int finiteY = CmpLE(Abs(posY), maxPos);
+		SIMD::Int finiteZ = CmpLE(Abs(posZ), maxPos);
 
-		Int4 finiteXYZ = finiteX & finiteY & finiteZ;
+		SIMD::Int finiteXYZ = finiteX & finiteY & finiteZ;
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, fini))[SignMask(finiteXYZ)];
 	}
 }
@@ -597,12 +597,12 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		pos.w = position[it->second.FirstComponent + 3];
 
 		// Projection and viewport transform.
-		Float4 w = As<Float4>(As<Int4>(pos.w) | (As<Int4>(CmpEQ(pos.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
-		Float4 rhw = Float4(1.0f) / w;
+		SIMD::Float w = As<SIMD::Float>(As<SIMD::Int>(pos.w) | (As<SIMD::Int>(CmpEQ(pos.w, 0.0f)) & As<SIMD::Int>(SIMD::Float(1.0f))));
+		SIMD::Float rhw = 1.0f / w;
 
 		Vector4f proj;
-		proj.x = As<Float4>(RoundIntClamped(Float4(*Pointer<Float>(data + OFFSET(DrawData, X0xF))) + pos.x * rhw * Float4(*Pointer<Float>(data + OFFSET(DrawData, WxF)))));
-		proj.y = As<Float4>(RoundIntClamped(Float4(*Pointer<Float>(data + OFFSET(DrawData, Y0xF))) + pos.y * rhw * Float4(*Pointer<Float>(data + OFFSET(DrawData, HxF)))));
+		proj.x = As<Float4>(RoundIntClamped(SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, X0xF))) + pos.x * rhw * SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, WxF)))));
+		proj.y = As<Float4>(RoundIntClamped(SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, Y0xF))) + pos.y * rhw * SIMD::Float(*Pointer<Float>(data + OFFSET(DrawData, HxF)))));
 		proj.z = pos.z * rhw;
 		proj.w = rhw;
 

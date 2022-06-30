@@ -574,10 +574,10 @@ sw::SIMD::Pointer SpirvShader::GetElementPointer(sw::SIMD::Pointer structure, ui
 {
 	if(interleavedByLane)
 	{
-		structure.staticOffsets[0] += 0 * sizeof(float);
-		structure.staticOffsets[1] += 1 * sizeof(float);
-		structure.staticOffsets[2] += 2 * sizeof(float);
-		structure.staticOffsets[3] += 3 * sizeof(float);
+		for(int i = 0; i < SIMD::Width; i++)
+		{
+			structure.staticOffsets[i] += i * sizeof(float);
+		}
 
 		return structure + offset * sw::SIMD::Width;
 	}

@@ -106,7 +106,7 @@ void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine *routi
 		localInvocationID[0] = idx;
 	}
 
-	Int4 wgID = Insert(Insert(Insert(SIMD::Int(0), workgroupID[0], 0), workgroupID[1], 1), workgroupID[2], 2);
+	Int4 wgID = Insert(Insert(Insert(Int4(0), workgroupID[0], 0), workgroupID[1], 1), workgroupID[2], 2);
 	auto localBase = workgroupSize * wgID;
 	SIMD::Int globalInvocationID[3];
 	globalInvocationID[0] = SIMD::Int(Extract(localBase, 0)) + localInvocationID[0];

@@ -27,7 +27,8 @@ SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler &state, Sampler
     , function(function)
 {
 }
-Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Float4 &dRef, Float &&lodOrBias, Float4 &dsx, Float4 &dsy, Vector4i &offset, Int4 &sample)
+
+Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, SIMD::Float uvwa[4], SIMD::Float &dRef, Float &&lodOrBias, SIMD::Float &dsx, SIMD::Float &dsy, Vector4i offset, SIMD::Int &sample)
 {
 	Vector4f c;
 

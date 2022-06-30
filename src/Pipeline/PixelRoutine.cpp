@@ -73,7 +73,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 
 	Int zMask[4];  // Depth mask
 	Int sMask[4];  // Stencil mask
-	Float4 unclampedZ[4];
+	SIMD::Float unclampedZ[4];
 
 	for(int invocation = 0; invocation < invocationCount; invocation++)
 	{
@@ -92,26 +92,26 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 
 		stencilTest(sBuffer, x, sMask, samples);
 
-		Float4 rhwCentroid;
+		SIMD::Float rhwCentroid;
 
-		Float4 xxxx = Float4(Float(x)) + *Pointer<Float4>(primitive + OFFSET(Primitive, xQuad), 16);
+		SIMD::Float xxxx = Float4(Float(x)) + *Pointer<Float4>(primitive + OFFSET(Primitive, xQuad), 16);
 
 		if(interpolateZ())
 		{
 			for(unsigned int q : samples)
 			{
-				Float4 x = xxxx;
+				SIMD::Float x = xxxx;
 
 				if(state.enableMultiSampling)
 				{
-					x -= Float4(*Pointer<Float>(constants + OFFSET(Constants, SampleLocationsX) + q * sizeof(float)));
+					x -= SIMD::Float(*Pointer<Float>(constants + OFFSET(Constants, SampleLocationsX) + q * sizeof(float)));
 				}
 
 				z[q] = interpolate(x, Dz[q], z[q], primitive + OFFSET(Primitive, z), false, false);
 
 				if(state.depthBias)
 				{
-					z[q] += Float4(*Pointer<Float>(primitive + OFFSET(Primitive, zBias)));
+					z[q] += SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, zBias)));
 				}
 
 				unclampedZ[q] = z[q];
@@ -140,21 +140,21 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				occlusionSampleCount(zMask, sMask, samples);
 			}
 
-			Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16);
+			SIMD::Float yyyy = SIMD::Float(Float(y)) + SIMD::Float(*Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16));
 
 			// Centroid locations
-			Float4 XXXX = 0.0f;
-			Float4 YYYY = 0.0f;
+			SIMD::Float XXXX = 0.0f;
+			SIMD::Float YYYY = 0.0f;
 
 			if(state.centroid || shaderContainsInterpolation)  // TODO(b/194714095)
 			{
-				Float4 WWWW(1.0e-9f);
+				SIMD::Float WWWW = 1.0e-9f;
 
 				for(unsigned int q : samples)
 				{
-					XXXX += *Pointer<Float4>(constants + OFFSET(Constants, sampleX[q]) + 16 * cMask[q]);
-					YYYY += *Pointer<Float4>(constants + OFFSET(Constants, sampleY[q]) + 16 * cMask[q]);
-					WWWW += *Pointer<Float4>(constants + OFFSET(Constants, weight) + 16 * cMask[q]);
+					XXXX += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleX[q]) + 16 * cMask[q]));
+					YYYY += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleY[q]) + 16 * cMask[q]));
+					WWWW += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, weight) + 16 * cMask[q]));
 				}
 
 				WWWW = Rcp(WWWW, true /* relaxedPrecision */);
@@ -417,9 +417,9 @@ void PixelRoutine::stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, boo
 	}
 }
 
-Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask)
+Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
 {
-	Float4 Z = z;
+	SIMD::Float Z = z;
 
 	Pointer<Byte> buffer = zBuffer + 4 * x;
 	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
@@ -429,14 +429,14 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 		buffer += q * *Pointer<Int>(data + OFFSET(DrawData, depthSliceB));
 	}
 
-	Float4 zValue;
+	SIMD::Float zValue;
 
 	if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
 	{
 		zValue = Float4(*Pointer<Float2>(buffer), *Pointer<Float2>(buffer + pitch));
 	}
 
-	Int4 zTest;
+	SIMD::Int zTest;
 
 	switch(state.depthCompareMode)
 	{
@@ -489,7 +489,7 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 	return zMask != 0;
 }
 
-Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask)
+Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
 {
 	Short4 Z = convertFixed16(z, true);
 
@@ -566,7 +566,7 @@ Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x
 	return zMask != 0;
 }
 
-Float4 PixelRoutine::clampDepth(const Float4 &z)
+SIMD::Float PixelRoutine::clampDepth(const SIMD::Float &z)
 {
 	if(!state.depthClamp)
 	{
@@ -576,7 +576,7 @@ Float4 PixelRoutine::clampDepth(const Float4 &z)
 	return Min(Max(z, state.minDepthClamp), state.maxDepthClamp);
 }
 
-Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask)
+Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
 {
 	if(!state.depthTestActive)
 	{
@@ -663,7 +663,7 @@ void PixelRoutine::depthBoundsTest(const Pointer<Byte> &zBuffer, int q, const In
 	}
 }
 
-void PixelRoutine::alphaToCoverage(Int cMask[4], const Float4 &alpha, const SampleSet &samples)
+void PixelRoutine::alphaToCoverage(Int cMask[4], const SIMD::Float &alpha, const SampleSet &samples)
 {
 	static const int a2c[4] = {
 		OFFSET(DrawData, a2c0),
@@ -674,7 +674,7 @@ void PixelRoutine::alphaToCoverage(Int cMask[4], const Float4 &alpha, const Samp
 
 	for(unsigned int q : samples)
 	{
-		Int4 coverage = CmpNLT(alpha, Float4(*Pointer<Float>(data + a2c[q])));
+		SIMD::Int coverage = CmpNLT(alpha, SIMD::Float(*Pointer<Float>(data + a2c[q])));
 		Int aMask = SignMask(coverage);
 		cMask[q] &= aMask;
 	}
@@ -1919,7 +1919,7 @@ void PixelRoutine::blendFactorRGB(Vector4f &blendFactor, const Vector4f &sourceC
 	}
 }
 
-void PixelRoutine::blendFactorAlpha(Float4 &blendFactorAlpha, const Float4 &sourceAlpha, const Float4 &destAlpha, VkBlendFactor alphaBlendFactor, vk::Format format)
+void PixelRoutine::blendFactorAlpha(SIMD::Float &blendFactorAlpha, const SIMD::Float &sourceAlpha, const SIMD::Float &destAlpha, VkBlendFactor alphaBlendFactor, vk::Format format)
 {
 	switch(alphaBlendFactor)
 	{
@@ -1984,103 +1984,103 @@ void PixelRoutine::blendFactorAlpha(Float4 &blendFactorAlpha, const Float4 &sour
 	}
 }
 
-Float4 PixelRoutine::blendOpOverlay(Float4 &src, Float4 &dst)
+SIMD::Float PixelRoutine::blendOpOverlay(SIMD::Float &src, SIMD::Float &dst)
 {
-	Int4 largeDst = CmpGT(dst, 0.5f);
-	return As<Float4>(
-	    (~largeDst & As<Int4>(2.0f * src * dst)) |
-	    (largeDst & As<Int4>(1.0f - (2.0f * (1.0f - src) * (1.0f - dst)))));
+	SIMD::Int largeDst = CmpGT(dst, 0.5f);
+	return As<SIMD::Float>(
+	    (~largeDst & As<SIMD::Int>(2.0f * src * dst)) |
+	    (largeDst & As<SIMD::Int>(1.0f - (2.0f * (1.0f - src) * (1.0f - dst)))));
 }
 
-Float4 PixelRoutine::blendOpColorDodge(Float4 &src, Float4 &dst)
+SIMD::Float PixelRoutine::blendOpColorDodge(SIMD::Float &src, SIMD::Float &dst)
 {
-	Int4 srcBelowOne = CmpLT(src, 1.0f);
-	Int4 positiveDst = CmpGT(dst, 0.0f);
-	return As<Float4>(positiveDst & ((~srcBelowOne & As<Int4>(Float4(1.0f))) |
-	                                 (srcBelowOne & As<Int4>(Min(1.0f, (dst / (1.0f - src)))))));
+	SIMD::Int srcBelowOne = CmpLT(src, 1.0f);
+	SIMD::Int positiveDst = CmpGT(dst, 0.0f);
+	return As<SIMD::Float>(positiveDst & ((~srcBelowOne & As<SIMD::Int>(SIMD::Float(1.0f))) |
+	                                      (srcBelowOne & As<SIMD::Int>(Min(1.0f, (dst / (1.0f - src)))))));
 }
 
-Float4 PixelRoutine::blendOpColorBurn(Float4 &src, Float4 &dst)
+SIMD::Float PixelRoutine::blendOpColorBurn(SIMD::Float &src, SIMD::Float &dst)
 {
-	Int4 dstBelowOne = CmpLT(dst, 1.0f);
-	Int4 positiveSrc = CmpGT(src, 0.0f);
-	return As<Float4>(
-	    (~dstBelowOne & As<Int4>(Float4(1.0f))) |
-	    (dstBelowOne & positiveSrc & As<Int4>(1.0f - Min(1.0f, (1.0f - dst) / src))));
+	SIMD::Int dstBelowOne = CmpLT(dst, 1.0f);
+	SIMD::Int positiveSrc = CmpGT(src, 0.0f);
+	return As<SIMD::Float>(
+	    (~dstBelowOne & As<SIMD::Int>(SIMD::Float(1.0f))) |
+	    (dstBelowOne & positiveSrc & As<SIMD::Int>(1.0f - Min(1.0f, (1.0f - dst) / src))));
 }
 
-Float4 PixelRoutine::blendOpHardlight(Float4 &src, Float4 &dst)
+SIMD::Float PixelRoutine::blendOpHardlight(SIMD::Float &src, SIMD::Float &dst)
 {
-	Int4 largeSrc = CmpGT(src, 0.5f);
-	return As<Float4>(
-	    (~largeSrc & As<Int4>(2.0f * src * dst)) |
-	    (largeSrc & As<Int4>(1.0f - (2.0f * (1.0f - src) * (1.0f - dst)))));
+	SIMD::Int largeSrc = CmpGT(src, 0.5f);
+	return As<SIMD::Float>(
+	    (~largeSrc & As<SIMD::Int>(2.0f * src * dst)) |
+	    (largeSrc & As<SIMD::Int>(1.0f - (2.0f * (1.0f - src) * (1.0f - dst)))));
 }
 
-Float4 PixelRoutine::blendOpSoftlight(Float4 &src, Float4 &dst)
+SIMD::Float PixelRoutine::blendOpSoftlight(SIMD::Float &src, SIMD::Float &dst)
 {
-	Int4 largeSrc = CmpGT(src, 0.5f);
-	Int4 largeDst = CmpGT(dst, 0.25f);
+	SIMD::Int largeSrc = CmpGT(src, 0.5f);
+	SIMD::Int largeDst = CmpGT(dst, 0.25f);
 
-	return As<Float4>(
-	    (~largeSrc & As<Int4>(dst - ((1.0f - (2.0f * src)) * dst * (1.0f - dst)))) |
-	    (largeSrc & ((~largeDst & As<Int4>(dst + (((2.0f * src) - 1.0f) * dst * ((((16.0f * dst) - 12.0f) * dst) + 3.0f)))) |
-	                 (largeDst & As<Int4>(dst + (((2.0f * src) - 1.0f) * (Sqrt<Mediump>(dst) - dst)))))));
+	return As<SIMD::Float>(
+	    (~largeSrc & As<SIMD::Int>(dst - ((1.0f - (2.0f * src)) * dst * (1.0f - dst)))) |
+	    (largeSrc & ((~largeDst & As<SIMD::Int>(dst + (((2.0f * src) - 1.0f) * dst * ((((16.0f * dst) - 12.0f) * dst) + 3.0f)))) |
+	                 (largeDst & As<SIMD::Int>(dst + (((2.0f * src) - 1.0f) * (Sqrt<Mediump>(dst) - dst)))))));
 }
 
-Float4 PixelRoutine::maxRGB(Vector4f &c)
+SIMD::Float PixelRoutine::maxRGB(Vector4f &c)
 {
 	return Max(Max(c.x, c.y), c.z);
 }
 
-Float4 PixelRoutine::minRGB(Vector4f &c)
+SIMD::Float PixelRoutine::minRGB(Vector4f &c)
 {
 	return Min(Min(c.x, c.y), c.z);
 }
 
-void PixelRoutine::setLumSat(Vector4f &cbase, Vector4f &csat, Vector4f &clum, Float4 &x, Float4 &y, Float4 &z)
+void PixelRoutine::setLumSat(Vector4f &cbase, Vector4f &csat, Vector4f &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z)
 {
-	Float4 minbase = minRGB(cbase);
-	Float4 sbase = maxRGB(cbase) - minbase;
-	Float4 ssat = maxRGB(csat) - minRGB(csat);
-	Int4 isNonZero = CmpGT(sbase, 0.0f);
+	SIMD::Float minbase = minRGB(cbase);
+	SIMD::Float sbase = maxRGB(cbase) - minbase;
+	SIMD::Float ssat = maxRGB(csat) - minRGB(csat);
+	SIMD::Int isNonZero = CmpGT(sbase, 0.0f);
 	Vector4f color;
-	color.x = As<Float4>(isNonZero & As<Int4>((cbase.x - minbase) * ssat / sbase));
-	color.y = As<Float4>(isNonZero & As<Int4>((cbase.y - minbase) * ssat / sbase));
-	color.z = As<Float4>(isNonZero & As<Int4>((cbase.z - minbase) * ssat / sbase));
+	color.x = As<SIMD::Float>(isNonZero & As<SIMD::Int>((cbase.x - minbase) * ssat / sbase));
+	color.y = As<SIMD::Float>(isNonZero & As<SIMD::Int>((cbase.y - minbase) * ssat / sbase));
+	color.z = As<SIMD::Float>(isNonZero & As<SIMD::Int>((cbase.z - minbase) * ssat / sbase));
 	setLum(color, clum, x, y, z);
 }
 
-Float4 PixelRoutine::lumRGB(Vector4f &c)
+SIMD::Float PixelRoutine::lumRGB(Vector4f &c)
 {
 	return c.x * 0.3f + c.y * 0.59f + c.z * 0.11f;
 }
 
-Float4 PixelRoutine::computeLum(Float4 &color, Float4 &lum, Float4 &mincol, Float4 &maxcol, Int4 &negative, Int4 &aboveOne)
+SIMD::Float PixelRoutine::computeLum(SIMD::Float &color, SIMD::Float &lum, SIMD::Float &mincol, SIMD::Float &maxcol, SIMD::Int &negative, SIMD::Int &aboveOne)
 {
-	return As<Float4>(
-	    (negative & As<Int4>(lum + ((color - lum) * lum) / (lum - mincol))) |
-	    (~negative & ((aboveOne & As<Int4>(lum + ((color - lum) * (1.0f - lum)) / (maxcol - lum))) |
-	                  (~aboveOne & As<Int4>(color)))));
+	return As<SIMD::Float>(
+	    (negative & As<SIMD::Int>(lum + ((color - lum) * lum) / (lum - mincol))) |
+	    (~negative & ((aboveOne & As<SIMD::Int>(lum + ((color - lum) * (1.0f - lum)) / (maxcol - lum))) |
+	                  (~aboveOne & As<SIMD::Int>(color)))));
 }
 
-void PixelRoutine::setLum(Vector4f &cbase, Vector4f &clum, Float4 &x, Float4 &y, Float4 &z)
+void PixelRoutine::setLum(Vector4f &cbase, Vector4f &clum, SIMD::Float &x, SIMD::Float &y, SIMD::Float &z)
 {
-	Float4 lbase = lumRGB(cbase);
-	Float4 llum = lumRGB(clum);
-	Float4 ldiff = llum - lbase;
+	SIMD::Float lbase = lumRGB(cbase);
+	SIMD::Float llum = lumRGB(clum);
+	SIMD::Float ldiff = llum - lbase;
 
 	Vector4f color;
 	color.x = cbase.x + ldiff;
 	color.y = cbase.y + ldiff;
 	color.z = cbase.z + ldiff;
 
-	Float4 lum = lumRGB(color);
-	Float4 mincol = minRGB(color);
-	Float4 maxcol = maxRGB(color);
+	SIMD::Float lum = lumRGB(color);
+	SIMD::Float mincol = minRGB(color);
+	SIMD::Float maxcol = maxRGB(color);
 
-	Int4 negative = CmpLT(mincol, 0.0f);
-	Int4 aboveOne = CmpGT(maxcol, 1.0f);
+	SIMD::Int negative = CmpLT(mincol, 0.0f);
+	SIMD::Int aboveOne = CmpGT(maxcol, 1.0f);
 
 	x = computeLum(color.x, lum, mincol, maxcol, negative, aboveOne);
 	y = computeLum(color.y, lum, mincol, maxcol, negative, aboveOne);
@@ -2089,10 +2089,10 @@ void PixelRoutine::setLum(Vector4f &cbase, Vector4f &clum, Float4 &x, Float4 &y,
 
 void PixelRoutine::premultiply(Vector4f &c)
 {
-	Int4 nonZeroAlpha = CmpNEQ(c.w, 0.0f);
-	c.x = As<Float4>(nonZeroAlpha & As<Int4>(c.x / c.w));
-	c.y = As<Float4>(nonZeroAlpha & As<Int4>(c.y / c.w));
-	c.z = As<Float4>(nonZeroAlpha & As<Int4>(c.z / c.w));
+	SIMD::Int nonZeroAlpha = CmpNEQ(c.w, 0.0f);
+	c.x = As<SIMD::Float>(nonZeroAlpha & As<SIMD::Int>(c.x / c.w));
+	c.y = As<SIMD::Float>(nonZeroAlpha & As<SIMD::Int>(c.y / c.w));
+	c.z = As<SIMD::Float>(nonZeroAlpha & As<SIMD::Int>(c.z / c.w));
 }
 
 Vector4f PixelRoutine::computeAdvancedBlendMode(int index, const Vector4f &src, const Vector4f &dst, const Vector4f &srcFactor, const Vector4f &dstFactor)
@@ -2188,7 +2188,7 @@ Vector4f PixelRoutine::computeAdvancedBlendMode(int index, const Vector4f &src, 
 		break;
 	}
 
-	Float4 p = srcColor.w * dstColor.w;
+	SIMD::Float p = srcColor.w * dstColor.w;
 	blendedColor.x *= p;
 	blendedColor.y *= p;
 	blendedColor.z *= p;
