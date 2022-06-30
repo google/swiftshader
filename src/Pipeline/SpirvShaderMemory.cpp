@@ -432,7 +432,7 @@ SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, SIMD::Int arrayIndice
 				auto robustness = getOutOfBoundsBehavior(id, state);
 				ASSERT(routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding) != VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT);
 
-				std::array<Pointer<Byte>, 4> pointers;
+				std::vector<Pointer<Byte>> pointers(SIMD::Width);
 				for(int i = 0; i < SIMD::Width; i++)
 				{
 					pointers[i] = *Pointer<Pointer<Byte>>(set.getPointerForLane(i) + Extract(descriptorOffset, i) + OFFSET(vk::BufferDescriptor, ptr));

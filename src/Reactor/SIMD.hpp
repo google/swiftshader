@@ -17,6 +17,8 @@
 
 #include "Reactor.hpp"
 
+#include <vector>
+
 namespace rr {
 
 namespace scalar {
@@ -115,14 +117,16 @@ public:
 
 }  // namespace SIMD
 
-struct Pointer4
+class Pointer4
 {
+public:
 	Pointer4(Pointer<Byte> base, Int limit);
 	Pointer4(Pointer<Byte> base, unsigned int limit);
 	Pointer4(Pointer<Byte> base, Int limit, Int4 offset);
 	Pointer4(Pointer<Byte> base, unsigned int limit, Int4 offset);
-	Pointer4(Pointer<Byte> p0, Pointer<Byte> p1, Pointer<Byte> p2, Pointer<Byte> p3);
-	Pointer4(std::array<Pointer<Byte>, 4> pointers);
+	Pointer4(std::vector<Pointer<Byte>> pointers);
+	explicit Pointer4(UInt4 cast);                      // Cast from 32-bit integers to 32-bit pointers
+	explicit Pointer4(UInt4 castLow, UInt4 castHight);  // Cast from pairs of 32-bit integers to 64-bit pointers
 
 	Pointer4 &operator+=(Int4 i);
 	Pointer4 operator+(Int4 i);
@@ -165,13 +169,8 @@ struct Pointer4
 	Pointer<Byte> getPointerForLane(int lane) const;
 	static Pointer4 IfThenElse(Int4 condition, const Pointer4 &lhs, const Pointer4 &rhs);
 
-	// 64-bit pointer bit cast utilities
-	void castFrom(UInt4 lowerBits, UInt4 upperBits);
-	void castTo(UInt4 &lowerBits, UInt4 &upperBits) const;
-
-	// 32-bit pointer bit cast utilities
-	void castFrom(UInt4 bits);
-	void castTo(UInt4 &bits) const;
+	void castTo(UInt4 &bits) const;                         // Cast from 32-bit pointers to 32-bit integers
+	void castTo(UInt4 &lowerBits, UInt4 &upperBits) const;  // Cast from 64-bit pointers to pairs of 32-bit integers
 
 #ifdef ENABLE_RR_PRINT
 	std::vector<rr::Value *> getPrintValues() const;
@@ -181,20 +180,20 @@ private:
 	// Base address for the pointer, common across all lanes.
 	Pointer<Byte> base;
 	// Per-lane address for dealing with non-uniform data
-	std::array<Pointer<Byte>, 4> pointers;
+	std::vector<Pointer<Byte>> pointers;
 
 public:
 	// Upper (non-inclusive) limit for offsets from base.
 	Int dynamicLimit;  // If hasDynamicLimit is false, dynamicLimit is zero.
-	unsigned int staticLimit;
+	unsigned int staticLimit = 0;
 
 	// Per lane offsets from base.
 	Int4 dynamicOffsets;  // If hasDynamicOffsets is false, all dynamicOffsets are zero.
-	std::array<int32_t, 4> staticOffsets;
+	std::vector<int32_t> staticOffsets;
 
-	bool hasDynamicLimit;    // True if dynamicLimit is non-zero.
-	bool hasDynamicOffsets;  // True if any dynamicOffsets are non-zero.
-	bool isBasePlusOffset;   // True if this uses base+offset. False if this is a collection of Pointers
+	bool hasDynamicLimit = false;    // True if dynamicLimit is non-zero.
+	bool hasDynamicOffsets = false;  // True if any dynamicOffsets are non-zero.
+	bool isBasePlusOffset = false;   // True if this uses base+offsets. False if this is a collection of Pointers
 };
 
 RValue<SIMD::Int> operator+(RValue<SIMD::Int> lhs, RValue<SIMD::Int> rhs);
@@ -575,17 +574,17 @@ inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /
 template<>
 inline Pointer4 Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
 {
-	Pointer4 out(nullptr, nullptr, nullptr, nullptr);
+	std::vector<Pointer<Byte>> pointers(4);
 
 	for(int i = 0; i < 4; i++)
 	{
 		If(Extract(mask, i) != 0)
 		{
-			out.pointers[i] = rr::Load(Pointer<Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
+			pointers[i] = rr::Load(Pointer<Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
 		}
 	}
 
-	return out;
+	return Pointer4(pointers);
 }
 
 template<typename T>

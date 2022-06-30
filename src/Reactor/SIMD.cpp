@@ -683,7 +683,7 @@ Pointer4::Pointer4(Pointer<Byte> base, rr::Int limit)
     , dynamicLimit(limit)
     , staticLimit(0)
     , dynamicOffsets(0)
-    , staticOffsets{}
+    , staticOffsets(4)
     , hasDynamicLimit(true)
     , hasDynamicOffsets(false)
     , isBasePlusOffset(true)
@@ -694,7 +694,7 @@ Pointer4::Pointer4(Pointer<Byte> base, unsigned int limit)
     , dynamicLimit(0)
     , staticLimit(limit)
     , dynamicOffsets(0)
-    , staticOffsets{}
+    , staticOffsets(4)
     , hasDynamicLimit(false)
     , hasDynamicOffsets(false)
     , isBasePlusOffset(true)
@@ -705,7 +705,7 @@ Pointer4::Pointer4(Pointer<Byte> base, rr::Int limit, Int4 offset)
     , dynamicLimit(limit)
     , staticLimit(0)
     , dynamicOffsets(offset)
-    , staticOffsets{}
+    , staticOffsets(4)
     , hasDynamicLimit(true)
     , hasDynamicOffsets(true)
     , isBasePlusOffset(true)
@@ -716,22 +716,41 @@ Pointer4::Pointer4(Pointer<Byte> base, unsigned int limit, Int4 offset)
     , dynamicLimit(0)
     , staticLimit(limit)
     , dynamicOffsets(offset)
-    , staticOffsets{}
+    , staticOffsets(4)
     , hasDynamicLimit(false)
     , hasDynamicOffsets(true)
     , isBasePlusOffset(true)
 {}
 
-Pointer4::Pointer4(Pointer<Byte> p0, Pointer<Byte> p1, Pointer<Byte> p2, Pointer<Byte> p3)
-    : pointers({ { p0, p1, p2, p3 } })
-    , isBasePlusOffset(false)
-{
-}
-
-Pointer4::Pointer4(std::array<Pointer<Byte>, 4> pointers)
+Pointer4::Pointer4(std::vector<Pointer<Byte>> pointers)
     : pointers(pointers)
     , isBasePlusOffset(false)
 {}
+
+Pointer4::Pointer4(UInt4 cast)
+    : pointers(4)
+    , isBasePlusOffset(false)
+{
+	assert(sizeof(void *) == 4);
+	for(int i = 0; i < 4; i++)
+	{
+		pointers[i] = As<Pointer<Byte>>(Extract(cast, i));
+	}
+}
+
+Pointer4::Pointer4(UInt4 castLow, UInt4 castHigh)
+    : pointers(4)
+    , isBasePlusOffset(false)
+{
+	assert(sizeof(void *) == 8);
+	for(int i = 0; i < 4; i++)
+	{
+		UInt2 address;
+		address = Insert(address, Extract(castLow, i), 0);
+		address = Insert(address, Extract(castHigh, i), 1);
+		pointers[i] = As<Pointer<Byte>>(address);
+	}
+}
 
 Pointer4 &Pointer4::operator+=(Int4 i)
 {
@@ -925,15 +944,12 @@ Pointer<Byte> Pointer4::getPointerForLane(int lane) const
 	}
 }
 
-void Pointer4::castFrom(UInt4 lowerBits, UInt4 upperBits)
+void Pointer4::castTo(UInt4 &bits) const
 {
-	assert(sizeof(void *) == 8);
+	assert(sizeof(void *) == 4);
 	for(int i = 0; i < 4; i++)
 	{
-		UInt2 address;
-		address = Insert(address, Extract(lowerBits, i), 0);
-		address = Insert(address, Extract(upperBits, i), 1);
-		pointers[i] = As<rr::Pointer<Byte>>(address);
+		bits = Insert(bits, As<UInt>(pointers[i]), i);
 	}
 }
 
@@ -948,27 +964,9 @@ void Pointer4::castTo(UInt4 &lowerBits, UInt4 &upperBits) const
 	}
 }
 
-void Pointer4::castFrom(UInt4 bits)
-{
-	assert(sizeof(void *) == 4);
-	for(int i = 0; i < 4; i++)
-	{
-		pointers[i] = As<rr::Pointer<Byte>>(Extract(bits, i));
-	}
-}
-
-void Pointer4::castTo(UInt4 &bits) const
-{
-	assert(sizeof(void *) == 4);
-	for(int i = 0; i < 4; i++)
-	{
-		bits = Insert(bits, As<UInt>(pointers[i]), i);
-	}
-}
-
 Pointer4 Pointer4::IfThenElse(Int4 condition, const Pointer4 &lhs, const Pointer4 &rhs)
 {
-	std::array<Pointer<Byte>, 4> pointers;
+	std::vector<Pointer<Byte>> pointers(4);
 	for(int i = 0; i < 4; i++)
 	{
 		If(Extract(condition, i) != 0)
@@ -980,6 +978,7 @@ Pointer4 Pointer4::IfThenElse(Int4 condition, const Pointer4 &lhs, const Pointer
 			pointers[i] = rhs.getPointerForLane(i);
 		}
 	}
+
 	return { pointers };
 }
 

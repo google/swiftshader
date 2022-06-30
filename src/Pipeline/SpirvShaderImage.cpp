@@ -728,7 +728,7 @@ SIMD::Pointer SpirvShader::GetNonUniformTexelAddress(ImageInstructionSignature i
 		texelData.ptrOffset = (texelData.ptrOffset & ~oobMask) | (oobMask & SIMD::Int(OOB_OFFSET));  // oob ? OOB_OFFSET : ptrOffset  // TODO: IfThenElse()
 	}
 
-	std::array<Pointer<Byte>, SIMD::Width> imageBase;
+	std::vector<Pointer<Byte>> imageBase(SIMD::Width);
 	for(int i = 0; i < SIMD::Width; i++)
 	{
 		imageBase[i] = *Pointer<Pointer<Byte>>(descriptor.getPointerForLane(i) + (useStencilAspect

@@ -1434,7 +1434,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID element
 							// NonUniform array data can deal with pointers not bound by a 32-bit address
 							// space, so we need to ensure we're using an array pointer, and not a base+offset
 							// pointer.
-							std::array<Pointer<Byte>, SIMD::Width> pointers;
+							std::vector<Pointer<Byte>> pointers(SIMD::Width);
 							for(int i = 0; i < SIMD::Width; i++)
 							{
 								pointers[i] = ptr.getPointerForLane(i);

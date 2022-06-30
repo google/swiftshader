@@ -173,20 +173,16 @@ SpirvShader::EmitResult SpirvShader::EmitPointerBitCast(Object::ID resultID, Ope
 	}
 	else  // Integer bits -> Pointer
 	{
-		SIMD::Pointer dst(nullptr, nullptr, nullptr, nullptr);
-
 		if(sizeof(void *) == 4)  // 32-bit pointers
 		{
-			dst.castFrom(src.UInt(0));
+			state->createPointer(resultID, SIMD::Pointer(src.UInt(0)));
 		}
 		else  // 64-bit pointers
 		{
 			ASSERT(sizeof(void *) == 8);
-			// Casting 2 32bit integers into a 64 bit pointer
-			dst.castFrom(src.UInt(0), src.UInt(1));
+			// Casting two 32-bit integers into a 64-bit pointer
+			state->createPointer(resultID, SIMD::Pointer(src.UInt(0), src.UInt(1)));
 		}
-
-		state->createPointer(resultID, dst);
 	}
 
 	return EmitResult::Continue;
