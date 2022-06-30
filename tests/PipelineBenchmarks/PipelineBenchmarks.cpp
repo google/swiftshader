@@ -19,9 +19,6 @@
 
 #include <vector>
 
-using namespace rr;
-using namespace sw;
-
 BENCHMARK_MAIN();
 
 // Macro that creates a lambda wrapper around the input overloaded function,
@@ -33,6 +30,8 @@ BENCHMARK_MAIN();
 		return fname(std::forward<decltype(args)>(args)...); \
 	}
 
+namespace sw {
+
 template<typename Func, class... Args>
 static void Transcendental1(benchmark::State &state, Func func, Args &&...args)
 {
@@ -40,8 +39,8 @@ static void Transcendental1(benchmark::State &state, Func func, Args &&...args)
 
 	FunctionT<void(float *, float *)> function;
 	{
-		Pointer<Float4> r = Pointer<Float>(function.Arg<0>());
-		Pointer<Float4> a = Pointer<Float>(function.Arg<1>());
+		Pointer<SIMD::Float> r = Pointer<Float>(function.Arg<0>());
+		Pointer<SIMD::Float> a = Pointer<Float>(function.Arg<1>());
 
 		for(int i = 0; i < REPS; i++)
 		{
@@ -51,8 +50,8 @@ static void Transcendental1(benchmark::State &state, Func func, Args &&...args)
 
 	auto routine = function("one");
 
-	std::vector<float> r(REPS * 4);
-	std::vector<float> a(REPS * 4, 1.0f);
+	std::vector<float> r(REPS * SIMD::Width);
+	std::vector<float> a(REPS * SIMD::Width, 1.0f);
 
 	for(auto _ : state)
 	{
@@ -67,9 +66,9 @@ static void Transcendental2(benchmark::State &state, Func func, Args &&...args)
 
 	FunctionT<void(float *, float *, float *)> function;
 	{
-		Pointer<Float4> r = Pointer<Float>(function.Arg<0>());
-		Pointer<Float4> a = Pointer<Float>(function.Arg<1>());
-		Pointer<Float4> b = Pointer<Float>(function.Arg<2>());
+		Pointer<SIMD::Float> r = Pointer<Float>(function.Arg<0>());
+		Pointer<SIMD::Float> a = Pointer<Float>(function.Arg<1>());
+		Pointer<SIMD::Float> b = Pointer<Float>(function.Arg<2>());
 
 		for(int i = 0; i < REPS; i++)
 		{
@@ -79,9 +78,9 @@ static void Transcendental2(benchmark::State &state, Func func, Args &&...args)
 
 	auto routine = function("two");
 
-	std::vector<float> r(REPS * 4);
-	std::vector<float> a(REPS * 4, 0.456f);
-	std::vector<float> b(REPS * 4, 0.789f);
+	std::vector<float> r(REPS * SIMD::Width);
+	std::vector<float> a(REPS * SIMD::Width, 0.456f);
+	std::vector<float> b(REPS * SIMD::Width, 0.789f);
 
 	for(auto _ : state)
 	{
@@ -90,7 +89,7 @@ static void Transcendental2(benchmark::State &state, Func func, Args &&...args)
 }
 
 // No operation; just copy the input to the output, for use as a baseline.
-static Float4 Nop(RValue<Float4> x)
+static SIMD::Float Nop(RValue<SIMD::Float> x)
 {
 	return x;
 }
@@ -157,3 +156,5 @@ BENCHMARK_CAPTURE(Transcendental1, sw_Exp2_mediump, LIFT(sw::Exp2), true /* rela
 BENCHMARK_CAPTURE(Transcendental1, rr_Log2, LIFT(rr::Log2))->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Log2_highp, LIFT(sw::Log2), false /* relaxedPrecision */)->Arg(REPS);
 BENCHMARK_CAPTURE(Transcendental1, sw_Log2_mediump, LIFT(sw::Log2), true /* relaxedPrecision */)->Arg(REPS);
+
+}  // namespace sw
