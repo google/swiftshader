@@ -17,6 +17,7 @@
 
 #include "Reactor/Print.hpp"
 #include "Reactor/Reactor.hpp"
+#include "Reactor/SIMD.hpp"
 #include "System/Debug.hpp"
 
 #include <array>

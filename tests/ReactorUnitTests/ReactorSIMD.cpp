@@ -94,3 +94,82 @@ TEST(ReactorSIMD, Broadcast)
 		}
 	}
 }
+
+TEST(ReactorSIMD, Intrinsics_Scatter)
+{
+	Function<Void(Pointer<Float> base, Pointer<Float4> val, Pointer<Int4> offsets)> function;
+	{
+		Pointer<Float> base = function.Arg<0>();
+		Pointer<Float4> val = function.Arg<1>();
+		Pointer<Int4> offsets = function.Arg<2>();
+
+		auto mask = Int4(~0, ~0, ~0, ~0);
+		unsigned int alignment = 1;
+		Scatter(base, *val, *offsets, mask, alignment);
+	}
+
+	float buffer[16] = { 0 };
+
+	constexpr auto elemSize = sizeof(buffer[0]);
+
+	int offsets[] = {
+		1 * elemSize,
+		6 * elemSize,
+		11 * elemSize,
+		13 * elemSize
+	};
+
+	float val[4] = { 10, 60, 110, 130 };
+
+	auto routine = function(testName().c_str());
+	auto entry = (void (*)(float *, float *, int *))routine->getEntry();
+
+	entry(buffer, val, offsets);
+
+	EXPECT_EQ(buffer[offsets[0] / sizeof(buffer[0])], 10);
+	EXPECT_EQ(buffer[offsets[1] / sizeof(buffer[0])], 60);
+	EXPECT_EQ(buffer[offsets[2] / sizeof(buffer[0])], 110);
+	EXPECT_EQ(buffer[offsets[3] / sizeof(buffer[0])], 130);
+}
+
+TEST(ReactorUnitTests, Intrinsics_Gather)
+{
+	Function<Void(Pointer<Float> base, Pointer<Int4> offsets, Pointer<Float4> result)> function;
+	{
+		Pointer<Float> base = function.Arg<0>();
+		Pointer<Int4> offsets = function.Arg<1>();
+		Pointer<Float4> result = function.Arg<2>();
+
+		auto mask = Int4(~0, ~0, ~0, ~0);
+		unsigned int alignment = 1;
+		bool zeroMaskedLanes = true;
+		*result = Gather(base, *offsets, mask, alignment, zeroMaskedLanes);
+	}
+
+	float buffer[] = {
+		0, 10, 20, 30,
+		40, 50, 60, 70,
+		80, 90, 100, 110,
+		120, 130, 140, 150
+	};
+
+	constexpr auto elemSize = sizeof(buffer[0]);
+
+	int offsets[] = {
+		1 * elemSize,
+		6 * elemSize,
+		11 * elemSize,
+		13 * elemSize
+	};
+
+	auto routine = function(testName().c_str());
+	auto entry = (void (*)(float *, int *, float *))routine->getEntry();
+
+	float result[4] = {};
+	entry(buffer, offsets, result);
+
+	EXPECT_EQ(result[0], 10);
+	EXPECT_EQ(result[1], 60);
+	EXPECT_EQ(result[2], 110);
+	EXPECT_EQ(result[3], 130);
+}

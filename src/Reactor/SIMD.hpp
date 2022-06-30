@@ -115,6 +115,88 @@ public:
 
 }  // namespace SIMD
 
+struct Pointer4
+{
+	Pointer4(Pointer<Byte> base, Int limit);
+	Pointer4(Pointer<Byte> base, unsigned int limit);
+	Pointer4(Pointer<Byte> base, Int limit, Int4 offset);
+	Pointer4(Pointer<Byte> base, unsigned int limit, Int4 offset);
+	Pointer4(Pointer<Byte> p0, Pointer<Byte> p1, Pointer<Byte> p2, Pointer<Byte> p3);
+	Pointer4(std::array<Pointer<Byte>, 4> pointers);
+
+	Pointer4 &operator+=(Int4 i);
+	Pointer4 operator+(Int4 i);
+	Pointer4 &operator+=(int i);
+	Pointer4 operator+(int i);
+
+	Int4 offsets() const;
+
+	Int4 isInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const;
+
+	bool isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const;
+
+	Int limit() const;
+
+	// Returns true if all offsets are sequential
+	// (N+0*step, N+1*step, N+2*step, N+3*step)
+	Bool hasSequentialOffsets(unsigned int step) const;
+
+	// Returns true if all offsets are are compile-time static and
+	// sequential (N+0*step, N+1*step, N+2*step, N+3*step)
+	bool hasStaticSequentialOffsets(unsigned int step) const;
+
+	// Returns true if all offsets are equal (N, N, N, N)
+	Bool hasEqualOffsets() const;
+
+	// Returns true if all offsets are compile-time static and are equal
+	// (N, N, N, N)
+	bool hasStaticEqualOffsets() const;
+
+	template<typename T>
+	inline T Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
+
+	template<typename T>
+	inline void Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+
+	template<typename T>
+	inline void Store(RValue<T> val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+
+	Pointer<Byte> getUniformPointer() const;
+	Pointer<Byte> getPointerForLane(int lane) const;
+	static Pointer4 IfThenElse(Int4 condition, const Pointer4 &lhs, const Pointer4 &rhs);
+
+	// 64-bit pointer bit cast utilities
+	void castFrom(UInt4 lowerBits, UInt4 upperBits);
+	void castTo(UInt4 &lowerBits, UInt4 &upperBits) const;
+
+	// 32-bit pointer bit cast utilities
+	void castFrom(UInt4 bits);
+	void castTo(UInt4 &bits) const;
+
+#ifdef ENABLE_RR_PRINT
+	std::vector<rr::Value *> getPrintValues() const;
+#endif
+
+private:
+	// Base address for the pointer, common across all lanes.
+	Pointer<Byte> base;
+	// Per-lane address for dealing with non-uniform data
+	std::array<Pointer<Byte>, 4> pointers;
+
+public:
+	// Upper (non-inclusive) limit for offsets from base.
+	Int dynamicLimit;  // If hasDynamicLimit is false, dynamicLimit is zero.
+	unsigned int staticLimit;
+
+	// Per lane offsets from base.
+	Int4 dynamicOffsets;  // If hasDynamicOffsets is false, all dynamicOffsets are zero.
+	std::array<int32_t, 4> staticOffsets;
+
+	bool hasDynamicLimit;    // True if dynamicLimit is non-zero.
+	bool hasDynamicOffsets;  // True if any dynamicOffsets are non-zero.
+	bool isBasePlusOffset;   // True if this uses base+offset. False if this is a collection of Pointers
+};
+
 RValue<SIMD::Int> operator+(RValue<SIMD::Int> lhs, RValue<SIMD::Int> rhs);
 RValue<SIMD::Int> operator-(RValue<SIMD::Int> lhs, RValue<SIMD::Int> rhs);
 RValue<SIMD::Int> operator*(RValue<SIMD::Int> lhs, RValue<SIMD::Int> rhs);
@@ -325,6 +407,11 @@ RValue<SIMD::Float> Log(RValue<SIMD::Float> x);
 RValue<SIMD::Float> Exp2(RValue<SIMD::Float> x);
 RValue<SIMD::Float> Log2(RValue<SIMD::Float> x);
 
+RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
+RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
+void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+
 template<>
 inline RValue<SIMD::Int>::RValue(int i)
     : val(broadcast(i, SIMD::Int::type()))
@@ -344,6 +431,268 @@ inline RValue<SIMD::Float>::RValue(float f)
     : val(broadcast(f, SIMD::Float::type()))
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
+}
+
+template<typename T>
+struct Element
+{};
+template<>
+struct Element<Float4>
+{
+	using type = Float;
+};
+template<>
+struct Element<Int4>
+{
+	using type = Int;
+};
+template<>
+struct Element<UInt4>
+{
+	using type = UInt;
+};
+
+template<typename T>
+inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
+{
+	using EL = typename Element<T>::type;
+
+	if(!isBasePlusOffset)
+	{
+		T out = T(0);
+		for(int i = 0; i < 4; i++)
+		{
+			If(Extract(mask, i) != 0)
+			{
+				auto el = rr::Load(Pointer<EL>(pointers[i]), alignment, atomic, order);
+				out = Insert(out, el, i);
+			}
+		}
+		return out;
+	}
+
+	if(isStaticallyInBounds(sizeof(float), robustness))
+	{
+		// All elements are statically known to be in-bounds.
+		// We can avoid costly conditional on masks.
+
+		if(hasStaticSequentialOffsets(sizeof(float)))
+		{
+			// Offsets are sequential. Perform regular load.
+			return rr::Load(Pointer<T>(base + staticOffsets[0]), alignment, atomic, order);
+		}
+
+		if(hasStaticEqualOffsets())
+		{
+			// Load one, replicate.
+			return T(*Pointer<EL>(base + staticOffsets[0], alignment));
+		}
+	}
+	else
+	{
+		switch(robustness)
+		{
+		case OutOfBoundsBehavior::Nullify:
+		case OutOfBoundsBehavior::RobustBufferAccess:
+		case OutOfBoundsBehavior::UndefinedValue:
+			mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds reads.
+			break;
+		case OutOfBoundsBehavior::UndefinedBehavior:
+			// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
+			break;
+		}
+	}
+
+	auto offs = offsets();
+
+	if(!atomic && order == std::memory_order_relaxed)
+	{
+		if(hasStaticEqualOffsets())
+		{
+			// Load one, replicate.
+			// Be careful of the case where the post-bounds-check mask
+			// is 0, in which case we must not load.
+			T out = T(0);
+			If(AnyTrue(mask))
+			{
+				EL el = *Pointer<EL>(base + staticOffsets[0], alignment);
+				out = T(el);
+			}
+			return out;
+		}
+
+		bool zeroMaskedLanes = true;
+		switch(robustness)
+		{
+		case OutOfBoundsBehavior::Nullify:
+		case OutOfBoundsBehavior::RobustBufferAccess:  // Must either return an in-bounds value, or zero.
+			zeroMaskedLanes = true;
+			break;
+		case OutOfBoundsBehavior::UndefinedValue:
+		case OutOfBoundsBehavior::UndefinedBehavior:
+			zeroMaskedLanes = false;
+			break;
+		}
+
+		// TODO(b/195446858): Optimize static sequential offsets case by using masked load.
+
+		return Gather(Pointer<EL>(base), offs, mask, alignment, zeroMaskedLanes);
+	}
+	else
+	{
+		T out;
+		auto anyLanesDisabled = AnyFalse(mask);
+		If(hasEqualOffsets() && !anyLanesDisabled)
+		{
+			// Load one, replicate.
+			auto offset = Extract(offs, 0);
+			out = T(rr::Load(Pointer<EL>(&base[offset]), alignment, atomic, order));
+		}
+		Else If(hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
+		{
+			// Load all elements in a single SIMD instruction.
+			auto offset = Extract(offs, 0);
+			out = rr::Load(Pointer<T>(&base[offset]), alignment, atomic, order);
+		}
+		Else
+		{
+			// Divergent offsets or masked lanes.
+			out = T(0);
+			for(int i = 0; i < 4; i++)
+			{
+				If(Extract(mask, i) != 0)
+				{
+					auto offset = Extract(offs, i);
+					auto el = rr::Load(Pointer<EL>(&base[offset]), alignment, atomic, order);
+					out = Insert(out, el, i);
+				}
+			}
+		}
+		return out;
+	}
+}
+
+template<>
+inline Pointer4 Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
+{
+	Pointer4 out(nullptr, nullptr, nullptr, nullptr);
+
+	for(int i = 0; i < 4; i++)
+	{
+		If(Extract(mask, i) != 0)
+		{
+			out.pointers[i] = rr::Load(Pointer<Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
+		}
+	}
+
+	return out;
+}
+
+template<typename T>
+inline void Pointer4::Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+{
+	using EL = typename Element<T>::type;
+	constexpr size_t alignment = sizeof(float);
+
+	if(!isBasePlusOffset)
+	{
+		for(int i = 0; i < 4; i++)
+		{
+			If(Extract(mask, i) != 0)
+			{
+				rr::Store(Extract(val, i), Pointer<EL>(pointers[i]), alignment, atomic, order);
+			}
+		}
+		return;
+	}
+
+	auto offs = offsets();
+	switch(robustness)
+	{
+	case OutOfBoundsBehavior::Nullify:
+	case OutOfBoundsBehavior::RobustBufferAccess:       // TODO: Allows writing anywhere within bounds. Could be faster than masking.
+	case OutOfBoundsBehavior::UndefinedValue:           // Should not be used for store operations. Treat as robust buffer access.
+		mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds writes.
+		break;
+	case OutOfBoundsBehavior::UndefinedBehavior:
+		// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
+		break;
+	}
+
+	if(!atomic && order == std::memory_order_relaxed)
+	{
+		if(hasStaticEqualOffsets())
+		{
+			If(AnyTrue(mask))
+			{
+				// All equal. One of these writes will win -- elect the winning lane.
+				auto v0111 = Int4(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+				auto elect = mask & ~(v0111 & (mask.xxyz | mask.xxxy | mask.xxxx));
+				auto maskedVal = As<Int4>(val) & elect;
+				auto scalarVal = Extract(maskedVal, 0) |
+				                 Extract(maskedVal, 1) |
+				                 Extract(maskedVal, 2) |
+				                 Extract(maskedVal, 3);
+				*Pointer<EL>(base + staticOffsets[0], alignment) = As<EL>(scalarVal);
+			}
+		}
+		else if(hasStaticSequentialOffsets(sizeof(float)) &&
+		        isStaticallyInBounds(sizeof(float), robustness))
+		{
+			// TODO(b/195446858): Optimize using masked store.
+			// Pointer has no elements OOB, and the store is not atomic.
+			// Perform a read-modify-write.
+			auto p = Pointer<Int4>(base + staticOffsets[0], alignment);
+			auto prev = *p;
+			*p = (prev & ~mask) | (As<Int4>(val) & mask);
+		}
+		else
+		{
+			Scatter(Pointer<EL>(base), val, offs, mask, alignment);
+		}
+	}
+	else
+	{
+		auto anyLanesDisabled = AnyFalse(mask);
+		If(hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
+		{
+			// Store all elements in a single SIMD instruction.
+			auto offset = Extract(offs, 0);
+			rr::Store(val, Pointer<T>(&base[offset]), alignment, atomic, order);
+		}
+		Else
+		{
+			// Divergent offsets or masked lanes.
+			for(int i = 0; i < 4; i++)
+			{
+				If(Extract(mask, i) != 0)
+				{
+					auto offset = Extract(offs, i);
+					rr::Store(Extract(val, i), Pointer<EL>(&base[offset]), alignment, atomic, order);
+				}
+			}
+		}
+	}
+}
+
+template<>
+inline void Pointer4::Store(Pointer4 val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+{
+	constexpr size_t alignment = sizeof(void *);
+
+	for(int i = 0; i < 4; i++)
+	{
+		If(Extract(mask, i) != 0)
+		{
+			rr::Store(val.getPointerForLane(i), Pointer<Pointer<Byte>>(getPointerForLane(i)), alignment, atomic, order);
+		}
+	}
+}
+
+template<typename T>
+inline void Pointer4::Store(RValue<T> val, OutOfBoundsBehavior robustness, Int4 mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+{
+	Store(T(val), robustness, mask, atomic, order);
 }
 
 }  // namespace rr
