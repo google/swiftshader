@@ -78,7 +78,7 @@ struct SpirvShader::Impl::Group
 
 SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, EmitState *state) const
 {
-	static_assert(SIMD::Width == 4, "EmitGroupNonUniform makes many assumptions that the SIMD vector width is 4");
+	ASSERT(SIMD::Width == 4);  // EmitGroupNonUniform makes many assumptions that the SIMD vector width is 4
 
 	auto &type = getType(Type::ID(insn.word(1)));
 	Object::ID resultId = insn.word(2);

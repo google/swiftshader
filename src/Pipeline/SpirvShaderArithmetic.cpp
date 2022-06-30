@@ -291,7 +291,7 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 			// Derivative instructions: FS invocations are laid out like so:
 			//    0 1
 			//    2 3
-			static_assert(SIMD::Width == 4, "All cross-lane instructions will need care when using a different width");
+			ASSERT(SIMD::Width == 4);  // All cross-lane instructions will need care when using a different width
 			dst.move(i, SIMD::Float(Extract(src.Float(i), 1) - Extract(src.Float(i), 0)));
 			break;
 		case spv::OpDPdy:
