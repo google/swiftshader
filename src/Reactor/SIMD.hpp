@@ -411,6 +411,21 @@ RValue<SIMD::Float> Log(RValue<SIMD::Float> x);
 RValue<SIMD::Float> Exp2(RValue<SIMD::Float> x);
 RValue<SIMD::Float> Log2(RValue<SIMD::Float> x);
 
+RValue<Int> SignMask(RValue<SIMD::Int> x);
+RValue<SIMD::UInt> Ctlz(RValue<SIMD::UInt> x, bool isZeroUndef);
+RValue<SIMD::UInt> Cttz(RValue<SIMD::UInt> x, bool isZeroUndef);
+RValue<SIMD::Int> MulHigh(RValue<SIMD::Int> x, RValue<SIMD::Int> y);
+RValue<SIMD::UInt> MulHigh(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y);
+RValue<Bool> AnyTrue(const RValue<SIMD::Int> &bools);
+RValue<Bool> AnyFalse(const RValue<SIMD::Int> &bools);
+RValue<Bool> Divergent(const RValue<SIMD::Int> &ints);
+RValue<SIMD::Int> Swizzle(RValue<SIMD::Int> x, uint16_t select);
+RValue<SIMD::UInt> Swizzle(RValue<SIMD::UInt> x, uint16_t select);
+RValue<SIMD::Float> Swizzle(RValue<SIMD::Float> x, uint16_t select);
+RValue<SIMD::Int> Shuffle(RValue<SIMD::Int> x, RValue<SIMD::Int> y, uint16_t select);
+RValue<SIMD::UInt> Shuffle(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y, uint16_t select);
+RValue<SIMD::Float> Shuffle(RValue<SIMD::Float> x, RValue<SIMD::Float> y, uint16_t select);
+
 RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
 RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
 void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);

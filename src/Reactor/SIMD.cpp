@@ -678,6 +678,100 @@ RValue<SIMD::Float> Log2(RValue<SIMD::Float> x)
 	return ScalarizeCall(log2f, x);
 }
 
+RValue<Int> SignMask(RValue<SIMD::Int> x)
+{
+	ASSERT(SIMD::Width == 4);
+	return SignMask(Extract128(x, 0));
+}
+
+RValue<SIMD::UInt> Ctlz(RValue<SIMD::UInt> x, bool isZeroUndef)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::UInt result;
+	return Insert128(result, Ctlz(Extract128(x, 0), isZeroUndef), 0);
+}
+
+RValue<SIMD::UInt> Cttz(RValue<SIMD::UInt> x, bool isZeroUndef)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::UInt result;
+	return Insert128(result, Cttz(Extract128(x, 0), isZeroUndef), 0);
+}
+
+RValue<SIMD::Int> MulHigh(RValue<SIMD::Int> x, RValue<SIMD::Int> y)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::Int result;
+	return Insert128(result, MulHigh(Extract128(x, 0), Extract128(y, 0)), 0);
+}
+
+RValue<SIMD::UInt> MulHigh(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::UInt result;
+	return Insert128(result, MulHigh(Extract128(x, 0), Extract128(y, 0)), 0);
+}
+
+RValue<Bool> AnyTrue(const RValue<SIMD::Int> &bools)
+{
+	ASSERT(SIMD::Width == 4);
+	return AnyTrue(Extract128(bools, 0));
+}
+
+RValue<Bool> AnyFalse(const RValue<SIMD::Int> &bools)
+{
+	ASSERT(SIMD::Width == 4);
+	return AnyFalse(Extract128(bools, 0));
+}
+
+RValue<Bool> Divergent(const RValue<SIMD::Int> &ints)
+{
+	ASSERT(SIMD::Width == 4);
+	return Divergent(Extract128(ints, 0));
+}
+
+RValue<SIMD::Int> Swizzle(RValue<SIMD::Int> x, uint16_t select)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::Int result;
+	return Insert128(result, Swizzle(Extract128(x, 0), select), 0);
+}
+
+RValue<SIMD::UInt> Swizzle(RValue<SIMD::UInt> x, uint16_t select)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::UInt result;
+	return Insert128(result, Swizzle(Extract128(x, 0), select), 0);
+}
+
+RValue<SIMD::Float> Swizzle(RValue<SIMD::Float> x, uint16_t select)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::Float result;
+	return Insert128(result, Swizzle(Extract128(x, 0), select), 0);
+}
+
+RValue<SIMD::Int> Shuffle(RValue<SIMD::Int> x, RValue<SIMD::Int> y, uint16_t select)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::Int result;
+	return Insert128(result, Shuffle(Extract128(x, 0), Extract128(y, 0), select), 0);
+}
+
+RValue<SIMD::UInt> Shuffle(RValue<SIMD::UInt> x, RValue<SIMD::UInt> y, uint16_t select)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::UInt result;
+	return Insert128(result, Shuffle(Extract128(x, 0), Extract128(y, 0), select), 0);
+}
+
+RValue<SIMD::Float> Shuffle(RValue<SIMD::Float> x, RValue<SIMD::Float> y, uint16_t select)
+{
+	ASSERT(SIMD::Width == 4);
+	SIMD::Float result;
+	return Insert128(result, Shuffle(Extract128(x, 0), Extract128(y, 0), select), 0);
+}
+
 Pointer4::Pointer4(Pointer<Byte> base, rr::Int limit)
     : base(base)
     , dynamicLimit(limit)
