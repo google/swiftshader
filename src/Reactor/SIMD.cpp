@@ -862,21 +862,8 @@ rr::Int Pointer4::limit() const
 	return dynamicLimit + staticLimit;
 }
 
-// Returns true if all offsets are sequential
+// Returns true if all offsets are compile-time static and sequential
 // (N+0*step, N+1*step, N+2*step, N+3*step)
-rr::Bool Pointer4::hasSequentialOffsets(unsigned int step) const
-{
-	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
-	if(hasDynamicOffsets)
-	{
-		auto o = offsets();
-		return rr::SignMask(~CmpEQ(o.yzww, o + Int4(1 * step, 2 * step, 3 * step, 0))) == 0;
-	}
-	return hasStaticSequentialOffsets(step);
-}
-
-// Returns true if all offsets are are compile-time static and
-// sequential (N+0*step, N+1*step, N+2*step, N+3*step)
 bool Pointer4::hasStaticSequentialOffsets(unsigned int step) const
 {
 	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
@@ -884,26 +871,19 @@ bool Pointer4::hasStaticSequentialOffsets(unsigned int step) const
 	{
 		return false;
 	}
+
 	for(int i = 1; i < 4; i++)
 	{
-		if(staticOffsets[i - 1] + int32_t(step) != staticOffsets[i]) { return false; }
+		if(staticOffsets[i - 1] + int32_t(step) != staticOffsets[i])
+		{
+			return false;
+		}
 	}
+
 	return true;
 }
 
-// Returns true if all offsets are equal (N, N, N, N)
-rr::Bool Pointer4::hasEqualOffsets() const
-{
-	ASSERT_MSG(isBasePlusOffset, "No offsets for this type of pointer");
-	if(hasDynamicOffsets)
-	{
-		auto o = offsets();
-		return rr::SignMask(~CmpEQ(o, o.yzwx)) == 0;
-	}
-	return hasStaticEqualOffsets();
-}
-
-// Returns true if all offsets are compile-time static and are equal
+// Returns true if all offsets are compile-time static and equal
 // (N, N, N, N)
 bool Pointer4::hasStaticEqualOffsets() const
 {
@@ -912,23 +892,40 @@ bool Pointer4::hasStaticEqualOffsets() const
 	{
 		return false;
 	}
+
 	for(int i = 1; i < 4; i++)
 	{
-		if(staticOffsets[i - 1] != staticOffsets[i]) { return false; }
+		if(staticOffsets[0] != staticOffsets[i])
+		{
+			return false;
+		}
 	}
+
 	return true;
 }
 
 Pointer<Byte> Pointer4::getUniformPointer() const
 {
+#ifndef NDEBUG
 	if(isBasePlusOffset)
 	{
-		Assert(hasEqualOffsets());
+		Int4 uniform = offsets();
+		Int x = Extract(uniform, 0);
+
+		for(int i = 1; i < 4; i++)
+		{
+			Assert(x == Extract(uniform, i));
+		}
 	}
 	else
 	{
-		Assert(pointers[0] == pointers[1] && pointers[0] == pointers[2] && pointers[0] == pointers[3]);
+		for(int i = 1; i < 4; i++)
+		{
+			Assert(pointers[0] == pointers[i]);
+		}
 	}
+#endif
+
 	return getPointerForLane(0);
 }
 

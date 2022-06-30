@@ -141,18 +141,11 @@ public:
 
 	Int limit() const;
 
-	// Returns true if all offsets are sequential
+	// Returns true if all offsets are compile-time static and sequential
 	// (N+0*step, N+1*step, N+2*step, N+3*step)
-	Bool hasSequentialOffsets(unsigned int step) const;
-
-	// Returns true if all offsets are are compile-time static and
-	// sequential (N+0*step, N+1*step, N+2*step, N+3*step)
 	bool hasStaticSequentialOffsets(unsigned int step) const;
 
-	// Returns true if all offsets are equal (N, N, N, N)
-	Bool hasEqualOffsets() const;
-
-	// Returns true if all offsets are compile-time static and are equal
+	// Returns true if all offsets are compile-time static and equal
 	// (N, N, N, N)
 	bool hasStaticEqualOffsets() const;
 
@@ -541,13 +534,13 @@ inline T Pointer4::Load(OutOfBoundsBehavior robustness, Int4 mask, bool atomic /
 	{
 		T out;
 		auto anyLanesDisabled = AnyFalse(mask);
-		If(hasEqualOffsets() && !anyLanesDisabled)
+		If(hasStaticEqualOffsets() && !anyLanesDisabled)
 		{
 			// Load one, replicate.
 			auto offset = Extract(offs, 0);
 			out = T(rr::Load(Pointer<EL>(&base[offset]), alignment, atomic, order));
 		}
-		Else If(hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
+		Else If(hasStaticSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
 		{
 			// Load all elements in a single SIMD instruction.
 			auto offset = Extract(offs, 0);
@@ -653,7 +646,7 @@ inline void Pointer4::Store(T val, OutOfBoundsBehavior robustness, Int4 mask, bo
 	else
 	{
 		auto anyLanesDisabled = AnyFalse(mask);
-		If(hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
+		If(hasStaticSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
 		{
 			// Store all elements in a single SIMD instruction.
 			auto offset = Extract(offs, 0);
