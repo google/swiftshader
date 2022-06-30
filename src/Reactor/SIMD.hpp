@@ -41,7 +41,8 @@ class Int;
 class UInt;
 class Float;
 
-class Int : public LValue<SIMD::Int>
+class Int : public LValue<SIMD::Int>,
+            public XYZW<SIMD::Int>  // TODO(b/214583550): Eliminate and replace with SwizzleQuad() and/or other intrinsics.
 {
 public:
 	explicit Int(RValue<SIMD::Float> cast);
@@ -67,7 +68,8 @@ public:
 	static int element_count() { return SIMD::Width; }
 };
 
-class UInt : public LValue<SIMD::UInt>
+class UInt : public LValue<SIMD::UInt>,
+             public XYZW<SIMD::UInt>  // TODO(b/214583550): Eliminate and replace with SwizzleQuad() and/or other intrinsics.
 {
 public:
 	explicit UInt(RValue<SIMD::Float> cast);
@@ -92,7 +94,8 @@ public:
 	static int element_count() { return SIMD::Width; }
 };
 
-class Float : public LValue<SIMD::Float>
+class Float : public LValue<SIMD::Float>,
+              public XYZW<SIMD::Float>  // TODO(b/214583550): Eliminate and replace with SwizzleQuad() and/or other intrinsics.
 {
 public:
 	explicit Float(RValue<SIMD::Int> cast);

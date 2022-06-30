@@ -23,10 +23,12 @@
 namespace rr {
 
 SIMD::Int::Int()
+    : XYZW(this)
 {
 }
 
 SIMD::Int::Int(RValue<SIMD::Float> cast)
+    : XYZW(this)
 {
 	Value *xyzw = Nucleus::createFPToSI(cast.value(), SIMD::Int::type());
 
@@ -34,47 +36,56 @@ SIMD::Int::Int(RValue<SIMD::Float> cast)
 }
 
 SIMD::Int::Int(int broadcast)
+    : XYZW(this)
 {
 	std::vector<int64_t> constantVector = { broadcast };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 SIMD::Int::Int(RValue<SIMD::Int> rhs)
+    : XYZW(this)
 {
 	store(rhs);
 }
 
 SIMD::Int::Int(const SIMD::Int &rhs)
+    : XYZW(this)
 {
 	store(rhs.load());
 }
 
 SIMD::Int::Int(const Reference<SIMD::Int> &rhs)
+    : XYZW(this)
 {
 	store(rhs.load());
 }
 
 SIMD::Int::Int(RValue<SIMD::UInt> rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.value());
 }
 
 SIMD::Int::Int(const SIMD::UInt &rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.loadValue());
 }
 
 SIMD::Int::Int(const Reference<SIMD::UInt> &rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.loadValue());
 }
 
 SIMD::Int::Int(const scalar::Int &rhs)
+    : XYZW(this)
 {
 	*this = RValue<scalar::Int>(rhs.loadValue());
 }
 
 SIMD::Int::Int(const Reference<scalar::Int> &rhs)
+    : XYZW(this)
 {
 	*this = RValue<scalar::Int>(rhs.loadValue());
 }
@@ -225,51 +236,61 @@ RValue<SIMD::Int> Insert(RValue<SIMD::Int> x, RValue<scalar::Int> element, int i
 }
 
 SIMD::UInt::UInt()
+    : XYZW(this)
 {
 }
 
 SIMD::UInt::UInt(int broadcast)
+    : XYZW(this)
 {
 	std::vector<int64_t> constantVector = { broadcast };
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 SIMD::UInt::UInt(RValue<SIMD::UInt> rhs)
+    : XYZW(this)
 {
 	store(rhs);
 }
 
 SIMD::UInt::UInt(const SIMD::UInt &rhs)
+    : XYZW(this)
 {
 	store(rhs.load());
 }
 
 SIMD::UInt::UInt(const Reference<SIMD::UInt> &rhs)
+    : XYZW(this)
 {
 	store(rhs.load());
 }
 
 SIMD::UInt::UInt(RValue<SIMD::Int> rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.value());
 }
 
 SIMD::UInt::UInt(const SIMD::Int &rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.loadValue());
 }
 
 SIMD::UInt::UInt(const Reference<SIMD::Int> &rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.loadValue());
 }
 
 SIMD::UInt::UInt(const scalar::UInt &rhs)
+    : XYZW(this)
 {
 	*this = RValue<scalar::UInt>(rhs.loadValue());
 }
 
 SIMD::UInt::UInt(const Reference<scalar::UInt> &rhs)
+    : XYZW(this)
 {
 	*this = RValue<scalar::UInt>(rhs.loadValue());
 }
@@ -415,6 +436,7 @@ RValue<SIMD::UInt> Insert(RValue<SIMD::UInt> x, RValue<scalar::UInt> element, in
 }
 
 SIMD::Float::Float(RValue<SIMD::Int> cast)
+    : XYZW(this)
 {
 	Value *xyzw = Nucleus::createSIToFP(cast.value(), SIMD::Float::type());
 
@@ -422,6 +444,7 @@ SIMD::Float::Float(RValue<SIMD::Int> cast)
 }
 
 SIMD::Float::Float(RValue<SIMD::UInt> cast)
+    : XYZW(this)
 {
 	RValue<SIMD::Float> result = SIMD::Float(SIMD::Int(cast & SIMD::UInt(0x7FFFFFFF))) +
 	                             As<SIMD::Float>((As<SIMD::Int>(cast) >> 31) & As<SIMD::Int>(SIMD::Float(0x80000000u)));
@@ -430,10 +453,12 @@ SIMD::Float::Float(RValue<SIMD::UInt> cast)
 }
 
 SIMD::Float::Float()
+    : XYZW(this)
 {
 }
 
 SIMD::Float::Float(float broadcast)
+    : XYZW(this)
 {
 	// See rr::Float(float) constructor for the rationale behind this assert.
 	ASSERT(std::isfinite(broadcast));
@@ -454,26 +479,31 @@ SIMD::Float SIMD::Float::infinity()
 }
 
 SIMD::Float::Float(RValue<SIMD::Float> rhs)
+    : XYZW(this)
 {
 	store(rhs);
 }
 
 SIMD::Float::Float(const SIMD::Float &rhs)
+    : XYZW(this)
 {
 	store(rhs.load());
 }
 
 SIMD::Float::Float(const Reference<SIMD::Float> &rhs)
+    : XYZW(this)
 {
 	store(rhs.load());
 }
 
 SIMD::Float::Float(const scalar::Float &rhs)
+    : XYZW(this)
 {
 	*this = RValue<scalar::Float>(rhs.loadValue());
 }
 
 SIMD::Float::Float(const Reference<scalar::Float> &rhs)
+    : XYZW(this)
 {
 	*this = RValue<scalar::Float>(rhs.loadValue());
 }
