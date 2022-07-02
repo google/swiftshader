@@ -17,6 +17,7 @@
 #include "Constants.hpp"
 #include "SpirvShader.hpp"
 #include "Device/Renderer.hpp"
+#include "Device/Clipper.hpp"
 #include "Device/Vertex.hpp"
 #include "System/Debug.hpp"
 #include "System/Half.hpp"
@@ -129,16 +130,16 @@ void VertexRoutine::computeClipFlags()
 		SIMD::Int minX = CmpNLE(-posW, posX);
 		SIMD::Int minY = CmpNLE(-posW, posY);
 
-		clipFlags = Pointer<Int>(constants + OFFSET(Constants, maxX))[SignMask(maxX)];
-		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxY))[SignMask(maxY)];
-		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minX))[SignMask(minX)];
-		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minY))[SignMask(minY)];
+		clipFlags = maxX & Clipper::CLIP_RIGHT;
+		clipFlags |= maxY & Clipper::CLIP_TOP;
+		clipFlags |= minX & Clipper::CLIP_LEFT;
+		clipFlags |= minY & Clipper::CLIP_BOTTOM;
 		if(state.depthClipEnable)
 		{
 			SIMD::Int maxZ = CmpLT(posW, posZ);
 			SIMD::Int minZ = CmpNLE(0.0f, posZ);
-			clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxZ))[SignMask(maxZ)];
-			clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
+			clipFlags |= maxZ & Clipper::CLIP_FAR;
+			clipFlags |= minZ & Clipper::CLIP_NEAR;
 		}
 
 		SIMD::Float maxPos = As<SIMD::Float>(SIMD::Int(0x7F7FFFFF));
@@ -147,7 +148,7 @@ void VertexRoutine::computeClipFlags()
 		SIMD::Int finiteZ = CmpLE(Abs(posZ), maxPos);
 
 		SIMD::Int finiteXYZ = finiteX & finiteY & finiteZ;
-		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, fini))[SignMask(finiteXYZ)];
+		clipFlags |= finiteXYZ & 0x00000080;
 	}
 }
 
@@ -619,10 +620,10 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, position), 16) = pos_y;
 		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, position), 16) = pos_x;
 
-		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
-		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 16) & 0x0000000FF;
-		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 8) & 0x0000000FF;
-		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 0) & 0x0000000FF;
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, clipFlags)) = Extract(clipFlags, 3);
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, clipFlags)) = Extract(clipFlags, 2);
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, clipFlags)) = Extract(clipFlags, 1);
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, clipFlags)) = Extract(clipFlags, 0);
 
 		Float4 proj_x = Extract128(proj.x, 0);
 		Float4 proj_y = Extract128(proj.y, 0);

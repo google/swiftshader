@@ -136,14 +136,6 @@ struct Constants
 		sw::SampleLocationsY[3],
 	};
 
-	dword maxX[16];
-	dword maxY[16];
-	dword maxZ[16];
-	dword minX[16];
-	dword minY[16];
-	dword minZ[16];
-	dword fini[16];
-
 	float4 unscaleByte;
 	float4 unscaleSByte;
 	float4 unscaleShort;

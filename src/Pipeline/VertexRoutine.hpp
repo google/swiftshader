@@ -59,7 +59,7 @@ public:
 protected:
 	Pointer<Byte> constants;
 
-	Int clipFlags;
+	SIMD::Int clipFlags;
 	Int cullMask;
 
 	SpirvRoutine routine;
