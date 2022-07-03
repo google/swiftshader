@@ -34,7 +34,6 @@ PixelProgram::PixelProgram(
 // Union all cMask and return it as Booleans
 SIMD::Int PixelProgram::maskAny(Int cMask[4], const SampleSet &samples)
 {
-	ASSERT(SIMD::Width == 4);
 	// See if at least 1 sample is used
 	Int maskUnion = 0;
 	for(unsigned int q : samples)
@@ -43,17 +42,15 @@ SIMD::Int PixelProgram::maskAny(Int cMask[4], const SampleSet &samples)
 	}
 
 	// Convert to Booleans
-	SIMD::Int laneBits = SIMD::Int(1, 2, 4, 8);
-	SIMD::Int laneShiftsToMSB = SIMD::Int(31, 30, 29, 28);
+	SIMD::Int laneBits = SIMD::Int([](int i) { return 1 << i; });  // 1, 2, 4, 8, ...
 	SIMD::Int mask(maskUnion);
-	mask = ((mask & laneBits) << laneShiftsToMSB) >> 31;
+	mask = CmpNEQ(mask & laneBits, 0);
 	return mask;
 }
 
 // Union all cMask/sMask/zMask and return it as Booleans
 SIMD::Int PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const SampleSet &samples)
 {
-	ASSERT(SIMD::Width == 4);
 	// See if at least 1 sample is used
 	Int maskUnion = 0;
 	for(unsigned int q : samples)
@@ -62,10 +59,9 @@ SIMD::Int PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4], const 
 	}
 
 	// Convert to Booleans
-	SIMD::Int laneBits = SIMD::Int(1, 2, 4, 8);
-	SIMD::Int laneShiftsToMSB = SIMD::Int(31, 30, 29, 28);
+	SIMD::Int laneBits = SIMD::Int([](int i) { return 1 << i; });  // 1, 2, 4, 8, ...
 	SIMD::Int mask(maskUnion);
-	mask = ((mask & laneBits) << laneShiftsToMSB) >> 31;
+	mask = CmpNEQ(mask & laneBits, 0);
 	return mask;
 }
 
