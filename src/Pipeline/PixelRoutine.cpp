@@ -419,10 +419,8 @@ void PixelRoutine::stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, boo
 	}
 }
 
-Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
+SIMD::Float PixelRoutine::getDepthValue32F(const Pointer<Byte> &zBuffer, int q, const Int &x) const
 {
-	SIMD::Float Z = z;
-
 	ASSERT(SIMD::Width == 4);
 	Pointer<Byte> buffer = zBuffer + 4 * x;
 	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
@@ -432,12 +430,65 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 		buffer += q * *Pointer<Int>(data + OFFSET(DrawData, depthSliceB));
 	}
 
+	Float4 zValue = Float4(*Pointer<Float2>(buffer), *Pointer<Float2>(buffer + pitch));
+	return SIMD::Float(zValue);
+}
+
+SIMD::Float PixelRoutine::getDepthValue16(const Pointer<Byte> &zBuffer, int q, const Int &x) const
+{
+	ASSERT(SIMD::Width == 4);
+	Pointer<Byte> buffer = zBuffer + 2 * x;
+	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
+
+	if(q > 0)
+	{
+		buffer += q * *Pointer<Int>(data + OFFSET(DrawData, depthSliceB));
+	}
+
+	UShort4 zValue16;
+	zValue16 = As<UShort4>(Insert(As<Int2>(zValue16), *Pointer<Int>(buffer), 0));
+	zValue16 = As<UShort4>(Insert(As<Int2>(zValue16), *Pointer<Int>(buffer + pitch), 1));
+	Float4 zValue = Float4(zValue16);
+	return SIMD::Float(zValue);
+}
+
+SIMD::Float PixelRoutine::clampDepth(const SIMD::Float &z)
+{
+	if(!state.depthClamp)
+	{
+		return z;
+	}
+
+	return Min(Max(z, state.minDepthClamp), state.maxDepthClamp);
+}
+
+Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
+{
+	if(!state.depthTestActive)
+	{
+		return true;
+	}
+
+	SIMD::Float Z;
 	SIMD::Float zValue;
 
 	if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
 	{
-		ASSERT(SIMD::Width == 4);
-		zValue = Float4(*Pointer<Float2>(buffer), *Pointer<Float2>(buffer + pitch));
+		switch(state.depthFormat)
+		{
+		case VK_FORMAT_D16_UNORM:
+			Z = Min(Max(Round(z * 0xFFFFu), 0.0f), 0xFFFFu);
+			zValue = getDepthValue16(zBuffer, q, x);
+			break;
+		case VK_FORMAT_D32_SFLOAT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			Z = z;
+			zValue = getDepthValue32F(zBuffer, q, x);
+			break;
+		default:
+			UNSUPPORTED("Depth format: %d", int(state.depthFormat));
+			return false;
+		}
 	}
 
 	SIMD::Int zTest;
@@ -491,114 +542,6 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 	}
 
 	return zMask != 0;
-}
-
-Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
-{
-	ASSERT(SIMD::Width == 4);
-	Short4 Z = convertFixed16(Extract128(z, 0), true);
-
-	Pointer<Byte> buffer = zBuffer + 2 * x;
-	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
-
-	if(q > 0)
-	{
-		buffer += q * *Pointer<Int>(data + OFFSET(DrawData, depthSliceB));
-	}
-
-	Short4 zValue;
-
-	if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
-	{
-		zValue = As<Short4>(Insert(As<Int2>(zValue), *Pointer<Int>(buffer), 0));
-		zValue = As<Short4>(Insert(As<Int2>(zValue), *Pointer<Int>(buffer + pitch), 1));
-	}
-
-	Int4 zTest;
-
-	// Bias values to make unsigned compares out of Reactor's (due SSE's) signed compares only
-	zValue = zValue - Short4(0x8000u);
-	Z = Z - Short4(0x8000u);
-
-	switch(state.depthCompareMode)
-	{
-	case VK_COMPARE_OP_ALWAYS:
-		// Optimized
-		break;
-	case VK_COMPARE_OP_NEVER:
-		// Optimized
-		break;
-	case VK_COMPARE_OP_EQUAL:
-		zTest = Int4(CmpEQ(zValue, Z));
-		break;
-	case VK_COMPARE_OP_NOT_EQUAL:
-		zTest = ~Int4(CmpEQ(zValue, Z));
-		break;
-	case VK_COMPARE_OP_LESS:
-		zTest = Int4(CmpGT(zValue, Z));
-		break;
-	case VK_COMPARE_OP_GREATER_OR_EQUAL:
-		zTest = ~Int4(CmpGT(zValue, Z));
-		break;
-	case VK_COMPARE_OP_LESS_OR_EQUAL:
-		zTest = ~Int4(CmpGT(Z, zValue));
-		break;
-	case VK_COMPARE_OP_GREATER:
-		zTest = Int4(CmpGT(Z, zValue));
-		break;
-	default:
-		UNSUPPORTED("VkCompareOp: %d", int(state.depthCompareMode));
-	}
-
-	switch(state.depthCompareMode)
-	{
-	case VK_COMPARE_OP_ALWAYS:
-		zMask = cMask;
-		break;
-	case VK_COMPARE_OP_NEVER:
-		zMask = 0x0;
-		break;
-	default:
-		zMask = SignMask(zTest) & cMask;
-		break;
-	}
-
-	if(state.stencilActive)
-	{
-		zMask &= sMask;
-	}
-
-	return zMask != 0;
-}
-
-SIMD::Float PixelRoutine::clampDepth(const SIMD::Float &z)
-{
-	if(!state.depthClamp)
-	{
-		return z;
-	}
-
-	return Min(Max(z, state.minDepthClamp), state.maxDepthClamp);
-}
-
-Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask)
-{
-	if(!state.depthTestActive)
-	{
-		return true;
-	}
-
-	switch(state.depthFormat)
-	{
-	case VK_FORMAT_D16_UNORM:
-		return depthTest16(zBuffer, q, x, z, sMask, zMask, cMask);
-	case VK_FORMAT_D32_SFLOAT:
-	case VK_FORMAT_D32_SFLOAT_S8_UINT:
-		return depthTest32F(zBuffer, q, x, z, sMask, zMask, cMask);
-	default:
-		UNSUPPORTED("Depth format: %d", int(state.depthFormat));
-		return false;
-	}
 }
 
 Int4 PixelRoutine::depthBoundsTest16(const Pointer<Byte> &zBuffer, int q, const Int &x)
@@ -714,7 +657,7 @@ void PixelRoutine::writeDepth32F(Pointer<Byte> &zBuffer, int q, const Int &x, co
 
 void PixelRoutine::writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)
 {
-	Short4 Z = As<Short4>(convertFixed16(z, true));
+	Short4 Z = UShort4(Round(z * 0xFFFFu), true);
 
 	Pointer<Byte> buffer = zBuffer + 2 * x;
 	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
@@ -2313,7 +2256,7 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 		buffer += pitchB;
 		texelColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0)));
 		texelColor.x.w = Float(Int(*Pointer<UShort>(buffer + 2)));
-		texelColor.x *= (1.0f / 0xFFFF);
+		texelColor.x *= (1.0f / 0xFFFFu);
 		texelColor.y = texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16_SFLOAT:
@@ -2336,8 +2279,8 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 		texelColor.y.z = Float(Int(*Pointer<UShort>(buffer + 2)));
 		texelColor.x.w = Float(Int(*Pointer<UShort>(buffer + 4)));
 		texelColor.y.w = Float(Int(*Pointer<UShort>(buffer + 6)));
-		texelColor.x *= (1.0f / 0xFFFF);
-		texelColor.y *= (1.0f / 0xFFFF);
+		texelColor.x *= (1.0f / 0xFFFFu);
+		texelColor.y *= (1.0f / 0xFFFFu);
 		texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16G16_SFLOAT:
@@ -2372,10 +2315,10 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 		texelColor.y.w = Float(Int(*Pointer<UShort>(buffer + 0xa)));
 		texelColor.z.w = Float(Int(*Pointer<UShort>(buffer + 0xc)));
 		texelColor.w.w = Float(Int(*Pointer<UShort>(buffer + 0xe)));
-		texelColor.x *= (1.0f / 0xFFFF);
-		texelColor.y *= (1.0f / 0xFFFF);
-		texelColor.z *= (1.0f / 0xFFFF);
-		texelColor.w *= (1.0f / 0xFFFF);
+		texelColor.x *= (1.0f / 0xFFFFu);
+		texelColor.y *= (1.0f / 0xFFFFu);
+		texelColor.z *= (1.0f / 0xFFFFu);
+		texelColor.w *= (1.0f / 0xFFFFu);
 		break;
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
 		buffer += 8 * x;
@@ -2558,17 +2501,17 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	{
 	case VK_FORMAT_R16G16B16A16_UNORM:
 		color.w = Min(Max(color.w, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.w = As<Float4>(RoundInt(color.w * 0xFFFF));
+		color.w = As<Float4>(RoundInt(color.w * 0xFFFFu));
 		color.z = Min(Max(color.z, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.z = As<Float4>(RoundInt(color.z * 0xFFFF));
+		color.z = As<Float4>(RoundInt(color.z * 0xFFFFu));
 		// [[fallthrough]]
 	case VK_FORMAT_R16G16_UNORM:
 		color.y = Min(Max(color.y, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.y = As<Float4>(RoundInt(color.y * 0xFFFF));
+		color.y = As<Float4>(RoundInt(color.y * 0xFFFFu));
 		//[[fallthrough]]
 	case VK_FORMAT_R16_UNORM:
 		color.x = Min(Max(color.x, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.x = As<Float4>(RoundInt(color.x * 0xFFFF));
+		color.x = As<Float4>(RoundInt(color.x * 0xFFFFu));
 		break;
 	default:
 		// TODO(b/204560089): Omit clamp if redundant
@@ -2757,7 +2700,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 
 			UInt xyzw, packedCol;
 
-			xyzw = UInt(*Pointer<UShort>(buffer)) & 0xFFFF;
+			xyzw = UInt(*Pointer<UShort>(buffer)) & 0xFFFFu;
 			buffer += pitchB;
 			xyzw |= UInt(*Pointer<UShort>(buffer)) << 16;
 
@@ -3205,7 +3148,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 
 UShort4 PixelRoutine::convertFixed16(const Float4 &cf, bool saturate)
 {
-	return UShort4(cf * 0xFFFF, saturate);
+	return UShort4(cf * 0xFFFFu, saturate);
 }
 
 Float4 PixelRoutine::convertFloat32(const UShort4 &cf)

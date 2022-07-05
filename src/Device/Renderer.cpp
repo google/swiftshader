@@ -363,7 +363,8 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 			switch(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT))
 			{
 			case VK_FORMAT_D16_UNORM:
-				data->minimumResolvableDepthDifference = 1.0f / 0xFFFF;
+				// Minimum is 1 unit, but account for potential floating-point rounding errors
+				data->minimumResolvableDepthDifference = 1.01f / 0xFFFF;
 				break;
 			case VK_FORMAT_D32_SFLOAT:
 				// The minimum resolvable depth difference is determined per-polygon for floating-point depth

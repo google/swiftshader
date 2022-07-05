@@ -75,7 +75,11 @@ private:
 	void depthBoundsTest(const Pointer<Byte> &zBuffer, int q, const Int &x, Int &zMask, Int &cMask);
 
 	void readPixel(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &pixel);
-	enum BlendFactorModifier { None, OneMinus };
+	enum BlendFactorModifier
+	{
+		None,
+		OneMinus
+	};
 	Float blendConstant(vk::Format format, int component, BlendFactorModifier modifier = None);
 	void blendFactorRGB(SIMD::Float4 &blendFactorRGB, const SIMD::Float4 &sourceColor, const SIMD::Float4 &destColor, VkBlendFactor colorBlendFactor, vk::Format format);
 	void blendFactorAlpha(SIMD::Float &blendFactorAlpha, const SIMD::Float &sourceAlpha, const SIMD::Float &destAlpha, VkBlendFactor alphaBlendFactor, vk::Format format);
@@ -103,8 +107,8 @@ private:
 	void linearToSRGB16_12_16(Vector4s &c);
 	Float4 sRGBtoLinear(const Float4 &x);
 
-	Bool depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask);
-	Bool depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x, const SIMD::Float &z, const Int &sMask, Int &zMask, const Int &cMask);
+	SIMD::Float getDepthValue32F(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
+	SIMD::Float getDepthValue16(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
 
 	void writeDepth32F(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask);
 	void writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask);
