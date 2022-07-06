@@ -720,6 +720,7 @@ public:
 		bool GroupNonUniformQuad : 1;
 		bool DeviceGroup : 1;
 		bool MultiView : 1;
+		bool SignedZeroInfNanPreserve : 1;
 		bool DemoteToHelperInvocation : 1;
 		bool StencilExportEXT : 1;
 		bool VulkanMemoryModel : 1;

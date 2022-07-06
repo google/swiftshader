@@ -446,6 +446,7 @@ SpirvShader::SpirvShader(
 				case spv::CapabilityGroupNonUniformQuad: capabilities.GroupNonUniformQuad = true; break;
 				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
 				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
+				case spv::CapabilitySignedZeroInfNanPreserve: capabilities.SignedZeroInfNanPreserve = true; break;
 				case spv::CapabilityDemoteToHelperInvocation: capabilities.DemoteToHelperInvocation = true; break;
 				case spv::CapabilityStencilExportEXT: capabilities.StencilExportEXT = true; break;
 				case spv::CapabilityVulkanMemoryModel: capabilities.VulkanMemoryModel = true; break;
@@ -1058,6 +1059,9 @@ void SpirvShader::ProcessExecutionMode(InsnIterator insn)
 		break;
 	case spv::ExecutionModeOriginUpperLeft:
 		// This is always the case for a Vulkan shader. Do nothing.
+		break;
+	case spv::ExecutionModeSignedZeroInfNanPreserve:
+		// We currently don't perform any aggressive fast-math optimizations.
 		break;
 	default:
 		UNREACHABLE("Execution mode: %d", int(mode));
