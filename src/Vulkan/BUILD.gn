@@ -14,6 +14,7 @@
 
 import("//build_overrides/build.gni")
 import("//build_overrides/wayland.gni")
+import("//build/config/ozone.gni")
 import("../swiftshader.gni")
 import("vulkan.gni")
 
@@ -21,9 +22,11 @@ import("vulkan.gni")
 config("swiftshader_libvulkan_private_config") {
   if (is_linux) {
     defines = [
-      "VK_USE_PLATFORM_XCB_KHR",
       "VK_EXPORT=__attribute__((visibility(\"default\")))",
     ]
+    if (ozone_platform_x11) {
+      defines += [ "VK_USE_PLATFORM_XCB_KHR" ]
+    }
     if (ozone_platform_wayland) {
       defines += [ "VK_USE_PLATFORM_WAYLAND_KHR" ]
     }
