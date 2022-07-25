@@ -306,10 +306,10 @@ void PixelProgram::blendColor(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], In
 
 				ASSERT(SIMD::Width == 4);
 				Vector4s color;
-				color.x = convertFixed16(Extract128(colorf.x, 0), true);
-				color.y = convertFixed16(Extract128(colorf.y, 0), true);
-				color.z = convertFixed16(Extract128(colorf.z, 0), true);
-				color.w = convertFixed16(Extract128(colorf.w, 0), true);
+				color.x = UShort4(Extract128(colorf.x, 0) * 0xFFFF, true);  // Saturating
+				color.y = UShort4(Extract128(colorf.y, 0) * 0xFFFF, true);  // Saturating
+				color.z = UShort4(Extract128(colorf.z, 0) * 0xFFFF, true);  // Saturating
+				color.w = UShort4(Extract128(colorf.w, 0) * 0xFFFF, true);  // Saturating
 				writeColor(index, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 			}
 			break;

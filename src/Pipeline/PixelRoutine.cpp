@@ -477,7 +477,7 @@ Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, 
 		switch(state.depthFormat)
 		{
 		case VK_FORMAT_D16_UNORM:
-			Z = Min(Max(Round(z * 0xFFFFu), 0.0f), 0xFFFFu);
+			Z = Min(Max(Round(z * 0xFFFF), 0.0f), 0xFFFF);
 			zValue = getDepthValue16(zBuffer, q, x);
 			break;
 		case VK_FORMAT_D32_SFLOAT:
@@ -561,7 +561,7 @@ Int4 PixelRoutine::depthBoundsTest16(const Pointer<Byte> &zBuffer, int q, const 
 	z = Insert(z, *Pointer<Int>(buffer), 0);
 	z = Insert(z, *Pointer<Int>(buffer + pitch), 1);
 
-	Float4 zValue = convertFloat32(As<UShort4>(z));
+	Float4 zValue = Float4(As<UShort4>(z)) * (1.0f / 0xFFFF);
 	return Int4(CmpLE(minDepthBound, zValue) & CmpLE(zValue, maxDepthBound));
 }
 
@@ -657,7 +657,7 @@ void PixelRoutine::writeDepth32F(Pointer<Byte> &zBuffer, int q, const Int &x, co
 
 void PixelRoutine::writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)
 {
-	Short4 Z = UShort4(Round(z * 0xFFFFu), true);
+	Short4 Z = UShort4(Round(z * 0xFFFF), true);
 
 	Pointer<Byte> buffer = zBuffer + 2 * x;
 	Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
@@ -2256,7 +2256,7 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 		buffer += pitchB;
 		texelColor.x.z = Float(Int(*Pointer<UShort>(buffer + 0)));
 		texelColor.x.w = Float(Int(*Pointer<UShort>(buffer + 2)));
-		texelColor.x *= (1.0f / 0xFFFFu);
+		texelColor.x *= (1.0f / 0xFFFF);
 		texelColor.y = texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16_SFLOAT:
@@ -2279,8 +2279,8 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 		texelColor.y.z = Float(Int(*Pointer<UShort>(buffer + 2)));
 		texelColor.x.w = Float(Int(*Pointer<UShort>(buffer + 4)));
 		texelColor.y.w = Float(Int(*Pointer<UShort>(buffer + 6)));
-		texelColor.x *= (1.0f / 0xFFFFu);
-		texelColor.y *= (1.0f / 0xFFFFu);
+		texelColor.x *= (1.0f / 0xFFFF);
+		texelColor.y *= (1.0f / 0xFFFF);
 		texelColor.z = texelColor.w = 1.0f;
 		break;
 	case VK_FORMAT_R16G16_SFLOAT:
@@ -2315,10 +2315,10 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 		texelColor.y.w = Float(Int(*Pointer<UShort>(buffer + 0xa)));
 		texelColor.z.w = Float(Int(*Pointer<UShort>(buffer + 0xc)));
 		texelColor.w.w = Float(Int(*Pointer<UShort>(buffer + 0xe)));
-		texelColor.x *= (1.0f / 0xFFFFu);
-		texelColor.y *= (1.0f / 0xFFFFu);
-		texelColor.z *= (1.0f / 0xFFFFu);
-		texelColor.w *= (1.0f / 0xFFFFu);
+		texelColor.x *= (1.0f / 0xFFFF);
+		texelColor.y *= (1.0f / 0xFFFF);
+		texelColor.z *= (1.0f / 0xFFFF);
+		texelColor.w *= (1.0f / 0xFFFF);
 		break;
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
 		buffer += 8 * x;
@@ -2355,10 +2355,10 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 			// Attempt to read an integer based format and convert it to float
 			Vector4s color;
 			readPixel(index, cBuffer, x, color);
-			texelColor.x = convertFloat32(As<UShort4>(color.x));
-			texelColor.y = convertFloat32(As<UShort4>(color.y));
-			texelColor.z = convertFloat32(As<UShort4>(color.z));
-			texelColor.w = convertFloat32(As<UShort4>(color.w));
+			texelColor.x = Float4(As<UShort4>(color.x)) * (1.0f / 0xFFFF);
+			texelColor.y = Float4(As<UShort4>(color.y)) * (1.0f / 0xFFFF);
+			texelColor.z = Float4(As<UShort4>(color.z)) * (1.0f / 0xFFFF);
+			texelColor.w = Float4(As<UShort4>(color.w)) * (1.0f / 0xFFFF);
 		}
 		break;
 	}
@@ -2501,17 +2501,17 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	{
 	case VK_FORMAT_R16G16B16A16_UNORM:
 		color.w = Min(Max(color.w, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.w = As<Float4>(RoundInt(color.w * 0xFFFFu));
+		color.w = As<Float4>(RoundInt(color.w * 0xFFFF));
 		color.z = Min(Max(color.z, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.z = As<Float4>(RoundInt(color.z * 0xFFFFu));
+		color.z = As<Float4>(RoundInt(color.z * 0xFFFF));
 		// [[fallthrough]]
 	case VK_FORMAT_R16G16_UNORM:
 		color.y = Min(Max(color.y, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.y = As<Float4>(RoundInt(color.y * 0xFFFFu));
+		color.y = As<Float4>(RoundInt(color.y * 0xFFFF));
 		//[[fallthrough]]
 	case VK_FORMAT_R16_UNORM:
 		color.x = Min(Max(color.x, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
-		color.x = As<Float4>(RoundInt(color.x * 0xFFFFu));
+		color.x = As<Float4>(RoundInt(color.x * 0xFFFF));
 		break;
 	default:
 		// TODO(b/204560089): Omit clamp if redundant
@@ -3144,16 +3144,6 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	default:
 		UNSUPPORTED("VkFormat: %d", int(format));
 	}
-}
-
-UShort4 PixelRoutine::convertFixed16(const Float4 &cf, bool saturate)
-{
-	return UShort4(cf * 0xFFFFu, saturate);
-}
-
-Float4 PixelRoutine::convertFloat32(const UShort4 &cf)
-{
-	return Float4(cf) * (1.0f / 65535.0f);
 }
 
 void PixelRoutine::sRGBtoLinear16_12_16(Vector4s &c)

@@ -59,8 +59,6 @@ protected:
 	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &current, const Int &sMask, const Int &zMask, const Int &cMask);
 
 	bool isSRGB(int index) const;
-	UShort4 convertFixed16(const Float4 &cf, bool saturate = true);
-	Float4 convertFloat32(const UShort4 &cf);
 	void linearToSRGB12_16(Vector4s &c);
 
 private:
