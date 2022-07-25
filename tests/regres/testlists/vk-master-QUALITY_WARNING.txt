@@ -1,0 +1,2 @@
+dEQP-VK.pipeline.monolithic.creation_cache_control.graphics_pipelines.batch_pipelines_early_return
+dEQP-VK.pipeline.monolithic.creation_cache_control.graphics_pipelines.single_pipeline_no_compile
