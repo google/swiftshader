@@ -105,8 +105,8 @@ private:
 	void linearToSRGB16_12_16(Vector4s &c);
 	Float4 sRGBtoLinear(const Float4 &x);
 
-	SIMD::Float getDepthValue32F(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
-	SIMD::Float getDepthValue16(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
+	SIMD::Float readDepth32F(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
+	SIMD::Float readDepth16(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
 
 	void writeDepth32F(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask);
 	void writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask);

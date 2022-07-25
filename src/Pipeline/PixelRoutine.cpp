@@ -419,7 +419,7 @@ void PixelRoutine::stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, boo
 	}
 }
 
-SIMD::Float PixelRoutine::getDepthValue32F(const Pointer<Byte> &zBuffer, int q, const Int &x) const
+SIMD::Float PixelRoutine::readDepth32F(const Pointer<Byte> &zBuffer, int q, const Int &x) const
 {
 	ASSERT(SIMD::Width == 4);
 	Pointer<Byte> buffer = zBuffer + 4 * x;
@@ -434,7 +434,7 @@ SIMD::Float PixelRoutine::getDepthValue32F(const Pointer<Byte> &zBuffer, int q, 
 	return SIMD::Float(zValue);
 }
 
-SIMD::Float PixelRoutine::getDepthValue16(const Pointer<Byte> &zBuffer, int q, const Int &x) const
+SIMD::Float PixelRoutine::readDepth16(const Pointer<Byte> &zBuffer, int q, const Int &x) const
 {
 	ASSERT(SIMD::Width == 4);
 	Pointer<Byte> buffer = zBuffer + 2 * x;
@@ -478,12 +478,12 @@ Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, 
 		{
 		case VK_FORMAT_D16_UNORM:
 			Z = Min(Max(Round(z * 0xFFFF), 0.0f), 0xFFFF);
-			zValue = getDepthValue16(zBuffer, q, x);
+			zValue = readDepth16(zBuffer, q, x);
 			break;
 		case VK_FORMAT_D32_SFLOAT:
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			Z = z;
-			zValue = getDepthValue32F(zBuffer, q, x);
+			zValue = readDepth32F(zBuffer, q, x);
 			break;
 		default:
 			UNSUPPORTED("Depth format: %d", int(state.depthFormat));
