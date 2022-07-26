@@ -1,0 +1,1 @@
+dEQP-VK.info.device_mandatory_features
