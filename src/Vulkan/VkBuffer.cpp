@@ -17,6 +17,7 @@
 #include "VkConfig.hpp"
 #include "VkDeviceMemory.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <limits>
 
@@ -66,22 +67,21 @@ const VkMemoryRequirements Buffer::GetMemoryRequirements(VkDeviceSize size, VkBu
 	VkMemoryRequirements memoryRequirements = {};
 
 	memoryRequirements.size = size;
+	memoryRequirements.alignment = REQUIRED_MEMORY_ALIGNMENT;
 
 	if(usage & (VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT))
 	{
-		memoryRequirements.alignment = vk::MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT;
+		memoryRequirements.alignment = std::max(memoryRequirements.alignment, vk::MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT);
 	}
-	else if(usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
+
+	if(usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
 	{
-		memoryRequirements.alignment = vk::MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT;
+		memoryRequirements.alignment = std::max(memoryRequirements.alignment, vk::MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT);
 	}
-	else if(usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+
+	if(usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
 	{
-		memoryRequirements.alignment = vk::MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT;
-	}
-	else
-	{
-		memoryRequirements.alignment = REQUIRED_MEMORY_ALIGNMENT;
+		memoryRequirements.alignment = std::max(memoryRequirements.alignment, vk::MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
 	}
 
 	memoryRequirements.memoryTypeBits = vk::MEMORY_TYPE_GENERIC_BIT;
