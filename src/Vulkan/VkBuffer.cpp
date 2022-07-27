@@ -67,7 +67,7 @@ const VkMemoryRequirements Buffer::GetMemoryRequirements(VkDeviceSize size, VkBu
 	VkMemoryRequirements memoryRequirements = {};
 
 	memoryRequirements.size = size;
-	memoryRequirements.alignment = REQUIRED_MEMORY_ALIGNMENT;
+	memoryRequirements.alignment = vk::MEMORY_REQUIREMENTS_OFFSET_ALIGNMENT;
 
 	if(usage & (VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT))
 	{

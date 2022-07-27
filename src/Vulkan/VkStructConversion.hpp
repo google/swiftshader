@@ -397,7 +397,7 @@ struct SubmitInfo
 		}
 
 		uint8_t *mem = static_cast<uint8_t *>(
-		    vk::allocateHostMemory(totalSize, vk::REQUIRED_MEMORY_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
+		    vk::allocateHostMemory(totalSize, vk::HOST_MEMORY_ALLOCATION_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
 
 		auto submits = new(mem) SubmitInfo[submitCount];
 		mem += submitSize;
@@ -524,7 +524,7 @@ struct SubmitInfo
 		}
 
 		uint8_t *mem = static_cast<uint8_t *>(
-		    vk::allocateHostMemory(totalSize, vk::REQUIRED_MEMORY_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
+		    vk::allocateHostMemory(totalSize, vk::HOST_MEMORY_ALLOCATION_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
 
 		auto submits = new(mem) SubmitInfo[submitCount];
 		mem += submitSize;

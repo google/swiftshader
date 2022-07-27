@@ -339,7 +339,7 @@ bool DeviceMemory::checkExternalMemoryHandleType(
 // and sets `buffer`.
 VkResult DeviceMemory::allocateBuffer()
 {
-	buffer = vk::allocateDeviceMemory(allocationSize, REQUIRED_MEMORY_ALIGNMENT);
+	buffer = vk::allocateDeviceMemory(allocationSize, vk::DEVICE_MEMORY_ALLOCATION_ALIGNMENT);
 	if(!buffer)
 	{
 		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
