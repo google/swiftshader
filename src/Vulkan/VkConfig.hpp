@@ -37,6 +37,9 @@ constexpr uint32_t DEVICE_ID = 0xC0DE;  // SwiftShader (placeholder)
 // "Allocations returned by vkAllocateMemory are guaranteed to meet any alignment requirement of the implementation."
 constexpr VkDeviceSize DEVICE_MEMORY_ALLOCATION_ALIGNMENT = 256;
 
+constexpr VkDeviceSize MIN_MEMORY_MAP_ALIGNMENT = 64;
+static_assert(DEVICE_MEMORY_ALLOCATION_ALIGNMENT >= MIN_MEMORY_MAP_ALIGNMENT);
+
 constexpr VkDeviceSize MIN_IMPORTED_HOST_POINTER_ALIGNMENT = 4096;
 static_assert(MIN_IMPORTED_HOST_POINTER_ALIGNMENT >= DEVICE_MEMORY_ALLOCATION_ALIGNMENT);
 
