@@ -1066,7 +1066,7 @@ void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo *
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceExternalMemoryHostPropertiesEXT *properties) const
 {
-	properties->minImportedHostPointerAlignment = REQUIRED_MEMORY_ALIGNMENT;
+	properties->minImportedHostPointerAlignment = vk::MIN_IMPORTED_HOST_POINTER_ALIGNMENT;
 }
 
 template<typename T>

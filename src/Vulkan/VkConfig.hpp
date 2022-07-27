@@ -37,6 +37,8 @@ constexpr uint32_t DEVICE_ID = 0xC0DE;  // SwiftShader (placeholder)
 // Alignment of all Vulkan objects, pools, device memory, images, buffers, descriptors.
 constexpr VkDeviceSize REQUIRED_MEMORY_ALIGNMENT = 16;  // 16 bytes for 128-bit vector types.
 
+constexpr VkDeviceSize MIN_IMPORTED_HOST_POINTER_ALIGNMENT = 4096;
+
 // Vulkan 1.2 requires buffer offset alignment to be at most 256.
 constexpr VkDeviceSize MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT = 256;
 constexpr VkDeviceSize MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 256;
