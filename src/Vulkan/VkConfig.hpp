@@ -34,18 +34,25 @@ constexpr uint32_t DRIVER_VERSION = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION
 constexpr uint32_t VENDOR_ID = 0x1AE0;  // Google, Inc.: https://pcisig.com/google-inc-1
 constexpr uint32_t DEVICE_ID = 0xC0DE;  // SwiftShader (placeholder)
 
-constexpr VkDeviceSize DEVICE_MEMORY_ALLOCATION_ALIGNMENT = 16;  // 16 bytes for 128-bit vector types.
-constexpr VkDeviceSize HOST_MEMORY_ALLOCATION_ALIGNMENT = 16;    // 16 bytes for 128-bit vector types.
-
-constexpr VkDeviceSize MEMORY_REQUIREMENTS_OFFSET_ALIGNMENT = 16;
-static_assert(DEVICE_MEMORY_ALLOCATION_ALIGNMENT >= MEMORY_REQUIREMENTS_OFFSET_ALIGNMENT);
+// "Allocations returned by vkAllocateMemory are guaranteed to meet any alignment requirement of the implementation."
+constexpr VkDeviceSize DEVICE_MEMORY_ALLOCATION_ALIGNMENT = 256;
 
 constexpr VkDeviceSize MIN_IMPORTED_HOST_POINTER_ALIGNMENT = 4096;
+static_assert(MIN_IMPORTED_HOST_POINTER_ALIGNMENT >= DEVICE_MEMORY_ALLOCATION_ALIGNMENT);
 
 // Vulkan 1.2 requires buffer offset alignment to be at most 256.
 constexpr VkDeviceSize MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT = 256;
 constexpr VkDeviceSize MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 256;
 constexpr VkDeviceSize MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT = 256;
+static_assert(DEVICE_MEMORY_ALLOCATION_ALIGNMENT >= MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT);
+static_assert(DEVICE_MEMORY_ALLOCATION_ALIGNMENT >= MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
+static_assert(DEVICE_MEMORY_ALLOCATION_ALIGNMENT >= MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT);
+
+// Alignment of all other Vulkan resources.
+constexpr VkDeviceSize MEMORY_REQUIREMENTS_OFFSET_ALIGNMENT = 16;  // 16 bytes for 128-bit vector types.
+static_assert(DEVICE_MEMORY_ALLOCATION_ALIGNMENT >= MEMORY_REQUIREMENTS_OFFSET_ALIGNMENT);
+
+constexpr VkDeviceSize HOST_MEMORY_ALLOCATION_ALIGNMENT = 16;  // 16 bytes for 128-bit vector types.
 
 constexpr uint32_t MEMORY_TYPE_GENERIC_BIT = 0x1;  // Generic system memory.
 
