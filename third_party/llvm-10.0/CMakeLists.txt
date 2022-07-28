@@ -631,6 +631,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/SmallPtrSet.cpp
     ${LLVM_DIR}/lib/Support/SmallVector.cpp
     ${LLVM_DIR}/lib/Support/SourceMgr.cpp
+    ${LLVM_DIR}/lib/Support/SpecialCaseList.cpp
     ${LLVM_DIR}/lib/Support/Statistic.cpp
     ${LLVM_DIR}/lib/Support/StringExtras.cpp
     ${LLVM_DIR}/lib/Support/StringMap.cpp
@@ -643,6 +644,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/TimeProfiler.cpp
     ${LLVM_DIR}/lib/Support/Timer.cpp
     ${LLVM_DIR}/lib/Support/ToolOutputFile.cpp
+    ${LLVM_DIR}/lib/Support/TrigramIndex.cpp
     ${LLVM_DIR}/lib/Support/Triple.cpp
     ${LLVM_DIR}/lib/Support/Twine.cpp
     ${LLVM_DIR}/lib/Support/Unicode.cpp
@@ -686,14 +688,22 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
     ${LLVM_DIR}/lib/Transforms/InstCombine/InstCombineVectorOps.cpp
     ${LLVM_DIR}/lib/Transforms/InstCombine/InstructionCombining.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/AddressSanitizer.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/BoundsChecking.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/ControlHeightReduction.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/DataFlowSanitizer.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/GCOVProfiling.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/HWAddressSanitizer.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/IndirectCallPromotion.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/InstrOrderFile.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/InstrProfiling.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/Instrumentation.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/MemorySanitizer.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/PGOInstrumentation.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/PGOMemOPSizeOpt.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/SanitizerCoverage.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/ThreadSanitizer.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/ValueProfileCollector.cpp
-    ${LLVM_DIR}/lib/Transforms/Instrumentation/MemorySanitizer.cpp
     ${LLVM_DIR}/lib/Transforms/IPO/ArgumentPromotion.cpp
     ${LLVM_DIR}/lib/Transforms/IPO/Attributor.cpp
     ${LLVM_DIR}/lib/Transforms/IPO/BarrierNoopPass.cpp
@@ -771,6 +781,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Scalar/SROA.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/TailRecursionElimination.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/WarnMissedTransforms.cpp
+    ${LLVM_DIR}/lib/Transforms/Utils/ASanStackFrameLayout.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/BasicBlockUtils.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/BreakCriticalEdges.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/BuildLibCalls.cpp

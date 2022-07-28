@@ -36,6 +36,7 @@ __pragma(warning(push))
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Instrumentation/AddressSanitizer.h"
 #include "llvm/Transforms/Instrumentation/MemorySanitizer.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
@@ -62,6 +63,10 @@ __pragma(warning(push))
     __pragma(warning(pop))
 #endif
 
+#if __has_feature(memory_sanitizer) || __has_feature(address_sanitizer)
+#	include <dlfcn.h>  // dlsym()
+#endif
+
 #ifndef REACTOR_ASM_EMIT_DIR
 #	define REACTOR_ASM_EMIT_DIR "./"
 #endif
@@ -77,11 +82,7 @@ extern "C" signed __aeabi_idivmod();
 #endif
 
 #if __has_feature(memory_sanitizer)
-
-// TODO(b/155148722): Remove when we no longer unpoison any writes.
 #	include "sanitizer/msan_interface.h"
-
-#	include <dlfcn.h>  // dlsym()
 
 // MemorySanitizer uses thread-local storage (TLS) data arrays for passing around
 // the 'shadow' values of function arguments and return values. The LLVM JIT can't
@@ -590,7 +591,6 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			functions.try_emplace("__emutls_v.__msan_va_arg_overflow_size_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::va_arg_overflow_size)));
 			functions.try_emplace("__emutls_v.__msan_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::origin)));
 
-			// TODO(b/155148722): Remove when we no longer unpoison any writes.
 			functions.try_emplace("__msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));
 			functions.try_emplace("__msan_unpoison_param", reinterpret_cast<void *>(__msan_unpoison_param));
 #endif
@@ -636,9 +636,9 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 				continue;
 			}
 
-#if __has_feature(memory_sanitizer)
-			// MemorySanitizer uses a dynamically linked runtime. Instrumented routines reference
-			// some symbols from this library. Look them up dynamically in the default namespace.
+#if __has_feature(memory_sanitizer) || __has_feature(address_sanitizer)
+			// Sanitizers use a dynamically linked runtime. Instrumented routines reference some
+			// symbols from this library. Look them up dynamically in the default namespace.
 			// Note this approach should not be used for other symbols, since they might not be
 			// visible (e.g. due to static linking), we may wish to provide an alternate
 			// implementation, and/or it would be a security vulnerability.
@@ -933,6 +933,11 @@ void JITBuilder::runPasses()
 		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
 	}
 
+	if(__has_feature(address_sanitizer))
+	{
+		pm.addPass(llvm::ModuleAddressSanitizerPass(llvm::AddressSanitizerOptions{}));
+	}
+
 	pm.run(*module, mam);
 #else  // Legacy pass manager
 	llvm::legacy::PassManager passManager;
@@ -957,6 +962,11 @@ void JITBuilder::runPasses()
 	{
 		llvm::MemorySanitizerOptions msanOpts(0 /* TrackOrigins */, false /* Recover */, false /* Kernel */);
 		passManager.add(llvm::createMemorySanitizerLegacyPassPass(msanOpts));
+	}
+
+	if(__has_feature(address_sanitizer))
+	{
+		passManager.add(llvm::createAddressSanitizerFunctionPass());
 	}
 
 	passManager.run(*module);

@@ -503,6 +503,11 @@ static llvm::Function *createFunction(const char *name, llvm::Type *retTy, const
 #endif
 	}
 
+	if(__has_feature(address_sanitizer))
+	{
+		func->addFnAttr(llvm::Attribute::SanitizeAddress);
+	}
+
 	func->addFnAttr("warn-stack-size", "524288");  // Warn when a function uses more than 512 KiB of stack memory
 
 	return func;
@@ -4021,7 +4026,7 @@ void Nucleus::createCoroutine(Type *YieldType, const std::vector<Type *> &Params
 	auto promisePtrTy = promiseTy->getPointerTo();
 
 	jit->function = rr::createFunction("coroutine_begin", handleTy, T(Params));
-#if LLVM_VERSION_MAJOR >= 15
+#if LLVM_VERSION_MAJOR >= 16
 	jit->function->setPresplitCoroutine();
 #else
 	jit->function->addFnAttr("coroutine.presplit", "0");
