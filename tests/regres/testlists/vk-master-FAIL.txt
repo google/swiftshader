@@ -35,6 +35,7 @@ dEQP-VK.pipeline.pipeline_library.color_write_enable_maxa.cwe_before_bind.attach
 dEQP-VK.pipeline.pipeline_library.color_write_enable_maxa.cwe_before_bind.attachments6_more1
 dEQP-VK.pipeline.pipeline_library.color_write_enable_maxa.cwe_before_bind.attachments6_more3
 dEQP-VK.pipeline.pipeline_library.color_write_enable_maxa.cwe_before_bind.attachments6_more5
+dEQP-VK.robustness.robustness1_vertex_access.out_of_bounds_stride_16_single_buffer
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_nearest_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_nearest_linear_mipmap_linear_repeat
