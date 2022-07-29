@@ -394,6 +394,11 @@ CodeGenerator GetVariableCodeGenerator(const char* const built_in,
   generator.before_types_ = "OpDecorate %built_in_var BuiltIn ";
   generator.before_types_ += built_in;
   generator.before_types_ += "\n";
+  if ((0 == std::strcmp(storage_class, "Input")) &&
+      (0 == std::strcmp(execution_model, "Fragment"))) {
+    // ensure any needed input types that might require Flat
+    generator.before_types_ += "OpDecorate %built_in_var Flat\n";
+  }
 
   std::ostringstream after_types;
   if (InitializerRequired(storage_class)) {

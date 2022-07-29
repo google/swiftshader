@@ -6570,6 +6570,35 @@ TEST_F(ValidateIdWithMessage, MissingForwardPointer) {
           "Operand 3[%_ptr_Uniform__struct_2] requires a previous definition"));
 }
 
+TEST_F(ValidateIdWithMessage, NVBindlessSamplerInStruct) {
+  std::string spirv = R"(
+            OpCapability Shader
+            OpCapability BindlessTextureNV
+            OpExtension "SPV_NV_bindless_texture"
+            OpMemoryModel Logical GLSL450
+            OpSamplerImageAddressingModeNV 64
+            OpEntryPoint Fragment %main "main"
+            OpExecutionMode %main OriginUpperLeft
+    %void = OpTypeVoid
+       %3 = OpTypeFunction %void
+   %float = OpTypeFloat 32
+       %7 = OpTypeImage %float 2D 0 0 0 1 Unknown
+       %8 = OpTypeSampledImage %7
+       %9 = OpTypeImage %float 2D 0 0 0 2 Rgba32f
+      %10 = OpTypeSampler
+     %UBO = OpTypeStruct %8 %9 %10
+%_ptr_Uniform_UBO = OpTypePointer Uniform %UBO
+       %_ = OpVariable %_ptr_Uniform_UBO Uniform
+    %main = OpFunction %void None %3
+       %5 = OpLabel
+            OpReturn
+            OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+}
+
 }  // namespace
 }  // namespace val
 }  // namespace spvtools

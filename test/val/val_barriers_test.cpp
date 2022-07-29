@@ -359,12 +359,25 @@ OpControlBarrier %subgroup %subgroup %none
 
   CompileSuccessfully(GenerateShaderCode(body), SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_VULKAN_1_0));
-  EXPECT_THAT(getDiagnosticString(),
-              AnyVUID("VUID-StandaloneSpirv-None-04638"));
   EXPECT_THAT(
       getDiagnosticString(),
-      HasSubstr("ControlBarrier: in Vulkan 1.0 environment Memory Scope is "
-                "limited to Device, Workgroup and Invocation"));
+      HasSubstr(
+          "ControlBarrier: in Vulkan 1.0 environment Memory Scope is can not "
+          "be Subgroup without SubgroupBallotKHR or SubgroupVoteKHR declared"));
+}
+
+TEST_F(ValidateBarriers, OpControlBarrierVulkanMemoryScopeSubgroupVoteKHR) {
+  const std::string capabilities = R"(
+OpCapability SubgroupVoteKHR
+OpExtension "SPV_KHR_subgroup_vote"
+)";
+  const std::string body = R"(
+OpControlBarrier %subgroup %subgroup %none
+)";
+
+  CompileSuccessfully(GenerateShaderCode(body, capabilities),
+                      SPV_ENV_VULKAN_1_0);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_VULKAN_1_0));
 }
 
 TEST_F(ValidateBarriers, OpControlBarrierVulkan1p1MemoryScopeSubgroup) {
@@ -386,8 +399,9 @@ OpControlBarrier %subgroup %cross_device %none
   EXPECT_THAT(getDiagnosticString(),
               AnyVUID("VUID-StandaloneSpirv-None-04638"));
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("ControlBarrier: in Vulkan environment, Memory Scope "
-                        "cannot be CrossDevice"));
+              HasSubstr("ControlBarrier: in Vulkan environment Memory Scope is "
+                        "limited to Device, QueueFamily, Workgroup, "
+                        "ShaderCallKHR, Subgroup, or Invocation"));
 }
 
 TEST_F(ValidateBarriers,
@@ -751,12 +765,11 @@ OpMemoryBarrier %subgroup %acquire_release_uniform_workgroup
 
   CompileSuccessfully(GenerateShaderCode(body), SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_VULKAN_1_0));
-  EXPECT_THAT(getDiagnosticString(),
-              AnyVUID("VUID-StandaloneSpirv-None-04638"));
   EXPECT_THAT(
       getDiagnosticString(),
-      HasSubstr("MemoryBarrier: in Vulkan 1.0 environment Memory Scope is "
-                "limited to Device, Workgroup and Invocation"));
+      HasSubstr(
+          "MemoryBarrier: in Vulkan 1.0 environment Memory Scope is can not be "
+          "Subgroup without SubgroupBallotKHR or SubgroupVoteKHR declared"));
 }
 
 TEST_F(ValidateBarriers, OpMemoryBarrierVulkan1p1MemoryScopeSubgroup) {

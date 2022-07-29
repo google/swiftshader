@@ -101,6 +101,17 @@ TEST_F(BinaryToText, Default) {
   spvTextDestroy(text);
 }
 
+TEST_F(BinaryToText, Print) {
+  spv_text text = nullptr;
+  spv_diagnostic diagnostic = nullptr;
+  ASSERT_EQ(
+      SPV_SUCCESS,
+      spvBinaryToText(context, binary->code, binary->wordCount,
+                      SPV_BINARY_TO_TEXT_OPTION_PRINT, &text, &diagnostic));
+  ASSERT_EQ(text, nullptr);
+  spvTextDestroy(text);
+}
+
 TEST_F(BinaryToText, MissingModule) {
   spv_text text;
   spv_diagnostic diagnostic = nullptr;

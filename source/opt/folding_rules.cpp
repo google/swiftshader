@@ -277,6 +277,11 @@ uint32_t Reciprocal(analysis::ConstantManager* const_mgr,
   uint32_t width = c->type()->AsFloat()->width();
   assert(width == 32 || width == 64);
   std::vector<uint32_t> words;
+
+  if (c->IsZero()) {
+    return 0;
+  }
+
   if (width == 64) {
     spvtools::utils::FloatProxy<double> result(1.0 / c->GetDouble());
     if (!IsValidResult(result.getAsFloat())) return 0;

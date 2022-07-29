@@ -6248,6 +6248,138 @@ OpFunctionEnd
   EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_6));
 }
 
+TEST_F(ValidateImage, NVBindlessSamplerBuiltins) {
+  const std::string text = R"(
+              OpCapability Shader
+              OpCapability Int64
+              OpCapability Image1D
+              OpCapability BindlessTextureNV
+              OpExtension "SPV_NV_bindless_texture"
+         %1 = OpExtInstImport "GLSL.std.450"
+              OpMemoryModel Logical GLSL450
+              OpSamplerImageAddressingModeNV 64
+              OpEntryPoint Fragment %main "main"
+              OpExecutionMode %main OriginUpperLeft
+              OpSource GLSL 450
+              OpName %main "main"
+              OpName %s2D "s2D"
+              OpName %textureHandle "textureHandle"
+              OpName %i1D "i1D"
+              OpName %s "s"
+              OpName %temp "temp"
+      %void = OpTypeVoid
+         %3 = OpTypeFunction %void
+     %float = OpTypeFloat 32
+         %7 = OpTypeImage %float 2D 0 0 0 1 Unknown
+         %8 = OpTypeSampledImage %7
+%_ptr_Function_8 = OpTypePointer Function %8
+     %ulong = OpTypeInt 64 0
+%_ptr_Private_ulong = OpTypePointer Private %ulong
+%textureHandle = OpVariable %_ptr_Private_ulong Private
+        %16 = OpTypeImage %float 1D 0 0 0 2 Rgba32f
+%_ptr_Function_16 = OpTypePointer Function %16
+        %21 = OpTypeSampler
+%_ptr_Function_21 = OpTypePointer Function %21
+%_ptr_Function_ulong = OpTypePointer Function %ulong
+      %main = OpFunction %void None %3
+         %5 = OpLabel
+       %s2D = OpVariable %_ptr_Function_8 Function
+       %i1D = OpVariable %_ptr_Function_16 Function
+         %s = OpVariable %_ptr_Function_21 Function
+      %temp = OpVariable %_ptr_Function_ulong Function
+        %14 = OpLoad %ulong %textureHandle
+        %15 = OpConvertUToSampledImageNV %8 %14
+              OpStore %s2D %15
+        %19 = OpLoad %ulong %textureHandle
+        %20 = OpConvertUToImageNV %16 %19
+              OpStore %i1D %20
+        %24 = OpLoad %ulong %textureHandle
+        %25 = OpConvertUToSamplerNV %21 %24
+              OpStore %s %25
+        %28 = OpLoad %8 %s2D
+        %29 = OpConvertSampledImageToUNV %ulong %28
+              OpStore %temp %29
+        %30 = OpLoad %16 %i1D
+        %31 = OpConvertImageToUNV %ulong %30
+              OpStore %temp %31
+        %32 = OpLoad %21 %s
+        %33 = OpConvertSamplerToUNV %ulong %32
+              OpStore %temp %33
+              OpReturn
+              OpFunctionEnd
+)";
+
+  CompileSuccessfully(text, SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+}
+
+TEST_F(ValidateImage, NVBindlessAddressingMode64) {
+  std::string text = R"(
+         OpCapability Shader
+         OpCapability BindlessTextureNV
+         OpExtension "SPV_NV_bindless_texture"
+         OpMemoryModel Logical GLSL450
+         OpSamplerImageAddressingModeNV 64
+         OpEntryPoint GLCompute %func "main"
+%voidt = OpTypeVoid
+%uintt = OpTypeInt 32 0
+%funct = OpTypeFunction %voidt
+%func  = OpFunction %voidt None %funct
+%entry = OpLabel
+%udef  = OpUndef %uintt
+         OpReturn
+         OpFunctionEnd
+)";
+  CompileSuccessfully(text, SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+}
+
+TEST_F(ValidateImage, NVBindlessAddressingMode32) {
+  std::string text = R"(
+         OpCapability Shader
+         OpCapability BindlessTextureNV
+         OpExtension "SPV_NV_bindless_texture"
+         OpMemoryModel Logical GLSL450
+         OpSamplerImageAddressingModeNV 32
+         OpEntryPoint GLCompute %func "main"
+%voidt = OpTypeVoid
+%uintt = OpTypeInt 32 0
+%funct = OpTypeFunction %voidt
+%func  = OpFunction %voidt None %funct
+%entry = OpLabel
+%udef  = OpUndef %uintt
+         OpReturn
+         OpFunctionEnd
+)";
+  CompileSuccessfully(text, SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+}
+
+TEST_F(ValidateImage, NVBindlessInvalidAddressingMode) {
+  std::string text = R"(
+         OpCapability Shader
+         OpCapability BindlessTextureNV
+         OpExtension "SPV_NV_bindless_texture"
+         OpMemoryModel Logical GLSL450
+         OpSamplerImageAddressingModeNV 0
+         OpEntryPoint GLCompute %func "main"
+%voidt = OpTypeVoid
+%uintt = OpTypeInt 32 0
+%funct = OpTypeFunction %voidt
+%func  = OpFunction %voidt None %funct
+%entry = OpLabel
+%udef  = OpUndef %uintt
+         OpReturn
+         OpFunctionEnd
+)";
+  CompileSuccessfully(text, SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_ERROR_INVALID_DATA,
+            ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr("OpSamplerImageAddressingModeNV bitwidth should be 64 or 32"));
+}
+
 }  // namespace
 }  // namespace val
 }  // namespace spvtools
