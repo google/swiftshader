@@ -1525,6 +1525,45 @@ OpFunctionEnd
   EXPECT_EQ(false, inst->IsVulkanStorageTexelBuffer());
 }
 
+TEST_F(DescriptorTypeTest, GetShader100DebugOpcode) {
+  const std::string text = R"(
+              OpCapability Shader
+         %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+         %2 = OpString "ps.hlsl"
+         %3 = OpString "#line 1 \"ps.hlsl\""
+      %void = OpTypeVoid
+         %5 = OpExtInst %void %1 DebugExpression
+         %6 = OpExtInst %void %1 DebugSource %2 %3
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  std::unique_ptr<IRContext> context =
+      BuildModule(SPV_ENV_UNIVERSAL_1_2, nullptr, text);
+  Instruction* debug_expression = context->get_def_use_mgr()->GetDef(5);
+  EXPECT_EQ(debug_expression->GetShader100DebugOpcode(),
+            NonSemanticShaderDebugInfo100DebugExpression);
+  Instruction* debug_source = context->get_def_use_mgr()->GetDef(6);
+  EXPECT_EQ(debug_source->GetShader100DebugOpcode(),
+            NonSemanticShaderDebugInfo100DebugSource);
+
+  // Test that an opcode larger than the max will return Max.  This instruction
+  // cannot be in the assembly above because the assembler expects the string
+  // for the opcode, so we cannot use an arbitrary number.  However, a binary
+  // file could have an arbitrary number.
+  std::unique_ptr<Instruction> past_max(debug_expression->Clone(context.get()));
+  const uint32_t kExtInstOpcodeInIndex = 1;
+  uint32_t large_opcode = NonSemanticShaderDebugInfo100InstructionsMax + 2;
+  past_max->SetInOperand(kExtInstOpcodeInIndex, {large_opcode});
+  EXPECT_EQ(past_max->GetShader100DebugOpcode(),
+            NonSemanticShaderDebugInfo100InstructionsMax);
+
+  // Test that an opcode without a value in the enum, but less than Max returns
+  // the same value.
+  uint32_t opcode = NonSemanticShaderDebugInfo100InstructionsMax - 2;
+  past_max->SetInOperand(kExtInstOpcodeInIndex, {opcode});
+  EXPECT_EQ(past_max->GetShader100DebugOpcode(), opcode);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

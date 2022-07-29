@@ -1202,7 +1202,6 @@ TEST_F(ScalarAnalysisTest, InductionWithVariantStep) {
   EXPECT_EQ(phis.size(), 2u);
   SENode* phi_node_1 = analysis.AnalyzeInstruction(phis[0]);
   SENode* phi_node_2 = analysis.AnalyzeInstruction(phis[1]);
-  phi_node_1->DumpDot(std::cout, true);
   EXPECT_NE(phi_node_1, nullptr);
   EXPECT_NE(phi_node_2, nullptr);
 

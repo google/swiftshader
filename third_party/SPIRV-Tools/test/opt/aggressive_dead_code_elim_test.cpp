@@ -3541,9 +3541,11 @@ OpLoopMerge %14 %15 None
 OpBranch %16
 %16 = OpLabel
 OpSelectionMerge %18 None
-OpSwitch %13 %18 0 %17 1 %15
+OpSwitch %13 %18 0 %17 1 %19
 %17 = OpLabel
 OpStore %3 %uint_1
+OpBranch %19
+%19 = OpLabel
 OpBranch %15
 %15 = OpLabel
 OpBranch %12
@@ -7624,6 +7626,55 @@ OpFunctionEnd
   SetTargetEnv(SPV_ENV_VULKAN_1_2);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   SinglePassRunAndCheck<AggressiveDCEPass>(text, text, false);
+}
+
+TEST_F(AggressiveDCETest, FunctionBecomesUnreachableAfterDCE) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource ESSL 320
+       %void = OpTypeVoid
+          %4 = OpTypeFunction %void
+        %int = OpTypeInt 32 1
+%_ptr_Function_int = OpTypePointer Function %int
+          %7 = OpTypeFunction %int
+     %int_n1 = OpConstant %int -1
+          %2 = OpFunction %void None %4
+          %9 = OpLabel
+               OpKill
+         %10 = OpLabel
+         %11 = OpFunctionCall %int %12
+               OpReturn
+               OpFunctionEnd
+; CHECK: {{%\w+}} = OpFunction %int DontInline|Pure
+         %12 = OpFunction %int DontInline|Pure %7
+; CHECK-NEXT: {{%\w+}} = OpLabel
+         %13 = OpLabel
+         %14 = OpVariable %_ptr_Function_int Function
+; CHECK-NEXT: OpBranch [[header:%\w+]]
+               OpBranch %15
+; CHECK-NEXT: [[header]] = OpLabel
+; CHECK-NEXT: OpBranch [[merge:%\w+]]
+         %15 = OpLabel
+               OpLoopMerge %16 %17 None
+               OpBranch %18
+         %18 = OpLabel
+         %19 = OpLoad %int %14
+               OpBranch %17
+         %17 = OpLabel
+               OpBranch %15
+; CHECK-NEXT: [[merge]] = OpLabel
+         %16 = OpLabel
+; CHECK-NEXT: OpReturnValue %int_n1
+               OpReturnValue %int_n1
+; CHECK-NEXT: OpFunctionEnd
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<AggressiveDCEPass>(text, true);
 }
 
 }  // namespace

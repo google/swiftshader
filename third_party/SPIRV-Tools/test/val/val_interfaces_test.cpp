@@ -711,7 +711,9 @@ OpMemoryModel Logical GLSL450
 OpEntryPoint Fragment %main "main" %var1 %var2
 OpExecutionMode %main OriginUpperLeft
 OpDecorate %var1 Location 0
+OpDecorate %var1 Flat
 OpDecorate %var2 Location 1
+OpDecorate %var2 Flat
 %void = OpTypeVoid
 %void_fn = OpTypeFunction %void
 %float = OpTypeFloat 32

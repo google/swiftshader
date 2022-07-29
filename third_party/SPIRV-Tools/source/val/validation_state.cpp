@@ -90,6 +90,8 @@ ModuleLayoutSection InstructionLayoutSection(
       if (current_section == kLayoutFunctionDeclarations)
         return kLayoutFunctionDeclarations;
       return kLayoutFunctionDefinitions;
+    case SpvOpSamplerImageAddressingModeNV:
+      return kLayoutSamplerImageAddressMode;
     default:
       break;
   }
@@ -161,6 +163,7 @@ ValidationState_t::ValidationState_t(const spv_const_context ctx,
       addressing_model_(SpvAddressingModelMax),
       memory_model_(SpvMemoryModelMax),
       pointer_size_and_alignment_(0),
+      sampler_image_addressing_mode_(0),
       in_function_(false),
       num_of_warnings_(0),
       max_num_of_warnings_(max_warnings) {
@@ -472,6 +475,15 @@ void ValidationState_t::set_memory_model(SpvMemoryModel mm) {
 }
 
 SpvMemoryModel ValidationState_t::memory_model() const { return memory_model_; }
+
+void ValidationState_t::set_samplerimage_variable_address_mode(
+    uint32_t bit_width) {
+  sampler_image_addressing_mode_ = bit_width;
+}
+
+uint32_t ValidationState_t::samplerimage_variable_address_mode() const {
+  return sampler_image_addressing_mode_;
+}
 
 spv_result_t ValidationState_t::RegisterFunction(
     uint32_t id, uint32_t ret_type_id, SpvFunctionControlMask function_control,
@@ -965,6 +977,11 @@ bool ValidationState_t::GetPointerTypeInfo(uint32_t id, uint32_t* data_type,
   return true;
 }
 
+bool ValidationState_t::IsAccelerationStructureType(uint32_t id) const {
+  const Instruction* inst = FindDef(id);
+  return inst && inst->opcode() == SpvOpTypeAccelerationStructureKHR;
+}
+
 bool ValidationState_t::IsCooperativeMatrixType(uint32_t id) const {
   const Instruction* inst = FindDef(id);
   return inst && inst->opcode() == SpvOpTypeCooperativeMatrixNV;
@@ -983,6 +1000,13 @@ bool ValidationState_t::IsIntCooperativeMatrixType(uint32_t id) const {
 bool ValidationState_t::IsUnsignedIntCooperativeMatrixType(uint32_t id) const {
   if (!IsCooperativeMatrixType(id)) return false;
   return IsUnsignedIntScalarType(FindDef(id)->word(2));
+}
+
+// Either a 32 bit 2-component uint vector or a 64 bit uint scalar
+bool ValidationState_t::IsUnsigned64BitHandle(uint32_t id) const {
+  return ((IsUnsignedIntScalarType(id) && GetBitWidth(id) == 64) ||
+          (IsUnsignedIntVectorType(id) && GetDimension(id) == 2 &&
+           GetBitWidth(id) == 32));
 }
 
 spv_result_t ValidationState_t::CooperativeMatrixShapesMatch(
@@ -1878,7 +1902,7 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
     case 4677:
       return VUID_WRAP(VUID-StandaloneSpirv-Invariant-04677);
     case 4680:
-      return VUID_WRAP( VUID-StandaloneSpirv-OpTypeRuntimeArray-04680);
+      return VUID_WRAP(VUID-StandaloneSpirv-OpTypeRuntimeArray-04680);
     case 4682:
       return VUID_WRAP(VUID-StandaloneSpirv-OpControlBarrier-04682);
     case 6426:
@@ -1903,6 +1927,8 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-OpMemoryBarrier-04733);
     case 4734:
       return VUID_WRAP(VUID-StandaloneSpirv-OpVariable-04734);
+    case 4744:
+      return VUID_WRAP(VUID-StandaloneSpirv-Flat-04744);
     case 4777:
       return VUID_WRAP(VUID-StandaloneSpirv-OpImage-04777);
     case 4780:
@@ -1919,6 +1945,10 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-Location-04918);
     case 4919:
       return VUID_WRAP(VUID-StandaloneSpirv-Location-04919);
+    case 6201:
+      return VUID_WRAP(VUID-StandaloneSpirv-Flat-06201);
+    case 6202:
+      return VUID_WRAP(VUID-StandaloneSpirv-Flat-06202);
     case 6214:
       return VUID_WRAP(VUID-StandaloneSpirv-OpTypeImage-06214);
     case 6491:
@@ -1941,6 +1971,12 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-PerVertexKHR-06777);
     case 6778:
       return VUID_WRAP(VUID-StandaloneSpirv-Input-06778);
+    case 6807:
+      return VUID_WRAP(VUID-StandaloneSpirv-Uniform-06807);
+    case 6808:
+      return VUID_WRAP(VUID-StandaloneSpirv-PushConstant-06808);
+    case 6925:
+      return VUID_WRAP(VUID-StandaloneSpirv-Uniform-06925);
     default:
       return "";  // unknown id
   }

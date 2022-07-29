@@ -266,6 +266,67 @@ TEST(Types, AllTypes) {
   }
 }
 
+TEST(Types, TestNumberOfComponentsOnArrays) {
+  Float f32(32);
+  EXPECT_EQ(f32.NumberOfComponents(), 0);
+
+  Array array_size_42(
+      &f32, Array::LengthInfo{99u, {Array::LengthInfo::kConstant, 42u}});
+  EXPECT_EQ(array_size_42.NumberOfComponents(), 42);
+
+  Array array_size_0xDEADBEEF00C0FFEE(
+      &f32, Array::LengthInfo{
+                99u, {Array::LengthInfo::kConstant, 0xC0FFEE, 0xDEADBEEF}});
+  EXPECT_EQ(array_size_0xDEADBEEF00C0FFEE.NumberOfComponents(),
+            0xDEADBEEF00C0FFEEull);
+
+  Array array_size_unknown(
+      &f32,
+      Array::LengthInfo{99u, {Array::LengthInfo::kConstantWithSpecId, 10}});
+  EXPECT_EQ(array_size_unknown.NumberOfComponents(), UINT64_MAX);
+
+  RuntimeArray runtime_array(&f32);
+  EXPECT_EQ(runtime_array.NumberOfComponents(), UINT64_MAX);
+}
+
+TEST(Types, TestNumberOfComponentsOnVectors) {
+  Float f32(32);
+  EXPECT_EQ(f32.NumberOfComponents(), 0);
+
+  for (uint32_t vector_size = 1; vector_size < 4; ++vector_size) {
+    Vector vector(&f32, vector_size);
+    EXPECT_EQ(vector.NumberOfComponents(), vector_size);
+  }
+}
+
+TEST(Types, TestNumberOfComponentsOnMatrices) {
+  Float f32(32);
+  Vector vector(&f32, 2);
+
+  for (uint32_t number_of_columns = 1; number_of_columns < 4;
+       ++number_of_columns) {
+    Matrix matrix(&vector, number_of_columns);
+    EXPECT_EQ(matrix.NumberOfComponents(), number_of_columns);
+  }
+}
+
+TEST(Types, TestNumberOfComponentsOnStructs) {
+  Float f32(32);
+  Vector vector(&f32, 2);
+
+  Struct empty_struct({});
+  EXPECT_EQ(empty_struct.NumberOfComponents(), 0);
+
+  Struct struct_f32({&f32});
+  EXPECT_EQ(struct_f32.NumberOfComponents(), 1);
+
+  Struct struct_f32_vec({&f32, &vector});
+  EXPECT_EQ(struct_f32_vec.NumberOfComponents(), 2);
+
+  Struct struct_100xf32(std::vector<const Type*>(100, &f32));
+  EXPECT_EQ(struct_100xf32.NumberOfComponents(), 100);
+}
+
 TEST(Types, IntSignedness) {
   std::vector<bool> signednesses = {true, false, false, true};
   std::vector<std::unique_ptr<Integer>> types;
