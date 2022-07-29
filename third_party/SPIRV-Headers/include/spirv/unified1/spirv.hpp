@@ -26,7 +26,7 @@
 // the Binary Section of the SPIR-V specification.
 
 // Enumeration tokens for SPIR-V, in various styles:
-//   C, C++, C++11, JSON, Lua, Python, C#, D
+//   C, C++, C++11, JSON, Lua, Python, C#, D, Beef
 // 
 // - C will have tokens with a "Spv" prefix, e.g.: SpvSourceLanguageGLSL
 // - C++ will have tokens in the "spv" name space, e.g.: spv::SourceLanguageGLSL
@@ -36,6 +36,8 @@
 // - C# will use enum classes in the Specification class located in the "Spv" namespace,
 //     e.g.: Spv.Specification.SourceLanguage.GLSL
 // - D will have tokens under the "spv" module, e.g: spv.SourceLanguage.GLSL
+// - Beef will use enum classes in the Specification class located in the "Spv" namespace,
+//     e.g.: Spv.Specification.SourceLanguage.GLSL
 // 
 // Some tokens act like mask values, which can be OR'd together,
 // while others are mutually exclusive.  The mask-like ones have
@@ -159,7 +161,14 @@ enum ExecutionMode {
     ExecutionModeSignedZeroInfNanPreserve = 4461,
     ExecutionModeRoundingModeRTE = 4462,
     ExecutionModeRoundingModeRTZ = 4463,
+    ExecutionModeEarlyAndLateFragmentTestsAMD = 5017,
     ExecutionModeStencilRefReplacingEXT = 5027,
+    ExecutionModeStencilRefUnchangedFrontAMD = 5079,
+    ExecutionModeStencilRefGreaterFrontAMD = 5080,
+    ExecutionModeStencilRefLessFrontAMD = 5081,
+    ExecutionModeStencilRefUnchangedBackAMD = 5082,
+    ExecutionModeStencilRefGreaterBackAMD = 5083,
+    ExecutionModeStencilRefLessBackAMD = 5084,
     ExecutionModeOutputLinesNV = 5269,
     ExecutionModeOutputPrimitivesNV = 5270,
     ExecutionModeDerivativeGroupQuadsNV = 5289,
