@@ -545,17 +545,17 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			functions.try_emplace("memset", reinterpret_cast<void *>(memset));
 
 #ifdef __APPLE__
-			functions.try_emplace("sincosf_stret", reinterpret_cast<void *>(__sincosf_stret));
+			functions.try_emplace("__sincosf_stret", reinterpret_cast<void *>(__sincosf_stret));
 #elif defined(__linux__)
 			functions.try_emplace("sincosf", reinterpret_cast<void *>(sincosf));
 #elif defined(_WIN64)
-			functions.try_emplace("chkstk", reinterpret_cast<void *>(__chkstk));
+			functions.try_emplace("__chkstk", reinterpret_cast<void *>(__chkstk));
 #elif defined(_WIN32)
-			functions.try_emplace("chkstk", reinterpret_cast<void *>(_chkstk));
+			functions.try_emplace("_chkstk", reinterpret_cast<void *>(_chkstk));
 #endif
 
 #ifdef __ARM_EABI__
-			functions.try_emplace("aeabi_idivmod", reinterpret_cast<void *>(__aeabi_idivmod));
+			functions.try_emplace("__aeabi_idivmod", reinterpret_cast<void *>(__aeabi_idivmod));
 #endif
 #ifdef __ANDROID__
 			functions.try_emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void *>(neverCalled));
@@ -580,19 +580,19 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 #	endif
 #endif
 #if __has_feature(memory_sanitizer)
-			functions.try_emplace("emutls_get_address", reinterpret_cast<void *>(rr::getTLSAddress));
-			functions.try_emplace("emutls_v.__msan_param_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::param)));
-			functions.try_emplace("emutls_v.__msan_param_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::param_origin)));
-			functions.try_emplace("emutls_v.__msan_retval_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::retval)));
-			functions.try_emplace("emutls_v.__msan_retval_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::retval_origin)));
-			functions.try_emplace("emutls_v.__msan_va_arg_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::va_arg)));
-			functions.try_emplace("emutls_v.__msan_va_arg_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::va_arg_origin)));
-			functions.try_emplace("emutls_v.__msan_va_arg_overflow_size_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::va_arg_overflow_size)));
-			functions.try_emplace("emutls_v.__msan_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::origin)));
+			functions.try_emplace("__emutls_get_address", reinterpret_cast<void *>(rr::getTLSAddress));
+			functions.try_emplace("__emutls_v.__msan_param_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::param)));
+			functions.try_emplace("__emutls_v.__msan_param_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::param_origin)));
+			functions.try_emplace("__emutls_v.__msan_retval_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::retval)));
+			functions.try_emplace("__emutls_v.__msan_retval_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::retval_origin)));
+			functions.try_emplace("__emutls_v.__msan_va_arg_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::va_arg)));
+			functions.try_emplace("__emutls_v.__msan_va_arg_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::va_arg_origin)));
+			functions.try_emplace("__emutls_v.__msan_va_arg_overflow_size_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::va_arg_overflow_size)));
+			functions.try_emplace("__emutls_v.__msan_origin_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::origin)));
 
 			// TODO(b/155148722): Remove when we no longer unpoison any writes.
-			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));
-			functions.try_emplace("msan_unpoison_param", reinterpret_cast<void *>(__msan_unpoison_param));
+			functions.try_emplace("__msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));
+			functions.try_emplace("__msan_unpoison_param", reinterpret_cast<void *>(__msan_unpoison_param));
 #endif
 		}
 	};
@@ -618,11 +618,15 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 		{
 			auto name = symbol.first;
 
-			// Trim off any underscores from the start of the symbol. LLVM likes
-			// to append these on macOS.
-			auto trimmed = (*name).drop_while([](char c) { return c == '_'; });
+#if defined(__APPLE__)
+			// Trim the underscore from the start of the symbol. LLVM adds it for Mach-O mangling convention.
+			ASSERT((*name)[0] == '_');
+			auto unmangled = (*name).drop_front(1);
+#else
+			auto unmangled = *name;
+#endif
 
-			auto it = resolver.functions.find(trimmed.str());
+			auto it = resolver.functions.find(unmangled.str());
 			if(it != resolver.functions.end())
 			{
 				symbols[name] = llvm::JITEvaluatedSymbol(
@@ -639,7 +643,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			// visible (e.g. due to static linking), we may wish to provide an alternate
 			// implementation, and/or it would be a security vulnerability.
 
-			void *address = dlsym(RTLD_DEFAULT, (*symbol.first).data());
+			void *address = dlsym(RTLD_DEFAULT, unmangled.data());
 
 			if(address)
 			{
@@ -652,7 +656,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 #endif
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-			missing += (missing.empty() ? "'" : ", '") + (*name).str() + "'";
+			missing += (missing.empty() ? "'" : ", '") + unmangled.str() + "'";
 #endif
 		}
 
