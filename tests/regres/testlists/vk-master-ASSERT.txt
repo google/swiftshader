@@ -98,3 +98,9 @@ dEQP-VK.dynamic_rendering.random.seed96
 dEQP-VK.dynamic_rendering.random.seed97
 dEQP-VK.dynamic_rendering.random.seed98
 dEQP-VK.dynamic_rendering.random.seed99
+dEQP-VK.spirv_assembly.instruction.graphics.cross_stage.basic_type.flat
+dEQP-VK.spirv_assembly.instruction.graphics.cross_stage.basic_type.no_perspective
+dEQP-VK.spirv_assembly.instruction.graphics.cross_stage.interface_blocks.flat
+dEQP-VK.spirv_assembly.instruction.graphics.cross_stage.interface_blocks.no_perspective
+dEQP-VK.spirv_assembly.instruction.graphics.loop.multi_block_continue_construct_frag
+dEQP-VK.spirv_assembly.instruction.graphics.loop.multi_block_continue_construct_vert
