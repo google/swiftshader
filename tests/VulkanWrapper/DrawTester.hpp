@@ -22,6 +22,9 @@
 #include "VulkanTester.hpp"
 #include "Window.hpp"
 
+#include <functional>
+#include <memory>
+
 enum class Multisample
 {
 	False,

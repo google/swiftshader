@@ -18,6 +18,8 @@
 #include "Image.hpp"
 #include "VulkanHeaders.hpp"
 
+#include <memory>
+
 class Framebuffer
 {
 public:

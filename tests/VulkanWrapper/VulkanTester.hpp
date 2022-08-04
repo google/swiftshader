@@ -17,6 +17,8 @@
 
 #include "VulkanHeaders.hpp"
 
+#include <memory>
+
 class VulkanTester
 {
 public:

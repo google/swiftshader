@@ -16,6 +16,8 @@
 #include "SPIRV/GlslangToSpv.h"
 #include "StandAlone/ResourceLimits.h"
 
+#include <memory>
+
 namespace Util {
 
 uint32_t getMemoryTypeIndex(vk::PhysicalDevice physicalDevice, uint32_t typeBits, vk::MemoryPropertyFlags properties)
