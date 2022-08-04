@@ -63,8 +63,13 @@ __pragma(warning(push))
     __pragma(warning(pop))
 #endif
 
-#if __has_feature(memory_sanitizer) || __has_feature(address_sanitizer)
-#	include <dlfcn.h>  // dlsym()
+#if defined(__unix__) || defined(__APPLE__) || defined(__Fuchsia__)
+#	define ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED true
+#	if __has_feature(memory_sanitizer) || __has_feature(address_sanitizer)
+#		include <dlfcn.h>  // dlsym()
+#	endif
+#else
+#	define ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED false
 #endif
 
 #ifndef REACTOR_ASM_EMIT_DIR
@@ -636,7 +641,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 				continue;
 			}
 
-#if __has_feature(memory_sanitizer) || __has_feature(address_sanitizer)
+#if __has_feature(memory_sanitizer) || (__has_feature(address_sanitizer) && ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED)
 			// Sanitizers use a dynamically linked runtime. Instrumented routines reference some
 			// symbols from this library. Look them up dynamically in the default namespace.
 			// Note this approach should not be used for other symbols, since they might not be
@@ -933,7 +938,7 @@ void JITBuilder::runPasses()
 		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
 	}
 
-	if(__has_feature(address_sanitizer))
+	if(__has_feature(address_sanitizer) && ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED)
 	{
 		pm.addPass(llvm::ModuleAddressSanitizerPass(llvm::AddressSanitizerOptions{}));
 	}
@@ -964,7 +969,7 @@ void JITBuilder::runPasses()
 		passManager.add(llvm::createMemorySanitizerLegacyPassPass(msanOpts));
 	}
 
-	if(__has_feature(address_sanitizer))
+	if(__has_feature(address_sanitizer) && ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED)
 	{
 		passManager.add(llvm::createAddressSanitizerFunctionPass());
 	}
