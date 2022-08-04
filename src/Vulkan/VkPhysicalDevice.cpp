@@ -583,6 +583,10 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			// Workaround for a test bug (see https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/3564)
 			reinterpret_cast<struct VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT *>(curExtension)->texelBufferAlignment = VK_TRUE;
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_MERGE_FEEDBACK_FEATURES_EXT:
+			// TODO(b/216982034): Workaround for a test bug (see https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/3879)
+			reinterpret_cast<struct VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT *>(curExtension)->subpassMergeFeedback = VK_FALSE;
+			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:  // TODO(b/176893525): This may not be legal. dEQP tests that this value is ignored.
 			break;
 		default:
