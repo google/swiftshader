@@ -16,8 +16,8 @@
 
 #include "Constants.hpp"
 #include "SpirvShader.hpp"
-#include "Device/Renderer.hpp"
 #include "Device/Clipper.hpp"
+#include "Device/Renderer.hpp"
 #include "Device/Vertex.hpp"
 #include "System/Debug.hpp"
 #include "System/Half.hpp"
@@ -256,10 +256,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-		if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-		if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-		if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-		if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+		if(componentCount >= 1) v.x *= (1.0f / 0xFF);
+		if(componentCount >= 2) v.y *= (1.0f / 0xFF);
+		if(componentCount >= 3) v.z *= (1.0f / 0xFF);
+		if(componentCount >= 4) v.w *= (1.0f / 0xFF);
 		break;
 	case VK_FORMAT_R8_UINT:
 	case VK_FORMAT_R8G8_UINT:
@@ -283,10 +283,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-		if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
-		if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
-		if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
-		if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+		if(componentCount >= 1) v.x = Max(v.x * (1.0f / 0x7F), Float4(-1.0f));
+		if(componentCount >= 2) v.y = Max(v.y * (1.0f / 0x7F), Float4(-1.0f));
+		if(componentCount >= 3) v.z = Max(v.z * (1.0f / 0x7F), Float4(-1.0f));
+		if(componentCount >= 4) v.w = Max(v.w * (1.0f / 0x7F), Float4(-1.0f));
 		break;
 	case VK_FORMAT_R8_USCALED:
 	case VK_FORMAT_R8G8_USCALED:
@@ -331,10 +331,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-		if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-		if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-		if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-		if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+		if(componentCount >= 1) v.x *= (1.0f / 0xFFFF);
+		if(componentCount >= 2) v.y *= (1.0f / 0xFFFF);
+		if(componentCount >= 3) v.z *= (1.0f / 0xFFFF);
+		if(componentCount >= 4) v.w *= (1.0f / 0xFFFF);
 		break;
 	case VK_FORMAT_R16_SNORM:
 	case VK_FORMAT_R16G16_SNORM:
@@ -346,10 +346,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-		if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
-		if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
-		if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
-		if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+		if(componentCount >= 1) v.x = Max(v.x * (1.0f / 0x7FFF), Float4(-1.0f));
+		if(componentCount >= 2) v.y = Max(v.y * (1.0f / 0x7FFF), Float4(-1.0f));
+		if(componentCount >= 3) v.z = Max(v.z * (1.0f / 0x7FFF), Float4(-1.0f));
+		if(componentCount >= 4) v.w = Max(v.w * (1.0f / 0x7FFF), Float4(-1.0f));
 		break;
 	case VK_FORMAT_R16_USCALED:
 	case VK_FORMAT_R16G16_USCALED:
