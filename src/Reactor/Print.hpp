@@ -333,7 +333,7 @@ struct PrintValue::Ty<SIMD::Pointer>
 		if(v.isBasePlusOffset)
 		{
 			std::string format;
-			for(int i = 1; i < SIMD::Width; i++) { format += ", %p"; }
+			for(int i = 1; i < SIMD::Width; i++) { format += ", %d"; }
 			return "{%p + [%d" + format + "]}";
 		}
 		else
