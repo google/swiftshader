@@ -57,6 +57,14 @@ SIMD::Int::Int(std::vector<int> v)
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
+SIMD::Int::Int(std::function<int(int)> LaneValueProducer)
+    : XYZW(this)
+{
+	std::vector<int64_t> constantVector;
+	for(int i = 0; i < SIMD::Width; i++) { constantVector.push_back(LaneValueProducer(i)); }
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
+}
+
 SIMD::Int::Int(RValue<SIMD::Int> rhs)
     : XYZW(this)
 {
@@ -274,6 +282,14 @@ SIMD::UInt::UInt(std::vector<int> v)
 {
 	std::vector<int64_t> constantVector;
 	for(int i : v) { constantVector.push_back(i); }
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
+}
+
+SIMD::UInt::UInt(std::function<int(int)> LaneValueProducer)
+    : XYZW(this)
+{
+	std::vector<int64_t> constantVector;
+	for(int i = 0; i < SIMD::Width; i++) { constantVector.push_back(LaneValueProducer(i)); }
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
@@ -509,6 +525,14 @@ SIMD::Float::Float(std::vector<float> v)
 {
 	std::vector<double> constantVector;
 	for(int f : v) { constantVector.push_back(f); }
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
+}
+
+SIMD::Float::Float(std::function<float(int)> LaneValueProducer)
+    : XYZW(this)
+{
+	std::vector<double> constantVector;
+	for(int i = 0; i < SIMD::Width; i++) { constantVector.push_back(LaneValueProducer(i)); }
 	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 

@@ -17,6 +17,7 @@
 
 #include "Reactor.hpp"
 
+#include <functional>
 #include <vector>
 
 namespace rr {
@@ -54,6 +55,7 @@ public:
 	Int(int broadcast);
 	Int(int x, int y, int z, int w);
 	Int(std::vector<int> v);
+	Int(std::function<int(int)> LaneValueProducer);
 	Int(RValue<SIMD::Int> rhs);
 	Int(const Int &rhs);
 	Int(const Reference<SIMD::Int> &rhs);
@@ -86,6 +88,7 @@ public:
 	UInt(int broadcast);
 	UInt(int x, int y, int z, int w);
 	UInt(std::vector<int> v);
+	UInt(std::function<int(int)> LaneValueProducer);
 	UInt(RValue<SIMD::UInt> rhs);
 	UInt(const UInt &rhs);
 	UInt(const Reference<SIMD::UInt> &rhs);
@@ -115,6 +118,7 @@ public:
 	Float(float broadcast);
 	Float(float x, float y, float z, float w);
 	Float(std::vector<float> v);
+	Float(std::function<float(int)> LaneValueProducer);
 	Float(RValue<SIMD::Float> rhs);
 	Float(const Float &rhs);
 	Float(const Reference<SIMD::Float> &rhs);
