@@ -94,7 +94,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 
 		SIMD::Float rhwCentroid;
 
-		SIMD::Float xxxx = Float4(Float(x)) + *Pointer<Float4>(primitive + OFFSET(Primitive, xQuad), 16);
+		xxxx = Float4(Float(x)) + *Pointer<Float4>(primitive + OFFSET(Primitive, xQuad), 16);
 
 		if(interpolateZ())
 		{
@@ -139,9 +139,6 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				writeDepth(zBuffer, x, zMask, samples);
 				occlusionSampleCount(zMask, sMask, samples);
 			}
-
-			ASSERT(SIMD::Width == 4);
-			SIMD::Float yyyy = SIMD::Float(Float(y)) + SIMD::Float(*Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16));
 
 			// Centroid locations
 			SIMD::Float XXXX = 0.0f;
@@ -193,10 +190,13 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 					routine.interpolationData.rhwCentroid = rhwCentroid;
 				}
 
+				SIMD::Float xSample = xxxx;
+				SIMD::Float ySample = yyyy;
+
 				if(perSampleShading && (state.multiSampleCount > 1))
 				{
-					xxxx += SampleLocationsX[samples[0]];
-					yyyy += SampleLocationsY[samples[0]];
+					xSample += SampleLocationsX[samples[0]];
+					ySample += SampleLocationsY[samples[0]];
 				}
 
 				int packedInterpolant = 0;
@@ -216,7 +216,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 						else if(perSampleShading)
 						{
 							routine.inputs[interfaceInterpolant] =
-							    SpirvRoutine::interpolateAtXY(xxxx, yyyy, rhw,
+							    SpirvRoutine::interpolateAtXY(xSample, ySample, rhw,
 							                                  primitive + OFFSET(Primitive, V[packedInterpolant]),
 							                                  routine.inputsInterpolation[packedInterpolant]);
 						}
