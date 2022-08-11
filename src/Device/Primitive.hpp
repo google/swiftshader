@@ -39,11 +39,9 @@ struct Primitive
 	int yMin;
 	int yMax;
 
-	float4 xQuad;
-	float4 yQuad;
+	float x0;
+	float y0;
 
-	float pointCoordX;
-	float pointCoordY;
 	float pointSizeInv;
 
 	PlaneEquation z;

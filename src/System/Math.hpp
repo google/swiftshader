@@ -404,6 +404,17 @@ inline constexpr int toFixedPoint(float v, int p)
 	return (y == 0.0f) ? +0.0f : y;
 }
 
+inline uint16_t compactEvenBits(uint32_t x)
+{
+	x &= 0x55555555;                  // x = -f-e -d-c -b-a -9-8 -7-6 -5-4 -3-2 -1-0
+	x = (x ^ (x >> 1)) & 0x33333333;  // x = --fe --dc --ba --98 --76 --54 --32 --10
+	x = (x ^ (x >> 2)) & 0x0F0F0F0F;  // x = ---- fedc ---- ba98 ---- 7654 ---- 3210
+	x = (x ^ (x >> 4)) & 0x00FF00FF;  // x = ---- ---- fedc ba98 ---- ---- 7654 3210
+	x = (x ^ (x >> 8)) & 0x0000FFFF;  // x = ---- ---- ---- ---- fedc ba98 7654 3210
+
+	return static_cast<uint16_t>(x);
+}
+
 }  // namespace sw
 
 #endif  // sw_Math_hpp
