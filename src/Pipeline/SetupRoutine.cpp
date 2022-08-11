@@ -314,10 +314,13 @@ void SetupRoutine::generate()
 		Int Y1 = *Pointer<Int>(v1 + OFFSET(Vertex, projected.y));
 		Int Y2 = *Pointer<Int>(v2 + OFFSET(Vertex, projected.y));
 
+		Float x0 = Float(X0) * (1.0f / subPixF);
+		Float y0 = Float(Y0) * (1.0f / subPixF);
+
 		if(point)
 		{
-			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordX)) = Float(1.0f / subPixF) * Float(X0);
-			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordY)) = Float(1.0f / subPixF) * Float(Y0);
+			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordX)) = x0;
+			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordY)) = y0;
 		}
 
 		if(line)
@@ -325,9 +328,6 @@ void SetupRoutine::generate()
 			X2 = X1 + Y1 - Y0;
 			Y2 = Y1 + X0 - X1;
 		}
-
-		Float dx = Float(X0) * (1.0f / subPixF);
-		Float dy = Float(Y0) * (1.0f / subPixF);
 
 		X1 -= X0;
 		Y1 -= Y0;
@@ -343,8 +343,8 @@ void SetupRoutine::generate()
 
 		Float a = x1 * y2 - x2 * y1;
 
-		Float4 xQuad = Float4(0, 1, 0, 1) - Float4(dx);
-		Float4 yQuad = Float4(0, 0, 1, 1) - Float4(dy);
+		Float4 xQuad = Float4(0, 1, 0, 1) - Float4(x0);
+		Float4 yQuad = Float4(0, 0, 1, 1) - Float4(y0);
 
 		*Pointer<Float4>(primitive + OFFSET(Primitive, xQuad), 16) = xQuad;
 		*Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16) = yQuad;
