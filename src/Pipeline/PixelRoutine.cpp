@@ -94,13 +94,13 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 
 		SIMD::Float rhwCentroid;
 
-		xxxx = Float4(Float(x)) + *Pointer<Float4>(primitive + OFFSET(Primitive, xQuad), 16);
+		xFragment = Float4(Float(x)) + *Pointer<Float4>(primitive + OFFSET(Primitive, xQuad), 16);
 
 		if(interpolateZ())
 		{
 			for(unsigned int q : samples)
 			{
-				SIMD::Float x = xxxx;
+				SIMD::Float x = xFragment;
 
 				if(state.enableMultiSampling)
 				{
@@ -140,38 +140,38 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				occlusionSampleCount(zMask, sMask, samples);
 			}
 
-			// Centroid locations
-			SIMD::Float XXXX = 0.0f;
-			SIMD::Float YYYY = 0.0f;
+			// TODO(b/236162233): Use SIMD::Float2
+			SIMD::Float xCentroid = 0.0f;
+			SIMD::Float yCentroid = 0.0f;
 
 			if(state.centroid || shaderContainsInterpolation)  // TODO(b/194714095)
 			{
-				SIMD::Float WWWW = 1.0e-9f;
+				SIMD::Float weight = 1.0e-9f;
 
 				for(unsigned int q : samples)
 				{
 					ASSERT(SIMD::Width == 4);
-					XXXX += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleX[q]) + 16 * cMask[q]));
-					YYYY += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleY[q]) + 16 * cMask[q]));
-					WWWW += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, weight) + 16 * cMask[q]));
+					xCentroid += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleX[q]) + 16 * cMask[q]));
+					yCentroid += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, sampleY[q]) + 16 * cMask[q]));
+					weight += SIMD::Float(*Pointer<Float4>(constants + OFFSET(Constants, weight) + 16 * cMask[q]));
 				}
 
-				WWWW = Rcp(WWWW, true /* relaxedPrecision */);
-				XXXX *= WWWW;
-				YYYY *= WWWW;
+				weight = Rcp(weight, true /* relaxedPrecision */);
+				xCentroid *= weight;
+				yCentroid *= weight;
 
-				XXXX += xxxx;
-				YYYY += yyyy;
+				xCentroid += xFragment;
+				yCentroid += yFragment;
 			}
 
 			if(interpolateW())
 			{
-				w = interpolate(xxxx, Dw, rhw, primitive + OFFSET(Primitive, w), false, false);
+				w = interpolate(xFragment, Dw, rhw, primitive + OFFSET(Primitive, w), false, false);
 				rhw = reciprocal(w, false, true);
 
 				if(state.centroid || shaderContainsInterpolation)  // TODO(b/194714095)
 				{
-					rhwCentroid = reciprocal(SpirvRoutine::interpolateAtXY(XXXX, YYYY, rhwCentroid, primitive + OFFSET(Primitive, w), SpirvRoutine::Linear));
+					rhwCentroid = reciprocal(SpirvRoutine::interpolateAtXY(xCentroid, yCentroid, rhwCentroid, primitive + OFFSET(Primitive, w), SpirvRoutine::Linear));
 				}
 			}
 
@@ -181,17 +181,17 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				{
 					routine.interpolationData.primitive = primitive;
 
-					routine.interpolationData.x = xxxx;
-					routine.interpolationData.y = yyyy;
+					routine.interpolationData.x = xFragment;
+					routine.interpolationData.y = yFragment;
 					routine.interpolationData.rhw = rhw;
 
-					routine.interpolationData.xCentroid = XXXX;
-					routine.interpolationData.yCentroid = YYYY;
+					routine.interpolationData.xCentroid = xCentroid;
+					routine.interpolationData.yCentroid = yCentroid;
 					routine.interpolationData.rhwCentroid = rhwCentroid;
 				}
 
-				SIMD::Float xSample = xxxx;
-				SIMD::Float ySample = yyyy;
+				SIMD::Float xSample = xFragment;
+				SIMD::Float ySample = yFragment;
 
 				if(perSampleShading && (state.multiSampleCount > 1))
 				{
@@ -209,7 +209,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 						if(input.Centroid && state.enableMultiSampling)
 						{
 							routine.inputs[interfaceInterpolant] =
-							    SpirvRoutine::interpolateAtXY(XXXX, YYYY, rhwCentroid,
+							    SpirvRoutine::interpolateAtXY(xCentroid, yCentroid, rhwCentroid,
 							                                  primitive + OFFSET(Primitive, V[packedInterpolant]),
 							                                  routine.inputsInterpolation[packedInterpolant]);
 						}
@@ -223,7 +223,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 						else
 						{
 							routine.inputs[interfaceInterpolant] =
-							    interpolate(xxxx, Dv[interfaceInterpolant], rhw,
+							    interpolate(xFragment, Dv[interfaceInterpolant], rhw,
 							                primitive + OFFSET(Primitive, V[packedInterpolant]),
 							                input.Flat, !input.NoPerspective);
 						}
@@ -235,7 +235,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 
 				for(uint32_t i = 0; i < state.numClipDistances; i++)
 				{
-					auto distance = interpolate(xxxx, DclipDistance[i], rhw,
+					auto distance = interpolate(xFragment, DclipDistance[i], rhw,
 					                            primitive + OFFSET(Primitive, clipDistance[i]),
 					                            false, true);
 
@@ -271,7 +271,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 							if(i < it->second.SizeInComponents)
 							{
 								routine.getVariable(it->second.Id)[it->second.FirstComponent + i] =
-								    interpolate(xxxx, DcullDistance[i], rhw,
+								    interpolate(xFragment, DcullDistance[i], rhw,
 								                primitive + OFFSET(Primitive, cullDistance[i]),
 								                false, true);
 							}

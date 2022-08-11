@@ -34,8 +34,9 @@ protected:
 	Pointer<Byte> constants;
 
 	// Fragment coordinates relative to the polygon's origin
-	SIMD::Float xxxx;
-	SIMD::Float yyyy;
+	// TODO(b/236162233): Use SIMD::Float2
+	SIMD::Float xFragment;
+	SIMD::Float yFragment;
 
 	// B * y + C term of interpolants plane equations
 	SIMD::Float Dz[4];

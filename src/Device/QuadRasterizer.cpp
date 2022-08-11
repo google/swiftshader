@@ -122,13 +122,13 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 			x1 = Max(x1, Max(x1a, x1b));
 		}
 
-		yyyy = SIMD::Float(Float(y)) + SIMD::Float(*Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16));
+		yFragment = SIMD::Float(Float(y)) + SIMD::Float(*Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16));
 
 		if(interpolateZ())
 		{
 			for(unsigned int q = 0; q < state.multiSampleCount; q++)
 			{
-				SIMD::Float y = yyyy;
+				SIMD::Float y = yFragment;
 
 				if(state.enableMultiSampling)
 				{
@@ -143,7 +143,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 		{
 			if(interpolateW())
 			{
-				Dw = SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, w.C))) + yyyy * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, w.B)));
+				Dw = SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, w.C))) + yFragment * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, w.B)));
 			}
 
 			if(spirvShader)
@@ -157,7 +157,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 						if(!spirvShader->inputs[interfaceInterpolant].Flat)
 						{
 							Dv[interfaceInterpolant] +=
-							    yyyy * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, V[packedInterpolant].B)));
+							    yFragment * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, V[packedInterpolant].B)));
 						}
 						packedInterpolant++;
 					}
@@ -166,13 +166,13 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 				for(unsigned int i = 0; i < state.numClipDistances; i++)
 				{
 					DclipDistance[i] = SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, clipDistance[i].C))) +
-					                   yyyy * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, clipDistance[i].B)));
+					                   yFragment * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, clipDistance[i].B)));
 				}
 
 				for(unsigned int i = 0; i < state.numCullDistances; i++)
 				{
 					DcullDistance[i] = SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, cullDistance[i].C))) +
-					                   yyyy * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, cullDistance[i].B)));
+					                   yFragment * SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, cullDistance[i].B)));
 				}
 			}
 
