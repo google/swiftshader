@@ -42,4 +42,6 @@ cmake-build-debug/
 *.opendb
 *.db
 *~
+.*.sw*
+.sw*
 CMakeCache.txt
