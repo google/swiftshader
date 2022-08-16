@@ -12166,6 +12166,14 @@ dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.nearest_linear
 dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.nearest_linear_integer_texel_coord
 dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.linear_linear
 dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.linear_linear_integer_texel_coord
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_0_1.component_0
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_0_1.component_1
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_0_1.component_2
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_0_1.component_3
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_1_1.component_0
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_1_1.component_1
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_1_1.component_2
+dEQP-VK.texture.mipmap.min_lod_gather.minlod_1_1.component_3
 dEQP-VK.texture.filtering_anisotropy.basic.anisotropy_2.mag_nearest_min_nearest
 dEQP-VK.texture.filtering_anisotropy.basic.anisotropy_2.mag_linear_min_nearest
 dEQP-VK.texture.filtering_anisotropy.basic.anisotropy_2.mag_nearest_min_linear
