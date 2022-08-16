@@ -487,6 +487,9 @@ class Scheduler {
   // it going to sleep.
   void onBeginSpinning(int workerId);
 
+  // setBound() sets the scheduler bound to the current thread.
+  static void setBound(Scheduler* scheduler);
+
   // The scheduler currently bound to the current thread.
   static thread_local Scheduler* bound;
 
