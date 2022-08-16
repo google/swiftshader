@@ -2,9 +2,9 @@
 //
 // Licensed under the Apache License. Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at 
+// You may obtain a copy of the License at
 //
-// 	https://www.apache.org/licenses/LICENSE-2.0
+//      https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@
 // Procedure Call Standard for the LoongArch 64-bit Architecture
 // https://loongson.github.io/LoongArch-Documentation/LoongArch-ELF-ABI-EN.html
 struct marl_fiber_context {
-  // paramater registers (First two)
+  // parameter registers (First two)
   uintptr_t a0;
   uintptr_t a1;
 
@@ -73,50 +73,50 @@ struct marl_fiber_context {
 
 #ifdef __cplusplus
 #include <cstddef>
-static_assert(offsetof(marl_fiber_context, a0) == MARL_REG_a0, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, a1) == MARL_REG_a1, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s0) == MARL_REG_s0, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s1) == MARL_REG_s1, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s2) == MARL_REG_s2, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s3) == MARL_REG_s3, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s4) == MARL_REG_s4, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s5) == MARL_REG_s5, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s6) == MARL_REG_s6, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s7) == MARL_REG_s7, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, s8) == MARL_REG_s8, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs0) == MARL_REG_fs0, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs1) == MARL_REG_fs1, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs2) == MARL_REG_fs2, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs3) == MARL_REG_fs3, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs4) == MARL_REG_fs4, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs5) == MARL_REG_fs5, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs6) == MARL_REG_fs6, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fs7) == MARL_REG_fs7, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, ra) == MARL_REG_ra, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, sp) == MARL_REG_sp, 
-	      "Bad register offset");
-static_assert(offsetof(marl_fiber_context, fp) == MARL_REG_fp, 
-	      "Bad register offset");
+static_assert(offsetof(marl_fiber_context, a0) == MARL_REG_a0,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, a1) == MARL_REG_a1,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s0) == MARL_REG_s0,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s1) == MARL_REG_s1,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s2) == MARL_REG_s2,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s3) == MARL_REG_s3,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s4) == MARL_REG_s4,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s5) == MARL_REG_s5,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s6) == MARL_REG_s6,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s7) == MARL_REG_s7,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, s8) == MARL_REG_s8,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs0) == MARL_REG_fs0,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs1) == MARL_REG_fs1,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs2) == MARL_REG_fs2,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs3) == MARL_REG_fs3,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs4) == MARL_REG_fs4,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs5) == MARL_REG_fs5,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs6) == MARL_REG_fs6,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fs7) == MARL_REG_fs7,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, ra) == MARL_REG_ra,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, sp) == MARL_REG_sp,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, fp) == MARL_REG_fp,
+              "Bad register offset");
 #endif // __cplusplus
 
 #endif // MARL_BUILD_ASM

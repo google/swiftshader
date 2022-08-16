@@ -192,7 +192,7 @@ inline void* alignedMalloc(size_t alignment, size_t size) {
 // alignedFree() frees memory allocated by alignedMalloc.
 inline void alignedFree(void* ptr, size_t size) {
   void* base;
-  memcpy(&base, reinterpret_cast<uint8_t*>(ptr) + size, sizeof(size_t));
+  memcpy(&base, reinterpret_cast<uint8_t*>(ptr) + size, sizeof(void*));
   free(base);
 }
 
