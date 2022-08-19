@@ -389,6 +389,12 @@ static void getPhysicalDeviceGraphicsPipelineLibraryFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceGlobalPriorityQueryFeatures(T *features)
+{
+	features->globalPriorityQuery = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -618,6 +624,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT:
 			getPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(reinterpret_cast<struct VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR:
+			getPhysicalDeviceGlobalPriorityQueryFeatures(reinterpret_cast<struct VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT:
 			getPhysicalDeviceDepthClipControlFeaturesExt(reinterpret_cast<struct VkPhysicalDeviceDepthClipControlFeaturesEXT *>(curExtension));
@@ -1695,6 +1704,13 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceBufferDeviceAddre
 	       CheckFeature(requested, supported, bufferDeviceAddressCaptureReplay) &&
 	       CheckFeature(requested, supported, bufferDeviceAddressMultiDevice);
 }
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, globalPriorityQuery);
+}
 #undef CheckFeature
 
 static bool checkFormatUsage(VkImageUsageFlags usage, VkFormatFeatureFlags features)
@@ -2410,12 +2426,50 @@ void PhysicalDevice::getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount
 	}
 }
 
+void PhysicalDevice::getQueueFamilyGlobalPriorityProperties(VkQueueFamilyGlobalPriorityPropertiesKHR *pQueueFamilyGlobalPriorityProperties) const
+{
+	pQueueFamilyGlobalPriorityProperties->priorityCount = 1;
+	pQueueFamilyGlobalPriorityProperties->priorities[0] = VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR;
+}
+
+bool PhysicalDevice::validateQueueGlobalPriority(VkQueueGlobalPriorityKHR queueGlobalPriority) const
+{
+	VkQueueFamilyGlobalPriorityPropertiesKHR queueFamilyGlobalPriorityProperties;
+	getQueueFamilyGlobalPriorityProperties(&queueFamilyGlobalPriorityProperties);
+
+	for(uint32_t i = 0; i < queueFamilyGlobalPriorityProperties.priorityCount; ++i)
+	{
+		if(queueGlobalPriority == queueFamilyGlobalPriorityProperties.priorities[i])
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void PhysicalDevice::getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
                                               VkQueueFamilyProperties2 *pQueueFamilyProperties) const
 {
 	for(uint32_t i = 0; i < pQueueFamilyPropertyCount; i++)
 	{
 		pQueueFamilyProperties[i].queueFamilyProperties = getQueueFamilyProperties();
+
+		VkBaseOutStructure *extInfo = reinterpret_cast<VkBaseOutStructure *>(pQueueFamilyProperties[i].pNext);
+		while(extInfo)
+		{
+			switch(extInfo->sType)
+			{
+			case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR:
+				getQueueFamilyGlobalPriorityProperties(reinterpret_cast<VkQueueFamilyGlobalPriorityPropertiesKHR *>(extInfo));
+				break;
+			default:
+				UNSUPPORTED("pQueueFamilyProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+				break;
+			}
+
+			extInfo = extInfo->pNext;
+		}
 	}
 }
 

@@ -402,6 +402,8 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, VK_KHR_SHADER_NON_SEMANTIC_INFO_SPEC_VERSION } },
 	{ { VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_SPEC_VERSION } },
 	{ { VK_KHR_ZERO_INITIALIZE_WORKGROUP_MEMORY_EXTENSION_NAME, VK_KHR_ZERO_INITIALIZE_WORKGROUP_MEMORY_SPEC_VERSION } },
+	// Roadmap 2022 extension
+	{ { VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME, VK_KHR_GLOBAL_PRIORITY_SPEC_VERSION } },
 	// Additional extension
 	{ { VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME, VK_EXT_DEPTH_CLIP_CONTROL_SPEC_VERSION } },
 	{ { VK_GOOGLE_DECORATE_STRING_EXTENSION_NAME, VK_GOOGLE_DECORATE_STRING_SPEC_VERSION } },
@@ -1068,6 +1070,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				}
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR:
+			{
+				const auto *globalPriorityQueryFeatures = reinterpret_cast<const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *>(extensionCreateInfo);
+				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(globalPriorityQueryFeatures);
+				if(!hasFeatures)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES:
 			{
 				const auto *protectedMemoryFeatures = reinterpret_cast<const VkPhysicalDeviceProtectedMemoryFeatures *>(extensionCreateInfo);
@@ -1135,7 +1147,22 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(queueCreateInfo.pNext);
 		while(extInfo)
 		{
-			UNSUPPORTED("pCreateInfo->pQueueCreateInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType).c_str());
+			switch(extInfo->sType)
+			{
+			case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR:
+				{
+					const auto *globalPriorityCreateInfo = reinterpret_cast<const VkDeviceQueueGlobalPriorityCreateInfoKHR *>(extInfo);
+					if(!(vk::Cast(physicalDevice)->validateQueueGlobalPriority(globalPriorityCreateInfo->globalPriority)))
+					{
+						return VK_ERROR_INITIALIZATION_FAILED;
+					}
+				}
+				break;
+			default:
+				UNSUPPORTED("pCreateInfo->pQueueCreateInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType).c_str());
+				break;
+			}
+
 			extInfo = extInfo->pNext;
 		}
 
@@ -3888,16 +3915,6 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(VkPhysicalD
 {
 	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t* pQueueFamilyPropertyCount = %p, VkQueueFamilyProperties2* pQueueFamilyProperties = %p)",
 	      physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
-
-	if(pQueueFamilyProperties)
-	{
-		const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pQueueFamilyProperties->pNext);
-		while(extInfo)
-		{
-			UNSUPPORTED("pQueueFamilyProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
-			extInfo = extInfo->pNext;
-		}
-	}
 
 	if(!pQueueFamilyProperties)
 	{

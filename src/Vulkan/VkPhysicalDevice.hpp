@@ -60,6 +60,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceProtectedMemoryFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceBufferDeviceAddressFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
@@ -113,6 +114,9 @@ public:
 	                              VkQueueFamilyProperties *pQueueFamilyProperties) const;
 	void getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
 	                              VkQueueFamilyProperties2 *pQueueFamilyProperties) const;
+	void getQueueFamilyGlobalPriorityProperties(VkQueueFamilyGlobalPriorityPropertiesKHR *pQueueFamilyGlobalPriorityProperties) const;
+	bool validateQueueGlobalPriority(VkQueueGlobalPriorityKHR queueGlobalPriority) const;
+	VkQueueGlobalPriorityKHR getDefaultQueueGlobalPriority() const;
 	static const VkPhysicalDeviceMemoryProperties &GetMemoryProperties();
 
 	static const VkPhysicalDeviceLimits &getLimits();
