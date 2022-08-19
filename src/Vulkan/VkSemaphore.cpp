@@ -107,7 +107,7 @@ SemaphoreCreateInfo::SemaphoreCreateInfo(const VkSemaphoreCreateInfo *pCreateInf
 				exportHandleTypes = exportInfo->handleTypes;
 				if((exportHandleTypes & ~kSupportedTypes) != 0)
 				{
-					UNSUPPORTED("exportInfo->handleTypes 0x%X (supports 0x%X)",
+					UNSUPPORTED("exportInfo->handleTypes 0x%08X (supports 0x%08X)",
 					            int(exportHandleTypes),
 					            int(kSupportedTypes));
 				}
@@ -312,7 +312,7 @@ VkResult BinarySemaphore::exportFd(int *pFd)
 {
 	if((exportableHandleTypes & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT) == 0)
 	{
-		TRACE("Cannot export semaphore as opaque FD (exportableHandleType = 0x%X, want 0x%X)",
+		TRACE("Cannot export semaphore as opaque FD (exportableHandleType = 0x%08X, want 0x%08X)",
 		      exportableHandleTypes,
 		      VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT);
 

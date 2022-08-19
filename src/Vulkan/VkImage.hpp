@@ -85,7 +85,7 @@ public:
 	uint32_t getMipLevels() const { return mipLevels; }
 	VkImageUsageFlags getUsage() const { return usage; }
 	VkImageCreateFlags getFlags() const { return flags; }
-	VkSampleCountFlagBits getSampleCountFlagBits() const { return samples; }
+	VkSampleCountFlagBits getSampleCount() const { return samples; }
 	const VkExtent3D &getExtent() const { return extent; }
 	VkExtent3D getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	size_t rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;

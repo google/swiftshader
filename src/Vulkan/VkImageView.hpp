@@ -110,12 +110,12 @@ public:
 
 	int getSampleCount() const
 	{
-		switch(image->getSampleCountFlagBits())
+		switch(image->getSampleCount())
 		{
 		case VK_SAMPLE_COUNT_1_BIT: return 1;
 		case VK_SAMPLE_COUNT_4_BIT: return 4;
 		default:
-			UNSUPPORTED("Sample count flags %d", image->getSampleCountFlagBits());
+			UNSUPPORTED("Sample count %d", image->getSampleCount());
 			return 1;
 		}
 	}

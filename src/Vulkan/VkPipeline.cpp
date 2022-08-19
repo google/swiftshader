@@ -348,7 +348,7 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 		    ~(VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT |
 		      VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT)) != 0)
 		{
-			UNSUPPORTED("pStage->flags %d", int(stageInfo.flags));
+			UNSUPPORTED("pStage->flags 0x%08X", int(stageInfo.flags));
 		}
 
 		auto dbgctx = device->getDebuggerContext();
