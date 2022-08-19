@@ -34,12 +34,12 @@ struct Clipper
 		CLIP_BOTTOM = 1 << 4,
 		CLIP_NEAR = 1 << 5,
 
-		CLIP_FRUSTUM = 0x003F,
+		CLIP_SIDES = CLIP_LEFT | CLIP_RIGHT | CLIP_BOTTOM | CLIP_TOP,
+		CLIP_FRUSTUM = CLIP_SIDES | CLIP_NEAR | CLIP_FAR,
 
 		CLIP_FINITE = 1 << 7,  // All position coordinates are finite
 	};
 
-	static unsigned int ComputeClipFlags(const float4 &v, bool depthClipEnable);
 	static bool Clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw);
 };
 
