@@ -3,10 +3,10 @@ dEQP-VK.api.device_init.create_device_unsupported_features.ycbcr2_plane444_forma
 dEQP-VK.api.driver_properties.conformance_version
 dEQP-VK.api.info.get_physical_device_properties2.features.extended_dynamic_state2_features_ext
 dEQP-VK.api.info.get_physical_device_properties2.features.ycbcr2_plane444_formats_features_ext
+dEQP-VK.draw.renderpass.depth_bias.depth_bias_triangle_list_point
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.after_pipelines.enable_raster
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.before_draw.enable_raster
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.between_pipelines.enable_raster
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.cmd_buffer_start.enable_raster
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.two_draws_dynamic.enable_raster
-dEQP-VK.robustness.robustness1_vertex_access.out_of_bounds_stride_0
 dEQP-VK.robustness.robustness1_vertex_access.out_of_bounds_stride_16_single_buffer
