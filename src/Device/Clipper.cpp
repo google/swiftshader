@@ -43,8 +43,7 @@ void clipNear(sw::Polygon &polygon, bool depthClipNegativeOneToOne)
 		float di = V[i]->z;
 		float dj = V[j]->z;
 
-		// When depthClipNegativeOneToOne is enabled, z is mapped to (z+w)/2.  Division by 2
-		// is not done, as distances are relative as far as clipEdge is concerned.
+		// When depthClipNegativeOneToOne is enabled the near plane is at z=-w, otherwise it is at z=0.
 		if(depthClipNegativeOneToOne)
 		{
 			di += V[i]->w;
@@ -88,13 +87,6 @@ void clipFar(sw::Polygon &polygon)
 
 		float di = V[i]->w - V[i]->z;
 		float dj = V[j]->w - V[j]->z;
-
-		// When depthClipNegativeOneToOne is enabled, z is mapped to (z+w)/2.  We have:
-		//
-		//     w - (z+w)/2 = (w - z)/2
-		//
-		// But division by 2 is not done, as distances are relative as far as clipEdge is
-		// concerned.  In short, no special handling is necessary.
 
 		if(di >= 0)
 		{
