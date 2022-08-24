@@ -153,6 +153,7 @@ struct DrawCall
 	VkLineRasterizationModeEXT lineRasterizationMode;
 
 	bool depthClipEnable;
+	bool depthClipNegativeOneToOne;
 
 	VertexProcessor::RoutineType vertexRoutine;
 	SetupProcessor::RoutineType setupRoutine;

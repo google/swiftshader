@@ -74,6 +74,7 @@ const VertexProcessor::State VertexProcessor::update(const vk::GraphicsState &pi
 	state.robustBufferAccess = pipelineState.getRobustBufferAccess();
 	state.isPoint = pipelineState.getTopology() == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	state.depthClipEnable = pipelineState.getDepthClipEnable();
+	state.depthClipNegativeOneToOne = pipelineState.getDepthClipNegativeOneToOne();
 
 	for(size_t i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)
 	{

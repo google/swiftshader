@@ -82,6 +82,7 @@ public:
 		bool robustBufferAccess : 1;
 		bool isPoint : 1;
 		bool depthClipEnable : 1;
+		bool depthClipNegativeOneToOne : 1;
 	};
 
 	struct State : States

@@ -136,8 +136,9 @@ void VertexRoutine::computeClipFlags()
 		clipFlags |= minY & Clipper::CLIP_BOTTOM;
 		if(state.depthClipEnable)
 		{
+			// If depthClipNegativeOneToOne is enabled, depth values are in [-1, 1] instead of [0, 1].
 			SIMD::Int maxZ = CmpLT(posW, posZ);
-			SIMD::Int minZ = CmpNLE(0.0f, posZ);
+			SIMD::Int minZ = CmpNLE(state.depthClipNegativeOneToOne ? -posW : 0.0f, posZ);
 			clipFlags |= maxZ & Clipper::CLIP_FAR;
 			clipFlags |= minZ & Clipper::CLIP_NEAR;
 		}
@@ -148,7 +149,7 @@ void VertexRoutine::computeClipFlags()
 		SIMD::Int finiteZ = CmpLE(Abs(posZ), maxPos);
 
 		SIMD::Int finiteXYZ = finiteX & finiteY & finiteZ;
-		clipFlags |= finiteXYZ & 0x00000080;
+		clipFlags |= finiteXYZ & Clipper::CLIP_FINITE;
 	}
 }
 

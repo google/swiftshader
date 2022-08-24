@@ -506,6 +506,27 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 		const VkPipelineDepthStencilStateCreateInfo *depthStencilState = pCreateInfo->pDepthStencilState;
 		const VkPipelineColorBlendStateCreateInfo *colorBlendState = pCreateInfo->pColorBlendState;
 
+		extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(viewportState->pNext);
+		while(extensionCreateInfo != nullptr)
+		{
+			switch(extensionCreateInfo->sType)
+			{
+			case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLIP_CONTROL_CREATE_INFO_EXT:
+				{
+					const auto *depthClipControl = reinterpret_cast<const VkPipelineViewportDepthClipControlCreateInfoEXT *>(extensionCreateInfo);
+					depthClipNegativeOneToOne = depthClipControl->negativeOneToOne != VK_FALSE;
+				}
+				break;
+			case VK_STRUCTURE_TYPE_MAX_ENUM:
+				// dEQP passes this value expecting the driver to ignore it.
+				break;
+			default:
+				UNSUPPORTED("pCreateInfo->pViewportState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+				break;
+			}
+			extensionCreateInfo = extensionCreateInfo->pNext;
+		}
+
 		if(viewportState->flags != 0)
 		{
 			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
