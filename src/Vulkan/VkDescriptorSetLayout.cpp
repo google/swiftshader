@@ -85,7 +85,7 @@ DescriptorSetLayout::DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo *
 		offset += bindings[i].descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
 	}
 
-	ASSERT_MSG(offset == getDescriptorSetDataSize(), "offset: %d, size: %d", int(offset), int(getDescriptorSetDataSize()));
+	ASSERT_MSG(offset == getDescriptorSetDataSize(0), "offset: %d, size: %d", int(offset), int(getDescriptorSetDataSize(0)));
 }
 
 void DescriptorSetLayout::destroy(const VkAllocationCallbacks *pAllocator)
@@ -143,24 +143,31 @@ bool DescriptorSetLayout::IsDescriptorDynamic(VkDescriptorType type)
 	       type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 }
 
-size_t DescriptorSetLayout::getDescriptorSetAllocationSize() const
+size_t DescriptorSetLayout::getDescriptorSetAllocationSize(uint32_t variableDescriptorCount) const
 {
 	// vk::DescriptorSet has a header with a pointer to the layout.
-	return sw::align<alignof(DescriptorSet)>(sizeof(DescriptorSetHeader) + getDescriptorSetDataSize());
+	return sw::align<alignof(DescriptorSet)>(sizeof(DescriptorSetHeader) + getDescriptorSetDataSize(variableDescriptorCount));
 }
 
-size_t DescriptorSetLayout::getDescriptorSetDataSize() const
+size_t DescriptorSetLayout::getDescriptorSetDataSize(uint32_t variableDescriptorCount) const
 {
 	size_t size = 0;
 	for(uint32_t i = 0; i < bindingsArraySize; i++)
 	{
-		size += bindings[i].descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
+		uint32_t descriptorCount = bindings[i].descriptorCount;
+
+		if((i == (bindingsArraySize - 1)) && (variableDescriptorCount > 0))
+		{
+			descriptorCount = variableDescriptorCount;
+		}
+
+		size += descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
 	}
 
 	return size;
 }
 
-void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
+void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet, uint32_t variableDescriptorCount)
 {
 	ASSERT(descriptorSet->header.layout == nullptr);
 
@@ -172,9 +179,16 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 	{
 		size_t descriptorSize = GetDescriptorSize(bindings[i].descriptorType);
 
+		uint32_t descriptorCount = bindings[i].descriptorCount;
+
+		if((i == (bindingsArraySize - 1)) && (variableDescriptorCount > 0))
+		{
+			descriptorCount = variableDescriptorCount;
+		}
+
 		if(bindings[i].immutableSamplers)
 		{
-			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
+			for(uint32_t j = 0; j < descriptorCount; j++)
 			{
 				SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(data);
 				imageSamplerDescriptor->samplerId = bindings[i].immutableSamplers[j]->id;
@@ -190,7 +204,7 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 			case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 			case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
 			case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-				for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
+				for(uint32_t j = 0; j < descriptorCount; j++)
 				{
 					SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(data);
 					imageSamplerDescriptor->memoryOwner = nullptr;
@@ -200,7 +214,7 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 			case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 			case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
 			case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-				for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
+				for(uint32_t j = 0; j < descriptorCount; j++)
 				{
 					StorageImageDescriptor *storageImage = reinterpret_cast<StorageImageDescriptor *>(data);
 					storageImage->memoryOwner = nullptr;
@@ -211,10 +225,10 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 			case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 			case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 			case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-				data += bindings[i].descriptorCount * descriptorSize;
+				data += descriptorCount * descriptorSize;
 				break;
 			case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK:
-				data += bindings[i].descriptorCount;
+				data += descriptorCount;
 				break;
 			default:
 				UNSUPPORTED("Unsupported Descriptor Type: %d", int(bindings[i].descriptorType));
@@ -277,7 +291,7 @@ uint8_t *DescriptorSetLayout::getDescriptorPointer(DescriptorSet *descriptorSet,
 	ASSERT(bindingNumber < bindingsArraySize);
 	*typeSize = GetDescriptorSize(bindings[bindingNumber].descriptorType);
 	size_t byteOffset = bindings[bindingNumber].offset + (*typeSize * arrayElement);
-	ASSERT(((*typeSize * count) + byteOffset) <= getDescriptorSetDataSize());  // Make sure the operation will not go out of bounds
+	ASSERT(((*typeSize * count) + byteOffset) <= getDescriptorSetDataSize(0));  // Make sure the operation will not go out of bounds
 
 	return descriptorSet->getDataAddress() + byteOffset;
 }

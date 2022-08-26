@@ -2465,14 +2465,24 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateDescriptorSets(VkDevice device, const V
 	TRACE("(VkDevice device = %p, const VkDescriptorSetAllocateInfo* pAllocateInfo = %p, VkDescriptorSet* pDescriptorSets = %p)",
 	      device, pAllocateInfo, pDescriptorSets);
 
+	const VkDescriptorSetVariableDescriptorCountAllocateInfo *variableDescriptorCountAllocateInfo = nullptr;
+
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pAllocateInfo->pNext);
 	while(extInfo)
 	{
-		UNSUPPORTED("pAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+		switch(extInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO:
+			variableDescriptorCountAllocateInfo = reinterpret_cast<VkDescriptorSetVariableDescriptorCountAllocateInfo const *>(extInfo);
+			break;
+		default:
+			UNSUPPORTED("pAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+			break;
+		}
 		extInfo = extInfo->pNext;
 	}
 
-	return vk::Cast(pAllocateInfo->descriptorPool)->allocateSets(pAllocateInfo->descriptorSetCount, pAllocateInfo->pSetLayouts, pDescriptorSets);
+	return vk::Cast(pAllocateInfo->descriptorPool)->allocateSets(pAllocateInfo->descriptorSetCount, pAllocateInfo->pSetLayouts, pDescriptorSets, variableDescriptorCountAllocateInfo);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkFreeDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, uint32_t descriptorSetCount, const VkDescriptorSet *pDescriptorSets)
@@ -4191,6 +4201,21 @@ VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, cons
 {
 	TRACE("(VkDevice device = %p, const VkDescriptorSetLayoutCreateInfo* pCreateInfo = %p, VkDescriptorSetLayoutSupport* pSupport = %p)",
 	      device, pCreateInfo, pSupport);
+
+	VkBaseOutStructure *layoutSupport = reinterpret_cast<VkBaseOutStructure *>(pSupport->pNext);
+	while(layoutSupport)
+	{
+		switch(layoutSupport->sType)
+		{
+		case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT:
+			break;
+		default:
+			UNSUPPORTED("pSupport->pNext sType = %s", vk::Stringify(layoutSupport->sType).c_str());
+			break;
+		}
+
+		layoutSupport = layoutSupport->pNext;
+	}
 
 	vk::Cast(device)->getDescriptorSetLayoutSupport(pCreateInfo, pSupport);
 }

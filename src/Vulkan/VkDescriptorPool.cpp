@@ -64,14 +64,17 @@ size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreat
 	return size;
 }
 
-VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescriptorSetLayout *pSetLayouts, VkDescriptorSet *pDescriptorSets)
+VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescriptorSetLayout *pSetLayouts, VkDescriptorSet *pDescriptorSets, const VkDescriptorSetVariableDescriptorCountAllocateInfo *variableDescriptorCountAllocateInfo)
 {
+	const uint32_t *variableDescriptorCounts =
+	    (variableDescriptorCountAllocateInfo && (variableDescriptorCountAllocateInfo->descriptorSetCount == descriptorSetCount)) ? variableDescriptorCountAllocateInfo->pDescriptorCounts : nullptr;
+
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	std::unique_ptr<size_t[]> layoutSizes(new size_t[descriptorSetCount]);
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
 	{
 		pDescriptorSets[i] = VK_NULL_HANDLE;
-		layoutSizes[i] = vk::Cast(pSetLayouts[i])->getDescriptorSetAllocationSize();
+		layoutSizes[i] = vk::Cast(pSetLayouts[i])->getDescriptorSetAllocationSize(variableDescriptorCounts ? variableDescriptorCounts[i] : 0);
 	}
 
 	VkResult result = allocateSets(&(layoutSizes[0]), descriptorSetCount, pDescriptorSets);
@@ -79,7 +82,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	{
 		for(uint32_t i = 0; i < descriptorSetCount; i++)
 		{
-			vk::Cast(pSetLayouts[i])->initialize(vk::Cast(pDescriptorSets[i]));
+			vk::Cast(pSetLayouts[i])->initialize(vk::Cast(pDescriptorSets[i]), variableDescriptorCounts ? variableDescriptorCounts[i] : 0);
 		}
 	}
 	return result;

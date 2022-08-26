@@ -19,6 +19,7 @@
 #include "VkFence.hpp"
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
+#include "VkStringify.hpp"
 #include "VkTimelineSemaphore.hpp"
 #include "Debug/Context.hpp"
 #include "Debug/Server.hpp"
@@ -362,6 +363,59 @@ void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo
 
 	// We have no "strange" limitations to enforce beyond the device limits, so we can safely always claim support.
 	pSupport->supported = VK_TRUE;
+
+	if(pCreateInfo->bindingCount > 0)
+	{
+		bool hasVariableSizedDescriptor = false;
+
+		const VkBaseInStructure *layoutInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+		while(layoutInfo && !hasVariableSizedDescriptor)
+		{
+			if(layoutInfo->sType == VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO)
+			{
+				const VkDescriptorSetLayoutBindingFlagsCreateInfo *bindingFlagsCreateInfo =
+				    reinterpret_cast<const VkDescriptorSetLayoutBindingFlagsCreateInfo *>(layoutInfo);
+
+				for(uint32_t i = 0; i < bindingFlagsCreateInfo->bindingCount; i++)
+				{
+					if(bindingFlagsCreateInfo->pBindingFlags[i] & VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT)
+					{
+						hasVariableSizedDescriptor = true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				UNSUPPORTED("layoutInfo->sType = %s", vk::Stringify(layoutInfo->sType).c_str());
+			}
+
+			layoutInfo = layoutInfo->pNext;
+		}
+
+		const auto &highestNumberedBinding = pCreateInfo->pBindings[pCreateInfo->bindingCount - 1];
+
+		VkBaseOutStructure *layoutSupport = reinterpret_cast<VkBaseOutStructure *>(pSupport->pNext);
+		while(layoutSupport)
+		{
+			if(layoutSupport->sType == VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT)
+			{
+				VkDescriptorSetVariableDescriptorCountLayoutSupport *variableDescriptorCountLayoutSupport =
+				    reinterpret_cast<VkDescriptorSetVariableDescriptorCountLayoutSupport *>(layoutSupport);
+
+				// If the VkDescriptorSetLayoutCreateInfo structure does not include a variable-sized descriptor,
+				// [...] then maxVariableDescriptorCount is set to zero.
+				variableDescriptorCountLayoutSupport->maxVariableDescriptorCount =
+				    hasVariableSizedDescriptor ? ((highestNumberedBinding.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK) ? vk::MAX_INLINE_UNIFORM_BLOCK_SIZE : vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS) : 0;
+			}
+			else
+			{
+				UNSUPPORTED("layoutSupport->sType = %s", vk::Stringify(layoutSupport->sType).c_str());
+			}
+
+			layoutSupport = layoutSupport->pNext;
+		}
+	}
 }
 
 void Device::updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet *pDescriptorWrites,

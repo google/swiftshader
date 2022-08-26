@@ -261,7 +261,7 @@ static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 	features->descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE;
 	features->descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
 	features->descriptorBindingPartiallyBound = VK_TRUE;
-	features->descriptorBindingVariableDescriptorCount = VK_FALSE;
+	features->descriptorBindingVariableDescriptorCount = VK_TRUE;
 	features->runtimeDescriptorArray = VK_TRUE;
 }
 

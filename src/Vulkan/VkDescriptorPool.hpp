@@ -28,7 +28,7 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkDescriptorPoolCreateInfo *pCreateInfo);
 
-	VkResult allocateSets(uint32_t descriptorSetCount, const VkDescriptorSetLayout *pSetLayouts, VkDescriptorSet *pDescriptorSets);
+	VkResult allocateSets(uint32_t descriptorSetCount, const VkDescriptorSetLayout *pSetLayouts, VkDescriptorSet *pDescriptorSets, const VkDescriptorSetVariableDescriptorCountAllocateInfo *variableDescriptorCountAllocateInfo);
 	void freeSets(uint32_t descriptorSetCount, const VkDescriptorSet *pDescriptorSets);
 	VkResult reset();
 
