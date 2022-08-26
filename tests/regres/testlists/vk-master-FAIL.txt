@@ -9,4 +9,5 @@ dEQP-VK.pipeline.monolithic.extended_dynamic_state.before_draw.enable_raster
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.between_pipelines.enable_raster
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.cmd_buffer_start.enable_raster
 dEQP-VK.pipeline.monolithic.extended_dynamic_state.two_draws_dynamic.enable_raster
+dEQP-VK.robustness.robustness1_vertex_access.out_of_bounds_stride_0
 dEQP-VK.robustness.robustness1_vertex_access.out_of_bounds_stride_16_single_buffer
