@@ -119,6 +119,14 @@ RValue<SIMD::Float> Acosh(RValue<SIMD::Float> x, bool relaxedPrecision);
 RValue<SIMD::Float> Atanh(RValue<SIMD::Float> x, bool relaxedPrecision);
 RValue<SIMD::Float> Sqrt(RValue<SIMD::Float> x, bool relaxedPrecision);
 
+// Splits x into a floating-point significand in the range [0.5, 1.0)
+// and an integral exponent of two, such that:
+//   x = significand * 2^exponent
+// Returns the pair <significand, exponent>
+std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val);
+
+RValue<SIMD::Float> Ldexp(RValue<SIMD::Float> significand, RValue<SIMD::Int> exponent);
+
 // Math functions with uses outside of shaders can be invoked using a verbose template argument instead
 // of a Boolean argument to indicate precision. For example Sqrt<Mediump>(x) equals Sqrt(x, true).
 enum Precision

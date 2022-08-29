@@ -774,15 +774,4 @@ SIMD::UInt SpirvShader::AddSat(RValue<SIMD::UInt> a, RValue<SIMD::UInt> b)
 	return CmpLT(sum, a) | sum;
 }
 
-std::pair<SIMD::Float, SIMD::Int> SpirvShader::Frexp(RValue<SIMD::Float> val) const
-{
-	// Assumes IEEE 754
-	auto v = As<SIMD::UInt>(val);
-	auto isNotZero = CmpNEQ(v & SIMD::UInt(0x7FFFFFFF), SIMD::UInt(0));
-	auto zeroSign = v & SIMD::UInt(0x80000000) & ~isNotZero;
-	auto significand = As<SIMD::Float>((((v & SIMD::UInt(0x807FFFFF)) | SIMD::UInt(0x3F000000)) & isNotZero) | zeroSign);
-	auto exponent = Exponent(val) & SIMD::Int(isNotZero);
-	return std::make_pair(significand, exponent);
-}
-
 }  // namespace sw

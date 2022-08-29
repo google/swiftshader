@@ -25,25 +25,6 @@ namespace sw {
 
 static constexpr float PI = 3.141592653589793f;
 
-static SIMD::Float Interpolate(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw,
-                               const SIMD::Float &A, const SIMD::Float &B, const SIMD::Float &C,
-                               SpirvRoutine::Interpolation interpolation)
-{
-	SIMD::Float interpolant = C;
-
-	if(interpolation != SpirvRoutine::Flat)
-	{
-		interpolant += x * A + y * B;
-
-		if(interpolation == SpirvRoutine::Perspective)
-		{
-			interpolant *= rhw;
-		}
-	}
-
-	return interpolant;
-}
-
 SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
@@ -539,106 +520,12 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		break;
 	case GLSLstd450Ldexp:
 		{
-			// "load exponent"
-			// Ldexp(significand,exponent) computes
-			//     significand * 2**exponent
-			// with edge case handling as permitted by the spec.
-			//
-			// The interesting cases are:
-			// - significand is subnormal and the exponent is positive.  The mantissa
-			//   bits of the significand shift left.  The result *may* be normal, and
-			//   in that case the leading 1 bit in the mantissa is no longer explicitly
-			//   represented.  Computing the result with bit operations would be quite
-			//   complex.
-			// - significand has very small magnitude, and exponent is large.
-			//   Example:  significand = 0x1p-125,  exponent = 250, result 0x1p125
-			//   If we compute the result directly with the reference formula, then
-			//   the intermediate value 2.0**exponent overflows, and then the result
-			//   would overflow.  Instead, it is sufficient to split the exponent
-			//   and use two multiplies:
-			//       (significand * 2**(exponent/2)) * (2**(exponent - exponent/2))
-			//   In this formulation, the intermediates will not overflow when the
-			//   correct result does not overflow.  Also, this method naturally handles
-			//   underflows, infinities, and NaNs.
-			//
-			// This implementation uses the two-multiplies approach described above,
-			// and also used by Mesa.
-			//
-			// The SPIR-V GLSL.std.450 extended instruction spec says:
-			//
-			//  if exponent < -126 the result may be flushed to zero
-			//  if exponent > 128 the result may be undefined
-			//
-			// Clamping exponent to [-254,254] allows us implement well beyond
-			// what is required by the spec, but still use simple algorithms.
-			//
-			// We decompose as follows:
-			//        2 ** exponent = fltA * fltB
-			// where
-			//        fltA = 2 ** (exponent / 2)
-			//        fltB = 2 ** (exponent - exponent / 2)
-			//
-			// We use a helper expression to compute these powers of two as float
-			// numbers using bit shifts, where X is an unbiased integer exponent
-			// in range [-127,127]:
-			//
-			//        pow2i(X) = As<SIMD::Float>((X + 127)<<23)
-			//
-			// This places the biased exponent into position, and places all
-			// zeroes in the mantissa bit positions.  The implicit 1 bit in the
-			// mantissa is hidden.  When X = -127, the result is float 0.0, as
-			// if the value was flushed to zero.  Otherwise X is in [-126,127]
-			// and the biased exponent is in [1,254] and the result is a normal
-			// float number with value 2**X.
-			//
-			// So we have:
-			//
-			//        fltA = pow2i(exponent/2)
-			//        fltB = pow2i(exponent - exponent/2)
-			//
-			// With exponent in [-254,254], we split into cases:
-			//
-			//     exponent = -254:
-			//        exponent/2 = -127
-			//        exponent - exponent/2 = -127
-			//        fltA = pow2i(exponent/2) = pow2i(-127) = 0.0
-			//        fltA * fltB is 0.0, which is a permitted flush-to-zero case.
-			//
-			//     exponent = -253:
-			//        exponent/2 = -126
-			//        (exponent - exponent/2) = -127
-			//        fltB = pow2i(exponent - exponent/2) = pow2i(-127) = 0.0
-			//        fltA * fltB is 0.0, which is a permitted flush-to-zero case.
-			//
-			//     exponent in [-252,254]:
-			//        exponent/2 is in [-126, 127]
-			//        (exponent - exponent/2) is in [-126, 127]
-			//
-			//        fltA = pow2i(exponent/2), a normal number
-			//        fltB = pow2i(exponent - exponent/2), a normal number
-			//
-			// For the Mesa implementation, see
-			// https://gitlab.freedesktop.org/mesa/mesa/-/blob/1eb7a85b55f0c7c2de6f5dac7b5f6209a6eb401c/src/compiler/nir/nir_opt_algebraic.py#L2241
-			const auto minExp = SIMD::Int(-254);
-			const auto maxExp = SIMD::Int(254);
-			auto significand = Operand(this, state, insn.word(5));
-			auto exponent = Operand(this, state, insn.word(6));
+			auto x = Operand(this, state, insn.word(5));
+			auto exp = Operand(this, state, insn.word(6));
+
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				// Clamp exponent to limits
-				auto exp = Min(Max(exponent.Int(i), minExp), maxExp);
-				// Split exponent into two parts
-				auto expA = exp >> 1;
-				auto expB = exp - expA;
-				// Construct two floats with the exponents above
-				auto fltA = As<SIMD::Float>((expA + 127) << 23);
-				auto fltB = As<SIMD::Float>((expB + 127) << 23);
-				// Multiply the input value by the two floats to get the final
-				// number.
-				// Note that multiplying fltA and fltB together may result in an 
-				// overflow, so ensure that significand is multiplied by fltA,
-				// *then* the result of that with fltB.
-				dst.move(i, (significand.Float(i) * fltA) * fltB);
+				dst.move(i, Ldexp(x.Float(i), exp.Int(i)));
 			}
 		}
 		break;
@@ -1070,6 +957,25 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	}
 
 	return EmitResult::Continue;
+}
+
+static SIMD::Float Interpolate(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw,
+                               const SIMD::Float &A, const SIMD::Float &B, const SIMD::Float &C,
+                               SpirvRoutine::Interpolation interpolation)
+{
+	SIMD::Float interpolant = C;
+
+	if(interpolation != SpirvRoutine::Flat)
+	{
+		interpolant += x * A + y * B;
+
+		if(interpolation == SpirvRoutine::Perspective)
+		{
+			interpolant *= rhw;
+		}
+	}
+
+	return interpolant;
 }
 
 SIMD::Float SpirvShader::EmitInterpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId,

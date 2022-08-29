@@ -513,6 +513,117 @@ RValue<SIMD::Float> Sqrt(RValue<SIMD::Float> x, bool relaxedPrecision)
 	return Sqrt(x);  // TODO(b/222218659): Optimize for relaxed precision.
 }
 
+std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val)
+{
+	// Assumes IEEE 754
+	auto v = As<SIMD::UInt>(val);
+	auto isNotZero = CmpNEQ(v & 0x7FFFFFFF, 0);
+	auto zeroSign = v & 0x80000000 & ~isNotZero;
+	auto significand = As<SIMD::Float>((((v & 0x807FFFFF) | 0x3F000000) & isNotZero) | zeroSign);
+	auto exponent = Exponent(val) & SIMD::Int(isNotZero);
+
+	return std::make_pair(significand, exponent);
+}
+
+RValue<SIMD::Float> Ldexp(RValue<SIMD::Float> significand, RValue<SIMD::Int> exponent)
+{
+	// "load exponent"
+	// Ldexp(significand,exponent) computes
+	//     significand * 2**exponent
+	// with edge case handling as permitted by the spec.
+	//
+	// The interesting cases are:
+	// - significand is subnormal and the exponent is positive. The mantissa
+	//   bits of the significand shift left. The result *may* be normal, and
+	//   in that case the leading 1 bit in the mantissa is no longer explicitly
+	//   represented. Computing the result with bit operations would be quite
+	//   complex.
+	// - significand has very small magnitude, and exponent is large.
+	//   Example:  significand = 0x1p-125,  exponent = 250, result 0x1p125
+	//   If we compute the result directly with the reference formula, then
+	//   the intermediate value 2.0**exponent overflows, and then the result
+	//   would overflow. Instead, it is sufficient to split the exponent
+	//   and use two multiplies:
+	//       (significand * 2**(exponent/2)) * (2**(exponent - exponent/2))
+	//   In this formulation, the intermediates will not overflow when the
+	//   correct result does not overflow. Also, this method naturally handles
+	//   underflows, infinities, and NaNs.
+	//
+	// This implementation uses the two-multiplies approach described above,
+	// and also used by Mesa.
+	//
+	// The SPIR-V GLSL.std.450 extended instruction spec says:
+	//
+	//  if exponent < -126 the result may be flushed to zero
+	//  if exponent > 128 the result may be undefined
+	//
+	// Clamping exponent to [-254,254] allows us implement well beyond
+	// what is required by the spec, but still use simple algorithms.
+	//
+	// We decompose as follows:
+	//        2 ** exponent = powA * powB
+	// where
+	//        powA = 2 ** (exponent / 2)
+	//        powB = 2 ** (exponent - exponent / 2)
+	//
+	// We use a helper expression to compute these powers of two as float
+	// numbers using bit shifts, where X is an unbiased integer exponent
+	// in range [-127,127]:
+	//
+	//        pow2i(X) = As<SIMD::Float>((X + 127)<<23)
+	//
+	// This places the biased exponent into position, and places all
+	// zeroes in the mantissa bit positions. The implicit 1 bit in the
+	// mantissa is hidden. When X = -127, the result is float 0.0, as
+	// if the value was flushed to zero. Otherwise X is in [-126,127]
+	// and the biased exponent is in [1,254] and the result is a normal
+	// float number with value 2**X.
+	//
+	// So we have:
+	//
+	//        powA = pow2i(exponent/2)
+	//        powB = pow2i(exponent - exponent/2)
+	//
+	// With exponent in [-254,254], we split into cases:
+	//
+	//     exponent = -254:
+	//        exponent/2 = -127
+	//        exponent - exponent/2 = -127
+	//        powA = pow2i(exponent/2) = pow2i(-127) = 0.0
+	//        powA * powB is 0.0, which is a permitted flush-to-zero case.
+	//
+	//     exponent = -253:
+	//        exponent/2 = -126
+	//        (exponent - exponent/2) = -127
+	//        powB = pow2i(exponent - exponent/2) = pow2i(-127) = 0.0
+	//        powA * powB is 0.0, which is a permitted flush-to-zero case.
+	//
+	//     exponent in [-252,254]:
+	//        exponent/2 is in [-126, 127]
+	//        (exponent - exponent/2) is in [-126, 127]
+	//
+	//        powA = pow2i(exponent/2), a normal number
+	//        powB = pow2i(exponent - exponent/2), a normal number
+	//
+	// For the Mesa implementation, see
+	// https://gitlab.freedesktop.org/mesa/mesa/-/blob/1eb7a85b55f0c7c2de6f5dac7b5f6209a6eb401c/src/compiler/nir/nir_opt_algebraic.py#L2241
+
+	// Clamp exponent to limits
+	auto exp = Min(Max(exponent, -254), 254);
+
+	// Split exponent into two terms
+	auto expA = exp >> 1;
+	auto expB = exp - expA;
+	// Construct two powers of 2 with the exponents above
+	auto powA = As<SIMD::Float>((expA + 127) << 23);
+	auto powB = As<SIMD::Float>((expB + 127) << 23);
+
+	// Multiply the input value by the two powers to get the final value.
+	// Note that multiplying powA and powB together may result in an overflow,
+	// so ensure that significand is multiplied by powA, *then* the result of that with powB.
+	return (significand * powA) * powB;
+}
+
 UInt4 halfToFloatBits(RValue<UInt4> halfBits)
 {
 	auto magic = UInt4(126 << 23);
