@@ -393,10 +393,10 @@ public:
 		Kind kind = Kind::Unknown;
 	};
 
-	class SampledImage : public SIMD::Pointer
+	class SampledImagePointer : public SIMD::Pointer
 	{
 	public:
-		SampledImage(SIMD::Pointer image, Object::ID sampler)
+		SampledImagePointer(SIMD::Pointer image, Object::ID sampler)
 		    : SIMD::Pointer(image)
 		    , samplerId(sampler)
 		{}
@@ -749,6 +749,7 @@ public:
 		bool UniformTexelBufferArrayNonUniformIndexing : 1;
 		bool UniformTexelBufferArrayDynamicIndexing : 1;
 		bool UniformBufferArrayNonUniformIndex : 1;
+		bool SampledImageArrayNonUniformIndexing : 1;
 		bool PhysicalStorageBufferAddresses : 1;
 	};
 
@@ -1185,13 +1186,13 @@ private:
 			return it->second;
 		}
 
-		void createSampledImage(Object::ID id, SampledImage ptr)
+		void createSampledImage(Object::ID id, SampledImagePointer ptr)
 		{
 			bool added = sampledImages.emplace(id, ptr).second;
 			ASSERT_MSG(added, "Sampled image %d created twice", id.value());
 		}
 
-		SampledImage const &getSampledImage(Object::ID id) const
+		SampledImagePointer const &getSampledImage(Object::ID id) const
 		{
 			auto it = sampledImages.find(id);
 			ASSERT_MSG(it != sampledImages.end(), "Unknown sampled image %d", id.value());
@@ -1211,7 +1212,7 @@ private:
 	private:
 		std::unordered_map<Object::ID, Intermediate> intermediates;
 		std::unordered_map<Object::ID, SIMD::Pointer> pointers;
-		std::unordered_map<Object::ID, SampledImage> sampledImages;
+		std::unordered_map<Object::ID, SampledImagePointer> sampledImages;
 
 		const unsigned int multiSampleCount;
 	};
@@ -1278,7 +1279,7 @@ private:
 			return (pointer != nullptr);
 		}
 
-		const SampledImage &SampledImage(uint32_t i) const
+		const SampledImagePointer &SampledImage(uint32_t i) const
 		{
 			ASSERT(intermediate == nullptr);
 
@@ -1299,7 +1300,7 @@ private:
 		const uint32_t *constant;
 		const Intermediate *intermediate;
 		const SIMD::Pointer *pointer;
-		const SpirvShader::SampledImage *sampledImage;
+		const SampledImagePointer *sampledImage;
 
 	public:
 		const uint32_t componentCount;
@@ -1448,7 +1449,9 @@ private:
 	// Emits code to sample an image, regardless of whether any SIMD lanes are active.
 	void EmitImageSampleUnconditional(Array<SIMD::Float> &out, const ImageInstruction &instruction, EmitState *state) const;
 
-	Pointer<Byte> lookupSamplerFunction(Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, EmitState *state) const;
+	Pointer<Byte> getSamplerDescriptor(Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, EmitState *state) const;
+	Pointer<Byte> getSamplerDescriptor(Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, int laneIdx, EmitState *state) const;
+	Pointer<Byte> lookupSamplerFunction(Pointer<Byte> imageDescriptor, Pointer<Byte> samplerDescriptor, const ImageInstruction &instruction, EmitState *state) const;
 	void callSamplerFunction(Pointer<Byte> samplerFunction, Array<SIMD::Float> &out, Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, EmitState *state) const;
 
 	void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
