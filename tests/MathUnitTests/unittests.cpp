@@ -20,8 +20,111 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
+#include <cmath>
+
+using std::isnan;
+using std::isinf;
+using std::signbit;
 
 using namespace sw;
+
+// Implementation of frexp() which satisfies C++ <cmath> requirements.
+float fast_frexp(float val, int *exp)
+{
+	int isNotZero = (val != 0.0f) ? 0xFFFFFFFF : 0x00000000;
+	int v = bit_cast<int>(val);
+	int isInfOrNaN = (v & 0x7F800000) == 0x7F800000 ? 0xFFFFFFFF : 0x00000000;
+
+	// When val is a subnormal value we can't directly use its mantissa to construct the significand in
+	// the range [0.5, 1.0). We need to multiply it by a factor that makes it normalized. For large
+	// values the factor must avoid overflow to inifity.
+	int factor = ((127 + 23) << 23) - (v & 0x3F800000);
+	int nval = bit_cast<int>(val * bit_cast<float>(factor));
+
+	// Extract the exponent of the normalized value and subtract the exponent of the normalizing factor.
+	int exponent = ((((nval & 0x7F800000) - factor) >> 23) + 1) & isNotZero;
+
+	// Substitute the exponent of 0.5f (if not zero) to obtain the significand.
+	float significand = bit_cast<float>((nval & 0x807FFFFF) | (0x3F000000 & isNotZero) | (0x7F800000 & isInfOrNaN));
+
+	*exp = exponent;
+	return significand;
+}
+
+TEST(MathTest, Frexp)
+{
+	for(bool flush : { false, true })
+	{
+		CPUID::setDenormalsAreZero(flush);
+		CPUID::setFlushToZero(flush);
+
+		std::vector<float> a = {
+			2.3f,
+			0.1f,
+			0.7f,
+			1.7f,
+			0.0f,
+			-2.3f,
+			-0.1f,
+			-0.7f,
+			-1.7f,
+			-0.0f,
+			100000000.0f,
+			-100000000.0f,
+			0.000000001f,
+			-0.000000001f,
+			FLT_MIN,
+			-FLT_MIN,
+			FLT_MAX,
+			-FLT_MAX,
+			FLT_TRUE_MIN,
+			-FLT_TRUE_MIN,
+			INFINITY,
+			-INFINITY,
+			NAN,
+			bit_cast<float>(0x007FFFFF),  // Largest subnormal
+			bit_cast<float>(0x807FFFFF),
+			bit_cast<float>(0x00000001),  // Smallest subnormal
+			bit_cast<float>(0x80000001),
+		};
+
+		for(float f : a)
+		{
+			int exp = -1000;
+			float sig = fast_frexp(f, &exp);
+
+			if(f == 0.0f)  // Could be subnormal if `flush` is true
+			{
+				// We don't rely on std::frexp here to produce a reference result because it may
+				// return non-zero significands and exponents for subnormal arguments., while our
+				// implementation is meant to respect denormals-are-zero / flush-to-zero.
+
+				ASSERT_EQ(sig, 0.0f) << "Argument: " << std::hexfloat << f;
+				ASSERT_TRUE(signbit(sig) == signbit(f)) << "Argument: " << std::hexfloat << f;
+				ASSERT_EQ(exp, 0) << "Argument: " << std::hexfloat << f;
+			}
+			else
+			{
+				int ref_exp = -1000;
+				float ref_sig = std::frexp(f, &ref_exp);
+
+				if(!isnan(f))
+				{
+					ASSERT_EQ(sig, ref_sig) << "Argument: " << std::hexfloat << f;
+				}
+				else
+				{
+					ASSERT_TRUE(isnan(sig)) << "Significand: " << std::hexfloat << sig;
+				}
+
+				if(!isinf(f) && !isnan(f))  // If the argument is NaN or Inf the exponent is unspecified.
+				{
+					ASSERT_EQ(exp, ref_exp) << "Argument: " << std::hexfloat << f;
+				}
+			}
+		}
+	}
+}
 
 // Returns the whole-number ULP error of `a` relative to `x`.
 // Use the doouble-precision version below. This just illustrates the principle.
