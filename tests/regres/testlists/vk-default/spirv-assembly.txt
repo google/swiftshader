@@ -31838,6 +31838,12 @@ dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_less_or_equal
 dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_greater_or_equal
 dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_equal
 dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_not_equal
+dEQP-VK.spirv_assembly.instruction.graphics.early_and_late_fragment.depth_less
+dEQP-VK.spirv_assembly.instruction.graphics.early_and_late_fragment.depth_greater
+dEQP-VK.spirv_assembly.instruction.graphics.early_and_late_fragment.depth_less_or_equal
+dEQP-VK.spirv_assembly.instruction.graphics.early_and_late_fragment.depth_greater_or_equal
+dEQP-VK.spirv_assembly.instruction.graphics.early_and_late_fragment.depth_equal
+dEQP-VK.spirv_assembly.instruction.graphics.early_and_late_fragment.depth_not_equal
 dEQP-VK.spirv_assembly.instruction.graphics.execution_mode.depthless_0
 dEQP-VK.spirv_assembly.instruction.graphics.execution_mode.depthless_1
 dEQP-VK.spirv_assembly.instruction.graphics.execution_mode.depthless_2

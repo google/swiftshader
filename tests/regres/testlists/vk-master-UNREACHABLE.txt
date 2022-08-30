@@ -1,0 +1,2 @@
+dEQP-VK.pipeline.monolithic.shader_stencil_export.d32_sfloat_s8_uint.op_replace
+dEQP-VK.pipeline.monolithic.shader_stencil_export.s8_uint.op_replace
