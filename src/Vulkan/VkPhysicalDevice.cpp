@@ -254,8 +254,8 @@ static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 	features->shaderUniformTexelBufferArrayNonUniformIndexing = VK_TRUE;
 	features->shaderStorageTexelBufferArrayNonUniformIndexing = VK_TRUE;
 	features->descriptorBindingUniformBufferUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingSampledImageUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingStorageImageUpdateAfterBind = VK_FALSE;
+	features->descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+	features->descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
 	features->descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
 	features->descriptorBindingUniformTexelBufferUpdateAfterBind = VK_TRUE;
 	features->descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE;
@@ -384,7 +384,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	getPhysicalDevice8BitStorageFeaturesKHR(features);
 	getPhysicalDeviceShaderAtomicInt64Features(features);
 	getPhysicalDeviceShaderFloat16Int8Features(features);
-	features->descriptorIndexing = VK_FALSE;
+	features->descriptorIndexing = VK_TRUE;
 	getPhysicalDeviceDescriptorIndexingFeatures(features);
 	features->samplerFilterMinmax = VK_FALSE;
 	getPhysicalDeviceScalarBlockLayoutFeatures(features);
@@ -1166,7 +1166,10 @@ static void getDescriptorIndexingProperties(T *properties)
 	//  the corresponding non-UpdateAfterBind limit."
 	const VkPhysicalDeviceLimits &limits = PhysicalDevice::getLimits();
 
-	properties->maxUpdateAfterBindDescriptorsInAllPools = 0;
+	// Limits from:
+	// https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#limits-minmax
+	// Table 53. Required Limits
+	properties->maxUpdateAfterBindDescriptorsInAllPools = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
 	properties->shaderUniformBufferArrayNonUniformIndexingNative = VK_FALSE;
 	properties->shaderSampledImageArrayNonUniformIndexingNative = VK_FALSE;
 	properties->shaderStorageBufferArrayNonUniformIndexingNative = VK_FALSE;
@@ -1174,20 +1177,20 @@ static void getDescriptorIndexingProperties(T *properties)
 	properties->shaderInputAttachmentArrayNonUniformIndexingNative = VK_FALSE;
 	properties->robustBufferAccessUpdateAfterBind = VK_FALSE;
 	properties->quadDivergentImplicitLod = VK_FALSE;
-	properties->maxPerStageDescriptorUpdateAfterBindSamplers = limits.maxPerStageDescriptorSamplers;
+	properties->maxPerStageDescriptorUpdateAfterBindSamplers = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
 	properties->maxPerStageDescriptorUpdateAfterBindUniformBuffers = limits.maxPerStageDescriptorUniformBuffers;
-	properties->maxPerStageDescriptorUpdateAfterBindStorageBuffers = limits.maxPerStageDescriptorStorageBuffers;
-	properties->maxPerStageDescriptorUpdateAfterBindSampledImages = limits.maxPerStageDescriptorSampledImages;
-	properties->maxPerStageDescriptorUpdateAfterBindStorageImages = limits.maxPerStageDescriptorStorageImages;
+	properties->maxPerStageDescriptorUpdateAfterBindStorageBuffers = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
+	properties->maxPerStageDescriptorUpdateAfterBindSampledImages = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
+	properties->maxPerStageDescriptorUpdateAfterBindStorageImages = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
 	properties->maxPerStageDescriptorUpdateAfterBindInputAttachments = limits.maxPerStageDescriptorInputAttachments;
-	properties->maxPerStageUpdateAfterBindResources = limits.maxPerStageResources;
-	properties->maxDescriptorSetUpdateAfterBindSamplers = limits.maxDescriptorSetSamplers;
+	properties->maxPerStageUpdateAfterBindResources = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
+	properties->maxDescriptorSetUpdateAfterBindSamplers = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
 	properties->maxDescriptorSetUpdateAfterBindUniformBuffers = limits.maxDescriptorSetUniformBuffers;
 	properties->maxDescriptorSetUpdateAfterBindUniformBuffersDynamic = limits.maxDescriptorSetUniformBuffersDynamic;
-	properties->maxDescriptorSetUpdateAfterBindStorageBuffers = limits.maxDescriptorSetStorageBuffers;
+	properties->maxDescriptorSetUpdateAfterBindStorageBuffers = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
 	properties->maxDescriptorSetUpdateAfterBindStorageBuffersDynamic = limits.maxDescriptorSetStorageBuffersDynamic;
-	properties->maxDescriptorSetUpdateAfterBindSampledImages = limits.maxDescriptorSetSampledImages;
-	properties->maxDescriptorSetUpdateAfterBindStorageImages = limits.maxDescriptorSetStorageImages;
+	properties->maxDescriptorSetUpdateAfterBindSampledImages = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
+	properties->maxDescriptorSetUpdateAfterBindStorageImages = vk::MAX_UPDATE_AFTER_BIND_DESCRIPTORS;
 	properties->maxDescriptorSetUpdateAfterBindInputAttachments = limits.maxDescriptorSetInputAttachments;
 }
 
@@ -1588,6 +1591,32 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDevicePrimitiveTopology
 
 	return CheckFeature(requested, supported, primitiveTopologyListRestart) &&
 	       CheckFeature(requested, supported, primitiveTopologyPatchListRestart);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceDescriptorIndexingFeatures *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, shaderInputAttachmentArrayDynamicIndexing) &&
+	       CheckFeature(requested, supported, shaderUniformTexelBufferArrayDynamicIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageTexelBufferArrayDynamicIndexing) &&
+	       CheckFeature(requested, supported, shaderUniformBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderSampledImageArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageImageArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderInputAttachmentArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderUniformTexelBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, shaderStorageTexelBufferArrayNonUniformIndexing) &&
+	       CheckFeature(requested, supported, descriptorBindingUniformBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingSampledImageUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingStorageImageUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingStorageBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingUniformTexelBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingStorageTexelBufferUpdateAfterBind) &&
+	       CheckFeature(requested, supported, descriptorBindingUpdateUnusedWhilePending) &&
+	       CheckFeature(requested, supported, descriptorBindingPartiallyBound) &&
+	       CheckFeature(requested, supported, descriptorBindingVariableDescriptorCount) &&
+	       CheckFeature(requested, supported, runtimeDescriptorArray);
 }
 #undef CheckFeature
 
