@@ -572,6 +572,8 @@ SpirvShader::SpirvShader(
 		case spv::OpPtrAccessChain:
 		case spv::OpSampledImage:
 		case spv::OpImage:
+		case spv::OpCopyObject:
+		case spv::OpCopyLogical:
 			{
 				// Propagate the descriptor decorations to the result.
 				Object::ID resultId = insn.word(2);
@@ -765,8 +767,6 @@ SpirvShader::SpirvShader(
 		case spv::OpGroupNonUniformLogicalAnd:
 		case spv::OpGroupNonUniformLogicalOr:
 		case spv::OpGroupNonUniformLogicalXor:
-		case spv::OpCopyObject:
-		case spv::OpCopyLogical:
 		case spv::OpArrayLength:
 		case spv::OpIsHelperInvocationEXT:
 			// Instructions that yield an intermediate value or divergent pointer
@@ -2642,12 +2642,19 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicCompareExchange(InsnIterator insn
 
 SpirvShader::EmitResult SpirvShader::EmitCopyObject(InsnIterator insn, EmitState *state) const
 {
-	auto type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto src = Operand(this, state, insn.word(3));
-	for(uint32_t i = 0; i < type.componentCount; i++)
+	if(src.isPointer())
 	{
-		dst.move(i, src.Int(i));
+		state->createPointer(insn.resultId(), src.Pointer(0));
+	}
+	else
+	{
+		auto type = getType(insn.resultTypeId());
+		auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
+		for(uint32_t i = 0; i < type.componentCount; i++)
+		{
+			dst.move(i, src.Int(i));
+		}
 	}
 	return EmitResult::Continue;
 }
