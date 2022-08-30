@@ -518,8 +518,7 @@ std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val)
 	// Assumes IEEE 754
 	auto isNotZero = CmpNEQ(val, 0.0f);
 	auto v = As<SIMD::Int>(val);
-	auto zeroSign = v & 0x80000000 & ~isNotZero;
-	auto significand = As<SIMD::Float>((((v & 0x807FFFFF) | 0x3F000000) & isNotZero) | zeroSign);
+	auto significand = As<SIMD::Float>((v & 0x807FFFFF) | (0x3F000000 & isNotZero));
 
 	auto exponent = Exponent(val) & isNotZero;
 
