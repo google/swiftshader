@@ -520,7 +520,7 @@ std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val)
 	auto v = As<SIMD::Int>(val);
 	auto significand = As<SIMD::Float>((v & 0x807FFFFF) | (0x3F000000 & isNotZero));
 
-	auto exponent = Exponent(val) & isNotZero;
+	auto exponent = (((v >> 23) & 0xFF) - 126) & isNotZero;
 
 	return std::make_pair(significand, exponent);
 }
@@ -957,14 +957,6 @@ rr::RValue<SIMD::UInt> NthBit32(rr::RValue<SIMD::UInt> const &bits)
 rr::RValue<SIMD::UInt> Bitmask32(rr::RValue<SIMD::UInt> const &bitCount)
 {
 	return NthBit32(bitCount) - SIMD::UInt(1);
-}
-
-// Returns the exponent of the floating point number f.
-// Assumes IEEE 754
-rr::RValue<SIMD::Int> Exponent(rr::RValue<SIMD::Float> f)
-{
-	auto v = rr::As<SIMD::UInt>(f);
-	return (SIMD::Int((v >> SIMD::UInt(23)) & SIMD::UInt(0xFF)) - SIMD::Int(126));
 }
 
 // Returns y if y < x; otherwise result is x.

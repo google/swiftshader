@@ -215,10 +215,6 @@ rr::RValue<SIMD::Float> FMA(
     rr::RValue<SIMD::Float> const &b,
     rr::RValue<SIMD::Float> const &c);
 
-// Returns the exponent of the floating point number f.
-// Assumes IEEE 754
-rr::RValue<SIMD::Int> Exponent(rr::RValue<SIMD::Float> f);
-
 // Returns y if y < x; otherwise result is x.
 // If one operand is a NaN, the other operand is the result.
 // If both operands are NaN, the result is a NaN.
