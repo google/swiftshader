@@ -511,8 +511,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 
 	initializeLibrary();
 
-	if(pCreateInfo->flags != 0 &&
-	   pCreateInfo->flags != VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR)  // TODO(https://github.com/KhronosGroup/Vulkan-Loader/issues/992)
+	if(pCreateInfo->flags != 0)
 	{
 		// Vulkan 1.3: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("pCreateInfo->flags 0x%08X", int(pCreateInfo->flags));
