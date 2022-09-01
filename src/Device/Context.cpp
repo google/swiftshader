@@ -498,7 +498,7 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 	sampleCount = 1;
 
 	// Only access rasterization state if rasterization is not disabled.
-	if(rasterizationState->rasterizerDiscardEnable == VK_FALSE)
+	if(rasterizationState->rasterizerDiscardEnable == VK_FALSE || dynamicStateFlags.dynamicRasterizerDiscardEnable)
 	{
 		const VkPipelineViewportStateCreateInfo *viewportState = pCreateInfo->pViewportState;
 		const VkPipelineMultisampleStateCreateInfo *multisampleState = pCreateInfo->pMultisampleState;

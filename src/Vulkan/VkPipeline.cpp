@@ -350,8 +350,9 @@ size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineC
 
 void GraphicsPipeline::getIndexBuffers(const vk::DynamicState &dynamicState, uint32_t count, uint32_t first, bool indexed, std::vector<std::pair<uint32_t, void *>> *indexBuffers) const
 {
-	VkPrimitiveTopology topology = state.hasDynamicTopology() ? dynamicState.primitiveTopology : state.getTopology();
-	indexBuffer.getIndexBuffers(topology, count, first, indexed, state.hasPrimitiveRestartEnable(), indexBuffers);
+	const VkPrimitiveTopology topology = state.hasDynamicTopology() ? dynamicState.primitiveTopology : state.getTopology();
+	const bool hasPrimitiveRestartEnable = state.hasDynamicPrimitiveRestartEnable() ? dynamicState.primitiveRestartEnable : state.hasPrimitiveRestartEnable();
+	indexBuffer.getIndexBuffers(topology, count, first, indexed, hasPrimitiveRestartEnable, indexBuffers);
 }
 
 bool GraphicsPipeline::containsImageWrite() const
