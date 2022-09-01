@@ -37,7 +37,7 @@ class ShaderModule;
 class Pipeline
 {
 public:
-	Pipeline(PipelineLayout *layout, Device *device);
+	Pipeline(PipelineLayout *layout, Device *device, bool robustBufferAccess);
 	virtual ~Pipeline() = default;
 
 	operator VkPipeline()

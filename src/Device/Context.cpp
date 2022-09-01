@@ -382,9 +382,8 @@ VkDeviceSize Inputs::getInstanceStride(uint32_t i, bool dynamicInstanceStride) c
 }
 
 GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreateInfo *pCreateInfo,
-                             const PipelineLayout *layout, bool robustBufferAccess)
+                             const PipelineLayout *layout)
     : pipelineLayout(layout)
-    , robustBufferAccess(robustBufferAccess)
     , dynamicStateFlags(ParseDynamicStateFlags(pCreateInfo->pDynamicState))
 {
 	if((pCreateInfo->flags &

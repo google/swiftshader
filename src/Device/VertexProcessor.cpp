@@ -71,7 +71,7 @@ const VertexProcessor::State VertexProcessor::update(const vk::GraphicsState &pi
 
 	state.shaderID = vertexShader->getIdentifier();
 	state.pipelineLayoutIdentifier = pipelineState.getPipelineLayout()->identifier;
-	state.robustBufferAccess = pipelineState.getRobustBufferAccess();
+	state.robustBufferAccess = vertexShader->getRobustBufferAccess();
 	state.isPoint = pipelineState.getTopology() == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	state.depthClipEnable = pipelineState.getDepthClipEnable();
 	state.depthClipNegativeOneToOne = pipelineState.getDepthClipNegativeOneToOne();

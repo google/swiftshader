@@ -377,6 +377,12 @@ static void getPhysicalDevicePrimitiveTopologyListRestartFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDevicePipelineRobustnessFeatures(T *features)
+{
+	features->pipelineRobustness = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -600,6 +606,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT:
 			getPhysicalDevicePrimitiveTopologyListRestartFeatures(reinterpret_cast<struct VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES_EXT:
+			getPhysicalDevicePipelineRobustnessFeatures(reinterpret_cast<struct VkPhysicalDevicePipelineRobustnessFeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT:
 			getPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(reinterpret_cast<struct VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT *>(curExtension));
@@ -1338,6 +1347,24 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceTimelineSemaphoreProperties *
 	getTimelineSemaphoreProperties(properties);
 }
 
+template<typename T>
+static void getPipelineRobustnessProperties(T *properties)
+{
+	// Buffer access is not robust by default.
+	properties->defaultRobustnessStorageBuffers = VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED_EXT;
+	properties->defaultRobustnessUniformBuffers = VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED_EXT;
+	properties->defaultRobustnessVertexInputs = VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DISABLED_EXT;
+	// SwiftShader currently provides robustImageAccess robustness unconditionally.
+	// robustImageAccess2 is not supported.
+	// TODO(b/162327166): Only provide robustness when requested.
+	properties->defaultRobustnessImages = VK_PIPELINE_ROBUSTNESS_IMAGE_BEHAVIOR_ROBUST_IMAGE_ACCESS_EXT;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDevicePipelineRobustnessPropertiesEXT *properties) const
+{
+	getPipelineRobustnessProperties(properties);
+}
+
 void PhysicalDevice::getProperties(VkPhysicalDeviceVulkan12Properties *properties) const
 {
 	getDriverProperties(properties);
@@ -1617,6 +1644,13 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceDescriptorIndexin
 	       CheckFeature(requested, supported, descriptorBindingPartiallyBound) &&
 	       CheckFeature(requested, supported, descriptorBindingVariableDescriptorCount) &&
 	       CheckFeature(requested, supported, runtimeDescriptorArray);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDevicePipelineRobustnessFeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, pipelineRobustness);
 }
 #undef CheckFeature
 

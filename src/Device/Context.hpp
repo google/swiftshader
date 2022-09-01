@@ -154,12 +154,11 @@ struct DynamicState
 
 struct GraphicsState
 {
-	GraphicsState(const Device *device, const VkGraphicsPipelineCreateInfo *pCreateInfo, const PipelineLayout *layout, bool robustBufferAccess);
+	GraphicsState(const Device *device, const VkGraphicsPipelineCreateInfo *pCreateInfo, const PipelineLayout *layout);
 
 	const GraphicsState combineStates(const DynamicState &dynamicState) const;
 
 	inline const PipelineLayout *getPipelineLayout() const { return pipelineLayout; }
-	inline bool getRobustBufferAccess() const { return robustBufferAccess; }
 	inline VkPrimitiveTopology getTopology() const { return topology; }
 
 	inline VkProvokingVertexModeEXT getProvokingVertexMode() const { return provokingVertexMode; }
@@ -255,7 +254,6 @@ private:
 	bool colorWriteActive(const Attachments &attachments) const;
 
 	const PipelineLayout *pipelineLayout = nullptr;
-	const bool robustBufferAccess = false;
 	const DynamicStateFlags dynamicStateFlags = {};
 	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 

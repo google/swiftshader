@@ -56,6 +56,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceDescriptorIndexingFeatures *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDevicePipelineRobustnessFeaturesEXT *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
@@ -82,8 +83,6 @@ public:
 	void getProperties(VkPhysicalDeviceFloatControlsProperties *) const;
 	void getProperties(VkPhysicalDeviceSamplerFilterMinmaxProperties *properties) const;
 	void getProperties(VkPhysicalDeviceTimelineSemaphoreProperties *properties) const;
-	void getProperties(VkPhysicalDeviceVulkan12Properties *properties) const;
-	void getProperties(VkPhysicalDeviceVulkan13Properties *properties) const;
 	void getProperties(VkPhysicalDeviceDescriptorIndexingProperties *properties) const;
 	void getProperties(VkPhysicalDeviceDepthStencilResolveProperties *properties) const;
 	void getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEXT *properties) const;
@@ -92,7 +91,10 @@ public:
 	void getProperties(VkPhysicalDeviceInlineUniformBlockProperties *properties) const;
 	void getProperties(VkPhysicalDeviceTexelBufferAlignmentProperties *properties) const;
 	void getProperties(VkPhysicalDeviceShaderIntegerDotProductProperties *properties) const;
+	void getProperties(VkPhysicalDevicePipelineRobustnessPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceVulkan11Properties *properties) const;
+	void getProperties(VkPhysicalDeviceVulkan12Properties *properties) const;
+	void getProperties(VkPhysicalDeviceVulkan13Properties *properties) const;
 
 	static void GetFormatProperties(Format format, VkFormatProperties *pFormatProperties);
 	static void GetFormatProperties(Format format, VkFormatProperties3 *pFormatProperties);
