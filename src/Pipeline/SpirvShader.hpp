@@ -654,6 +654,7 @@ public:
 		bool DepthGreater : 1;
 		bool DepthLess : 1;
 		bool DepthUnchanged : 1;
+		bool StencilRefReplacing : 1;
 
 		// Compute workgroup dimensions
 		Object::ID WorkgroupSizeX = 1;

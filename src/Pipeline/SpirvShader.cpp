@@ -1053,6 +1053,9 @@ void SpirvShader::ProcessExecutionMode(InsnIterator insn)
 		// TODO(b/177915067): Can be used to optimize depth test, currently unused.
 		executionModes.DepthUnchanged = true;
 		break;
+	case spv::ExecutionModeStencilRefReplacingEXT:
+		executionModes.StencilRefReplacing = true;
+		break;
 	case spv::ExecutionModeLocalSize:
 	case spv::ExecutionModeLocalSizeId:
 		executionModes.WorkgroupSizeX = insn.word(3);
