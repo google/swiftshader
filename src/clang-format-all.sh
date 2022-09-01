@@ -43,7 +43,7 @@ then
     done
 else
     BASEDIR=$(git rev-parse --show-toplevel)
-    FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cpp$\|\.hpp\|\.c$\|\.h$')
+    FILES=$(git diff --name-only --diff-filter=ACM | grep '\.cpp$\|\.hpp\|\.c$\|\.h$')
     for FILE in $FILES
     do
         ${CLANG_FORMAT} -i -style=file "$BASEDIR/$FILE"
