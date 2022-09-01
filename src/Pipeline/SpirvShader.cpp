@@ -1710,9 +1710,12 @@ void SpirvShader::DefineResult(const InsnIterator &insn)
 
 	switch(getType(typeId).opcode())
 	{
+	case spv::OpTypeSampledImage:
+		object.kind = Object::Kind::SampledImage;
+		break;
+
 	case spv::OpTypePointer:
 	case spv::OpTypeImage:
-	case spv::OpTypeSampledImage:
 	case spv::OpTypeSampler:
 		object.kind = Object::Kind::Pointer;
 		break;
@@ -2183,7 +2186,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 	case spv::OpImageDrefGather:
 	case spv::OpImageFetch:
 	case spv::OpImageQueryLod:
-		return EmitImageSample(ImageInstruction(insn, *this), state);
+		return EmitImageSample(ImageInstruction(insn, *this, state), state);
 
 	case spv::OpImageQuerySizeLod:
 		return EmitImageQuerySizeLod(insn, state);
@@ -2198,17 +2201,19 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 		return EmitImageQuerySamples(insn, state);
 
 	case spv::OpImageRead:
-		return EmitImageRead(ImageInstruction(insn, *this), state);
+		return EmitImageRead(ImageInstruction(insn, *this, state), state);
 
 	case spv::OpImageWrite:
-		return EmitImageWrite(ImageInstruction(insn, *this), state);
+		return EmitImageWrite(ImageInstruction(insn, *this, state), state);
 
 	case spv::OpImageTexelPointer:
-		return EmitImageTexelPointer(ImageInstruction(insn, *this), state);
+		return EmitImageTexelPointer(ImageInstruction(insn, *this, state), state);
 
 	case spv::OpSampledImage:
+		return EmitSampledImage(insn, state);
+
 	case spv::OpImage:
-		return EmitSampledImageCombineOrSplit(insn, state);
+		return EmitImage(insn, state);
 
 	case spv::OpCopyObject:
 	case spv::OpCopyLogical:
@@ -2650,6 +2655,10 @@ SpirvShader::EmitResult SpirvShader::EmitCopyObject(InsnIterator insn, EmitState
 	{
 		state->createPointer(insn.resultId(), src.Pointer(0));
 	}
+	else if(src.isSampledImage())
+	{
+		state->createSampledImage(insn.resultId(), src.SampledImage(0));
+	}
 	else
 	{
 		auto type = getType(insn.resultTypeId());
@@ -2797,15 +2806,17 @@ SpirvShader::Operand::Operand(const EmitState *state, const Object &object)
     : constant(object.kind == SpirvShader::Object::Kind::Constant ? object.constantValue.data() : nullptr)
     , intermediate(object.kind == SpirvShader::Object::Kind::Intermediate ? &state->getIntermediate(object.id()) : nullptr)
     , pointer(object.kind == SpirvShader::Object::Kind::Pointer ? &state->getPointer(object.id()) : nullptr)
+    , sampledImage(object.kind == SpirvShader::Object::Kind::SampledImage ? &state->getSampledImage(object.id()) : nullptr)
     , componentCount(intermediate ? intermediate->componentCount : object.constantValue.size())
 {
-	ASSERT(intermediate || constant || pointer);
+	ASSERT(intermediate || constant || pointer || sampledImage);
 }
 
 SpirvShader::Operand::Operand(const Intermediate &value)
     : constant(nullptr)
     , intermediate(&value)
     , pointer(nullptr)
+    , sampledImage(nullptr)
     , componentCount(value.componentCount)
 {
 }
