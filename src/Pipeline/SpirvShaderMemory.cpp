@@ -125,8 +125,9 @@ void SpirvShader::Store(Object::ID pointerId, const Operand &value, bool atomic,
 	if(value.isPointer())
 	{
 		VisitMemoryObject(pointerId, true, [&](const MemoryElement &el) {
+			ASSERT(el.index == 0);
 			auto p = GetElementPointer(ptr, el.offset, interleavedByLane);
-			p.Store(value.Pointer(el.index), robustness, mask, atomic, memoryOrder);
+			p.Store(value.Pointer(), robustness, mask, atomic, memoryOrder);
 		});
 	}
 	else

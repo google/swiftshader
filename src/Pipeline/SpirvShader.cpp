@@ -2655,11 +2655,11 @@ SpirvShader::EmitResult SpirvShader::EmitCopyObject(InsnIterator insn, EmitState
 	auto src = Operand(this, state, insn.word(3));
 	if(src.isPointer())
 	{
-		state->createPointer(insn.resultId(), src.Pointer(0));
+		state->createPointer(insn.resultId(), src.Pointer());
 	}
 	else if(src.isSampledImage())
 	{
-		state->createSampledImage(insn.resultId(), src.SampledImage(0));
+		state->createSampledImage(insn.resultId(), src.SampledImage());
 	}
 	else
 	{
