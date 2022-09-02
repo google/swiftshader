@@ -134,7 +134,9 @@ public:
 
 		if(!executionState.dynamicRendering->resume())
 		{
-			VkRect2D renderArea = executionState.dynamicRendering->getRenderArea();
+			VkClearRect rect = {};
+			rect.rect = executionState.dynamicRendering->getRenderArea();
+			rect.layerCount = executionState.dynamicRendering->getLayerCount();
 			uint32_t viewMask = executionState.dynamicRendering->getViewMask();
 
 			// Vulkan specifies that the attachments' `loadOp` gets executed "at the beginning of the subpass where it is first used."
@@ -148,7 +150,7 @@ public:
 					vk::ImageView *imageView = vk::Cast(colorAttachment->imageView);
 					if(imageView)
 					{
-						imageView->clear(colorAttachment->clearValue, VK_IMAGE_ASPECT_COLOR_BIT, renderArea, viewMask);
+						imageView->clear(colorAttachment->clearValue, VK_IMAGE_ASPECT_COLOR_BIT, rect, viewMask);
 					}
 				}
 			}
@@ -159,7 +161,7 @@ public:
 				vk::ImageView *imageView = vk::Cast(stencilAttachment.imageView);
 				if(imageView)
 				{
-					imageView->clear(stencilAttachment.clearValue, VK_IMAGE_ASPECT_STENCIL_BIT, renderArea, viewMask);
+					imageView->clear(stencilAttachment.clearValue, VK_IMAGE_ASPECT_STENCIL_BIT, rect, viewMask);
 				}
 			}
 
@@ -170,7 +172,7 @@ public:
 
 				if(imageView)
 				{
-					imageView->clear(depthAttachment.clearValue, VK_IMAGE_ASPECT_DEPTH_BIT, renderArea, viewMask);
+					imageView->clear(depthAttachment.clearValue, VK_IMAGE_ASPECT_DEPTH_BIT, rect, viewMask);
 				}
 			}
 		}
@@ -1806,7 +1808,7 @@ VkResult CommandBuffer::reset(VkCommandPoolResetFlags flags)
 }
 
 template<typename T, typename... Args>
-void CommandBuffer::addCommand(Args &&...args)
+void CommandBuffer::addCommand(Args &&... args)
 {
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	commands.push_back(std::make_unique<T>(std::forward<Args>(args)...));
