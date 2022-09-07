@@ -17,6 +17,7 @@
 #include "Vulkan/VkBuffer.hpp"
 #include "Vulkan/VkDevice.hpp"
 #include "Vulkan/VkImageView.hpp"
+#include "Vulkan/VkPipeline.hpp"
 #include "Vulkan/VkRenderPass.hpp"
 #include "Vulkan/VkStringify.hpp"
 
@@ -197,7 +198,6 @@ vk::DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateI
 
 	return dynamicStateFlags;
 }
-
 }  // namespace
 
 namespace vk {
@@ -269,7 +269,7 @@ VkFormat Attachments::depthFormat() const
 	}
 }
 
-Inputs::Inputs(const VkPipelineVertexInputStateCreateInfo *vertexInputState)
+void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState)
 {
 	if(vertexInputState->flags != 0)
 	{
@@ -528,12 +528,14 @@ bool VertexInputInterfaceState::isDrawTriangle(bool polygonModeAware, VkPolygonM
 }
 
 void PreRasterizationState::initialize(const vk::Device *device,
+                                       const PipelineLayout *layout,
                                        const VkPipelineViewportStateCreateInfo *viewportState,
                                        const VkPipelineRasterizationStateCreateInfo *rasterizationState,
                                        const vk::RenderPass *renderPass, uint32_t subpassIndex,
                                        const VkPipelineRenderingCreateInfo *rendering,
                                        const DynamicStateFlags &allDynamicStateFlags)
 {
+	pipelineLayout = layout;
 	dynamicStateFlags = allDynamicStateFlags.preRasterization;
 
 	if(rasterizationState->flags != 0)
@@ -717,11 +719,14 @@ void PreRasterizationState::applyState(const DynamicState &dynamicState)
 	}
 }
 
-void FragmentState::initialize(const VkPipelineDepthStencilStateCreateInfo *depthStencilState,
-                               const vk::RenderPass *renderPass, uint32_t subpassIndex,
-                               const VkPipelineRenderingCreateInfo *rendering,
-                               const DynamicStateFlags &allDynamicStateFlags)
+void FragmentState::initialize(
+    const PipelineLayout *layout,
+    const VkPipelineDepthStencilStateCreateInfo *depthStencilState,
+    const vk::RenderPass *renderPass, uint32_t subpassIndex,
+    const VkPipelineRenderingCreateInfo *rendering,
+    const DynamicStateFlags &allDynamicStateFlags)
 {
+	pipelineLayout = layout;
 	dynamicStateFlags = allDynamicStateFlags.fragment;
 
 	if(renderPass)
@@ -1198,14 +1203,16 @@ int FragmentOutputInterfaceState::colorWriteActive(int index, const Attachments 
 
 GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreateInfo *pCreateInfo,
                              const PipelineLayout *layout)
-    : pipelineLayout(layout)
 {
 	if((pCreateInfo->flags &
 	    ~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
 	      VK_PIPELINE_CREATE_DERIVATIVE_BIT |
 	      VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT |
 	      VK_PIPELINE_CREATE_EARLY_RETURN_ON_FAILURE_BIT_EXT |
-	      VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT)) != 0)
+	      VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT |
+	      VK_PIPELINE_CREATE_LIBRARY_BIT_KHR |
+	      VK_PIPELINE_CREATE_RETAIN_LINK_TIME_OPTIMIZATION_INFO_BIT_EXT |
+	      VK_PIPELINE_CREATE_LINK_TIME_OPTIMIZATION_BIT_EXT)) != 0)
 	{
 		UNSUPPORTED("pCreateInfo->flags 0x%08X", int(pCreateInfo->flags));
 	}
@@ -1213,30 +1220,94 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 	DynamicStateFlags dynamicStateFlags = ParseDynamicStateFlags(pCreateInfo->pDynamicState);
 	const auto *rendering = GetExtendedStruct<VkPipelineRenderingCreateInfo>(pCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO);
 
-	vertexInputInterfaceState.initialize(pCreateInfo->pVertexInputState,
-	                                     pCreateInfo->pInputAssemblyState,
-	                                     dynamicStateFlags);
-	preRasterizationState.initialize(device,
-	                                 pCreateInfo->pViewportState,
-	                                 pCreateInfo->pRasterizationState,
-	                                 vk::Cast(pCreateInfo->renderPass),
-	                                 pCreateInfo->subpass,
-	                                 rendering,
-	                                 dynamicStateFlags);
+	// First, get the subset of state specified in pCreateInfo itself.
+	validSubset = GraphicsPipeline::GetGraphicsPipelineSubset(pCreateInfo);
 
-	if(!pCreateInfo->pRasterizationState->rasterizerDiscardEnable || dynamicStateFlags.preRasterization.dynamicRasterizerDiscardEnable)
+	// If rasterizer discard is enabled (and not dynamically overridable), ignore the fragment
+	// and fragment output subsets, as they will not be used.
+	if((validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0 &&
+	   pCreateInfo->pRasterizationState->rasterizerDiscardEnable &&
+	   !dynamicStateFlags.preRasterization.dynamicRasterizerDiscardEnable)
 	{
-		fragmentState.initialize(pCreateInfo->pDepthStencilState,
+		validSubset &= ~(VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT | VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_OUTPUT_INTERFACE_BIT_EXT);
+	}
+
+	if((validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT) != 0)
+	{
+		vertexInputInterfaceState.initialize(pCreateInfo->pVertexInputState,
+		                                     pCreateInfo->pInputAssemblyState,
+		                                     dynamicStateFlags);
+	}
+	if((validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0)
+	{
+		preRasterizationState.initialize(device,
+		                                 layout,
+		                                 pCreateInfo->pViewportState,
+		                                 pCreateInfo->pRasterizationState,
+		                                 vk::Cast(pCreateInfo->renderPass),
+		                                 pCreateInfo->subpass,
+		                                 rendering,
+		                                 dynamicStateFlags);
+	}
+	if((validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT) != 0)
+	{
+		fragmentState.initialize(layout,
+		                         pCreateInfo->pDepthStencilState,
 		                         vk::Cast(pCreateInfo->renderPass),
 		                         pCreateInfo->subpass,
 		                         rendering,
 		                         dynamicStateFlags);
+	}
+	if((validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_OUTPUT_INTERFACE_BIT_EXT) != 0)
+	{
 		fragmentOutputInterfaceState.initialize(pCreateInfo->pColorBlendState,
 		                                        pCreateInfo->pMultisampleState,
 		                                        vk::Cast(pCreateInfo->renderPass),
 		                                        pCreateInfo->subpass,
 		                                        rendering,
 		                                        dynamicStateFlags);
+	}
+
+	// Then, apply state coming from pipeline libraries.
+	const auto *libraryCreateInfo = vk::GetExtendedStruct<VkPipelineLibraryCreateInfoKHR>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR);
+	if(libraryCreateInfo)
+	{
+		for(uint32_t i = 0; i < libraryCreateInfo->libraryCount; ++i)
+		{
+			const auto *library = static_cast<const GraphicsPipeline *>(vk::Cast(libraryCreateInfo->pLibraries[i]));
+			const GraphicsState &libraryState = library->getState();
+			const VkGraphicsPipelineLibraryFlagsEXT librarySubset = libraryState.validSubset;
+
+			// The library subsets should be disjoint
+			ASSERT((libraryState.validSubset & validSubset) == 0);
+
+			if((librarySubset & VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT) != 0)
+			{
+				vertexInputInterfaceState = libraryState.vertexInputInterfaceState;
+			}
+			if((librarySubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0)
+			{
+				preRasterizationState = libraryState.preRasterizationState;
+				if (layout)
+				{
+					preRasterizationState.overridePipelineLayout(layout);
+				}
+			}
+			if((librarySubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT) != 0)
+			{
+				fragmentState = libraryState.fragmentState;
+				if (layout)
+				{
+					fragmentState.overridePipelineLayout(layout);
+				}
+			}
+			if((librarySubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_OUTPUT_INTERFACE_BIT_EXT) != 0)
+			{
+				fragmentOutputInterfaceState = libraryState.fragmentOutputInterfaceState;
+			}
+
+			validSubset |= libraryState.validSubset;
+		}
 	}
 }
 

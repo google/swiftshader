@@ -73,7 +73,7 @@ const VertexProcessor::State VertexProcessor::update(const vk::GraphicsState &pi
 	State state;
 
 	state.shaderID = vertexShader->getIdentifier();
-	state.pipelineLayoutIdentifier = pipelineState.getPipelineLayout()->identifier;
+	state.pipelineLayoutIdentifier = preRasterizationState.getPipelineLayout()->identifier;
 	state.robustBufferAccess = vertexShader->getRobustBufferAccess();
 	state.isPoint = vertexInputInterfaceState.getTopology() == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	state.depthClipEnable = preRasterizationState.getDepthClipEnable();

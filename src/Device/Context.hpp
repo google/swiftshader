@@ -65,7 +65,7 @@ struct Attachments
 
 struct Inputs
 {
-	Inputs(const VkPipelineVertexInputStateCreateInfo *vertexInputState);
+	void initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState);
 
 	void updateDescriptorSets(const DescriptorSet::Array &dso,
 	                          const DescriptorSet::Bindings &ds,
@@ -216,8 +216,8 @@ struct DynamicStateFlags
 struct VertexInputInterfaceState
 {
 	void initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState,
-	           const VkPipelineInputAssemblyStateCreateInfo *inputAssemblyState,
-	           const DynamicStateFlags &allDynamicStateFlags);
+	                const VkPipelineInputAssemblyStateCreateInfo *inputAssemblyState,
+	                const DynamicStateFlags &allDynamicStateFlags);
 
 	void applyState(const DynamicState &dynamicState);
 
@@ -243,11 +243,15 @@ private:
 struct PreRasterizationState
 {
 	void initialize(const vk::Device *device,
-	           const VkPipelineViewportStateCreateInfo *viewportState,
-	           const VkPipelineRasterizationStateCreateInfo *rasterizationState,
-	           const vk::RenderPass *renderPass, uint32_t subpassIndex,
-	           const VkPipelineRenderingCreateInfo *rendering,
-	           const DynamicStateFlags &allDynamicStateFlags);
+	                const PipelineLayout *layout,
+	                const VkPipelineViewportStateCreateInfo *viewportState,
+	                const VkPipelineRasterizationStateCreateInfo *rasterizationState,
+	                const vk::RenderPass *renderPass, uint32_t subpassIndex,
+	                const VkPipelineRenderingCreateInfo *rendering,
+	                const DynamicStateFlags &allDynamicStateFlags);
+
+	inline const PipelineLayout *getPipelineLayout() const { return pipelineLayout; }
+	inline void overridePipelineLayout(const PipelineLayout *linkedLayout) { pipelineLayout = linkedLayout; }
 
 	void applyState(const DynamicState &dynamicState);
 
@@ -274,6 +278,8 @@ struct PreRasterizationState
 	inline const VkViewport &getViewport() const { return viewport; }
 
 private:
+	const PipelineLayout *pipelineLayout = nullptr;
+
 	PreRasterizationDynamicStateFlags dynamicStateFlags = {};
 
 	bool rasterizerDiscard = false;
@@ -301,10 +307,14 @@ private:
 
 struct FragmentState
 {
-	void initialize(const VkPipelineDepthStencilStateCreateInfo *depthStencilState,
-	           const vk::RenderPass *renderPass, uint32_t subpassIndex,
-	           const VkPipelineRenderingCreateInfo *rendering,
-	           const DynamicStateFlags &allDynamicStateFlags);
+	void initialize(const PipelineLayout *layout,
+	                const VkPipelineDepthStencilStateCreateInfo *depthStencilState,
+	                const vk::RenderPass *renderPass, uint32_t subpassIndex,
+	                const VkPipelineRenderingCreateInfo *rendering,
+	                const DynamicStateFlags &allDynamicStateFlags);
+
+	inline const PipelineLayout *getPipelineLayout() const { return pipelineLayout; }
+	inline void overridePipelineLayout(const PipelineLayout *linkedLayout) { pipelineLayout = linkedLayout; }
 
 	void applyState(const DynamicState &dynamicState);
 
@@ -323,6 +333,8 @@ struct FragmentState
 
 private:
 	void setDepthStencilState(const VkPipelineDepthStencilStateCreateInfo *depthStencilState);
+
+	const PipelineLayout *pipelineLayout = nullptr;
 
 	FragmentDynamicStateFlags dynamicStateFlags = {};
 
@@ -355,10 +367,10 @@ private:
 struct FragmentOutputInterfaceState
 {
 	void initialize(const VkPipelineColorBlendStateCreateInfo *colorBlendState,
-	            const VkPipelineMultisampleStateCreateInfo *multisampleState,
-	            const vk::RenderPass *renderPass, uint32_t subpassIndex,
-	            const VkPipelineRenderingCreateInfo *rendering,
-	            const DynamicStateFlags &allDynamicStateFlags);
+	                const VkPipelineMultisampleStateCreateInfo *multisampleState,
+	                const vk::RenderPass *renderPass, uint32_t subpassIndex,
+	                const VkPipelineRenderingCreateInfo *rendering,
+	                const DynamicStateFlags &allDynamicStateFlags);
 
 	void applyState(const DynamicState &dynamicState);
 
@@ -399,22 +411,53 @@ struct GraphicsState
 
 	GraphicsState combineStates(const DynamicState &dynamicState) const;
 
-	inline const PipelineLayout *getPipelineLayout() const { return pipelineLayout; }
+	bool hasVertexInputInterfaceState() const
+	{
+		return (validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT) != 0;
+	}
+	bool hasPreRasterizationState() const
+	{
+		return (validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0;
+	}
+	bool hasFragmentState() const
+	{
+		return (validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT) != 0;
+	}
+	bool hasFragmentOutputInterfaceState() const
+	{
+		return (validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_OUTPUT_INTERFACE_BIT_EXT) != 0;
+	}
 
-	const VertexInputInterfaceState &getVertexInputInterfaceState() const { return vertexInputInterfaceState; }
-	const PreRasterizationState &getPreRasterizationState() const { return preRasterizationState; }
-	const FragmentState &getFragmentState() const { return fragmentState; }
-	const FragmentOutputInterfaceState &getFragmentOutputInterfaceState() const { return fragmentOutputInterfaceState; }
+	const VertexInputInterfaceState &getVertexInputInterfaceState() const
+	{
+		ASSERT(hasVertexInputInterfaceState());
+		return vertexInputInterfaceState;
+	}
+	const PreRasterizationState &getPreRasterizationState() const
+	{
+		ASSERT(hasPreRasterizationState());
+		return preRasterizationState;
+	}
+	const FragmentState &getFragmentState() const
+	{
+		ASSERT(hasFragmentState());
+		return fragmentState;
+	}
+	const FragmentOutputInterfaceState &getFragmentOutputInterfaceState() const
+	{
+		ASSERT(hasFragmentOutputInterfaceState());
+		return fragmentOutputInterfaceState;
+	}
 
 private:
-	const PipelineLayout *pipelineLayout = nullptr;
-
 	// The four subsets of a graphics pipeline as described in the spec.  With
 	// VK_EXT_graphics_pipeline_library, a number of these may be valid.
 	VertexInputInterfaceState vertexInputInterfaceState;
 	PreRasterizationState preRasterizationState;
 	FragmentState fragmentState;
 	FragmentOutputInterfaceState fragmentOutputInterfaceState;
+
+	VkGraphicsPipelineLibraryFlagsEXT validSubset = 0;
 };
 
 }  // namespace vk

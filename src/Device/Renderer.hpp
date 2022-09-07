@@ -170,7 +170,8 @@ struct DrawCall
 	vk::ImageView *depthBuffer;
 	vk::ImageView *stencilBuffer;
 	vk::DescriptorSet::Array descriptorSetObjects;
-	const vk::PipelineLayout *pipelineLayout;
+	const vk::PipelineLayout *preRasterizationPipelineLayout;
+	const vk::PipelineLayout *fragmentPipelineLayout;
 	sw::CountedEvent *events;
 
 	vk::Query *occlusionQuery;

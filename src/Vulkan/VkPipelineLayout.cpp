@@ -33,6 +33,10 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
 
 	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
 	{
+		if(pCreateInfo->pSetLayouts[i] == VK_NULL_HANDLE)
+		{
+			continue;
+		}
 		const vk::DescriptorSetLayout *setLayout = vk::Cast(pCreateInfo->pSetLayouts[i]);
 		uint32_t bindingsArraySize = setLayout->getBindingsArraySize();
 		descriptorSets[i].bindings = bindingStorage;
@@ -80,6 +84,10 @@ size_t PipelineLayout::ComputeRequiredAllocationSize(const VkPipelineLayoutCreat
 	uint32_t bindingsCount = 0;
 	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
 	{
+		if(pCreateInfo->pSetLayouts[i] == VK_NULL_HANDLE)
+		{
+			continue;
+		}
 		bindingsCount += vk::Cast(pCreateInfo->pSetLayouts[i])->getBindingsArraySize();
 	}
 

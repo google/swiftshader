@@ -383,6 +383,12 @@ static void getPhysicalDevicePipelineRobustnessFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceGraphicsPipelineLibraryFeatures(T *features)
+{
+	features->graphicsPipelineLibrary = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -619,6 +625,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT:
 			getPhysicalDeviceDepthClipControlFeaturesExt(reinterpret_cast<struct VkPhysicalDeviceDepthClipControlFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT:
+			getPhysicalDeviceGraphicsPipelineLibraryFeatures(reinterpret_cast<struct VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:  // TODO(b/176893525): This may not be legal. dEQP tests that this value is ignored.
 			break;
@@ -1324,6 +1333,21 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceShaderIntegerDotProductProper
 }
 
 template<typename T>
+static void getGraphicsPipelineLibraryProperties(T *properties)
+{
+	// Library linking is currently fast in SwiftShader, because all the pipeline creation cost
+	// is actually paid at draw time.
+	properties->graphicsPipelineLibraryFastLinking = VK_TRUE;
+	// TODO: check this
+	properties->graphicsPipelineLibraryIndependentInterpolationDecoration = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT *properties) const
+{
+	getGraphicsPipelineLibraryProperties(properties);
+}
+
+template<typename T>
 static void getSamplerFilterMinmaxProperties(T *properties)
 {
 	properties->filterMinmaxSingleComponentFormats = VK_FALSE;
@@ -1618,6 +1642,13 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDevicePrimitiveTopology
 
 	return CheckFeature(requested, supported, primitiveTopologyListRestart) &&
 	       CheckFeature(requested, supported, primitiveTopologyPatchListRestart);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, graphicsPipelineLibrary);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceDescriptorIndexingFeatures *requested) const

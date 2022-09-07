@@ -320,21 +320,54 @@ Pipeline::Pipeline(PipelineLayout *layout, Device *device, bool robustBufferAcce
     , device(device)
     , robustBufferAccess(robustBufferAccess)
 {
-	layout->incRefCount();
+	if(layout)
+	{
+		layout->incRefCount();
+	}
 }
 
 void Pipeline::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	destroyPipeline(pAllocator);
 
-	vk::release(static_cast<VkPipelineLayout>(*layout), pAllocator);
+	if(layout)
+	{
+		vk::release(static_cast<VkPipelineLayout>(*layout), pAllocator);
+	}
 }
 
 GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo, void *mem, Device *device)
     : Pipeline(vk::Cast(pCreateInfo->layout), device, getPipelineRobustBufferAccess(pCreateInfo->pNext, device))
     , state(device, pCreateInfo, layout)
-    , inputs(pCreateInfo->pVertexInputState)
 {
+	// Either the vertex input interface comes from a pipeline library, or the
+	// VkGraphicsPipelineCreateInfo itself.  Same with shaders.
+	const auto *libraryCreateInfo = GetExtendedStruct<VkPipelineLibraryCreateInfoKHR>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR);
+	bool vertexInputInterfaceInLibraries = false;
+	if(libraryCreateInfo)
+	{
+		for(uint32_t i = 0; i < libraryCreateInfo->libraryCount; ++i)
+		{
+			const auto *library = static_cast<const vk::GraphicsPipeline *>(vk::Cast(libraryCreateInfo->pLibraries[i]));
+			if(library->state.hasVertexInputInterfaceState())
+			{
+				inputs = library->inputs;
+				vertexInputInterfaceInLibraries = true;
+			}
+			if(library->state.hasPreRasterizationState())
+			{
+				vertexShader = library->vertexShader;
+			}
+			if(library->state.hasFragmentState())
+			{
+				fragmentShader = library->fragmentShader;
+			}
+		}
+	}
+	if(state.hasVertexInputInterfaceState() && !vertexInputInterfaceInLibraries)
+	{
+		inputs.initialize(pCreateInfo->pVertexInputState);
+	}
 }
 
 void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks *pAllocator)
@@ -346,6 +379,43 @@ void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks *pAllocator)
 size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineCreateInfo *pCreateInfo)
 {
 	return 0;
+}
+
+VkGraphicsPipelineLibraryFlagsEXT GraphicsPipeline::GetGraphicsPipelineSubset(const VkGraphicsPipelineCreateInfo *pCreateInfo)
+{
+	const auto *libraryCreateInfo = vk::GetExtendedStruct<VkPipelineLibraryCreateInfoKHR>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR);
+	const auto *graphicsLibraryCreateInfo = vk::GetExtendedStruct<VkGraphicsPipelineLibraryCreateInfoEXT>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT);
+
+	if(graphicsLibraryCreateInfo)
+	{
+		return graphicsLibraryCreateInfo->flags;
+	}
+
+	// > If this structure is omitted, and either VkGraphicsPipelineCreateInfo::flags
+	// > includes VK_PIPELINE_CREATE_LIBRARY_BIT_KHR or the
+	// > VkGraphicsPipelineCreateInfo::pNext chain includes a VkPipelineLibraryCreateInfoKHR
+	// > structure with a libraryCount greater than 0, it is as if flags is 0. Otherwise if
+	// > this structure is omitted, it is as if flags includes all possible subsets of the
+	// > graphics pipeline (i.e. a complete graphics pipeline).
+	//
+	// The above basically says that when a pipeline is created:
+	// - If not a library and not created from libraries, it's a complete pipeline (i.e.
+	//   Vulkan 1.0 pipelines)
+	// - If only created from other libraries, no state is taken from
+	//   VkGraphicsPipelineCreateInfo.
+	//
+	// Otherwise the behavior when creating a library from other libraries is that some
+	// state is taken from VkGraphicsPipelineCreateInfo and some from the libraries.
+	const bool isLibrary = (pCreateInfo->flags & VK_PIPELINE_CREATE_LIBRARY_BIT_KHR) != 0;
+	if(isLibrary || (libraryCreateInfo && libraryCreateInfo->libraryCount > 0))
+	{
+		return 0;
+	}
+
+	return VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT |
+	       VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT |
+	       VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT |
+	       VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_OUTPUT_INTERFACE_BIT_EXT;
 }
 
 void GraphicsPipeline::getIndexBuffers(const vk::DynamicState &dynamicState, uint32_t count, uint32_t first, bool indexed, std::vector<std::pair<uint32_t, void *>> *indexBuffers) const
@@ -404,10 +474,20 @@ const std::shared_ptr<sw::SpirvShader> GraphicsPipeline::getShader(const VkShade
 VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, const VkGraphicsPipelineCreateInfo *pCreateInfo, PipelineCache *pPipelineCache)
 {
 	PipelineCreationFeedback pipelineCreationFeedback(pCreateInfo);
+	VkGraphicsPipelineLibraryFlagsEXT pipelineSubset = GetGraphicsPipelineSubset(pCreateInfo);
+	const bool expectVertexShader = (pipelineSubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0;
+	const bool expectFragmentShader = (pipelineSubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT) != 0;
 
 	for(uint32_t stageIndex = 0; stageIndex < pCreateInfo->stageCount; stageIndex++)
 	{
 		const VkPipelineShaderStageCreateInfo &stageInfo = pCreateInfo->pStages[stageIndex];
+
+		// Ignore stages that don't exist in the pipeline library.
+		if((stageInfo.stage == VK_SHADER_STAGE_VERTEX_BIT && !expectVertexShader) ||
+		   (stageInfo.stage == VK_SHADER_STAGE_FRAGMENT_BIT && !expectFragmentShader))
+		{
+			continue;
+		}
 
 		pipelineCreationFeedback.stageCreationBegins(stageIndex);
 
@@ -425,6 +505,25 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 		const bool optimize = !dbgctx;
 
 		const ShaderModule *module = vk::Cast(stageInfo.module);
+
+		// VK_EXT_graphics_pipeline_library allows VkShaderModuleCreateInfo to be chained to
+		// VkPipelineShaderStageCreateInfo, which is used if stageInfo.module is
+		// VK_NULL_HANDLE.
+		VkShaderModule tempModule = {};
+		if(stageInfo.module == VK_NULL_HANDLE)
+		{
+			const auto *moduleCreateInfo = vk::GetExtendedStruct<VkShaderModuleCreateInfo>(stageInfo.pNext,
+			                                                                               VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+			ASSERT(moduleCreateInfo);
+			VkResult createResult = vk::ShaderModule::Create(nullptr, moduleCreateInfo, &tempModule);
+			if(createResult != VK_SUCCESS)
+			{
+				return createResult;
+			}
+
+			module = vk::Cast(tempModule);
+		}
+
 		const PipelineCache::SpirvBinaryKey key(module->getBinary(), stageInfo.pSpecializationInfo, optimize);
 
 		if((pCreateInfo->flags & VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT) &&
@@ -463,6 +562,11 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 		setShader(stageInfo.stage, shader);
 
 		pipelineCreationFeedback.stageCreationEnds(stageIndex);
+
+		if(tempModule != VK_NULL_HANDLE)
+		{
+			vk::destroy(tempModule, nullptr);
+		}
 	}
 
 	return VK_SUCCESS;
