@@ -934,7 +934,7 @@ void JITBuilder::runPasses()
 	if(__has_feature(memory_sanitizer) && msanInstrumentation)
 	{
 		llvm::MemorySanitizerOptions msanOpts(0 /* TrackOrigins */, false /* Recover */, false /* Kernel */, true /* EagerChecks */);
-		pm.addPass(llvm::ModuleMemorySanitizerPass(msanOpts));
+		pm.addPass(llvm::MemorySanitizerPass(msanOpts));
 	}
 
 	if(__has_feature(address_sanitizer) && ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED)
