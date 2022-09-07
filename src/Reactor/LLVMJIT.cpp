@@ -935,12 +935,11 @@ void JITBuilder::runPasses()
 	{
 		llvm::MemorySanitizerOptions msanOpts(0 /* TrackOrigins */, false /* Recover */, false /* Kernel */, true /* EagerChecks */);
 		pm.addPass(llvm::ModuleMemorySanitizerPass(msanOpts));
-		pm.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::MemorySanitizerPass(msanOpts)));
 	}
 
 	if(__has_feature(address_sanitizer) && ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED)
 	{
-		pm.addPass(llvm::ModuleAddressSanitizerPass(llvm::AddressSanitizerOptions{}));
+		pm.addPass(llvm::AddressSanitizerPass(llvm::AddressSanitizerOptions{}));
 	}
 
 	pm.run(*module, mam);
