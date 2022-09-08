@@ -620,6 +620,19 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT:
 			getPhysicalDeviceDepthClipControlFeaturesExt(reinterpret_cast<struct VkPhysicalDeviceDepthClipControlFeaturesEXT *>(curExtension));
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_2_PLANE_444_FORMATS_FEATURES_EXT:
+			// TODO(b/223499383): The format enums of VK_EXT_ycbcr_2plane_444_formats were promoted to Vulkan 1.3, but not this feature struct.
+			reinterpret_cast<struct VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT *>(curExtension)->ycbcr2plane444Formats = VK_FALSE;
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT:
+			// TODO(b/204502923): VK_EXT_extended_dynamic_state2 was partially promoted to Vulkan 1.3, but not this feature struct.
+			{
+				auto features = reinterpret_cast<struct VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *>(curExtension);
+				features->extendedDynamicState2 = VK_TRUE;
+				features->extendedDynamicState2LogicOp = VK_FALSE;
+				features->extendedDynamicState2PatchControlPoints = VK_FALSE;
+			}
+			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:  // TODO(b/176893525): This may not be legal. dEQP tests that this value is ignored.
 			break;
 		default:
