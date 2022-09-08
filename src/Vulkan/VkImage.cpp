@@ -198,14 +198,10 @@ Image::Image(const VkImageCreateInfo *pCreateInfo, void *mem, Device *device)
 		decompressedImage = new(mem) Image(&compressedImageCreateInfo, nullptr, device);
 	}
 
-	const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
-	for(; nextInfo != nullptr; nextInfo = nextInfo->pNext)
+	const auto *externalInfo = GetExtendedStruct<VkExternalMemoryImageCreateInfo>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO);
+	if(externalInfo)
 	{
-		if(nextInfo->sType == VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO)
-		{
-			const auto *externalInfo = reinterpret_cast<const VkExternalMemoryImageCreateInfo *>(nextInfo);
-			supportedExternalMemoryHandleTypes = externalInfo->handleTypes;
-		}
+		supportedExternalMemoryHandleTypes = externalInfo->handleTypes;
 	}
 }
 

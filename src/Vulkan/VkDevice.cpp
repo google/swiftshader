@@ -170,18 +170,10 @@ Device::Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice 
 #endif  // ENABLE_VK_DEBUGGER
 
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
-	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
-	while(extensionCreateInfo)
+	const auto *deviceMemoryReportCreateInfo = GetExtendedStruct<VkDeviceDeviceMemoryReportCreateInfoEXT>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT);
+	if(deviceMemoryReportCreateInfo && deviceMemoryReportCreateInfo->pfnUserCallback != nullptr)
 	{
-		if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT)
-		{
-			auto deviceMemoryReportCreateInfo = reinterpret_cast<const VkDeviceDeviceMemoryReportCreateInfoEXT *>(pCreateInfo->pNext);
-			if(deviceMemoryReportCreateInfo->pfnUserCallback != nullptr)
-			{
-				deviceMemoryReportCallbacks.emplace_back(deviceMemoryReportCreateInfo->pfnUserCallback, deviceMemoryReportCreateInfo->pUserData);
-			}
-		}
-		extensionCreateInfo = extensionCreateInfo->pNext;
+		deviceMemoryReportCallbacks.emplace_back(deviceMemoryReportCreateInfo->pfnUserCallback, deviceMemoryReportCreateInfo->pUserData);
 	}
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
 }

@@ -625,26 +625,20 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, const VkWriteDescri
 
 	case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK:
 		{
-			auto extInfo = reinterpret_cast<VkBaseInStructure const *>(writeDescriptorSet.pNext);
-			while(extInfo)
-			{
-				if(extInfo->sType == VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK)
-				{
-					// "The descriptorCount of VkDescriptorSetLayoutBinding thus provides the total
-					//  number of bytes a particular binding with an inline uniform block descriptor
-					//  type can hold, while the srcArrayElement, dstArrayElement, and descriptorCount
-					//  members of VkWriteDescriptorSet, VkCopyDescriptorSet, and
-					//  VkDescriptorUpdateTemplateEntry (where applicable) specify the byte offset and
-					//  number of bytes to write/copy to the binding's backing store. Additionally,
-					//  the stride member of VkDescriptorUpdateTemplateEntry is ignored for inline
-					//  uniform blocks and a default value of one is used, meaning that the data to
-					//  update inline uniform block bindings with must be contiguous in memory."
-					ptr = reinterpret_cast<const VkWriteDescriptorSetInlineUniformBlock *>(extInfo)->pData;
-					e.stride = 1;
-					break;
-				}
-				extInfo = extInfo->pNext;
-			}
+			const auto *inlineBlock = GetExtendedStruct<VkWriteDescriptorSetInlineUniformBlock>(writeDescriptorSet.pNext, VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK);
+			ASSERT(inlineBlock);
+
+			// "The descriptorCount of VkDescriptorSetLayoutBinding thus provides the total
+			//  number of bytes a particular binding with an inline uniform block descriptor
+			//  type can hold, while the srcArrayElement, dstArrayElement, and descriptorCount
+			//  members of VkWriteDescriptorSet, VkCopyDescriptorSet, and
+			//  VkDescriptorUpdateTemplateEntry (where applicable) specify the byte offset and
+			//  number of bytes to write/copy to the binding's backing store. Additionally,
+			//  the stride member of VkDescriptorUpdateTemplateEntry is ignored for inline
+			//  uniform blocks and a default value of one is used, meaning that the data to
+			//  update inline uniform block bindings with must be contiguous in memory."
+			ptr = inlineBlock->pData;
+			e.stride = 1;
 		}
 		break;
 

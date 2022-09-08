@@ -192,18 +192,7 @@ public:
 private:
 	static const VkPipelineCreationFeedbackCreateInfo *GetPipelineCreationFeedback(const void *pNext)
 	{
-		const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pNext);
-		while(extensionCreateInfo)
-		{
-			if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO)
-			{
-				return reinterpret_cast<const VkPipelineCreationFeedbackCreateInfo *>(extensionCreateInfo);
-			}
-
-			extensionCreateInfo = extensionCreateInfo->pNext;
-		}
-
-		return nullptr;
+		return vk::GetExtendedStruct<VkPipelineCreationFeedbackCreateInfo>(pNext, VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO);
 	}
 
 	void pipelineCreationBegins()

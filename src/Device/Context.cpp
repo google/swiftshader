@@ -624,41 +624,32 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			// depthAttachmentFormat and stencilAttachmentFormat are VK_FORMAT_UNDEFINED. If a graphics pipeline
 			// is created with a valid VkRenderPass, parameters of this structure are ignored.
 
-			const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
-			while(extensionCreateInfo)
+			const auto *renderingCreateInfo = GetExtendedStruct<VkPipelineRenderingCreateInfo>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO);
+			if(renderingCreateInfo)
 			{
-				if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO)
+				if((renderingCreateInfo->depthAttachmentFormat != VK_FORMAT_UNDEFINED) ||
+				   (renderingCreateInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED))
 				{
-					const VkPipelineRenderingCreateInfo *renderingCreateInfo = reinterpret_cast<const VkPipelineRenderingCreateInfo *>(extensionCreateInfo);
+					// If renderPass is VK_NULL_HANDLE, the pipeline is being created with fragment
+					// shader state, and either of VkPipelineRenderingCreateInfo::depthAttachmentFormat
+					// or VkPipelineRenderingCreateInfo::stencilAttachmentFormat are not
+					// VK_FORMAT_UNDEFINED, pDepthStencilState must be a valid pointer to a valid
+					// VkPipelineDepthStencilStateCreateInfo structure
+					ASSERT(depthStencilState);
 
-					if((renderingCreateInfo->depthAttachmentFormat != VK_FORMAT_UNDEFINED) ||
-					   (renderingCreateInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED))
-					{
-						// If renderPass is VK_NULL_HANDLE, the pipeline is being created with fragment
-						// shader state, and either of VkPipelineRenderingCreateInfo::depthAttachmentFormat
-						// or VkPipelineRenderingCreateInfo::stencilAttachmentFormat are not
-						// VK_FORMAT_UNDEFINED, pDepthStencilState must be a valid pointer to a valid
-						// VkPipelineDepthStencilStateCreateInfo structure
-						ASSERT(depthStencilState);
-
-						setDepthStencilState(depthStencilState);
-					}
-
-					if(renderingCreateInfo->colorAttachmentCount > 0)
-					{
-						// If renderPass is VK_NULL_HANDLE, the pipeline is being created with fragment
-						// output interface state, and VkPipelineRenderingCreateInfo::colorAttachmentCount
-						// is not equal to 0, pColorBlendState must be a valid pointer to a valid
-						// VkPipelineColorBlendStateCreateInfo structure
-						ASSERT(colorBlendState);
-
-						setColorBlendState(colorBlendState);
-					}
-
-					break;
+					setDepthStencilState(depthStencilState);
 				}
 
-				extensionCreateInfo = extensionCreateInfo->pNext;
+				if(renderingCreateInfo->colorAttachmentCount > 0)
+				{
+					// If renderPass is VK_NULL_HANDLE, the pipeline is being created with fragment
+					// output interface state, and VkPipelineRenderingCreateInfo::colorAttachmentCount
+					// is not equal to 0, pColorBlendState must be a valid pointer to a valid
+					// VkPipelineColorBlendStateCreateInfo structure
+					ASSERT(colorBlendState);
+
+					setColorBlendState(colorBlendState);
+				}
 			}
 		}
 	}
