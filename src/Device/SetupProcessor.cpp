@@ -57,25 +57,34 @@ SetupProcessor::SetupProcessor()
 
 SetupProcessor::State SetupProcessor::update(const vk::GraphicsState &pipelineState, const sw::SpirvShader *fragmentShader, const sw::SpirvShader *vertexShader, const vk::Attachments &attachments) const
 {
+	const vk::VertexInputInterfaceState &vertexInputInterfaceState = pipelineState.getVertexInputInterfaceState();
+	const vk::PreRasterizationState &preRasterizationState = pipelineState.getPreRasterizationState();
+	const vk::FragmentState &fragmentState = pipelineState.getFragmentState();
+	const vk::FragmentOutputInterfaceState &fragmentOutputInterfaceState = pipelineState.getFragmentOutputInterfaceState();
+
 	State state;
 
 	bool vPosZW = (fragmentShader && fragmentShader->hasBuiltinInput(spv::BuiltInFragCoord));
 
-	state.isDrawPoint = pipelineState.isDrawPoint(true);
-	state.isDrawLine = pipelineState.isDrawLine(true);
-	state.isDrawTriangle = pipelineState.isDrawTriangle(true);
-	state.fixedPointDepthBuffer = attachments.depthBuffer && !attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT).isFloatFormat();
-	state.applyConstantDepthBias = pipelineState.isDrawTriangle(false) && (pipelineState.getConstantDepthBias() != 0.0f);
-	state.applySlopeDepthBias = pipelineState.isDrawTriangle(false) && (pipelineState.getSlopeDepthBias() != 0.0f);
-	state.applyDepthBiasClamp = pipelineState.isDrawTriangle(false) && (pipelineState.getDepthBiasClamp() != 0.0f);
-	state.interpolateZ = pipelineState.depthTestActive(attachments) || vPosZW;
-	state.interpolateW = fragmentShader != nullptr;
-	state.frontFace = pipelineState.getFrontFace();
-	state.cullMode = pipelineState.getCullMode();
+	const VkPolygonMode polygonMode = preRasterizationState.getPolygonMode();
 
-	state.multiSampleCount = pipelineState.getSampleCount();
-	state.enableMultiSampling = (state.multiSampleCount > 1) &&
-	                            !(pipelineState.isDrawLine(true) && (pipelineState.getLineRasterizationMode() == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
+	state.isDrawPoint = vertexInputInterfaceState.isDrawPoint(true, polygonMode);
+	state.isDrawLine = vertexInputInterfaceState.isDrawLine(true, polygonMode);
+	state.isDrawTriangle = vertexInputInterfaceState.isDrawTriangle(true, polygonMode);
+	state.fixedPointDepthBuffer = attachments.depthBuffer && !attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT).isFloatFormat();
+	state.applyConstantDepthBias = vertexInputInterfaceState.isDrawTriangle(false, polygonMode) && (preRasterizationState.getConstantDepthBias() != 0.0f);
+	state.applySlopeDepthBias = vertexInputInterfaceState.isDrawTriangle(false, polygonMode) && (preRasterizationState.getSlopeDepthBias() != 0.0f);
+	state.applyDepthBiasClamp = vertexInputInterfaceState.isDrawTriangle(false, polygonMode) && (preRasterizationState.getDepthBiasClamp() != 0.0f);
+	state.interpolateZ = fragmentState.depthTestActive(attachments) || vPosZW;
+	state.interpolateW = fragmentShader != nullptr;
+	state.frontFace = preRasterizationState.getFrontFace();
+	state.cullMode = preRasterizationState.getCullMode();
+
+	const bool isBresenhamLine = vertexInputInterfaceState.isDrawLine(true, preRasterizationState.getPolygonMode()) &&
+	                             preRasterizationState.getLineRasterizationMode() == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+
+	state.multiSampleCount = fragmentOutputInterfaceState.getSampleCount();
+	state.enableMultiSampling = state.multiSampleCount > 1 && !isBresenhamLine;
 
 	state.numClipDistances = vertexShader->getNumOutputClipDistances();
 	state.numCullDistances = vertexShader->getNumOutputCullDistances();

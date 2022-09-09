@@ -73,6 +73,11 @@ void PixelProcessor::setRoutineCacheSize(int cacheSize)
 
 const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipelineState, const sw::SpirvShader *fragmentShader, const sw::SpirvShader *vertexShader, const vk::Attachments &attachments, bool occlusionEnabled) const
 {
+	const vk::VertexInputInterfaceState &vertexInputInterfaceState = pipelineState.getVertexInputInterfaceState();
+	const vk::PreRasterizationState &preRasterizationState = pipelineState.getPreRasterizationState();
+	const vk::FragmentState &fragmentState = pipelineState.getFragmentState();
+	const vk::FragmentOutputInterfaceState &fragmentOutputInterfaceState = pipelineState.getFragmentOutputInterfaceState();
+
 	State state;
 
 	state.numClipDistances = vertexShader->getNumOutputClipDistances();
@@ -89,36 +94,36 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 		state.pipelineLayoutIdentifier = 0;
 	}
 
-	state.alphaToCoverage = pipelineState.hasAlphaToCoverage();
-	state.depthWriteEnable = pipelineState.depthWriteActive(attachments);
+	state.alphaToCoverage = fragmentOutputInterfaceState.hasAlphaToCoverage();
+	state.depthWriteEnable = fragmentState.depthWriteActive(attachments);
 
-	if(pipelineState.stencilActive(attachments))
+	if(fragmentState.stencilActive(attachments))
 	{
 		state.stencilActive = true;
-		state.frontStencil = pipelineState.getFrontStencil();
-		state.backStencil = pipelineState.getBackStencil();
+		state.frontStencil = fragmentState.getFrontStencil();
+		state.backStencil = fragmentState.getBackStencil();
 	}
 
 	state.depthFormat = attachments.depthFormat();
-	state.depthBoundsTestActive = pipelineState.depthBoundsTestActive(attachments);
-	state.minDepthBounds = pipelineState.getMinDepthBounds();
-	state.maxDepthBounds = pipelineState.getMaxDepthBounds();
+	state.depthBoundsTestActive = fragmentState.depthBoundsTestActive(attachments);
+	state.minDepthBounds = fragmentState.getMinDepthBounds();
+	state.maxDepthBounds = fragmentState.getMaxDepthBounds();
 
-	if(pipelineState.depthTestActive(attachments))
+	if(fragmentState.depthTestActive(attachments))
 	{
 		state.depthTestActive = true;
-		state.depthCompareMode = pipelineState.getDepthCompareMode();
+		state.depthCompareMode = fragmentState.getDepthCompareMode();
 
-		state.depthBias = (pipelineState.getConstantDepthBias() != 0.0f) || (pipelineState.getSlopeDepthBias() != 0.0f);
+		state.depthBias = preRasterizationState.getConstantDepthBias() != 0.0f || preRasterizationState.getSlopeDepthBias() != 0.0f;
 
-		bool pipelineDepthClamp = pipelineState.getDepthClampEnable();
+		bool pipelineDepthClamp = preRasterizationState.getDepthClampEnable();
 		// "For fixed-point depth buffers, fragment depth values are always limited to the range [0,1] by clamping after depth bias addition is performed.
 		//  Unless the VK_EXT_depth_range_unrestricted extension is enabled, fragment depth values are clamped even when the depth buffer uses a floating-point representation."
-		state.depthClamp = pipelineDepthClamp || !state.depthFormat.isFloatFormat() || !pipelineState.hasDepthRangeUnrestricted();
+		state.depthClamp = pipelineDepthClamp || !state.depthFormat.isFloatFormat() || !preRasterizationState.hasDepthRangeUnrestricted();
 
 		if(pipelineDepthClamp)
 		{
-			const VkViewport viewport = pipelineState.getViewport();
+			const VkViewport viewport = preRasterizationState.getViewport();
 			state.minDepthClamp = min(viewport.minDepth, viewport.maxDepth);
 			state.maxDepthClamp = max(viewport.minDepth, viewport.maxDepth);
 		}
@@ -134,15 +139,17 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 	bool fragmentContainsDiscard = (fragmentShader && fragmentShader->getAnalysis().ContainsDiscard);
 	for(int i = 0; i < MAX_COLOR_BUFFERS; i++)
 	{
-		state.colorWriteMask |= pipelineState.colorWriteActive(i, attachments) << (4 * i);
+		state.colorWriteMask |= fragmentOutputInterfaceState.colorWriteActive(i, attachments) << (4 * i);
 		state.colorFormat[i] = attachments.colorFormat(i);
-		state.blendState[i] = pipelineState.getBlendState(i, attachments, fragmentContainsDiscard);
+		state.blendState[i] = fragmentOutputInterfaceState.getBlendState(i, attachments, fragmentContainsDiscard);
 	}
 
-	state.multiSampleCount = static_cast<unsigned int>(pipelineState.getSampleCount());
-	state.multiSampleMask = pipelineState.getMultiSampleMask();
-	state.enableMultiSampling = (state.multiSampleCount > 1) &&
-	                            !(pipelineState.isDrawLine(true) && (pipelineState.getLineRasterizationMode() == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
+	const bool isBresenhamLine = vertexInputInterfaceState.isDrawLine(true, preRasterizationState.getPolygonMode()) &&
+	                             preRasterizationState.getLineRasterizationMode() == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+
+	state.multiSampleCount = static_cast<unsigned int>(fragmentOutputInterfaceState.getSampleCount());
+	state.multiSampleMask = fragmentOutputInterfaceState.getMultiSampleMask();
+	state.enableMultiSampling = state.multiSampleCount > 1 && !isBresenhamLine;
 
 	// SampleId and SamplePosition require per-sample fragment shader invocations, so the Vulkan spec
 	// requires turning on sample shading if either of them is present in the shader:
@@ -160,8 +167,8 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 	}
 	else
 	{
-		state.sampleShadingEnabled = pipelineState.hasSampleShadingEnabled();
-		state.minSampleShading = pipelineState.getMinSampleShading();
+		state.sampleShadingEnabled = fragmentOutputInterfaceState.hasSampleShadingEnabled();
+		state.minSampleShading = fragmentOutputInterfaceState.getMinSampleShading();
 	}
 
 	if(state.enableMultiSampling && fragmentShader)
@@ -169,7 +176,7 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 		state.centroid = fragmentShader->getAnalysis().NeedsCentroid;
 	}
 
-	state.frontFace = pipelineState.getFrontFace();
+	state.frontFace = preRasterizationState.getFrontFace();
 
 	state.hash = state.computeHash();
 

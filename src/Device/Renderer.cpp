@@ -197,11 +197,24 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	draw->id = id;
 
 	const vk::GraphicsState &pipelineState = pipeline->getState(dynamicState);
-	const bool hasRasterizerDiscard = pipelineState.hasRasterizerDiscard();
 
+	// A graphics pipeline must always be "complete" before it can be used for drawing.  A
+	// complete graphics pipeline always includes the vertex input interface and
+	// pre-rasterization subsets, but only includes fragment and fragment output interface
+	// subsets if rasterizer discard is not enabled.
+	//
+	// Note that in the following, the setupPrimitives, setupRoutine and pixelRoutine functions
+	// are only called when rasterizer discard is not enabled.  If rasterizer discard is
+	// enabled, these functions and state for the latter two states are not set.
+	const vk::VertexInputInterfaceState &vertexInputInterfaceState = pipelineState.getVertexInputInterfaceState();
+	const vk::PreRasterizationState &preRasterizationState = pipelineState.getPreRasterizationState();
+	const vk::FragmentState &fragmentState = pipelineState.getFragmentState();
+	const vk::FragmentOutputInterfaceState &fragmentOutputInterfaceState = pipelineState.getFragmentOutputInterfaceState();
+
+	const bool hasRasterizerDiscard = preRasterizationState.hasRasterizerDiscard();
 	if(!hasRasterizerDiscard)
 	{
-		pixelProcessor.setBlendConstant(pipelineState.getBlendConstants());
+		pixelProcessor.setBlendConstant(fragmentOutputInterfaceState.getBlendConstants());
 	}
 
 	const vk::Inputs &inputs = pipeline->getInputs();
@@ -233,7 +246,7 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 	// The sample count affects the batch size even if rasterization is disabled.
 	// TODO(b/147812380): Eliminate the dependency between multisampling and batch size.
-	int ms = hasRasterizerDiscard ? 1 : pipelineState.getSampleCount();
+	int ms = hasRasterizerDiscard ? 1 : fragmentOutputInterfaceState.getSampleCount();
 	ASSERT(ms > 0);
 
 	unsigned int numPrimitivesPerBatch = MaxBatchSize / ms;
@@ -244,15 +257,15 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	draw->numPrimitives = count;
 	draw->numPrimitivesPerBatch = numPrimitivesPerBatch;
 	draw->numBatches = (count + draw->numPrimitivesPerBatch - 1) / draw->numPrimitivesPerBatch;
-	draw->topology = pipelineState.getTopology();
-	draw->provokingVertexMode = pipelineState.getProvokingVertexMode();
+	draw->topology = vertexInputInterfaceState.getTopology();
+	draw->provokingVertexMode = preRasterizationState.getProvokingVertexMode();
 	draw->indexType = pipeline->getIndexBuffer().getIndexType();
-	draw->lineRasterizationMode = pipelineState.getLineRasterizationMode();
+	draw->lineRasterizationMode = preRasterizationState.getLineRasterizationMode();
 	draw->descriptorSetObjects = inputs.getDescriptorSetObjects();
 	draw->pipelineLayout = pipelineState.getPipelineLayout();
-	draw->depthClipEnable = pipelineState.getDepthClipEnable();
-	draw->depthClipNegativeOneToOne = pipelineState.getDepthClipNegativeOneToOne();
-	data->lineWidth = pipelineState.getLineWidth();
+	draw->depthClipEnable = preRasterizationState.getDepthClipEnable();
+	draw->depthClipNegativeOneToOne = preRasterizationState.getDepthClipNegativeOneToOne();
+	data->lineWidth = preRasterizationState.getLineWidth();
 	data->rasterizerDiscard = hasRasterizerDiscard;
 
 	data->descriptorSets = inputs.getDescriptorSets();
@@ -263,7 +276,7 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		const sw::Stream &stream = inputs.getStream(i);
 		data->input[i] = stream.buffer;
 		data->robustnessSize[i] = stream.robustnessSize;
-		data->stride[i] = inputs.getVertexStride(i, pipelineState.hasDynamicVertexStride());
+		data->stride[i] = inputs.getVertexStride(i, vertexInputInterfaceState.hasDynamicVertexStride());
 	}
 
 	data->indices = indexBuffer;
@@ -275,7 +288,7 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 	// Viewport
 	{
-		const VkViewport &viewport = pipelineState.getViewport();
+		const VkViewport &viewport = preRasterizationState.getViewport();
 
 		float W = 0.5f * viewport.width;
 		float H = 0.5f * viewport.height;
@@ -295,12 +308,12 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		data->viewportHeight = abs(viewport.height);
 		data->depthRange = Z;
 		data->depthNear = N;
-		data->constantDepthBias = pipelineState.getConstantDepthBias();
-		data->slopeDepthBias = pipelineState.getSlopeDepthBias();
-		data->depthBiasClamp = pipelineState.getDepthBiasClamp();
+		data->constantDepthBias = preRasterizationState.getConstantDepthBias();
+		data->slopeDepthBias = preRasterizationState.getSlopeDepthBias();
+		data->depthBiasClamp = preRasterizationState.getDepthBiasClamp();
 
 		// Adjust viewport transform based on the negativeOneToOne state.
-		if(pipelineState.getDepthClipNegativeOneToOne())
+		if(preRasterizationState.getDepthClipNegativeOneToOne())
 		{
 			data->depthRange = Z * 0.5f;
 			data->depthNear = (F + N) * 0.5f;
@@ -309,7 +322,7 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 	// Scissor
 	{
-		const VkRect2D &scissor = pipelineState.getScissor();
+		const VkRect2D &scissor = preRasterizationState.getScissor();
 
 		int x0 = renderArea.offset.x;
 		int y0 = renderArea.offset.y;
@@ -323,10 +336,12 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 	if(!hasRasterizerDiscard)
 	{
+		const VkPolygonMode polygonMode = preRasterizationState.getPolygonMode();
+
 		DrawCall::SetupFunction setupPrimitives = nullptr;
-		if(pipelineState.isDrawTriangle(false))
+		if(vertexInputInterfaceState.isDrawTriangle(false, polygonMode))
 		{
-			switch(pipelineState.getPolygonMode())
+			switch(preRasterizationState.getPolygonMode())
 			{
 			case VK_POLYGON_MODE_FILL:
 				setupPrimitives = &DrawCall::setupSolidTriangles;
@@ -340,11 +355,11 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 				numPrimitivesPerBatch /= 3;
 				break;
 			default:
-				UNSUPPORTED("polygon mode: %d", int(pipelineState.getPolygonMode()));
+				UNSUPPORTED("polygon mode: %d", int(preRasterizationState.getPolygonMode()));
 				return;
 			}
 		}
-		else if(pipelineState.isDrawLine(false))
+		else if(vertexInputInterfaceState.isDrawLine(false, polygonMode))
 		{
 			setupPrimitives = &DrawCall::setupLines;
 		}
@@ -360,8 +375,8 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 		if(pixelState.stencilActive)
 		{
-			data->stencil[0].set(pipelineState.getFrontStencil().reference, pipelineState.getFrontStencil().compareMask, pipelineState.getFrontStencil().writeMask);
-			data->stencil[1].set(pipelineState.getBackStencil().reference, pipelineState.getBackStencil().compareMask, pipelineState.getBackStencil().writeMask);
+			data->stencil[0].set(fragmentState.getFrontStencil().reference, fragmentState.getFrontStencil().compareMask, fragmentState.getFrontStencil().writeMask);
+			data->stencil[1].set(fragmentState.getBackStencil().reference, fragmentState.getBackStencil().compareMask, fragmentState.getBackStencil().writeMask);
 		}
 
 		data->factor = pixelProcessor.factor;

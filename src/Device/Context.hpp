@@ -30,6 +30,7 @@ class Buffer;
 class Device;
 class ImageView;
 class PipelineLayout;
+class RenderPass;
 
 struct VertexInputBinding
 {
@@ -86,6 +87,18 @@ private:
 	DescriptorSet::Bindings descriptorSets = {};
 	DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
 	sw::Stream stream[sw::MAX_INTERFACE_COMPONENTS / 4];
+};
+
+struct MultisampleState
+{
+	bool sampleShadingEnable = false;
+	bool alphaToCoverage = false;
+
+	int sampleCount = 0;
+	unsigned int multiSampleMask = 0;
+	float minSampleShading = 0.0f;
+
+	void set(const VkPipelineMultisampleStateCreateInfo *multisampleState);
 };
 
 struct BlendState : sw::Memset<BlendState>
@@ -152,100 +165,216 @@ struct DynamicState
 	VkBool32 primitiveRestartEnable = VK_FALSE;
 };
 
-struct GraphicsState
+struct VertexInputInterfaceDynamicStateFlags
 {
-	GraphicsState(const Device *device, const VkGraphicsPipelineCreateInfo *pCreateInfo, const PipelineLayout *layout);
+	bool dynamicPrimitiveRestartEnable : 1;
+	bool dynamicPrimitiveTopology : 1;
+	bool dynamicVertexInputBindingStride : 1;
+};
 
-	const GraphicsState combineStates(const DynamicState &dynamicState) const;
+struct PreRasterizationDynamicStateFlags
+{
+	bool dynamicLineWidth : 1;
+	bool dynamicDepthBias : 1;
+	bool dynamicDepthBiasEnable : 1;
+	bool dynamicCullMode : 1;
+	bool dynamicFrontFace : 1;
+	bool dynamicViewport : 1;
+	bool dynamicScissor : 1;
+	bool dynamicViewportWithCount : 1;
+	bool dynamicScissorWithCount : 1;
+	bool dynamicRasterizerDiscardEnable : 1;
+};
 
-	inline const PipelineLayout *getPipelineLayout() const { return pipelineLayout; }
+struct FragmentDynamicStateFlags
+{
+	bool dynamicDepthTestEnable : 1;
+	bool dynamicDepthWriteEnable : 1;
+	bool dynamicDepthBoundsTestEnable : 1;
+	bool dynamicDepthBounds : 1;
+	bool dynamicDepthCompareOp : 1;
+	bool dynamicStencilTestEnable : 1;
+	bool dynamicStencilOp : 1;
+	bool dynamicStencilCompareMask : 1;
+	bool dynamicStencilWriteMask : 1;
+	bool dynamicStencilReference : 1;
+};
+
+struct FragmentOutputInterfaceDynamicStateFlags
+{
+	bool dynamicBlendConstants : 1;
+};
+
+struct DynamicStateFlags
+{
+	VertexInputInterfaceDynamicStateFlags vertexInputInterface;
+	PreRasterizationDynamicStateFlags preRasterization;
+	FragmentDynamicStateFlags fragment;
+	FragmentOutputInterfaceDynamicStateFlags fragmentOutputInterface;
+};
+
+struct VertexInputInterfaceState
+{
+	void initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState,
+	           const VkPipelineInputAssemblyStateCreateInfo *inputAssemblyState,
+	           const DynamicStateFlags &allDynamicStateFlags);
+
+	void applyState(const DynamicState &dynamicState);
+
 	inline VkPrimitiveTopology getTopology() const { return topology; }
-
-	inline VkProvokingVertexModeEXT getProvokingVertexMode() const { return provokingVertexMode; }
-
-	inline VkStencilOpState getFrontStencil() const { return frontStencil; }
-	inline VkStencilOpState getBackStencil() const { return backStencil; }
-
-	// Pixel processor states
-	inline VkCullModeFlags getCullMode() const { return cullMode; }
-	inline VkFrontFace getFrontFace() const { return frontFace; }
-	inline VkPolygonMode getPolygonMode() const { return polygonMode; }
-	inline VkLineRasterizationModeEXT getLineRasterizationMode() const { return lineRasterizationMode; }
-
-	inline float getConstantDepthBias() const { return depthBiasEnable ? constantDepthBias : 0; }
-	inline float getSlopeDepthBias() const { return depthBiasEnable ? slopeDepthBias : 0; }
-	inline float getDepthBiasClamp() const { return depthBiasEnable ? depthBiasClamp : 0; }
-	inline float getMinDepthBounds() const { return minDepthBounds; }
-	inline float getMaxDepthBounds() const { return maxDepthBounds; }
-	inline bool hasDepthRangeUnrestricted() const { return depthRangeUnrestricted; }
-	inline bool getDepthClampEnable() const { return depthClampEnable; }
-	inline bool getDepthClipEnable() const { return depthClipEnable; }
-	inline bool getDepthClipNegativeOneToOne() const { return depthClipNegativeOneToOne; }
-
-	// Pixel processor states
-	inline bool hasRasterizerDiscard() const { return rasterizerDiscard; }
-	inline VkCompareOp getDepthCompareMode() const { return depthCompareMode; }
-
-	inline float getLineWidth() const { return lineWidth; }
-
-	inline unsigned int getMultiSampleMask() const { return multiSampleMask; }
-	inline int getSampleCount() const { return sampleCount; }
-	inline bool hasSampleShadingEnabled() const { return sampleShadingEnable; }
-	inline float getMinSampleShading() const { return minSampleShading; }
-	inline bool hasAlphaToCoverage() const { return alphaToCoverage; }
-
 	inline bool hasPrimitiveRestartEnable() const { return primitiveRestartEnable; }
-	inline const VkRect2D &getScissor() const { return scissor; }
-	inline const VkViewport &getViewport() const { return viewport; }
-	inline const sw::float4 &getBlendConstants() const { return blendConstants; }
-
-	bool isDrawPoint(bool polygonModeAware) const;
-	bool isDrawLine(bool polygonModeAware) const;
-	bool isDrawTriangle(bool polygonModeAware) const;
-
-	BlendState getBlendState(int index, const Attachments &attachments, bool fragmentContainsKill) const;
-
-	int colorWriteActive(int index, const Attachments &attachments) const;
-	bool depthWriteActive(const Attachments &attachments) const;
-	bool depthTestActive(const Attachments &attachments) const;
-	bool stencilActive(const Attachments &attachments) const;
-	bool depthBoundsTestActive(const Attachments &attachments) const;
 
 	inline bool hasDynamicVertexStride() const { return dynamicStateFlags.dynamicVertexInputBindingStride; }
 	inline bool hasDynamicTopology() const { return dynamicStateFlags.dynamicPrimitiveTopology; }
 	inline bool hasDynamicPrimitiveRestartEnable() const { return dynamicStateFlags.dynamicPrimitiveRestartEnable; }
 
-private:
-	struct DynamicStateFlags
-	{
-		bool dynamicViewport : 1;
-		bool dynamicScissor : 1;
-		bool dynamicLineWidth : 1;
-		bool dynamicDepthBias : 1;
-		bool dynamicBlendConstants : 1;
-		bool dynamicDepthBounds : 1;
-		bool dynamicStencilCompareMask : 1;
-		bool dynamicStencilWriteMask : 1;
-		bool dynamicStencilReference : 1;
-		bool dynamicCullMode : 1;
-		bool dynamicFrontFace : 1;
-		bool dynamicPrimitiveTopology : 1;
-		bool dynamicViewportWithCount : 1;
-		bool dynamicScissorWithCount : 1;
-		bool dynamicVertexInputBindingStride : 1;
-		bool dynamicDepthTestEnable : 1;
-		bool dynamicDepthWriteEnable : 1;
-		bool dynamicDepthCompareOp : 1;
-		bool dynamicDepthBoundsTestEnable : 1;
-		bool dynamicStencilTestEnable : 1;
-		bool dynamicStencilOp : 1;
-		bool dynamicRasterizerDiscardEnable : 1;
-		bool dynamicDepthBiasEnable : 1;
-		bool dynamicPrimitiveRestartEnable : 1;
-	};
+	bool isDrawPoint(bool polygonModeAware, VkPolygonMode polygonMode) const;
+	bool isDrawLine(bool polygonModeAware, VkPolygonMode polygonMode) const;
+	bool isDrawTriangle(bool polygonModeAware, VkPolygonMode polygonMode) const;
 
-	static DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo);
+private:
+	VertexInputInterfaceDynamicStateFlags dynamicStateFlags = {};
+
+	bool primitiveRestartEnable = false;
+
+	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+};
+
+struct PreRasterizationState
+{
+	void initialize(const vk::Device *device,
+	           const VkPipelineViewportStateCreateInfo *viewportState,
+	           const VkPipelineRasterizationStateCreateInfo *rasterizationState,
+	           const vk::RenderPass *renderPass, uint32_t subpassIndex,
+	           const VkPipelineRenderingCreateInfo *rendering,
+	           const DynamicStateFlags &allDynamicStateFlags);
+
+	void applyState(const DynamicState &dynamicState);
+
+	inline VkCullModeFlags getCullMode() const { return cullMode; }
+	inline VkFrontFace getFrontFace() const { return frontFace; }
+	inline VkPolygonMode getPolygonMode() const { return polygonMode; }
+	inline VkProvokingVertexModeEXT getProvokingVertexMode() const { return provokingVertexMode; }
+	inline VkLineRasterizationModeEXT getLineRasterizationMode() const { return lineRasterizationMode; }
+
+	inline bool hasRasterizerDiscard() const { return rasterizerDiscard; }
+
+	inline float getConstantDepthBias() const { return depthBiasEnable ? constantDepthBias : 0; }
+	inline float getSlopeDepthBias() const { return depthBiasEnable ? slopeDepthBias : 0; }
+	inline float getDepthBiasClamp() const { return depthBiasEnable ? depthBiasClamp : 0; }
+
+	inline bool hasDepthRangeUnrestricted() const { return depthRangeUnrestricted; }
+	inline bool getDepthClampEnable() const { return depthClampEnable; }
+	inline bool getDepthClipEnable() const { return depthClipEnable; }
+	inline bool getDepthClipNegativeOneToOne() const { return depthClipNegativeOneToOne; }
+
+	inline float getLineWidth() const { return lineWidth; }
+
+	inline const VkRect2D &getScissor() const { return scissor; }
+	inline const VkViewport &getViewport() const { return viewport; }
+
+private:
+	PreRasterizationDynamicStateFlags dynamicStateFlags = {};
+
+	bool rasterizerDiscard = false;
+	bool depthClampEnable = false;
+	bool depthClipEnable = false;
+	bool depthClipNegativeOneToOne = false;
+	bool depthBiasEnable = false;
+	bool depthRangeUnrestricted = false;
+
+	VkCullModeFlags cullMode = 0;
+	VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL;
+	VkProvokingVertexModeEXT provokingVertexMode = VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
+	VkLineRasterizationModeEXT lineRasterizationMode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
+
+	float depthBiasClamp = 0.0f;
+	float constantDepthBias = 0.0f;
+	float slopeDepthBias = 0.0f;
+
+	float lineWidth = 0.0f;
+
+	VkRect2D scissor = {};
+	VkViewport viewport = {};
+};
+
+struct FragmentState
+{
+	void initialize(const VkPipelineDepthStencilStateCreateInfo *depthStencilState,
+	           const vk::RenderPass *renderPass, uint32_t subpassIndex,
+	           const VkPipelineRenderingCreateInfo *rendering,
+	           const DynamicStateFlags &allDynamicStateFlags);
+
+	void applyState(const DynamicState &dynamicState);
+
+	inline VkStencilOpState getFrontStencil() const { return frontStencil; }
+	inline VkStencilOpState getBackStencil() const { return backStencil; }
+
+	inline float getMinDepthBounds() const { return minDepthBounds; }
+	inline float getMaxDepthBounds() const { return maxDepthBounds; }
+
+	inline VkCompareOp getDepthCompareMode() const { return depthCompareMode; }
+
+	bool depthWriteActive(const Attachments &attachments) const;
+	bool depthTestActive(const Attachments &attachments) const;
+	bool stencilActive(const Attachments &attachments) const;
+	bool depthBoundsTestActive(const Attachments &attachments) const;
+
+private:
 	void setDepthStencilState(const VkPipelineDepthStencilStateCreateInfo *depthStencilState);
+
+	FragmentDynamicStateFlags dynamicStateFlags = {};
+
+	bool depthTestEnable = false;
+	bool depthWriteEnable = false;
+	bool depthBoundsTestEnable = false;
+	bool stencilEnable = false;
+
+	float minDepthBounds = 0.0f;
+	float maxDepthBounds = 0.0f;
+
+	VkCompareOp depthCompareMode = VK_COMPARE_OP_NEVER;
+
+	VkStencilOpState frontStencil = {};
+	VkStencilOpState backStencil = {};
+
+	// Note: if a pipeline library is created with the fragment state only, and sample shading
+	// is enabled or a render pass is provided, VkPipelineMultisampleStateCreateInfo must be
+	// provided.  This must identically match with the one provided for the fragment output
+	// interface library.
+	//
+	// Currently, SwiftShader can always use the copy provided and stored in
+	// FragmentOutputInterfaceState.  If a future optimization requires access to this state in
+	// a pipeline library without fragment output interface, a copy of MultisampleState can be
+	// placed here and initialized under the above condition.
+	//
+	// Ref: https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap10.html#pipeline-graphics-subsets
+};
+
+struct FragmentOutputInterfaceState
+{
+	void initialize(const VkPipelineColorBlendStateCreateInfo *colorBlendState,
+	            const VkPipelineMultisampleStateCreateInfo *multisampleState,
+	            const vk::RenderPass *renderPass, uint32_t subpassIndex,
+	            const VkPipelineRenderingCreateInfo *rendering,
+	            const DynamicStateFlags &allDynamicStateFlags);
+
+	void applyState(const DynamicState &dynamicState);
+
+	inline unsigned int getMultiSampleMask() const { return multisample.multiSampleMask; }
+	inline int getSampleCount() const { return multisample.sampleCount; }
+	inline bool hasSampleShadingEnabled() const { return multisample.sampleShadingEnable; }
+	inline float getMinSampleShading() const { return multisample.minSampleShading; }
+	inline bool hasAlphaToCoverage() const { return multisample.alphaToCoverage; }
+
+	inline const sw::float4 &getBlendConstants() const { return blendConstants; }
+
+	BlendState getBlendState(int index, const Attachments &attachments, bool fragmentContainsKill) const;
+
+	int colorWriteActive(int index, const Attachments &attachments) const;
+
+private:
 	void setColorBlendState(const VkPipelineColorBlendStateCreateInfo *colorBlendState);
 
 	VkBlendFactor blendFactor(VkBlendOp blendOperation, VkBlendFactor blendFactor) const;
@@ -254,56 +383,38 @@ private:
 	bool alphaBlendActive(int index, const Attachments &attachments, bool fragmentContainsKill) const;
 	bool colorWriteActive(const Attachments &attachments) const;
 
-	const PipelineLayout *pipelineLayout = nullptr;
-	const DynamicStateFlags dynamicStateFlags = {};
-	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-
-	VkProvokingVertexModeEXT provokingVertexMode = VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
-
-	bool stencilEnable = false;
-	VkStencilOpState frontStencil = {};
-	VkStencilOpState backStencil = {};
-
-	// Pixel processor states
-	VkCullModeFlags cullMode = 0;
-	VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL;
-	VkLineRasterizationModeEXT lineRasterizationMode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
-
-	bool depthBiasEnable = false;
-	float constantDepthBias = 0.0f;
-	float slopeDepthBias = 0.0f;
-	float depthBiasClamp = 0.0f;
-	float minDepthBounds = 0.0f;
-	float maxDepthBounds = 0.0f;
-	bool depthRangeUnrestricted = false;
-
-	// Pixel processor states
-	bool rasterizerDiscard = false;
-	bool depthBoundsTestEnable = false;
-	bool depthTestEnable = false;
-	VkCompareOp depthCompareMode = VK_COMPARE_OP_NEVER;
-	bool depthWriteEnable = false;
-	bool depthClampEnable = false;
-	bool depthClipEnable = false;
-	bool depthClipNegativeOneToOne = false;
-
-	float lineWidth = 0.0f;
-
 	int colorWriteMask[sw::MAX_COLOR_BUFFERS] = {};  // RGBA
-	unsigned int multiSampleMask = 0;
-	int sampleCount = 0;
-	bool alphaToCoverage = false;
 
-	bool sampleShadingEnable = false;
-	float minSampleShading = 0.0f;
+	FragmentOutputInterfaceDynamicStateFlags dynamicStateFlags = {};
 
-	bool primitiveRestartEnable = false;
-	VkRect2D scissor = {};
-	VkViewport viewport = {};
 	sw::float4 blendConstants = {};
-
 	BlendState blendState[sw::MAX_COLOR_BUFFERS] = {};
+
+	MultisampleState multisample;
+};
+
+struct GraphicsState
+{
+	GraphicsState(const Device *device, const VkGraphicsPipelineCreateInfo *pCreateInfo, const PipelineLayout *layout);
+
+	GraphicsState combineStates(const DynamicState &dynamicState) const;
+
+	inline const PipelineLayout *getPipelineLayout() const { return pipelineLayout; }
+
+	const VertexInputInterfaceState &getVertexInputInterfaceState() const { return vertexInputInterfaceState; }
+	const PreRasterizationState &getPreRasterizationState() const { return preRasterizationState; }
+	const FragmentState &getFragmentState() const { return fragmentState; }
+	const FragmentOutputInterfaceState &getFragmentOutputInterfaceState() const { return fragmentOutputInterfaceState; }
+
+private:
+	const PipelineLayout *pipelineLayout = nullptr;
+
+	// The four subsets of a graphics pipeline as described in the spec.  With
+	// VK_EXT_graphics_pipeline_library, a number of these may be valid.
+	VertexInputInterfaceState vertexInputInterfaceState;
+	PreRasterizationState preRasterizationState;
+	FragmentState fragmentState;
+	FragmentOutputInterfaceState fragmentOutputInterfaceState;
 };
 
 }  // namespace vk
