@@ -199,7 +199,10 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	const vk::GraphicsState &pipelineState = pipeline->getState(dynamicState);
 	const bool hasRasterizerDiscard = pipelineState.hasRasterizerDiscard();
 
-	pixelProcessor.setBlendConstant(pipelineState.getBlendConstants());
+	if(!hasRasterizerDiscard)
+	{
+		pixelProcessor.setBlendConstant(pipelineState.getBlendConstants());
+	}
 
 	const vk::Inputs &inputs = pipeline->getInputs();
 
@@ -213,15 +216,20 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		const vk::Attachments attachments = pipeline->getAttachments();
 
 		vertexState = vertexProcessor.update(pipelineState, vertexShader, inputs);
-		setupState = setupProcessor.update(pipelineState, fragmentShader, vertexShader, attachments);
-		pixelState = pixelProcessor.update(pipelineState, fragmentShader, vertexShader, attachments, hasOcclusionQuery());
-
 		vertexRoutine = vertexProcessor.routine(vertexState, pipelineState.getPipelineLayout(), vertexShader, inputs.getDescriptorSets());
-		setupRoutine = setupProcessor.routine(setupState);
-		pixelRoutine = pixelProcessor.routine(pixelState, pipelineState.getPipelineLayout(), fragmentShader, inputs.getDescriptorSets());
+
+		if(!hasRasterizerDiscard)
+		{
+			setupState = setupProcessor.update(pipelineState, fragmentShader, vertexShader, attachments);
+			setupRoutine = setupProcessor.routine(setupState);
+
+			pixelState = pixelProcessor.update(pipelineState, fragmentShader, vertexShader, attachments, hasOcclusionQuery());
+			pixelRoutine = pixelProcessor.routine(pixelState, pipelineState.getPipelineLayout(), fragmentShader, inputs.getDescriptorSets());
+		}
 	}
 
-	draw->containsImageWrite = pipeline->containsImageWrite();
+	draw->preRasterizationContainsImageWrite = pipeline->preRasterizationContainsImageWrite();
+	draw->fragmentContainsImageWrite = pipeline->fragmentContainsImageWrite();
 
 	// The sample count affects the batch size even if rasterization is disabled.
 	// TODO(b/147812380): Eliminate the dependency between multisampling and batch size.
@@ -229,36 +237,6 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	ASSERT(ms > 0);
 
 	unsigned int numPrimitivesPerBatch = MaxBatchSize / ms;
-
-	DrawCall::SetupFunction setupPrimitives = nullptr;
-	if(pipelineState.isDrawTriangle(false))
-	{
-		switch(pipelineState.getPolygonMode())
-		{
-		case VK_POLYGON_MODE_FILL:
-			setupPrimitives = &DrawCall::setupSolidTriangles;
-			break;
-		case VK_POLYGON_MODE_LINE:
-			setupPrimitives = &DrawCall::setupWireframeTriangles;
-			numPrimitivesPerBatch /= 3;
-			break;
-		case VK_POLYGON_MODE_POINT:
-			setupPrimitives = &DrawCall::setupPointTriangles;
-			numPrimitivesPerBatch /= 3;
-			break;
-		default:
-			UNSUPPORTED("polygon mode: %d", int(pipelineState.getPolygonMode()));
-			return;
-		}
-	}
-	else if(pipelineState.isDrawLine(false))
-	{
-		setupPrimitives = &DrawCall::setupLines;
-	}
-	else  // Point primitive topology
-	{
-		setupPrimitives = &DrawCall::setupPoints;
-	}
 
 	DrawData *data = draw->data;
 	draw->occlusionQuery = occlusionQuery;
@@ -274,12 +252,8 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	draw->pipelineLayout = pipelineState.getPipelineLayout();
 	draw->depthClipEnable = pipelineState.getDepthClipEnable();
 	draw->depthClipNegativeOneToOne = pipelineState.getDepthClipNegativeOneToOne();
-
-	draw->vertexRoutine = vertexRoutine;
-	draw->setupRoutine = setupRoutine;
-	draw->pixelRoutine = pixelRoutine;
-	draw->setupPrimitives = setupPrimitives;
-	draw->setupState = setupState;
+	data->lineWidth = pipelineState.getLineWidth();
+	data->rasterizerDiscard = hasRasterizerDiscard;
 
 	data->descriptorSets = inputs.getDescriptorSets();
 	data->descriptorDynamicOffsets = inputs.getDescriptorDynamicOffsets();
@@ -297,45 +271,7 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	data->instanceID = instanceID;
 	data->baseVertex = baseVertex;
 
-	if(pixelState.stencilActive)
-	{
-		data->stencil[0].set(pipelineState.getFrontStencil().reference, pipelineState.getFrontStencil().compareMask, pipelineState.getFrontStencil().writeMask);
-		data->stencil[1].set(pipelineState.getBackStencil().reference, pipelineState.getBackStencil().compareMask, pipelineState.getBackStencil().writeMask);
-	}
-
-	data->lineWidth = pipelineState.getLineWidth();
-
-	data->factor = pixelProcessor.factor;
-
-	if(pixelState.alphaToCoverage)
-	{
-		if(ms == 4)
-		{
-			data->a2c0 = 0.2f;
-			data->a2c1 = 0.4f;
-			data->a2c2 = 0.6f;
-			data->a2c3 = 0.8f;
-		}
-		else if(ms == 2)
-		{
-			data->a2c0 = 0.25f;
-			data->a2c1 = 0.75f;
-		}
-		else if(ms == 1)
-		{
-			data->a2c0 = 0.5f;
-		}
-		else
-			ASSERT(false);
-	}
-
-	if(pixelState.occlusionEnabled)
-	{
-		for(int cluster = 0; cluster < MaxClusterCount; cluster++)
-		{
-			data->occlusion[cluster] = 0;
-		}
-	}
+	draw->vertexRoutine = vertexRoutine;
 
 	// Viewport
 	{
@@ -369,58 +305,6 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 			data->depthRange = Z * 0.5f;
 			data->depthNear = (F + N) * 0.5f;
 		}
-
-		const vk::Attachments attachments = pipeline->getAttachments();
-		if(attachments.depthBuffer)
-		{
-			switch(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT))
-			{
-			case VK_FORMAT_D16_UNORM:
-				// Minimum is 1 unit, but account for potential floating-point rounding errors
-				data->minimumResolvableDepthDifference = 1.01f / 0xFFFF;
-				break;
-			case VK_FORMAT_D32_SFLOAT:
-				// The minimum resolvable depth difference is determined per-polygon for floating-point depth
-				// buffers. DrawData::minimumResolvableDepthDifference is unused.
-				break;
-			default:
-				UNSUPPORTED("Depth format: %d", int(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT)));
-			}
-		}
-	}
-
-	// Target
-	{
-		const vk::Attachments attachments = pipeline->getAttachments();
-
-		for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
-		{
-			draw->colorBuffer[index] = attachments.colorBuffer[index];
-
-			if(draw->colorBuffer[index])
-			{
-				data->colorBuffer[index] = (unsigned int *)attachments.colorBuffer[index]->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, data->layer);
-				data->colorPitchB[index] = attachments.colorBuffer[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-				data->colorSliceB[index] = attachments.colorBuffer[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			}
-		}
-
-		draw->depthBuffer = attachments.depthBuffer;
-		draw->stencilBuffer = attachments.stencilBuffer;
-
-		if(draw->depthBuffer)
-		{
-			data->depthBuffer = (float *)attachments.depthBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_DEPTH_BIT, 0, data->layer);
-			data->depthPitchB = attachments.depthBuffer->rowPitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
-			data->depthSliceB = attachments.depthBuffer->slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
-		}
-
-		if(draw->stencilBuffer)
-		{
-			data->stencilBuffer = (unsigned char *)attachments.stencilBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, data->layer);
-			data->stencilPitchB = attachments.stencilBuffer->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
-			data->stencilSliceB = attachments.stencilBuffer->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
-		}
 	}
 
 	// Scissor
@@ -435,6 +319,137 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		data->scissorX1 = clamp<int>(scissor.offset.x + scissor.extent.width, x0, x1);
 		data->scissorY0 = clamp<int>(scissor.offset.y, y0, y1);
 		data->scissorY1 = clamp<int>(scissor.offset.y + scissor.extent.height, y0, y1);
+	}
+
+	if(!hasRasterizerDiscard)
+	{
+		DrawCall::SetupFunction setupPrimitives = nullptr;
+		if(pipelineState.isDrawTriangle(false))
+		{
+			switch(pipelineState.getPolygonMode())
+			{
+			case VK_POLYGON_MODE_FILL:
+				setupPrimitives = &DrawCall::setupSolidTriangles;
+				break;
+			case VK_POLYGON_MODE_LINE:
+				setupPrimitives = &DrawCall::setupWireframeTriangles;
+				numPrimitivesPerBatch /= 3;
+				break;
+			case VK_POLYGON_MODE_POINT:
+				setupPrimitives = &DrawCall::setupPointTriangles;
+				numPrimitivesPerBatch /= 3;
+				break;
+			default:
+				UNSUPPORTED("polygon mode: %d", int(pipelineState.getPolygonMode()));
+				return;
+			}
+		}
+		else if(pipelineState.isDrawLine(false))
+		{
+			setupPrimitives = &DrawCall::setupLines;
+		}
+		else  // Point primitive topology
+		{
+			setupPrimitives = &DrawCall::setupPoints;
+		}
+
+		draw->setupState = setupState;
+		draw->setupRoutine = setupRoutine;
+		draw->pixelRoutine = pixelRoutine;
+		draw->setupPrimitives = setupPrimitives;
+
+		if(pixelState.stencilActive)
+		{
+			data->stencil[0].set(pipelineState.getFrontStencil().reference, pipelineState.getFrontStencil().compareMask, pipelineState.getFrontStencil().writeMask);
+			data->stencil[1].set(pipelineState.getBackStencil().reference, pipelineState.getBackStencil().compareMask, pipelineState.getBackStencil().writeMask);
+		}
+
+		data->factor = pixelProcessor.factor;
+
+		if(pixelState.alphaToCoverage)
+		{
+			if(ms == 4)
+			{
+				data->a2c0 = 0.2f;
+				data->a2c1 = 0.4f;
+				data->a2c2 = 0.6f;
+				data->a2c3 = 0.8f;
+			}
+			else if(ms == 2)
+			{
+				data->a2c0 = 0.25f;
+				data->a2c1 = 0.75f;
+			}
+			else if(ms == 1)
+			{
+				data->a2c0 = 0.5f;
+			}
+			else
+				ASSERT(false);
+		}
+
+		if(pixelState.occlusionEnabled)
+		{
+			for(int cluster = 0; cluster < MaxClusterCount; cluster++)
+			{
+				data->occlusion[cluster] = 0;
+			}
+		}
+
+		// Viewport
+		{
+			const vk::Attachments attachments = pipeline->getAttachments();
+			if(attachments.depthBuffer)
+			{
+				switch(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT))
+				{
+				case VK_FORMAT_D16_UNORM:
+					// Minimum is 1 unit, but account for potential floating-point rounding errors
+					data->minimumResolvableDepthDifference = 1.01f / 0xFFFF;
+					break;
+				case VK_FORMAT_D32_SFLOAT:
+					// The minimum resolvable depth difference is determined per-polygon for floating-point depth
+					// buffers. DrawData::minimumResolvableDepthDifference is unused.
+					break;
+				default:
+					UNSUPPORTED("Depth format: %d", int(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT)));
+				}
+			}
+		}
+
+		// Target
+		{
+			const vk::Attachments attachments = pipeline->getAttachments();
+
+			for(int index = 0; index < MAX_COLOR_BUFFERS; index++)
+			{
+				draw->colorBuffer[index] = attachments.colorBuffer[index];
+
+				if(draw->colorBuffer[index])
+				{
+					data->colorBuffer[index] = (unsigned int *)attachments.colorBuffer[index]->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, data->layer);
+					data->colorPitchB[index] = attachments.colorBuffer[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+					data->colorSliceB[index] = attachments.colorBuffer[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+				}
+			}
+
+			draw->depthBuffer = attachments.depthBuffer;
+			draw->stencilBuffer = attachments.stencilBuffer;
+
+			if(draw->depthBuffer)
+			{
+				data->depthBuffer = (float *)attachments.depthBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_DEPTH_BIT, 0, data->layer);
+				data->depthPitchB = attachments.depthBuffer->rowPitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
+				data->depthSliceB = attachments.depthBuffer->slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
+			}
+
+			if(draw->stencilBuffer)
+			{
+				data->stencilBuffer = (unsigned char *)attachments.stencilBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, data->layer);
+				data->stencilPitchB = attachments.stencilBuffer->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+				data->stencilSliceB = attachments.stencilBuffer->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+			}
+		}
 	}
 
 	// Push constants
@@ -470,30 +485,39 @@ void DrawCall::teardown(vk::Device *device)
 		events = nullptr;
 	}
 
-	if(occlusionQuery != nullptr)
-	{
-		for(int cluster = 0; cluster < MaxClusterCount; cluster++)
-		{
-			occlusionQuery->add(data->occlusion[cluster]);
-		}
-		occlusionQuery->finish();
-	}
-
 	vertexRoutine = {};
 	setupRoutine = {};
 	pixelRoutine = {};
 
-	for(auto *target : colorBuffer)
-	{
-		if(target)
-		{
-			target->contentsChanged(vk::Image::DIRECT_MEMORY_ACCESS);
-		}
-	}
-
-	if(containsImageWrite)
+	if(preRasterizationContainsImageWrite)
 	{
 		vk::DescriptorSet::ContentsChanged(descriptorSetObjects, pipelineLayout, device);
+	}
+
+	if(!data->rasterizerDiscard)
+	{
+		if(occlusionQuery != nullptr)
+		{
+			for(int cluster = 0; cluster < MaxClusterCount; cluster++)
+			{
+				occlusionQuery->add(data->occlusion[cluster]);
+			}
+			occlusionQuery->finish();
+		}
+
+		for(auto *target : colorBuffer)
+		{
+			if(target)
+			{
+				target->contentsChanged(vk::Image::DIRECT_MEMORY_ACCESS);
+			}
+		}
+
+		// If pre-rasterization also contains image writes, don't double-notify the descriptor set.
+		if(fragmentContainsImageWrite && !preRasterizationContainsImageWrite)
+		{
+			vk::DescriptorSet::ContentsChanged(descriptorSetObjects, pipelineLayout, device);
+		}
 	}
 }
 
@@ -527,7 +551,7 @@ void DrawCall::run(vk::Device *device, const marl::Loan<DrawCall> &draw, marl::T
 		marl::schedule([device, draw, batch, finally] {
 			processVertices(device, draw.get(), batch.get());
 
-			if(!draw->setupState.rasterizerDiscard)
+			if(!draw->data->rasterizerDiscard)
 			{
 				processPrimitives(device, draw.get(), batch.get());
 

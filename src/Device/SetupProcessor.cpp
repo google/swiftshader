@@ -76,7 +76,6 @@ SetupProcessor::State SetupProcessor::update(const vk::GraphicsState &pipelineSt
 	state.multiSampleCount = pipelineState.getSampleCount();
 	state.enableMultiSampling = (state.multiSampleCount > 1) &&
 	                            !(pipelineState.isDrawLine(true) && (pipelineState.getLineRasterizationMode() == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
-	state.rasterizerDiscard = pipelineState.hasRasterizerDiscard();
 
 	state.numClipDistances = vertexShader->getNumOutputClipDistances();
 	state.numCullDistances = vertexShader->getNumOutputCullDistances();

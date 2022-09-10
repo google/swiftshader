@@ -109,6 +109,8 @@ struct DrawData
 	float a2c3;
 
 	vk::Pipeline::PushConstantStorage pushConstants;
+
+	bool rasterizerDiscard;
 };
 
 struct DrawCall
@@ -158,7 +160,8 @@ struct DrawCall
 	VertexProcessor::RoutineType vertexRoutine;
 	SetupProcessor::RoutineType setupRoutine;
 	PixelProcessor::RoutineType pixelRoutine;
-	bool containsImageWrite;
+	bool preRasterizationContainsImageWrite;
+	bool fragmentContainsImageWrite;
 
 	SetupFunction setupPrimitives;
 	SetupProcessor::State setupState;

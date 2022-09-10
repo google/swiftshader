@@ -355,10 +355,14 @@ void GraphicsPipeline::getIndexBuffers(const vk::DynamicState &dynamicState, uin
 	indexBuffer.getIndexBuffers(topology, count, first, indexed, hasPrimitiveRestartEnable, indexBuffers);
 }
 
-bool GraphicsPipeline::containsImageWrite() const
+bool GraphicsPipeline::preRasterizationContainsImageWrite() const
 {
-	return (vertexShader.get() && vertexShader->containsImageWrite()) ||
-	       (fragmentShader.get() && fragmentShader->containsImageWrite());
+	return vertexShader.get() && vertexShader->containsImageWrite();
+}
+
+bool GraphicsPipeline::fragmentContainsImageWrite() const
+{
+	return fragmentShader.get() && fragmentShader->containsImageWrite();
 }
 
 void GraphicsPipeline::setShader(const VkShaderStageFlagBits &stage, const std::shared_ptr<sw::SpirvShader> spirvShader)

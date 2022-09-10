@@ -107,7 +107,8 @@ public:
 	Inputs &getInputs() { return inputs; }
 	const Inputs &getInputs() const { return inputs; }
 
-	bool containsImageWrite() const;
+	bool preRasterizationContainsImageWrite() const;
+	bool fragmentContainsImageWrite() const;
 
 	const std::shared_ptr<sw::SpirvShader> getShader(const VkShaderStageFlagBits &stage) const;
 

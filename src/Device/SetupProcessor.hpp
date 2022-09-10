@@ -56,7 +56,6 @@ public:
 		VkCullModeFlags cullMode : BITS(VK_CULL_MODE_FLAG_BITS_MAX_ENUM);
 		unsigned int multiSampleCount : 3;  // 1, 2 or 4
 		bool enableMultiSampling : 1;
-		bool rasterizerDiscard : 1;
 		unsigned int numClipDistances : 4;  // [0 - 8]
 		unsigned int numCullDistances : 4;  // [0 - 8]
 
