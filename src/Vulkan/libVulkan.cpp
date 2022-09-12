@@ -2128,9 +2128,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPi
 	TRACE("(VkDevice device = %p, const VkPipelineCacheCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkPipelineCache* pPipelineCache = %p)",
 	      device, pCreateInfo, pAllocator, pPipelineCache);
 
-	if(pCreateInfo->flags != 0)
+	if(pCreateInfo->flags != 0 && pCreateInfo->flags != VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT)
 	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		// Flags must be 0 or VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT.
+		// VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT: When set, the implementation may skip any
+		// unnecessary processing needed to support simultaneous modification from multiple threads where allowed.
+		// TODO(b/246369329): Optimize PipelineCache objects when VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT is used.
 		UNSUPPORTED("pCreateInfo->flags 0x%08X", int(pCreateInfo->flags));
 	}
 
