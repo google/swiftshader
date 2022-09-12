@@ -216,21 +216,21 @@ void SpirvShader::EmitState::addActiveLaneMaskEdge(Block::ID from, Block::ID to,
 	}
 }
 
-RValue<SIMD::Int> SpirvShader::GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const
+RValue<SIMD::Int> SpirvShader::EmitState::GetActiveLaneMaskEdge(Block::ID from, Block::ID to) const
 {
 	auto edge = Block::Edge{ from, to };
-	auto it = state->edgeActiveLaneMasks.find(edge);
-	ASSERT_MSG(it != state->edgeActiveLaneMasks.end(), "Could not find edge %d -> %d", from.value(), to.value());
+	auto it = edgeActiveLaneMasks.find(edge);
+	ASSERT_MSG(it != edgeActiveLaneMasks.end(), "Could not find edge %d -> %d", from.value(), to.value());
 	return it->second;
 }
 
-void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /* = 0 */) const
+void SpirvShader::EmitState::EmitBlocks(Block::ID id, Block::ID ignore /* = 0 */)
 {
-	auto oldPending = state->pending;
-	auto &function = getFunction(state->function);
+	auto oldPending = this->pending;
+	auto &function = shader.getFunction(this->function);
 
 	std::deque<Block::ID> pending;
-	state->pending = &pending;
+	this->pending = &pending;
 	pending.push_front(id);
 	while(pending.size() > 0)
 	{
@@ -246,9 +246,9 @@ void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /*
 		// Ensure all dependency blocks have been generated.
 		auto depsDone = true;
 		function.ForeachBlockDependency(id, [&](Block::ID dep) {
-			if(state->visited.count(dep) == 0)
+			if(visited.count(dep) == 0)
 			{
-				state->pending->push_front(dep);
+				this->pending->push_front(dep);
 				depsDone = false;
 			}
 		});
@@ -260,7 +260,7 @@ void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /*
 
 		pending.pop_front();
 
-		state->block = id;
+		this->block = id;
 
 		switch(block.kind)
 		{
@@ -269,11 +269,11 @@ void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /*
 		case Block::UnstructuredBranchConditional:
 		case Block::StructuredSwitch:
 		case Block::UnstructuredSwitch:
-			EmitNonLoop(state);
+			EmitNonLoop();
 			break;
 
 		case Block::Loop:
-			EmitLoop(state);
+			EmitLoop();
 			break;
 
 		default:
@@ -281,16 +281,16 @@ void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /*
 		}
 	}
 
-	state->pending = oldPending;
+	this->pending = oldPending;
 }
 
-void SpirvShader::EmitNonLoop(EmitState *state) const
+void SpirvShader::EmitState::EmitNonLoop()
 {
-	auto &function = getFunction(state->function);
-	auto blockId = state->block;
+	auto &function = shader.getFunction(this->function);
+	auto blockId = block;
 	auto block = function.getBlock(blockId);
 
-	if(!state->visited.emplace(blockId).second)
+	if(!visited.emplace(blockId).second)
 	{
 		return;  // Already generated this block.
 	}
@@ -301,36 +301,36 @@ void SpirvShader::EmitNonLoop(EmitState *state) const
 		SIMD::Int activeLaneMask(0);
 		for(auto in : block.ins)
 		{
-			auto inMask = GetActiveLaneMaskEdge(state, in, blockId);
+			auto inMask = GetActiveLaneMaskEdge(in, blockId);
 			SPIRV_SHADER_DBG("Block {0} -> {1} mask: {2}", in, blockId, inMask);
 			activeLaneMask |= inMask;
 		}
 		SPIRV_SHADER_DBG("Block {0} mask: {1}", blockId, activeLaneMask);
-		SetActiveLaneMask(activeLaneMask, state);
+		SetActiveLaneMask(activeLaneMask);
 	}
 
-	EmitInstructions(block.begin(), block.end(), state);
+	EmitInstructions(block.begin(), block.end());
 
 	for(auto out : block.outs)
 	{
-		if(state->visited.count(out) == 0)
+		if(visited.count(out) == 0)
 		{
-			state->pending->push_back(out);
+			pending->push_back(out);
 		}
 	}
 
 	SPIRV_SHADER_DBG("Block {0} done", blockId);
 }
 
-void SpirvShader::EmitLoop(EmitState *state) const
+void SpirvShader::EmitState::EmitLoop()
 {
-	auto &function = getFunction(state->function);
-	auto blockId = state->block;
+	auto &function = shader.getFunction(this->function);
+	auto blockId = block;
 	auto &block = function.getBlock(blockId);
 	auto mergeBlockId = block.mergeBlock;
 	auto &mergeBlock = function.getBlock(mergeBlockId);
 
-	if(!state->visited.emplace(blockId).second)
+	if(!visited.emplace(blockId).second)
 	{
 		return;  // Already emitted this loop.
 	}
@@ -358,7 +358,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	{
 		if(insn.opcode() == spv::OpPhi)
 		{
-			StorePhi(blockId, insn, state, incomingBlocks);
+			StorePhi(blockId, insn, incomingBlocks);
 		}
 	}
 
@@ -367,7 +367,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	SIMD::Int loopActiveLaneMask = SIMD::Int(0);
 	for(auto in : incomingBlocks)
 	{
-		loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
+		loopActiveLaneMask |= GetActiveLaneMaskEdge(in, blockId);
 	}
 
 	// mergeActiveLaneMasks contains edge lane masks for the merge block.
@@ -389,18 +389,18 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	SPIRV_SHADER_DBG("*** LOOP START (mask: {0}) ***", loopActiveLaneMask);
 
 	// Load the active lane mask.
-	SetActiveLaneMask(loopActiveLaneMask, state);
+	SetActiveLaneMask(loopActiveLaneMask);
 
 	// Emit the non-phi loop header block's instructions.
 	for(auto insn = block.begin(); insn != block.end(); insn++)
 	{
 		if(insn.opcode() == spv::OpPhi)
 		{
-			LoadPhi(insn, state);
+			LoadPhi(insn);
 		}
 		else
 		{
-			EmitInstruction(insn, state);
+			EmitInstruction(insn);
 		}
 	}
 
@@ -408,11 +408,11 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	// don't emit the merge block yet.
 	for(auto out : block.outs)
 	{
-		EmitBlocks(out, state, mergeBlockId);
+		EmitBlocks(out, mergeBlockId);
 	}
 
 	// Restore current block id after emitting loop blocks.
-	state->block = blockId;
+	this->block = blockId;
 
 	// Rebuild the loopActiveLaneMask from the loop back edges.
 	loopActiveLaneMask = SIMD::Int(0);
@@ -420,7 +420,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	{
 		if(function.ExistsPath(blockId, in, mergeBlockId))
 		{
-			loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
+			loopActiveLaneMask |= GetActiveLaneMaskEdge(in, blockId);
 		}
 	}
 
@@ -428,8 +428,8 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	for(auto in : function.getBlock(mergeBlockId).ins)
 	{
 		auto edge = Block::Edge{ in, mergeBlockId };
-		auto it = state->edgeActiveLaneMasks.find(edge);
-		if(it != state->edgeActiveLaneMasks.end())
+		auto it = edgeActiveLaneMasks.find(edge);
+		if(it != edgeActiveLaneMasks.end())
 		{
 			mergeActiveLaneMasks[in] |= it->second;
 		}
@@ -440,7 +440,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	{
 		if(insn.opcode() == spv::OpPhi)
 		{
-			StorePhi(blockId, insn, state, loopBlocks);
+			StorePhi(blockId, insn, loopBlocks);
 		}
 	}
 
@@ -474,7 +474,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	{
 		if(insn.opcode() == spv::OpPhi)
 		{
-			StorePhi(mergeBlockId, insn, state, loopBlocks);
+			StorePhi(mergeBlockId, insn, loopBlocks);
 		}
 	}
 
@@ -485,50 +485,50 @@ void SpirvShader::EmitLoop(EmitState *state) const
 
 	// Continue emitting from the merge block.
 	Nucleus::setInsertBlock(mergeBasicBlock);
-	state->pending->push_back(mergeBlockId);
+	pending->push_back(mergeBlockId);
 	for(const auto &it : mergeActiveLaneMasks)
 	{
-		state->addActiveLaneMaskEdge(it.first, mergeBlockId, it.second);
+		addActiveLaneMaskEdge(it.first, mergeBlockId, it.second);
 	}
 }
 
-SpirvShader::EmitResult SpirvShader::EmitBranch(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitBranch(InsnIterator insn)
 {
 	auto target = Block::ID(insn.word(1));
-	state->addActiveLaneMaskEdge(state->block, target, state->activeLaneMask());
+	addActiveLaneMaskEdge(block, target, activeLaneMask());
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitBranchConditional(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitBranchConditional(InsnIterator insn)
 {
-	auto &function = getFunction(state->function);
-	auto block = function.getBlock(state->block);
+	auto &function = shader.getFunction(this->function);
+	auto block = function.getBlock(this->block);
 	ASSERT(block.branchInstruction == insn);
 
 	auto condId = Object::ID(block.branchInstruction.word(1));
 	auto trueBlockId = Block::ID(block.branchInstruction.word(2));
 	auto falseBlockId = Block::ID(block.branchInstruction.word(3));
 
-	auto cond = Operand(this, state, condId);
-	ASSERT_MSG(getObjectType(condId).componentCount == 1, "Condition must be a Boolean type scalar");
+	auto cond = Operand(shader, *this, condId);
+	ASSERT_MSG(shader.getObjectType(condId).componentCount == 1, "Condition must be a Boolean type scalar");
 
 	// TODO: Optimize for case where all lanes take same path.
 
-	state->addOutputActiveLaneMaskEdge(trueBlockId, cond.Int(0));
-	state->addOutputActiveLaneMaskEdge(falseBlockId, ~cond.Int(0));
+	addOutputActiveLaneMaskEdge(trueBlockId, cond.Int(0));
+	addOutputActiveLaneMaskEdge(falseBlockId, ~cond.Int(0));
 
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitSwitch(InsnIterator insn)
 {
-	auto &function = getFunction(state->function);
-	auto block = function.getBlock(state->block);
+	auto &function = shader.getFunction(this->function);
+	auto block = function.getBlock(this->block);
 	ASSERT(block.branchInstruction == insn);
 
 	auto selId = Object::ID(block.branchInstruction.word(1));
 
-	auto sel = Operand(this, state, selId);
+	auto sel = Operand(shader, *this, selId);
 	ASSERT_MSG(sel.componentCount == 1, "Selector must be a scalar");
 	SPIRV_SHADER_DBG("switch({0})", sel);
 
@@ -536,7 +536,7 @@ SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *st
 
 	// TODO: Optimize for case where all lanes take same path.
 
-	SIMD::Int defaultLaneMask = state->activeLaneMask();
+	SIMD::Int defaultLaneMask = activeLaneMask();
 
 	// Gather up the case label matches and calculate defaultLaneMask.
 	std::vector<RValue<SIMD::Int>> caseLabelMatches;
@@ -546,59 +546,59 @@ SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *st
 		auto label = block.branchInstruction.word(i * 2 + 3);
 		auto caseBlockId = Block::ID(block.branchInstruction.word(i * 2 + 4));
 		auto caseLabelMatch = CmpEQ(sel.Int(0), SIMD::Int(label));
-		SPIRV_SHADER_DBG("case {0}: {1}", label, caseLabelMatch & state->activeLaneMask());
-		state->addOutputActiveLaneMaskEdge(caseBlockId, caseLabelMatch);
+		SPIRV_SHADER_DBG("case {0}: {1}", label, caseLabelMatch & activeLaneMask());
+		addOutputActiveLaneMaskEdge(caseBlockId, caseLabelMatch);
 		defaultLaneMask &= ~caseLabelMatch;
 	}
 
 	auto defaultBlockId = Block::ID(block.branchInstruction.word(2));
 	SPIRV_SHADER_DBG("default: {0}", defaultLaneMask);
-	state->addOutputActiveLaneMaskEdge(defaultBlockId, defaultLaneMask);
+	addOutputActiveLaneMaskEdge(defaultBlockId, defaultLaneMask);
 
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitUnreachable(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitUnreachable(InsnIterator insn)
 {
 	// TODO: Log something in this case?
-	SetActiveLaneMask(SIMD::Int(0), state);
+	SetActiveLaneMask(SIMD::Int(0));
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitReturn(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitReturn(InsnIterator insn)
 {
-	SetActiveLaneMask(SIMD::Int(0), state);
+	SetActiveLaneMask(SIMD::Int(0));
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitTerminateInvocation(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitTerminateInvocation(InsnIterator insn)
 {
-	state->routine->discardMask |= SignMask(state->activeLaneMask());
-	SetActiveLaneMask(SIMD::Int(0), state);
+	routine->discardMask |= SignMask(activeLaneMask());
+	SetActiveLaneMask(SIMD::Int(0));
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitDemoteToHelperInvocation(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitDemoteToHelperInvocation(InsnIterator insn)
 {
-	state->routine->helperInvocation |= state->activeLaneMask();
-	state->routine->discardMask |= SignMask(state->activeLaneMask());
-	SetStoresAndAtomicsMask(state->storesAndAtomicsMask() & ~state->activeLaneMask(), state);
+	routine->helperInvocation |= activeLaneMask();
+	routine->discardMask |= SignMask(activeLaneMask());
+	SetStoresAndAtomicsMask(storesAndAtomicsMask() & ~activeLaneMask());
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitIsHelperInvocation(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitIsHelperInvocation(InsnIterator insn)
 {
-	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
-	dst.move(0, state->routine->helperInvocation);
+	auto &type = shader.getType(insn.resultTypeId());
+	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
+	dst.move(0, routine->helperInvocation);
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitFunctionCall(InsnIterator insn)
 {
 	auto functionId = Function::ID(insn.word(3));
-	const auto &functionIt = functions.find(functionId);
-	ASSERT(functionIt != functions.end());
+	const auto &functionIt = shader.functions.find(functionId);
+	ASSERT(functionIt != shader.functions.end());
 	auto &function = functionIt->second;
 
 	// TODO(b/141246700): Add full support for spv::OpFunctionCall
@@ -626,7 +626,7 @@ SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitSta
 
 			if(blockInsn.opcode() == spv::OpKill)
 			{
-				EmitInstruction(blockInsn, state);
+				EmitInstruction(blockInsn);
 			}
 		}
 	}
@@ -634,10 +634,10 @@ SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitSta
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitControlBarrier(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitControlBarrier(InsnIterator insn) const
 {
-	auto executionScope = spv::Scope(GetConstScalarInt(insn.word(1)));
-	auto semantics = spv::MemorySemanticsMask(GetConstScalarInt(insn.word(3)));
+	auto executionScope = spv::Scope(shader.GetConstScalarInt(insn.word(1)));
+	auto semantics = spv::MemorySemanticsMask(shader.GetConstScalarInt(insn.word(3)));
 	// TODO(b/176819536): We probably want to consider the memory scope here.
 	// For now, just always emit the full fence.
 	Fence(semantics);
@@ -658,32 +658,32 @@ SpirvShader::EmitResult SpirvShader::EmitControlBarrier(InsnIterator insn, EmitS
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitPhi(InsnIterator insn, EmitState *state) const
+SpirvShader::EmitResult SpirvShader::EmitState::EmitPhi(InsnIterator insn)
 {
-	auto &function = getFunction(state->function);
-	auto currentBlock = function.getBlock(state->block);
+	auto &function = shader.getFunction(this->function);
+	auto currentBlock = function.getBlock(block);
 	if(!currentBlock.isLoopMerge)
 	{
 		// If this is a loop merge block, then don't attempt to update the
 		// phi values from the ins. EmitLoop() has had to take special care
 		// of this phi in order to correctly deal with divergent lanes.
-		StorePhi(state->block, insn, state, currentBlock.ins);
+		StorePhi(block, insn, currentBlock.ins);
 	}
-	LoadPhi(insn, state);
+	LoadPhi(insn);
 	return EmitResult::Continue;
 }
 
-void SpirvShader::LoadPhi(InsnIterator insn, EmitState *state) const
+void SpirvShader::EmitState::LoadPhi(InsnIterator insn)
 {
 	auto typeId = Type::ID(insn.word(1));
-	auto type = getType(typeId);
+	auto type = shader.getType(typeId);
 	auto objectId = Object::ID(insn.word(2));
 
-	auto storageIt = state->routine->phis.find(objectId);
-	ASSERT(storageIt != state->routine->phis.end());
+	auto storageIt = routine->phis.find(objectId);
+	ASSERT(storageIt != routine->phis.end());
 	auto &storage = storageIt->second;
 
-	auto &dst = state->createIntermediate(objectId, type.componentCount);
+	auto &dst = createIntermediate(objectId, type.componentCount);
 	for(uint32_t i = 0; i < type.componentCount; i++)
 	{
 		dst.move(i, storage[i]);
@@ -691,14 +691,14 @@ void SpirvShader::LoadPhi(InsnIterator insn, EmitState *state) const
 	}
 }
 
-void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState *state, const std::unordered_set<SpirvShader::Block::ID> &filter) const
+void SpirvShader::EmitState::StorePhi(Block::ID currentBlock, InsnIterator insn, const std::unordered_set<SpirvShader::Block::ID> &filter) const
 {
 	auto typeId = Type::ID(insn.word(1));
-	auto type = getType(typeId);
+	auto type = shader.getType(typeId);
 	auto objectId = Object::ID(insn.word(2));
 
-	auto storageIt = state->routine->phis.find(objectId);
-	ASSERT(storageIt != state->routine->phis.end());
+	auto storageIt = routine->phis.find(objectId);
+	ASSERT(storageIt != routine->phis.end());
 	auto &storage = storageIt->second;
 
 	for(uint32_t w = 3; w < insn.wordCount(); w += 2)
@@ -711,8 +711,8 @@ void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState 
 			continue;
 		}
 
-		auto mask = GetActiveLaneMaskEdge(state, blockId, currentBlock);
-		auto in = Operand(this, state, varId);
+		auto mask = GetActiveLaneMaskEdge(blockId, currentBlock);
+		auto in = Operand(shader, *this, varId);
 
 		for(uint32_t i = 0; i < type.componentCount; i++)
 		{
@@ -728,19 +728,19 @@ void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState 
 	}
 }
 
-void SpirvShader::Yield(YieldResult res) const
+void SpirvShader::EmitState::Yield(YieldResult res) const
 {
 	rr::Yield(RValue<Int>(int(res)));
 }
 
-void SpirvShader::SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const
+void SpirvShader::EmitState::SetActiveLaneMask(RValue<SIMD::Int> mask)
 {
-	state->activeLaneMaskValue = mask.value();
+	activeLaneMaskValue = mask.value();
 }
 
-void SpirvShader::SetStoresAndAtomicsMask(RValue<SIMD::Int> mask, EmitState *state) const
+void SpirvShader::EmitState::SetStoresAndAtomicsMask(RValue<SIMD::Int> mask)
 {
-	state->storesAndAtomicsMaskValue = mask.value();
+	storesAndAtomicsMaskValue = mask.value();
 }
 
 void SpirvShader::WriteCFGGraphVizDotFile(const char *path) const
