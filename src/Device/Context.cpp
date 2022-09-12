@@ -493,10 +493,6 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
-	// The sample count affects the batch size, so it needs initialization even if rasterization is disabled.
-	// TODO(b/147812380): Eliminate the dependency between multisampling and batch size.
-	sampleCount = 1;
-
 	// Only access rasterization state if rasterization is not disabled.
 	if(rasterizationState->rasterizerDiscardEnable == VK_FALSE || dynamicStateFlags.dynamicRasterizerDiscardEnable)
 	{

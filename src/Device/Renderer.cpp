@@ -197,6 +197,8 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	draw->id = id;
 
 	const vk::GraphicsState &pipelineState = pipeline->getState(dynamicState);
+	const bool hasRasterizerDiscard = pipelineState.hasRasterizerDiscard();
+
 	pixelProcessor.setBlendConstant(pipelineState.getBlendConstants());
 
 	const vk::Inputs &inputs = pipeline->getInputs();
@@ -221,10 +223,14 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 	draw->containsImageWrite = pipeline->containsImageWrite();
 
-	DrawCall::SetupFunction setupPrimitives = nullptr;
-	int ms = pipelineState.getSampleCount();
+	// The sample count affects the batch size even if rasterization is disabled.
+	// TODO(b/147812380): Eliminate the dependency between multisampling and batch size.
+	int ms = hasRasterizerDiscard ? 1 : pipelineState.getSampleCount();
+	ASSERT(ms > 0);
+
 	unsigned int numPrimitivesPerBatch = MaxBatchSize / ms;
 
+	DrawCall::SetupFunction setupPrimitives = nullptr;
 	if(pipelineState.isDrawTriangle(false))
 	{
 		switch(pipelineState.getPolygonMode())
