@@ -1076,9 +1076,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES_EXT:
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT:
-			// Workaround for a test bug (see https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/3564)
-			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_2_PLANE_444_FORMATS_FEATURES_EXT:
 			// TODO(b/223499383): The format enums of VK_EXT_ycbcr_2plane_444_formats were promoted to Vulkan 1.3, but not this feature struct.
 			break;
