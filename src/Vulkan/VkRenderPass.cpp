@@ -150,7 +150,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem)
 	for(uint32_t i = 0; i < subpassCount; i++)
 	{
 		auto const &subpass = pCreateInfo->pSubpasses[i];
-		const VkBaseInStructure *extension = reinterpret_cast<const VkBaseInStructure *>(subpass.pNext);
+		const auto *extension = reinterpret_cast<const VkBaseInStructure *>(subpass.pNext);
 		while(extension)
 		{
 			switch(extension->sType)

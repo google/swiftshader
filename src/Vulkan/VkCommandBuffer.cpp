@@ -339,11 +339,11 @@ public:
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		auto cmd = reinterpret_cast<VkDispatchIndirectCommand const *>(buffer->getOffsetPointer(offset));
+		const auto *cmd = reinterpret_cast<VkDispatchIndirectCommand const *>(buffer->getOffsetPointer(offset));
 
 		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
 
-		auto pipeline = static_cast<vk::ComputePipeline *>(pipelineState.pipeline);
+		auto *pipeline = static_cast<vk::ComputePipeline *>(pipelineState.pipeline);
 		pipeline->run(0, 0, 0, cmd->x, cmd->y, cmd->z,
 		              pipelineState.descriptorSetObjects,
 		              pipelineState.descriptorSets,
@@ -1029,7 +1029,7 @@ public:
 	{
 		for(auto drawId = 0u; drawId < drawCount; drawId++)
 		{
-			auto cmd = reinterpret_cast<VkDrawIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
+			const auto *cmd = reinterpret_cast<VkDrawIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
 			draw(executionState, false, cmd->vertexCount, cmd->instanceCount, 0, cmd->firstVertex, cmd->firstInstance);
 		}
 	}
@@ -1058,7 +1058,7 @@ public:
 	{
 		for(auto drawId = 0u; drawId < drawCount; drawId++)
 		{
-			auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
+			const auto *cmd = reinterpret_cast<VkDrawIndexedIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
 			draw(executionState, true, cmd->indexCount, cmd->instanceCount, cmd->firstIndex, cmd->vertexOffset, cmd->firstInstance);
 		}
 	}
@@ -2333,7 +2333,7 @@ void CommandBuffer::submit(CommandBuffer::ExecutionState &executionState)
 
 #ifdef ENABLE_VK_DEBUGGER
 	std::shared_ptr<vk::dbg::Thread> debuggerThread;
-	auto debuggerContext = device->getDebuggerContext();
+	auto *debuggerContext = device->getDebuggerContext();
 	if(debuggerContext)
 	{
 		debuggerThread = debuggerContext->lock().currentThread();
@@ -2393,7 +2393,7 @@ void CommandBuffer::ExecutionState::bindAttachments(Attachments *attachments)
 		auto attachmentReference = subpass.pDepthStencilAttachment;
 		if(attachmentReference && attachmentReference->attachment != VK_ATTACHMENT_UNUSED)
 		{
-			auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
+			auto *attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
 			if(attachment->hasDepthAspect())
 			{
 				attachments->depthBuffer = attachment;

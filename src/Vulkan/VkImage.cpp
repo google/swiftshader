@@ -127,7 +127,7 @@ bool GetNoAlphaOrUnsigned(const vk::Format &format)
 
 VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 {
-	auto nextInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *nextInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
 		// Casting to an int since some structures, such as VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID and
@@ -237,7 +237,7 @@ void Image::getMemoryRequirements(VkMemoryRequirements2 *pMemoryRequirements) co
 		{
 		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
 			{
-				auto requirements = reinterpret_cast<VkMemoryDedicatedRequirements *>(extensionRequirements);
+				auto *requirements = reinterpret_cast<VkMemoryDedicatedRequirements *>(extensionRequirements);
 				device->getRequirements(requirements);
 #if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 				if(getSupportedExternalMemoryHandleTypes() == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
