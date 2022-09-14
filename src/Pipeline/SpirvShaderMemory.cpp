@@ -314,7 +314,7 @@ SpirvShader::EmitResult SpirvShader::EmitMemoryBarrier(InsnIterator insn, EmitSt
 void SpirvShader::VisitMemoryObjectInner(sw::SpirvShader::Type::ID id, sw::SpirvShader::Decorations d, uint32_t &index, uint32_t offset, bool resultIsPointer, const MemoryVisitor &f) const
 {
 	ApplyDecorationsForId(&d, id);
-	auto const &type = getType(id);
+	const auto &type = getType(id);
 
 	if(d.HasOffset)
 	{
@@ -385,7 +385,7 @@ void SpirvShader::VisitMemoryObjectInner(sw::SpirvShader::Type::ID id, sw::Spirv
 void SpirvShader::VisitMemoryObject(Object::ID id, bool resultIsPointer, const MemoryVisitor &f) const
 {
 	auto typeId = getObject(id).typeId();
-	auto const &type = getType(typeId);
+	const auto &type = getType(typeId);
 
 	if(IsExplicitLayout(type.storageClass))
 	{

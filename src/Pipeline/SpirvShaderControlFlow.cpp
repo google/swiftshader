@@ -236,7 +236,7 @@ void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /*
 	{
 		auto id = pending.front();
 
-		auto const &block = function.getBlock(id);
+		const auto &block = function.getBlock(id);
 		if(id == ignore)
 		{
 			pending.pop_front();

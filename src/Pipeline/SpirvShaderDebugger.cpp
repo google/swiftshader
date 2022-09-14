@@ -2198,7 +2198,7 @@ void SpirvShader::Impl::Debugger::State::Data::trap(int index, State *state)
 	auto debugger = state->debugger;
 
 	// Update the thread frames from the stack of scopes
-	auto const &locationAndScope = debugger->traps.byIndex[index];
+	const auto &locationAndScope = debugger->traps.byIndex[index];
 
 	if(locationAndScope.scope)
 	{

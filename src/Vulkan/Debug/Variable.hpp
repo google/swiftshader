@@ -155,7 +155,7 @@ void VariableContainer::foreach(ForeachIndex &index, const F &cb)
 std::shared_ptr<Value> VariableContainer::get(const std::string &name)
 {
 	marl::lock lock(mutex);
-	for(auto const &var : variables)
+	for(const auto &var : variables)
 	{
 		if(var.name == name)
 		{

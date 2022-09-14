@@ -306,7 +306,7 @@ public:
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
+		const auto &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
 
 		vk::ComputePipeline *pipeline = static_cast<vk::ComputePipeline *>(pipelineState.pipeline);
 		pipeline->run(baseGroupX, baseGroupY, baseGroupZ,
@@ -341,7 +341,7 @@ public:
 	{
 		const auto *cmd = reinterpret_cast<VkDispatchIndirectCommand const *>(buffer->getOffsetPointer(offset));
 
-		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
+		const auto &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
 
 		auto *pipeline = static_cast<vk::ComputePipeline *>(pipelineState.pipeline);
 		pipeline->run(0, 0, 0, cmd->x, cmd->y, cmd->z,
@@ -917,7 +917,7 @@ public:
 	void draw(vk::CommandBuffer::ExecutionState &executionState, bool indexed,
 	          uint32_t count, uint32_t instanceCount, uint32_t first, int32_t vertexOffset, uint32_t firstInstance)
 	{
-		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_GRAPHICS];
+		const auto &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_GRAPHICS];
 
 		auto *pipeline = static_cast<vk::GraphicsPipeline *>(pipelineState.pipeline);
 		bool hasDynamicVertexStride = pipeline->hasDynamicVertexStride();
@@ -2379,7 +2379,7 @@ void CommandBuffer::ExecutionState::bindAttachments(Attachments *attachments)
 
 	if(renderPass)
 	{
-		auto const &subpass = renderPass->getSubpass(subpassIndex);
+		const auto &subpass = renderPass->getSubpass(subpassIndex);
 
 		for(auto i = 0u; i < subpass.colorAttachmentCount; i++)
 		{

@@ -102,7 +102,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		    DAP_LOG("SetFunctionBreakpointsRequest receieved");
 
 		    dap::SetFunctionBreakpointsResponse response;
-		    for(auto const &reqBP : req.breakpoints)
+		    for(const auto &reqBP : req.breakpoints)
 		    {
 			    DAP_LOG("Setting breakpoint for function '%s'", reqBP.name.c_str());
 
@@ -116,7 +116,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		    {
 			    auto lock = ctx->lock();
 			    lock.clearFunctionBreakpoints();
-			    for(auto const &reqBP : req.breakpoints)
+			    for(const auto &reqBP : req.breakpoints)
 			    {
 				    lock.addFunctionBreakpoint(reqBP.name.c_str());
 			    }
@@ -133,7 +133,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		    size_t numBreakpoints = 0;
 		    if(req.breakpoints.has_value())
 		    {
-			    auto const &breakpoints = req.breakpoints.value();
+			    const auto &breakpoints = req.breakpoints.value();
 			    numBreakpoints = breakpoints.size();
 			    if(auto file = this->file(req.source))
 			    {
@@ -161,7 +161,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 			    {
 				    std::vector<int> lines;
 				    lines.reserve(breakpoints.size());
-				    for(auto const &bp : breakpoints)
+				    for(const auto &bp : breakpoints)
 				    {
 					    lines.push_back(bp.line);
 				    }
@@ -229,8 +229,8 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		    response.stackFrames.reserve(stack.size());
 		    for(int i = static_cast<int>(stack.size()) - 1; i >= 0; i--)
 		    {
-			    auto const &frame = stack[i];
-			    auto const &loc = frame.location;
+			    const auto &frame = stack[i];
+			    const auto &loc = frame.location;
 			    dap::StackFrame sf;
 			    sf.column = 0;
 			    sf.id = frame.id.value();
@@ -455,7 +455,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 				frame->hovers->variables,
 			};
 
-			for(auto const &vars : variables)
+			for(const auto &vars : variables)
 			{
 				if(auto val = vars->get(req.expression))
 				{
@@ -469,7 +469,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 			// TODO: This might be a configuration problem of the SPIRV-Tools
 			// spirv-ls plugin. Investigate.
 			auto withPercent = "%" + req.expression;
-			for(auto const &vars : variables)
+			for(const auto &vars : variables)
 			{
 				if(auto val = vars->get(withPercent))
 				{

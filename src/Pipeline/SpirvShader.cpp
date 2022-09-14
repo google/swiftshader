@@ -196,8 +196,8 @@ SpirvShader::SpirvShader(
 		case spv::OpGroupDecorate:
 			{
 				uint32_t group = insn.word(1);
-				auto const &groupDecorations = decorations[group];
-				auto const &descriptorGroupDecorations = descriptorDecorations[group];
+				const auto &groupDecorations = decorations[group];
+				const auto &descriptorGroupDecorations = descriptorDecorations[group];
 				for(auto i = 2u; i < insn.wordCount(); i++)
 				{
 					// Remaining operands are targets to apply the group to.
@@ -210,7 +210,7 @@ SpirvShader::SpirvShader(
 
 		case spv::OpGroupMemberDecorate:
 			{
-				auto const &srcDecorations = decorations[insn.word(1)];
+				const auto &srcDecorations = decorations[insn.word(1)];
 				for(auto i = 2u; i < insn.wordCount(); i += 2)
 				{
 					// remaining operands are pairs of <id>, literal for members to apply to.
@@ -1165,7 +1165,7 @@ int SpirvShader::VisitInterfaceInner(Type::ID id, Decorations d, const Interface
 
 	ApplyDecorationsForId(&d, id);
 
-	auto const &obj = getType(id);
+	const auto &obj = getType(id);
 	switch(obj.opcode())
 	{
 	case spv::OpTypePointer:

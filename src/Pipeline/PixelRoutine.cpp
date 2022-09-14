@@ -205,7 +205,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[MAX_COLOR_BUFFERS], Pointer<Byte> 
 				int packedInterpolant = 0;
 				for(int interfaceInterpolant = 0; interfaceInterpolant < MAX_INTERFACE_COMPONENTS; interfaceInterpolant++)
 				{
-					auto const &input = spirvShader->inputs[interfaceInterpolant];
+					const auto &input = spirvShader->inputs[interfaceInterpolant];
 					if(input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
 					{
 						routine.inputsInterpolation[packedInterpolant] = input.Flat ? SpirvRoutine::Flat : (input.NoPerspective ? SpirvRoutine::Linear : SpirvRoutine::Perspective);

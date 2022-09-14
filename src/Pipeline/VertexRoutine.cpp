@@ -163,7 +163,7 @@ void VertexRoutine::computeCullMask()
 		auto count = spirvShader->getNumOutputCullDistances();
 		for(uint32_t i = 0; i < count; i++)
 		{
-			auto const &distance = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
+			const auto &distance = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
 			auto mask = SignMask(CmpGE(distance, SIMD::Float(0)));
 			cullMask &= mask;
 		}

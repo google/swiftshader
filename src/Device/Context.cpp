@@ -284,7 +284,7 @@ void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputS
 	VkVertexInputRate inputRates[MAX_VERTEX_INPUT_BINDINGS];
 	for(uint32_t i = 0; i < vertexInputState->vertexBindingDescriptionCount; i++)
 	{
-		auto const &desc = vertexInputState->pVertexBindingDescriptions[i];
+		const auto &desc = vertexInputState->pVertexBindingDescriptions[i];
 		inputRates[desc.binding] = desc.inputRate;
 		vertexStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? desc.stride : 0;
 		instanceStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE ? desc.stride : 0;
@@ -292,7 +292,7 @@ void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputS
 
 	for(uint32_t i = 0; i < vertexInputState->vertexAttributeDescriptionCount; i++)
 	{
-		auto const &desc = vertexInputState->pVertexAttributeDescriptions[i];
+		const auto &desc = vertexInputState->pVertexAttributeDescriptions[i];
 		sw::Stream &input = stream[desc.location];
 		input.format = desc.format;
 		input.offset = desc.offset;

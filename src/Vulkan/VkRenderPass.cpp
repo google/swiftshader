@@ -149,7 +149,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem)
 	// Handle the extensions in each subpass
 	for(uint32_t i = 0; i < subpassCount; i++)
 	{
-		auto const &subpass = pCreateInfo->pSubpasses[i];
+		const auto &subpass = pCreateInfo->pSubpasses[i];
 		const auto *extension = reinterpret_cast<const VkBaseInStructure *>(subpass.pNext);
 		while(extension)
 		{
@@ -247,7 +247,7 @@ void RenderPass::init(const T *pCreateInfo, void **mem)
 			{
 				// Renderpass uses multiview if this structure is present AND some subpass specifies
 				// a nonzero view mask
-				auto const *multiviewCreateInfo = reinterpret_cast<VkRenderPassMultiviewCreateInfo const *>(extensionCreateInfo);
+				const auto *multiviewCreateInfo = reinterpret_cast<VkRenderPassMultiviewCreateInfo const *>(extensionCreateInfo);
 				for(auto i = 0u; i < pCreateInfo->subpassCount; i++)
 				{
 					masks[i] = multiviewCreateInfo->pViewMasks[i];
@@ -386,7 +386,7 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo2KH
 	bool usesDSR = false;
 	for(uint32_t i = 0; i < pCreateInfo->subpassCount; i++)
 	{
-		auto const &subpass = pCreateInfo->pSubpasses[i];
+		const auto &subpass = pCreateInfo->pSubpasses[i];
 		const VkBaseInStructure *extension = reinterpret_cast<const VkBaseInStructure *>(subpass.pNext);
 		while(extension)
 		{

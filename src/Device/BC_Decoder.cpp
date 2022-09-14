@@ -1447,7 +1447,7 @@ struct Block
 
 	void decode(uint8_t *dst, int dstX, int dstY, int dstWidth, int dstHeight, size_t dstPitch) const
 	{
-		auto const &mode = this->mode();
+		const auto &mode = this->mode();
 
 		if(mode.IDX < 0)  // Invalid mode:
 		{
@@ -1507,8 +1507,8 @@ struct Block
 			}
 		}
 
-		auto const colorBits = mode.CB + mode.SPB + mode.EPB;
-		auto const alphaBits = mode.AB + mode.SPB + mode.EPB;
+		const auto colorBits = mode.CB + mode.SPB + mode.EPB;
+		const auto alphaBits = mode.AB + mode.SPB + mode.EPB;
 
 		for(int i = 0; i < mode.NS; i++)
 		{
@@ -1538,7 +1538,7 @@ struct Block
 				ASSERT(partitionIdx < MaxPartitions);
 				auto subsetIdx = subsetIndex(mode, partitionIdx, texelIdx);
 				ASSERT(subsetIdx < MaxSubsets);
-				auto const &subset = subsets[subsetIdx];
+				const auto &subset = subsets[subsetIdx];
 
 				auto anchorIdx = anchorIndex(mode, partitionIdx, subsetIdx);
 				auto isAnchor = anchorIdx == texelIdx;

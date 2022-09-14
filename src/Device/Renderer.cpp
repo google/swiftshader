@@ -551,9 +551,9 @@ void DrawCall::run(vk::Device *device, const marl::Loan<DrawCall> &draw, marl::T
 {
 	draw->setup();
 
-	auto const numPrimitives = draw->numPrimitives;
-	auto const numPrimitivesPerBatch = draw->numPrimitivesPerBatch;
-	auto const numBatches = draw->numBatches;
+	const auto numPrimitives = draw->numPrimitives;
+	const auto numPrimitivesPerBatch = draw->numPrimitivesPerBatch;
+	const auto numBatches = draw->numBatches;
 
 	auto ticket = tickets->take();
 	auto finally = marl::make_shared_finally([device, draw, ticket] {

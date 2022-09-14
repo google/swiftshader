@@ -136,7 +136,7 @@ void DebugInfo::Finalize()
 
 void DebugInfo::EmitLocation()
 {
-	auto const &backtrace = getCallerBacktrace();
+	const auto &backtrace = getCallerBacktrace();
 	syncScope(backtrace);
 	builder->SetCurrentDebugLocation(getLocation(backtrace, backtrace.size() - 1));
 	emitPrintLocation(backtrace);
@@ -175,8 +175,8 @@ void DebugInfo::syncScope(Backtrace const &backtrace)
 	for(size_t i = 0; i < diScope.size(); i++)
 	{
 		auto &scope = diScope[i];
-		auto const &oldLocation = scope.location;
-		auto const &newLocation = backtrace[i];
+		const auto &oldLocation = scope.location;
+		const auto &newLocation = backtrace[i];
 
 		if(oldLocation.function != newLocation.function)
 		{
@@ -246,12 +246,12 @@ llvm::DILocation *DebugInfo::getLocation(const Backtrace &backtrace, size_t i)
 
 void DebugInfo::EmitVariable(Value *variable)
 {
-	auto const &backtrace = getCallerBacktrace();
+	const auto &backtrace = getCallerBacktrace();
 	syncScope(backtrace);
 
 	for(int i = backtrace.size() - 1; i >= 0; i--)
 	{
-		auto const &location = backtrace[i];
+		const auto &location = backtrace[i];
 		auto tokens = getOrParseFileTokens(location.function.file.c_str());
 		auto tokIt = tokens->find(location.line);
 		if(tokIt == tokens->end())
@@ -317,7 +317,7 @@ void DebugInfo::EmitVariable(Value *variable)
 
 void DebugInfo::emitPending(Scope &scope, IRBuilder *builder)
 {
-	auto const &pending = scope.pending;
+	const auto &pending = scope.pending;
 	if(pending.value == nullptr)
 	{
 		return;

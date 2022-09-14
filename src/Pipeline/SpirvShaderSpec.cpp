@@ -68,10 +68,10 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 	case spv::OpSelect:
 		{
 			auto &result = CreateConstant(insn);
-			auto const &cond = getObject(insn.word(4));
+			const auto &cond = getObject(insn.word(4));
 			auto condIsScalar = (getType(cond).componentCount == 1);
-			auto const &left = getObject(insn.word(5));
-			auto const &right = getObject(insn.word(6));
+			const auto &left = getObject(insn.word(5));
+			const auto &right = getObject(insn.word(6));
 
 			for(auto i = 0u; i < getType(result).componentCount; i++)
 			{
@@ -84,7 +84,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 	case spv::OpCompositeExtract:
 		{
 			auto &result = CreateConstant(insn);
-			auto const &compositeObject = getObject(insn.word(4));
+			const auto &compositeObject = getObject(insn.word(4));
 			auto firstComponent = WalkLiteralAccessChain(compositeObject.typeId(), Span(insn, 5, insn.wordCount() - 5));
 
 			for(auto i = 0u; i < getType(result).componentCount; i++)
@@ -97,8 +97,8 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 	case spv::OpCompositeInsert:
 		{
 			auto &result = CreateConstant(insn);
-			auto const &newPart = getObject(insn.word(4));
-			auto const &oldObject = getObject(insn.word(5));
+			const auto &newPart = getObject(insn.word(4));
+			const auto &oldObject = getObject(insn.word(5));
 			auto firstNewComponent = WalkLiteralAccessChain(result.typeId(), Span(insn, 6, insn.wordCount() - 6));
 
 			// old components before
@@ -122,8 +122,8 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 	case spv::OpVectorShuffle:
 		{
 			auto &result = CreateConstant(insn);
-			auto const &firstHalf = getObject(insn.word(4));
-			auto const &secondHalf = getObject(insn.word(5));
+			const auto &firstHalf = getObject(insn.word(4));
+			const auto &secondHalf = getObject(insn.word(5));
 
 			for(auto i = 0u; i < getType(result).componentCount; i++)
 			{
@@ -158,7 +158,7 @@ void SpirvShader::EvalSpecConstantUnaryOp(InsnIterator insn)
 	auto &result = CreateConstant(insn);
 
 	auto opcode = static_cast<spv::Op>(insn.word(3));
-	auto const &lhs = getObject(insn.word(4));
+	const auto &lhs = getObject(insn.word(4));
 	auto size = getType(lhs).componentCount;
 
 	for(auto i = 0u; i < size; i++)
@@ -208,8 +208,8 @@ void SpirvShader::EvalSpecConstantBinaryOp(InsnIterator insn)
 	auto &result = CreateConstant(insn);
 
 	auto opcode = static_cast<spv::Op>(insn.word(3));
-	auto const &lhs = getObject(insn.word(4));
-	auto const &rhs = getObject(insn.word(5));
+	const auto &lhs = getObject(insn.word(4));
+	const auto &rhs = getObject(insn.word(5));
 	auto size = getType(lhs).componentCount;
 
 	for(auto i = 0u; i < size; i++)
