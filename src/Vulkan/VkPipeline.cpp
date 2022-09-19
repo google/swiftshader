@@ -154,7 +154,7 @@ public:
 
 	void stageCreationBegins(uint32_t stage)
 	{
-		if(pipelineCreationFeedback)
+		if(pipelineCreationFeedback && (stage < pipelineCreationFeedback->pipelineStageCreationFeedbackCount))
 		{
 			// Record stage creation begin time
 			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].duration = now();
@@ -167,14 +167,17 @@ public:
 		{
 			pipelineCreationFeedback->pPipelineCreationFeedback->flags |=
 			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT;
-			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].flags |=
-			    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT;
+			if(stage < pipelineCreationFeedback->pipelineStageCreationFeedbackCount)
+			{
+				pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].flags |=
+				    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT;
+			}
 		}
 	}
 
 	void stageCreationEnds(uint32_t stage)
 	{
-		if(pipelineCreationFeedback)
+		if(pipelineCreationFeedback && (stage < pipelineCreationFeedback->pipelineStageCreationFeedbackCount))
 		{
 			pipelineCreationFeedback->pPipelineStageCreationFeedbacks[stage].flags |=
 			    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT;
