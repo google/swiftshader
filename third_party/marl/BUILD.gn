@@ -86,6 +86,12 @@ swiftshader_source_set("Marl") {
         "src/osfiber_asm_rv64.h",
         "src/osfiber_asm_rv64.S",
       ]
+    } else if (current_cpu == "loong64") {
+      sources += [
+        "src/osfiber_loongarch64.c",
+        "src/osfiber_asm_loongarch64.h",
+        "src/osfiber_asm_loongarch64.S",
+      ]
     } else if (current_cpu == "x64") {
       sources += [
         "src/osfiber_x64.c",
