@@ -57,6 +57,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceDescriptorIndexingFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDevicePipelineRobustnessFeaturesEXT *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceProtectedMemoryFeatures *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
