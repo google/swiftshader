@@ -517,7 +517,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 
 	if(pCreateInfo->enabledLayerCount != 0)
 	{
-		UNIMPLEMENTED("b/148240133: pCreateInfo->enabledLayerCount != 0");  // FIXME(b/148240133)
+		// Creating instances with unsupported layers should fail and SwiftShader doesn't support any layer
+		return VK_ERROR_LAYER_NOT_PRESENT;
 	}
 
 	for(uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
