@@ -87,7 +87,7 @@ swiftshader_source_set("WSI") {
     "../Vulkan:swiftshader_libvulkan_headers",
   ]
 
-  if (is_linux && !use_system_libwayland) {
+  if (is_linux && ozone_platform_wayland && !use_system_libwayland) {
     # Use third-party targets
     deps += [ "$wayland_gn_dir:wayland_client" ]
   }
