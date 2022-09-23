@@ -270,7 +270,7 @@ bool getRobustBufferAccess(VkPipelineRobustnessBufferBehaviorEXT behavior, bool 
 	}
 }
 
-bool getRobustBufferAccess(const VkPipelineRobustnessCreateInfoEXT *overrideRobustness, bool inheritRobustBufferAccess)
+bool getRobustBufferAccess(const VkPipelineRobustnessCreateInfoEXT *overrideRobustness, bool deviceRobustBufferAccess, bool inheritRobustBufferAccess)
 {
 	VkPipelineRobustnessBufferBehaviorEXT storageBehavior = VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT_EXT;
 	VkPipelineRobustnessBufferBehaviorEXT uniformBehavior = VK_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_DEVICE_DEFAULT_EXT;
@@ -281,6 +281,7 @@ bool getRobustBufferAccess(const VkPipelineRobustnessCreateInfoEXT *overrideRobu
 		storageBehavior = overrideRobustness->storageBuffers;
 		uniformBehavior = overrideRobustness->uniformBuffers;
 		vertexBehavior = overrideRobustness->vertexInputs;
+		inheritRobustBufferAccess = deviceRobustBufferAccess;
 	}
 
 	bool storageRobustBufferAccess = getRobustBufferAccess(storageBehavior, inheritRobustBufferAccess);
@@ -300,14 +301,15 @@ bool getPipelineRobustBufferAccess(const void *pNext, vk::Device *device)
 
 	// For pipelines, there's no robustBufferAccess to inherit from.  Default and no-override
 	// both lead to using the device's robustBufferAccess.
-	return getRobustBufferAccess(overrideRobustness, deviceRobustBufferAccess);
+	return getRobustBufferAccess(overrideRobustness, deviceRobustBufferAccess, deviceRobustBufferAccess);
 }
 
-bool getPipelineStageRobustBufferAccess(const void *pNext, bool pipelineRobustBufferAccess)
+bool getPipelineStageRobustBufferAccess(const void *pNext, vk::Device *device, bool pipelineRobustBufferAccess)
 {
 	const VkPipelineRobustnessCreateInfoEXT *overrideRobustness = vk::GetExtendedStruct<VkPipelineRobustnessCreateInfoEXT>(pNext, VK_STRUCTURE_TYPE_PIPELINE_ROBUSTNESS_CREATE_INFO_EXT);
+	const bool deviceRobustBufferAccess = device->getEnabledFeatures().robustBufferAccess;
 
-	return getRobustBufferAccess(overrideRobustness, pipelineRobustBufferAccess);
+	return getRobustBufferAccess(overrideRobustness, deviceRobustBufferAccess, pipelineRobustBufferAccess);
 }
 
 }  // anonymous namespace
@@ -452,7 +454,7 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 			}
 		}
 
-		const bool stageRobustBufferAccess = getPipelineStageRobustBufferAccess(stageInfo.pNext, robustBufferAccess);
+		const bool stageRobustBufferAccess = getPipelineStageRobustBufferAccess(stageInfo.pNext, device, robustBufferAccess);
 
 		// TODO(b/201798871): use allocator.
 		auto shader = std::make_shared<sw::SpirvShader>(stageInfo.stage, stageInfo.pName, spirv,
@@ -528,7 +530,7 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 		}
 	}
 
-	const bool stageRobustBufferAccess = getPipelineStageRobustBufferAccess(stage.pNext, robustBufferAccess);
+	const bool stageRobustBufferAccess = getPipelineStageRobustBufferAccess(stage.pNext, device, robustBufferAccess);
 
 	// TODO(b/201798871): use allocator.
 	shader = std::make_shared<sw::SpirvShader>(stage.stage, stage.pName, spirv,
