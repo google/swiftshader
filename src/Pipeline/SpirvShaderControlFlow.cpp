@@ -117,7 +117,7 @@ SpirvShader::Block::Block(InsnIterator begin, InsnIterator end)
 	}
 }
 
-void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, SpirvShader::Block::Set &reachable) const
+void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, Block::Set &reachable) const
 {
 	if(reachable.count(id) == 0)
 	{
@@ -195,12 +195,12 @@ bool SpirvShader::Function::ExistsPath(Block::ID from, Block::ID to, Block::ID n
 	return false;
 }
 
-void SpirvShader::EmitState::addOutputActiveLaneMaskEdge(Block::ID to, RValue<SIMD::Int> mask)
+void EmitState::addOutputActiveLaneMaskEdge(Block::ID to, RValue<SIMD::Int> mask)
 {
 	addActiveLaneMaskEdge(block, to, mask & activeLaneMask());
 }
 
-void SpirvShader::EmitState::addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask)
+void EmitState::addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask)
 {
 	auto edge = Block::Edge{ from, to };
 	auto it = edgeActiveLaneMasks.find(edge);
@@ -216,7 +216,7 @@ void SpirvShader::EmitState::addActiveLaneMaskEdge(Block::ID from, Block::ID to,
 	}
 }
 
-RValue<SIMD::Int> SpirvShader::EmitState::GetActiveLaneMaskEdge(Block::ID from, Block::ID to) const
+RValue<SIMD::Int> EmitState::GetActiveLaneMaskEdge(Block::ID from, Block::ID to) const
 {
 	auto edge = Block::Edge{ from, to };
 	auto it = edgeActiveLaneMasks.find(edge);
@@ -224,7 +224,7 @@ RValue<SIMD::Int> SpirvShader::EmitState::GetActiveLaneMaskEdge(Block::ID from, 
 	return it->second;
 }
 
-void SpirvShader::EmitState::EmitBlocks(Block::ID id, Block::ID ignore /* = 0 */)
+void EmitState::EmitBlocks(Block::ID id, Block::ID ignore /* = 0 */)
 {
 	auto oldPending = this->pending;
 	auto &function = shader.getFunction(this->function);
@@ -284,7 +284,7 @@ void SpirvShader::EmitState::EmitBlocks(Block::ID id, Block::ID ignore /* = 0 */
 	this->pending = oldPending;
 }
 
-void SpirvShader::EmitState::EmitNonLoop()
+void EmitState::EmitNonLoop()
 {
 	auto &function = shader.getFunction(this->function);
 	auto blockId = block;
@@ -322,7 +322,7 @@ void SpirvShader::EmitState::EmitNonLoop()
 	SPIRV_SHADER_DBG("Block {0} done", blockId);
 }
 
-void SpirvShader::EmitState::EmitLoop()
+void EmitState::EmitLoop()
 {
 	auto &function = shader.getFunction(this->function);
 	auto blockId = block;
@@ -492,14 +492,14 @@ void SpirvShader::EmitState::EmitLoop()
 	}
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitBranch(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitBranch(InsnIterator insn)
 {
 	auto target = Block::ID(insn.word(1));
 	addActiveLaneMaskEdge(block, target, activeLaneMask());
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitBranchConditional(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitBranchConditional(InsnIterator insn)
 {
 	auto &function = shader.getFunction(this->function);
 	auto block = function.getBlock(this->block);
@@ -520,7 +520,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitBranchConditional(InsnIterat
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitSwitch(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitSwitch(InsnIterator insn)
 {
 	auto &function = shader.getFunction(this->function);
 	auto block = function.getBlock(this->block);
@@ -558,27 +558,27 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitSwitch(InsnIterator insn)
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitUnreachable(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitUnreachable(InsnIterator insn)
 {
 	// TODO: Log something in this case?
 	SetActiveLaneMask(SIMD::Int(0));
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitReturn(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitReturn(InsnIterator insn)
 {
 	SetActiveLaneMask(SIMD::Int(0));
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitTerminateInvocation(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitTerminateInvocation(InsnIterator insn)
 {
 	routine->discardMask |= SignMask(activeLaneMask());
 	SetActiveLaneMask(SIMD::Int(0));
 	return EmitResult::Terminator;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitDemoteToHelperInvocation(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitDemoteToHelperInvocation(InsnIterator insn)
 {
 	routine->helperInvocation |= activeLaneMask();
 	routine->discardMask |= SignMask(activeLaneMask());
@@ -586,7 +586,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitDemoteToHelperInvocation(Ins
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitIsHelperInvocation(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitIsHelperInvocation(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -594,9 +594,9 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitIsHelperInvocation(InsnItera
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitFunctionCall(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitFunctionCall(InsnIterator insn)
 {
-	auto functionId = Function::ID(insn.word(3));
+	auto functionId = SpirvShader::Function::ID(insn.word(3));
 	const auto &functionIt = shader.functions.find(functionId);
 	ASSERT(functionIt != shader.functions.end());
 	auto &function = functionIt->second;
@@ -620,7 +620,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitFunctionCall(InsnIterator in
 
 			if(blockInsn.opcode() != wrapOpKill[insnNumber++])
 			{
-				UNIMPLEMENTED("b/141246700: Function block instruction %d : %s", insnNumber - 1, OpcodeName(blockInsn.opcode()));  // FIXME(b/141246700)
+				UNIMPLEMENTED("b/141246700: Function block instruction %d : %s", insnNumber - 1, shader.OpcodeName(blockInsn.opcode()));  // FIXME(b/141246700)
 				return EmitResult::Continue;
 			}
 
@@ -634,7 +634,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitFunctionCall(InsnIterator in
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitControlBarrier(InsnIterator insn) const
+EmitState::EmitResult EmitState::EmitControlBarrier(InsnIterator insn)
 {
 	auto executionScope = spv::Scope(shader.GetConstScalarInt(insn.word(1)));
 	auto semantics = spv::MemorySemanticsMask(shader.GetConstScalarInt(insn.word(3)));
@@ -658,7 +658,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitControlBarrier(InsnIterator 
 	return EmitResult::Continue;
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitPhi(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitPhi(InsnIterator insn)
 {
 	auto &function = shader.getFunction(this->function);
 	auto currentBlock = function.getBlock(block);
@@ -673,7 +673,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitPhi(InsnIterator insn)
 	return EmitResult::Continue;
 }
 
-void SpirvShader::EmitState::LoadPhi(InsnIterator insn)
+void EmitState::LoadPhi(InsnIterator insn)
 {
 	auto typeId = Type::ID(insn.word(1));
 	auto type = shader.getType(typeId);
@@ -691,7 +691,7 @@ void SpirvShader::EmitState::LoadPhi(InsnIterator insn)
 	}
 }
 
-void SpirvShader::EmitState::StorePhi(Block::ID currentBlock, InsnIterator insn, const std::unordered_set<SpirvShader::Block::ID> &filter) const
+void EmitState::StorePhi(Block::ID currentBlock, InsnIterator insn, const std::unordered_set<Block::ID> &filter) const
 {
 	auto typeId = Type::ID(insn.word(1));
 	auto type = shader.getType(typeId);
@@ -728,17 +728,17 @@ void SpirvShader::EmitState::StorePhi(Block::ID currentBlock, InsnIterator insn,
 	}
 }
 
-void SpirvShader::EmitState::Yield(YieldResult res) const
+void EmitState::Yield(YieldResult res) const
 {
 	rr::Yield(RValue<Int>(int(res)));
 }
 
-void SpirvShader::EmitState::SetActiveLaneMask(RValue<SIMD::Int> mask)
+void EmitState::SetActiveLaneMask(RValue<SIMD::Int> mask)
 {
 	activeLaneMaskValue = mask.value();
 }
 
-void SpirvShader::EmitState::SetStoresAndAtomicsMask(RValue<SIMD::Int> mask)
+void EmitState::SetStoresAndAtomicsMask(RValue<SIMD::Int> mask)
 {
 	storesAndAtomicsMaskValue = mask.value();
 }

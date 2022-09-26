@@ -129,14 +129,14 @@ struct PrintValue::Ty<sw::Intermediate>
 };
 
 template<>
-struct PrintValue::Ty<sw::SpirvShader::Operand>
+struct PrintValue::Ty<sw::EmitState::Operand>
 {
-	static inline std::string fmt(const sw::SpirvShader::Operand &v)
+	static inline std::string fmt(const sw::EmitState::Operand &v)
 	{
 		return (v.intermediate != nullptr) ? PrintValue::Ty<sw::Intermediate>::fmt(*v.intermediate) : PrintValue::Ty<sw::SIMD::UInt>::fmt(v.UInt(0));
 	}
 
-	static inline std::vector<Value *> val(const sw::SpirvShader::Operand &v)
+	static inline std::vector<Value *> val(const sw::EmitState::Operand &v)
 	{
 		return (v.intermediate != nullptr) ? PrintValue::Ty<sw::Intermediate>::val(*v.intermediate) : PrintValue::Ty<sw::SIMD::UInt>::val(v.UInt(0));
 	}

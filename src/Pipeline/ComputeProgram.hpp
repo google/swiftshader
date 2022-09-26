@@ -36,7 +36,7 @@ class DescriptorSetsLayout;
 struct Constants;
 
 // ComputeProgram builds a SPIR-V compute shader.
-class ComputeProgram : public Coroutine<SpirvShader::YieldResult(
+class ComputeProgram : public Coroutine<EmitState::YieldResult(
                            const vk::Device *device,
                            void *data,
                            int32_t workgroupX,

@@ -244,7 +244,7 @@ void ComputeProgram::run(
 				auto groupX = baseGroupX + groupOffsetX;
 				MARL_SCOPED_EVENT("groupX: %d, groupY: %d, groupZ: %d", groupX, groupY, groupZ);
 
-				using Coroutine = std::unique_ptr<rr::Stream<SpirvShader::YieldResult>>;
+				using Coroutine = std::unique_ptr<rr::Stream<EmitState::YieldResult>>;
 				std::queue<Coroutine> coroutines;
 
 				if(shader->getAnalysis().ContainsControlBarriers)
@@ -269,7 +269,7 @@ void ComputeProgram::run(
 					auto coroutine = std::move(coroutines.front());
 					coroutines.pop();
 
-					SpirvShader::YieldResult result;
+					EmitState::YieldResult result;
 					if(coroutine->await(result))
 					{
 						// TODO: Consider result (when the enum is more than 1 entry).

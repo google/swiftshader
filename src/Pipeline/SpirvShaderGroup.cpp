@@ -64,7 +64,7 @@ static RValue<TYPE> BinaryOperation(
 	}
 }
 
-SpirvShader::EmitResult SpirvShader::EmitState::EmitGroupNonUniform(InsnIterator insn)
+EmitState::EmitResult EmitState::EmitGroupNonUniform(InsnIterator insn)
 {
 	ASSERT(SIMD::Width == 4);  // EmitGroupNonUniform makes many assumptions that the SIMD vector width is 4
 
@@ -132,7 +132,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitGroupNonUniform(InsnIterator
 
 			// Decide between the fast path for constants and the slow path for
 			// intermediates.
-			if(shader.getObject(idId).kind == SpirvShader::Object::Kind::Constant)
+			if(shader.getObject(idId).kind == Object::Kind::Constant)
 			{
 				auto id = SIMD::Int(shader.GetConstScalarInt(insn.word(5)));
 				auto mask = CmpEQ(id, SIMD::Int(0, 1, 2, 3));
@@ -386,9 +386,9 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitGroupNonUniform(InsnIterator
 
 	// The remaining instructions are GroupNonUniformArithmetic operations
 	default:
-		auto &type = shader.getType(SpirvShader::Type::ID(insn.word(1)));
+		auto &type = shader.getType(Type::ID(insn.word(1)));
 		auto operation = static_cast<spv::GroupOperation>(insn.word(4));
-		SpirvShader::Operand value(shader, *this, insn.word(5));
+		Operand value(shader, *this, insn.word(5));
 		auto mask = As<SIMD::UInt>(activeLaneMask());  // Considers helper invocations active. See b/151137030
 
 		for(uint32_t i = 0; i < type.componentCount; i++)
@@ -500,7 +500,7 @@ SpirvShader::EmitResult SpirvShader::EmitState::EmitGroupNonUniform(InsnIterator
 				break;
 
 			default:
-				UNSUPPORTED("EmitGroupNonUniform op: %s", OpcodeName(type.opcode()));
+				UNSUPPORTED("EmitGroupNonUniform op: %s", shader.OpcodeName(type.opcode()));
 			}
 		}
 		break;
