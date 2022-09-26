@@ -43,20 +43,32 @@ class CmdBeginRenderPass : public vk::CommandBuffer::Command
 {
 public:
 	CmdBeginRenderPass(vk::RenderPass *renderPass, vk::Framebuffer *framebuffer, VkRect2D renderArea,
-	                   uint32_t clearValueCount, const VkClearValue *pClearValues)
+	                   uint32_t clearValueCount, const VkClearValue *pClearValues,
+	                   const VkRenderPassAttachmentBeginInfo *attachmentInfo)
 	    : renderPass(renderPass)
 	    , framebuffer(framebuffer)
 	    , renderArea(renderArea)
 	    , clearValueCount(clearValueCount)
+	    , attachmentCount(attachmentInfo ? attachmentInfo->attachmentCount : 0)
+	    , attachments(nullptr)
 	{
 		// FIXME(b/119409619): use an allocator here so we can control all memory allocations
 		clearValues = new VkClearValue[clearValueCount];
 		memcpy(clearValues, pClearValues, clearValueCount * sizeof(VkClearValue));
+		if(attachmentCount > 0)
+		{
+			attachments = new vk::ImageView *[attachmentCount];
+			for(uint32_t i = 0; i < attachmentCount; i++)
+			{
+				attachments[i] = vk::Cast(attachmentInfo->pAttachments[i]);
+			}
+		}
 	}
 
 	~CmdBeginRenderPass() override
 	{
 		delete[] clearValues;
+		delete[] attachments;
 	}
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
@@ -64,6 +76,11 @@ public:
 		executionState.renderPass = renderPass;
 		executionState.renderPassFramebuffer = framebuffer;
 		executionState.subpassIndex = 0;
+
+		for(uint32_t i = 0; i < attachmentCount; i++)
+		{
+			framebuffer->setAttachment(attachments[i], i);
+		}
 
 		// Vulkan specifies that the attachments' `loadOp` gets executed "at the beginning of the subpass where it is first used."
 		// Since we don't discard any contents between subpasses, this is equivalent to executing it at the start of the renderpass.
@@ -78,6 +95,8 @@ private:
 	const VkRect2D renderArea;
 	const uint32_t clearValueCount;
 	VkClearValue *clearValues;
+	uint32_t attachmentCount;
+	vk::ImageView **attachments;
 };
 
 class CmdNextSubpass : public vk::CommandBuffer::Command
@@ -1820,14 +1839,7 @@ void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebu
 {
 	ASSERT(state == RECORDING);
 
-	if(attachmentInfo)
-	{
-		for(uint32_t i = 0; i < attachmentInfo->attachmentCount; i++)
-		{
-			framebuffer->setAttachment(vk::Cast(attachmentInfo->pAttachments[i]), i);
-		}
-	}
-	addCommand<::CmdBeginRenderPass>(renderPass, framebuffer, renderArea, clearValueCount, clearValues);
+	addCommand<::CmdBeginRenderPass>(renderPass, framebuffer, renderArea, clearValueCount, clearValues, attachmentInfo);
 }
 
 void CommandBuffer::nextSubpass(VkSubpassContents contents)

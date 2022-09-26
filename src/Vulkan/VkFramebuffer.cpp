@@ -164,7 +164,6 @@ void Framebuffer::clearAttachment(const RenderPass *renderPass, uint32_t subpass
 void Framebuffer::setAttachment(ImageView *imageView, uint32_t index)
 {
 	ASSERT(index < attachmentCount);
-	ASSERT(attachments[index] == nullptr);
 	attachments[index] = imageView;
 }
 
