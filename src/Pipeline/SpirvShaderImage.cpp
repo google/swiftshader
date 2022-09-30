@@ -1558,7 +1558,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(const ImageInstructio
 {
 	auto coordinate = Operand(this, state, instruction.coordinateId);
 
-	Pointer<Byte> descriptor = state->getPointer(instruction.imageId).getUniformPointer();  // vk::StorageImageDescriptor*
+	SIMD::Pointer ptr = state->getPointer(instruction.imageId);
 
 	// VK_EXT_image_robustness requires checking for out-of-bounds accesses.
 	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
@@ -1574,9 +1574,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(const ImageInstructio
 
 	SIMD::Int sample = Operand(this, state, instruction.sampleId).Int(0);
 
-	auto ptr = GetTexelAddress(instruction, descriptor, uvwa, sample, imageFormat, robustness, state);
+	auto texelPtr = ptr.isBasePlusOffset
+	                    ? GetTexelAddress(instruction, ptr.getUniformPointer(), uvwa, sample, imageFormat, robustness, state)
+	                    : GetNonUniformTexelAddress(instruction, ptr, uvwa, sample, imageFormat, robustness, state);
 
-	state->createPointer(instruction.resultId, ptr);
+	state->createPointer(instruction.resultId, texelPtr);
 
 	return EmitResult::Continue;
 }

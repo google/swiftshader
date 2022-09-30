@@ -249,7 +249,7 @@ static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 	features->shaderUniformBufferArrayNonUniformIndexing = VK_TRUE;
 	features->shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 	features->shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
-	features->shaderStorageImageArrayNonUniformIndexing = VK_FALSE;
+	features->shaderStorageImageArrayNonUniformIndexing = VK_TRUE;
 	features->shaderInputAttachmentArrayNonUniformIndexing = VK_FALSE;
 	features->shaderUniformTexelBufferArrayNonUniformIndexing = VK_TRUE;
 	features->shaderStorageTexelBufferArrayNonUniformIndexing = VK_TRUE;

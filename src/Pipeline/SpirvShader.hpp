@@ -750,6 +750,7 @@ public:
 		bool UniformTexelBufferArrayDynamicIndexing : 1;
 		bool UniformBufferArrayNonUniformIndex : 1;
 		bool SampledImageArrayNonUniformIndexing : 1;
+		bool StorageImageArrayNonUniformIndexing : 1;
 		bool PhysicalStorageBufferAddresses : 1;
 	};
 
