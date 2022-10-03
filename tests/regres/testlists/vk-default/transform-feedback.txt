@@ -2976,6 +2976,14 @@ dEQP-VK.transform_feedback.simple.host_query_reset_triangle_strip_with_adjacency
 dEQP-VK.transform_feedback.simple.depth_clip_control_vertex
 dEQP-VK.transform_feedback.simple.depth_clip_control_geometry
 dEQP-VK.transform_feedback.simple.depth_clip_control_tese
+dEQP-VK.transform_feedback.simple.lines_or_triangles_line_strip_1
+dEQP-VK.transform_feedback.simple.lines_or_triangles_line_strip_3
+dEQP-VK.transform_feedback.simple.lines_or_triangles_line_strip_6
+dEQP-VK.transform_feedback.simple.lines_or_triangles_line_strip_14
+dEQP-VK.transform_feedback.simple.lines_or_triangles_triangle_strip_1
+dEQP-VK.transform_feedback.simple.lines_or_triangles_triangle_strip_3
+dEQP-VK.transform_feedback.simple.lines_or_triangles_triangle_strip_6
+dEQP-VK.transform_feedback.simple.lines_or_triangles_triangle_strip_14
 dEQP-VK.transform_feedback.simple.streams_1
 dEQP-VK.transform_feedback.simple.streams_3
 dEQP-VK.transform_feedback.simple.streams_6
