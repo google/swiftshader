@@ -1626,7 +1626,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		{
 			buffer += x * 4;
 			Short4 value = *Pointer<Short4>(buffer);
-			Short4 channelMask = *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q[bgraWriteMask].v[0]));
+			Short4 channelMask = *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q[bgraWriteMask]));
 
 			Short4 mask01 = *Pointer<Short4>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if(bgraWriteMask != 0x0000000F)
@@ -1653,7 +1653,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		{
 			buffer += x * 4;
 			Short4 value = *Pointer<Short4>(buffer);
-			Short4 channelMask = *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask].v[0]));
+			Short4 channelMask = *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask]));
 
 			Short4 mask01 = *Pointer<Short4>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if(rgbaWriteMask != 0x0000000F)
@@ -1686,7 +1686,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			UInt2 mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q) + xMask * 8);
 			if((rgbaWriteMask & 0x3) != 0x3)
 			{
-				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskB4Q[5 * (rgbaWriteMask & 0x3)].v[0]));
+				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskB4Q[5 * (rgbaWriteMask & 0x3)]));
 				UInt2 rgbaMask = As<UInt2>(Int2(tmpMask, tmpMask));
 				mergedMask &= rgbaMask;
 			}
@@ -2779,7 +2779,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			UInt2 mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if((rgbaWriteMask & 0x3) != 0x3)
 			{
-				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask & 0x3].v[0]));
+				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask & 0x3]));
 				rgbaMask = As<UInt2>(Int2(tmpMask, tmpMask));
 				mergedMask &= rgbaMask;
 			}
@@ -2811,7 +2811,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			UInt2 mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if((rgbaWriteMask & 0x3) != 0x3)
 			{
-				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask & 0x3].v[0]));
+				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask & 0x3]));
 				rgbaMask = As<UInt2>(Int2(tmpMask, tmpMask));
 				mergedMask &= rgbaMask;
 			}
@@ -2853,7 +2853,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			UInt2 mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q) + xMask * 8);
 			if((rgbaWriteMask & 0x3) != 0x3)
 			{
-				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskB4Q[5 * (rgbaWriteMask & 0x3)].v[0]));
+				Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskB4Q[5 * (rgbaWriteMask & 0x3)]));
 				UInt2 rgbaMask = As<UInt2>(Int2(tmpMask, tmpMask));
 				mergedMask &= rgbaMask;
 			}
@@ -2876,8 +2876,8 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			if(rgbaWriteMask != 0x0000000F)
 			{
 				Float4 masked = value;
-				color.x = As<Float4>(As<Int4>(color.x) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask].v[0])));
-				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask].v[0])));
+				color.x = As<Float4>(As<Int4>(color.x) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask])));
+				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask])));
 				color.x = As<Float4>(As<Int4>(color.x) | As<Int4>(masked));
 			}
 
@@ -2893,8 +2893,8 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			if(rgbaWriteMask != 0x0000000F)
 			{
 				Float4 masked = value;
-				color.y = As<Float4>(As<Int4>(color.y) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask].v[0])));
-				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask].v[0])));
+				color.y = As<Float4>(As<Int4>(color.y) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask])));
+				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask])));
 				color.y = As<Float4>(As<Int4>(color.y) | As<Int4>(masked));
 			}
 
@@ -2912,8 +2912,8 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			if(rgbaWriteMask != 0x0000000F)
 			{
 				Float4 masked = value;
-				color.z = As<Float4>(As<Int4>(color.z) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask].v[0])));
-				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask].v[0])));
+				color.z = As<Float4>(As<Int4>(color.z) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask])));
+				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask])));
 				color.z = As<Float4>(As<Int4>(color.z) | As<Int4>(masked));
 			}
 
@@ -2929,8 +2929,8 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			if(rgbaWriteMask != 0x0000000F)
 			{
 				Float4 masked = value;
-				color.w = As<Float4>(As<Int4>(color.w) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask].v[0])));
-				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask].v[0])));
+				color.w = As<Float4>(As<Int4>(color.w) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X[rgbaWriteMask])));
+				masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X[rgbaWriteMask])));
 				color.w = As<Float4>(As<Int4>(color.w) | As<Int4>(masked));
 			}
 
@@ -2955,7 +2955,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			UInt4 mergedMask = *Pointer<UInt4>(constants + OFFSET(Constants, maskQ01X) + xMask * 16);
 			if((rgbaWriteMask & 0xF) != 0xF)
 			{
-				UInt2 tmpMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask].v[0]));
+				UInt2 tmpMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask]));
 				rgbaMask = UInt4(tmpMask, tmpMask);
 				mergedMask &= rgbaMask;
 			}
@@ -2994,10 +2994,10 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			value = Insert(value, *Pointer<UInt>(buffer + 0), 2);
 			value = Insert(value, *Pointer<UInt>(buffer + 4), 3);
 
-			UInt4 mask = *Pointer<UInt4>(constants + OFFSET(Constants, maskD4X[0].v[0]) + xMask * 16, 16);
+			UInt4 mask = *Pointer<UInt4>(constants + OFFSET(Constants, maskD4X[0]) + xMask * 16, 16);
 			if((rgbaWriteMask & 0x7) != 0x7)
 			{
-				mask &= *Pointer<UInt4>(constants + OFFSET(Constants, mask11X[rgbaWriteMask & 0x7].v[0]), 16);
+				mask &= *Pointer<UInt4>(constants + OFFSET(Constants, mask11X[rgbaWriteMask & 0x7]), 16);
 			}
 			value = (packedCol & mask) | (value & ~mask);
 
@@ -3021,7 +3021,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			UInt4 mergedMask = *Pointer<UInt4>(constants + OFFSET(Constants, maskQ01X) + xMask * 16);
 			if((rgbaWriteMask & 0xF) != 0xF)
 			{
-				UInt2 tmpMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask].v[0]));
+				UInt2 tmpMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q[rgbaWriteMask]));
 				rgbaMask = UInt4(tmpMask, tmpMask);
 				mergedMask &= rgbaMask;
 			}
@@ -3063,7 +3063,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if(rgbaWriteMask != 0xF)
 			{
-				mergedMask &= *Pointer<UInt2>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask].v[0]));
+				mergedMask &= *Pointer<UInt2>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask]));
 			}
 			*Pointer<UInt2>(buffer) = (packedCol & mergedMask) | (value & ~mergedMask);
 
@@ -3081,7 +3081,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
 			if(rgbaWriteMask != 0xF)
 			{
-				mergedMask &= *Pointer<UInt2>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask].v[0]));
+				mergedMask &= *Pointer<UInt2>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask]));
 			}
 			*Pointer<UInt2>(buffer) = (packedCol & mergedMask) | (value & ~mergedMask);
 		}
@@ -3100,7 +3100,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if(rgbaWriteMask != 0xF)
 			{
-				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask].v[0]));
+				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask]));
 			}
 			*Pointer<Int2>(buffer) = (As<Int2>(packed) & mergedMask) | (value & ~mergedMask);
 
@@ -3110,7 +3110,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
 			if(rgbaWriteMask != 0xF)
 			{
-				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask].v[0]));
+				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask]));
 			}
 			*Pointer<Int2>(buffer) = (As<Int2>(Int4(packed.zwww)) & mergedMask) | (value & ~mergedMask);
 		}
@@ -3129,7 +3129,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if(bgraWriteMask != 0xF)
 			{
-				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[bgraWriteMask].v[0]));
+				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[bgraWriteMask]));
 			}
 			*Pointer<Int2>(buffer) = (As<Int2>(packed) & mergedMask) | (value & ~mergedMask);
 
@@ -3139,7 +3139,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
 			if(bgraWriteMask != 0xF)
 			{
-				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[bgraWriteMask].v[0]));
+				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[bgraWriteMask]));
 			}
 			*Pointer<Int2>(buffer) = (As<Int2>(Int4(packed.zwww)) & mergedMask) | (value & ~mergedMask);
 		}
