@@ -619,10 +619,6 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT:
 			getPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT(reinterpret_cast<struct VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT *>(curExtension));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COHERENT_MEMORY_FEATURES_AMD:
-			// Workaround for a test bug (see https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/3973)
-			reinterpret_cast<struct VkPhysicalDeviceCoherentMemoryFeaturesAMD *>(curExtension)->deviceCoherentMemory = VK_TRUE;
-			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT:
 			getPhysicalDeviceDepthClipControlFeaturesExt(reinterpret_cast<struct VkPhysicalDeviceDepthClipControlFeaturesEXT *>(curExtension));
 			break;
