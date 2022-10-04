@@ -148,7 +148,7 @@ private:
 
 	llvm::DIType *getOrCreateType(llvm::Type *type);
 	llvm::DIFile *getOrCreateFile(const char *path);
-	LineTokens const *getOrParseFileTokens(const char *path);
+	const LineTokens *getOrParseFileTokens(const char *path);
 
 	// Synchronizes diScope with the current backtrace.
 	void syncScope(const Backtrace &backtrace);
@@ -166,7 +166,7 @@ private:
 	std::unordered_map<std::string, llvm::DIFile *> diFiles;
 	std::unordered_map<llvm::Type *, llvm::DIType *> diTypes;
 	std::unordered_map<std::string, std::unique_ptr<LineTokens>> fileTokens;
-	std::vector<void const *> pushed;
+	std::vector<const void *> pushed;
 };
 
 }  // namespace rr

@@ -349,7 +349,7 @@ void Inputs::advanceInstanceAttributes(bool dynamicInstanceStride)
 		if((attrib.format != VK_FORMAT_UNDEFINED) && instanceStride && (instanceStride < attrib.robustnessSize))
 		{
 			// Under the casts: attrib.buffer += instanceStride
-			attrib.buffer = (void const *)((uintptr_t)attrib.buffer + instanceStride);
+			attrib.buffer = (const void *)((uintptr_t)attrib.buffer + instanceStride);
 			attrib.robustnessSize -= instanceStride;
 		}
 	}
@@ -1288,7 +1288,7 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			if((librarySubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0)
 			{
 				preRasterizationState = libraryState.preRasterizationState;
-				if (layout)
+				if(layout)
 				{
 					preRasterizationState.overridePipelineLayout(layout);
 				}
@@ -1296,7 +1296,7 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			if((librarySubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT) != 0)
 			{
 				fragmentState = libraryState.fragmentState;
-				if (layout)
+				if(layout)
 				{
 					fragmentState.overridePipelineLayout(layout);
 				}

@@ -3354,7 +3354,7 @@ RValue<Long> Ticks()
 	return RValue<Long>(V(jit->builder->CreateCall(rdtsc)));
 }
 
-RValue<Pointer<Byte>> ConstantPointer(void const *ptr)
+RValue<Pointer<Byte>> ConstantPointer(const void *ptr)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	// Note: this should work for 32-bit pointers as well because 'inttoptr'
@@ -3363,7 +3363,7 @@ RValue<Pointer<Byte>> ConstantPointer(void const *ptr)
 	return RValue<Pointer<Byte>>(V(jit->builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::type()))));
 }
 
-RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
+RValue<Pointer<Byte>> ConstantData(const void *data, size_t size)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto str = ::std::string(reinterpret_cast<const char *>(data), size);

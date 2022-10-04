@@ -28,8 +28,8 @@ class PixelRoutine : public sw::QuadRasterizer
 {
 public:
 	PixelRoutine(const PixelProcessor::State &state,
-	             vk::PipelineLayout const *pipelineLayout,
-	             SpirvShader const *spirvShader,
+	             const vk::PipelineLayout *pipelineLayout,
+	             const SpirvShader *spirvShader,
 	             const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~PixelRoutine();

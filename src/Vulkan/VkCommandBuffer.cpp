@@ -339,7 +339,7 @@ public:
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		const auto *cmd = reinterpret_cast<VkDispatchIndirectCommand const *>(buffer->getOffsetPointer(offset));
+		const auto *cmd = reinterpret_cast<const VkDispatchIndirectCommand *>(buffer->getOffsetPointer(offset));
 
 		const auto &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
 
@@ -1029,7 +1029,7 @@ public:
 	{
 		for(auto drawId = 0u; drawId < drawCount; drawId++)
 		{
-			const auto *cmd = reinterpret_cast<VkDrawIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
+			const auto *cmd = reinterpret_cast<const VkDrawIndirectCommand *>(buffer->getOffsetPointer(offset + drawId * stride));
 			draw(executionState, false, cmd->vertexCount, cmd->instanceCount, 0, cmd->firstVertex, cmd->firstInstance);
 		}
 	}
@@ -1058,7 +1058,7 @@ public:
 	{
 		for(auto drawId = 0u; drawId < drawCount; drawId++)
 		{
-			const auto *cmd = reinterpret_cast<VkDrawIndexedIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
+			const auto *cmd = reinterpret_cast<const VkDrawIndexedIndirectCommand *>(buffer->getOffsetPointer(offset + drawId * stride));
 			draw(executionState, true, cmd->indexCount, cmd->instanceCount, cmd->firstIndex, cmd->vertexOffset, cmd->firstInstance);
 		}
 	}
@@ -1519,7 +1519,7 @@ private:
 class CmdSetPushConstants : public vk::CommandBuffer::Command
 {
 public:
-	CmdSetPushConstants(uint32_t offset, uint32_t size, void const *pValues)
+	CmdSetPushConstants(uint32_t offset, uint32_t size, const void *pValues)
 	    : offset(offset)
 	    , size(size)
 	{
@@ -1827,7 +1827,7 @@ VkResult CommandBuffer::reset(VkCommandPoolResetFlags flags)
 }
 
 template<typename T, typename... Args>
-void CommandBuffer::addCommand(Args &&... args)
+void CommandBuffer::addCommand(Args &&...args)
 {
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	commands.push_back(std::make_unique<T>(std::forward<Args>(args)...));

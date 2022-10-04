@@ -1122,7 +1122,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			UNSUPPORTED("pCreateInfo->pQueueCreateInfos[%d]->flags 0x%08X", i, queueCreateInfo.flags);
 		}
 
-		const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(queueCreateInfo.pNext);
+		const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(queueCreateInfo.pNext);
 		while(extInfo)
 		{
 			UNSUPPORTED("pCreateInfo->pQueueCreateInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType).c_str());
@@ -1724,7 +1724,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateEvent(VkDevice device, const VkEventCreat
 		UNSUPPORTED("pCreateInfo->flags 0x%08X", int(pCreateInfo->flags));
 	}
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
 		// Vulkan 1.2: "pNext must be NULL"
@@ -1779,7 +1779,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateQueryPool(VkDevice device, const VkQueryP
 		UNSUPPORTED("pCreateInfo->flags 0x%08X", int(pCreateInfo->flags));
 	}
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -1877,7 +1877,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBufferView(VkDevice device, const VkBuffe
 		UNSUPPORTED("pCreateInfo->flags 0x%08X", int(pCreateInfo->flags));
 	}
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -2145,7 +2145,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPi
 		UNSUPPORTED("pCreateInfo->flags 0x%08X", int(pCreateInfo->flags));
 	}
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -2433,7 +2433,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorPool(VkDevice device, const VkD
 	TRACE("(VkDevice device = %p, const VkDescriptorPoolCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkDescriptorPool* pDescriptorPool = %p)",
 	      device, pCreateInfo, pAllocator, pDescriptorPool);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
 		switch(extInfo->sType)
@@ -2479,13 +2479,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateDescriptorSets(VkDevice device, const V
 
 	const VkDescriptorSetVariableDescriptorCountAllocateInfo *variableDescriptorCountAllocateInfo = nullptr;
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pAllocateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pAllocateInfo->pNext);
 	while(extInfo)
 	{
 		switch(extInfo->sType)
 		{
 		case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO:
-			variableDescriptorCountAllocateInfo = reinterpret_cast<VkDescriptorSetVariableDescriptorCountAllocateInfo const *>(extInfo);
+			variableDescriptorCountAllocateInfo = reinterpret_cast<const VkDescriptorSetVariableDescriptorCountAllocateInfo *>(extInfo);
 			break;
 		default:
 			UNSUPPORTED("pAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -3336,7 +3336,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory2(VkDevice device, uint32_t bin
 
 	for(uint32_t i = 0; i < bindInfoCount; i++)
 	{
-		const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pBindInfos[i].pNext);
+		const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pBindInfos[i].pNext);
 		while(extInfo)
 		{
 			UNSUPPORTED("pBindInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType).c_str());
@@ -3377,7 +3377,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 		vk::DeviceMemory *memory = vk::Cast(pBindInfos[i].memory);
 		VkDeviceSize offset = pBindInfos[i].memoryOffset;
 
-		const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pBindInfos[i].pNext);
+		const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pBindInfos[i].pNext);
 		while(extInfo)
 		{
 			switch(extInfo->sType)
@@ -3389,7 +3389,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 #ifndef __ANDROID__
 			case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR:
 				{
-					const auto *swapchainInfo = reinterpret_cast<VkBindImageMemorySwapchainInfoKHR const *>(extInfo);
+					const auto *swapchainInfo = reinterpret_cast<const VkBindImageMemorySwapchainInfoKHR *>(extInfo);
 					memory = vk::Cast(swapchainInfo->swapchain)->getImage(swapchainInfo->imageIndex).getImageMemory();
 					offset = 0;
 				}
@@ -3453,7 +3453,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const 
 	TRACE("(VkDevice device = %p, const VkImageMemoryRequirementsInfo2* pInfo = %p, VkMemoryRequirements2* pMemoryRequirements = %p)",
 	      device, pInfo, pMemoryRequirements);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -3468,7 +3468,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements2(VkDevice device, const
 	TRACE("(VkDevice device = %p, const VkBufferMemoryRequirementsInfo2* pInfo = %p, VkMemoryRequirements2* pMemoryRequirements = %p)",
 	      device, pInfo, pMemoryRequirements);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -3502,14 +3502,14 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements2(VkDevice device, 
 	TRACE("(VkDevice device = %p, const VkImageSparseMemoryRequirementsInfo2* pInfo = %p, uint32_t* pSparseMemoryRequirementCount = %p, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements = %p)",
 	      device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
-	const auto *extensionRequirements = reinterpret_cast<VkBaseInStructure const *>(pSparseMemoryRequirements->pNext);
+	const auto *extensionRequirements = reinterpret_cast<const VkBaseInStructure *>(pSparseMemoryRequirements->pNext);
 	while(extensionRequirements)
 	{
 		UNSUPPORTED("pSparseMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
@@ -4019,7 +4019,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(VkPhysicalD
 
 	if(pQueueFamilyProperties)
 	{
-		const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pQueueFamilyProperties->pNext);
+		const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pQueueFamilyProperties->pNext);
 		while(extInfo)
 		{
 			UNSUPPORTED("pQueueFamilyProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -4041,7 +4041,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceMemoryProperties2(VkPhysicalDevice
 {
 	TRACE("(VkPhysicalDevice physicalDevice = %p, VkPhysicalDeviceMemoryProperties2* pMemoryProperties = %p)", physicalDevice, pMemoryProperties);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pMemoryProperties->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pMemoryProperties->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pMemoryProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -4058,7 +4058,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties2(VkPhy
 
 	if(pProperties)
 	{
-		const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pProperties->pNext);
+		const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pProperties->pNext);
 		while(extInfo)
 		{
 			UNSUPPORTED("pProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -4103,7 +4103,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueu
 	TRACE("(VkDevice device = %p, const VkDeviceQueueInfo2* pQueueInfo = %p, VkQueue* pQueue = %p)",
 	      device, pQueueInfo, pQueue);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pQueueInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pQueueInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pQueueInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -4128,7 +4128,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(VkDevice device, c
 	TRACE("(VkDevice device = %p, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkSamplerYcbcrConversion* pYcbcrConversion = %p)",
 	      device, pCreateInfo, pAllocator, pYcbcrConversion);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
 		switch(extInfo->sType)
@@ -4171,7 +4171,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorUpdateTemplate(VkDevice device,
 		UNSUPPORTED("pCreateInfo->templateType %d", int(pCreateInfo->templateType));
 	}
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
@@ -4291,7 +4291,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceImageMemoryRequirements(VkDevice device, c
 	TRACE("(VkDevice device = %p, const VkDeviceImageMemoryRequirements* pInfo = %p, VkMemoryRequirements2* pMemoryRequirements = %p)",
 	      device, pInfo, pMemoryRequirements);
 
-	const auto *extInfo = reinterpret_cast<VkBaseInStructure const *>(pInfo->pNext);
+	const auto *extInfo = reinterpret_cast<const VkBaseInStructure *>(pInfo->pNext);
 	while(extInfo)
 	{
 		UNSUPPORTED("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());

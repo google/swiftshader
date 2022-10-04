@@ -1384,7 +1384,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, Obje
 	return ptr;
 }
 
-SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, bool nonUniform, EmitState const *state) const
+SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, bool nonUniform, const EmitState *state) const
 {
 	// TODO: avoid doing per-lane work in some cases if we can?
 	auto routine = state->routine;
@@ -1730,7 +1730,7 @@ void SpirvShader::DefineResult(const InsnIterator &insn)
 	dbgDeclareResult(insn, resultId);
 }
 
-OutOfBoundsBehavior SpirvShader::getOutOfBoundsBehavior(Object::ID pointerId, EmitState const *state) const
+OutOfBoundsBehavior SpirvShader::getOutOfBoundsBehavior(Object::ID pointerId, const EmitState *state) const
 {
 	auto it = descriptorDecorations.find(pointerId);
 	if(it != descriptorDecorations.end())
@@ -2841,12 +2841,12 @@ bool SpirvShader::Object::isConstantZero() const
 	return true;
 }
 
-SpirvRoutine::SpirvRoutine(vk::PipelineLayout const *pipelineLayout)
+SpirvRoutine::SpirvRoutine(const vk::PipelineLayout *pipelineLayout)
     : pipelineLayout(pipelineLayout)
 {
 }
 
-void SpirvRoutine::setImmutableInputBuiltins(SpirvShader const *shader)
+void SpirvRoutine::setImmutableInputBuiltins(const SpirvShader *shader)
 {
 	setInputBuiltin(shader, spv::BuiltInSubgroupLocalInvocationId, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		ASSERT(builtin.SizeInComponents == 1);

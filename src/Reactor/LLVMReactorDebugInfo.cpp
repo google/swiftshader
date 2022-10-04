@@ -486,7 +486,7 @@ llvm::DIFile *DebugInfo::getOrCreateFile(const char *path)
 	return file;
 }
 
-DebugInfo::LineTokens const *DebugInfo::getOrParseFileTokens(const char *path)
+const DebugInfo::LineTokens *DebugInfo::getOrParseFileTokens(const char *path)
 {
 	static std::regex reLocalDecl(
 	    "^"                                              // line start

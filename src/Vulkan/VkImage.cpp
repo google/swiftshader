@@ -127,7 +127,7 @@ bool GetNoAlphaOrUnsigned(const vk::Format &format)
 
 VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 {
-	const auto *nextInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
+	const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
 		// Casting to an int since some structures, such as VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID and

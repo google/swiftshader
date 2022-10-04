@@ -640,7 +640,7 @@ SIMD::Float SpirvShader::FDot(unsigned numComponents, const Operand &x, const Op
 	return d;
 }
 
-SIMD::Int SpirvShader::SDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum)
+SIMD::Int SpirvShader::SDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
 {
 	SIMD::Int d(0);
 
@@ -676,7 +676,7 @@ SIMD::Int SpirvShader::SDot(unsigned numComponents, const Operand &x, const Oper
 	return d;
 }
 
-SIMD::UInt SpirvShader::UDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum)
+SIMD::UInt SpirvShader::UDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
 {
 	SIMD::UInt d(0);
 
@@ -712,7 +712,7 @@ SIMD::UInt SpirvShader::UDot(unsigned numComponents, const Operand &x, const Ope
 	return d;
 }
 
-SIMD::Int SpirvShader::SUDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum)
+SIMD::Int SpirvShader::SUDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
 {
 	SIMD::Int d(0);
 

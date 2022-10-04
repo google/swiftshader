@@ -93,8 +93,8 @@ const VertexProcessor::State VertexProcessor::update(const vk::GraphicsState &pi
 }
 
 VertexProcessor::RoutineType VertexProcessor::routine(const State &state,
-                                                      vk::PipelineLayout const *pipelineLayout,
-                                                      SpirvShader const *vertexShader,
+                                                      const vk::PipelineLayout *pipelineLayout,
+                                                      const SpirvShader *vertexShader,
                                                       const vk::DescriptorSet::Bindings &descriptorSets)
 {
 	auto routine = routineCache->lookup(state);

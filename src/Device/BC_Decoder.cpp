@@ -580,10 +580,10 @@ Color interpolate(RGBf e0, RGBf e1, const IndexInfo &index, bool isSigned)
 	static constexpr uint32_t weights3[] = { 0, 9, 18, 27, 37, 46, 55, 64 };
 	static constexpr uint32_t weights4[] = { 0, 4, 9, 13, 17, 21, 26, 30,
 		                                     34, 38, 43, 47, 51, 55, 60, 64 };
-	static constexpr uint32_t const *weightsN[] = {
+	static const uint32_t constexpr *weightsN[] = {
 		nullptr, nullptr, nullptr, weights3, weights4
 	};
-	auto weights = weightsN[index.numBits];
+	const uint32_t *weights = weightsN[index.numBits];
 	ASSERT_MSG(weights != nullptr, "Unexpected number of index bits: %d", (int)index.numBits);
 	Color color;
 	uint32_t e0Weight = 64 - weights[index.value];
@@ -1437,10 +1437,10 @@ struct Block
 		static constexpr uint16_t weights3[] = { 0, 9, 18, 27, 37, 46, 55, 64 };
 		static constexpr uint16_t weights4[] = { 0, 4, 9, 13, 17, 21, 26, 30,
 			                                     34, 38, 43, 47, 51, 55, 60, 64 };
-		static constexpr uint16_t const *weightsN[] = {
+		static const uint16_t constexpr *weightsN[] = {
 			nullptr, nullptr, weights2, weights3, weights4
 		};
-		auto weights = weightsN[index.numBits];
+		const uint16_t *weights = weightsN[index.numBits];
 		ASSERT_MSG(weights != nullptr, "Unexpected number of index bits: %d", (int)index.numBits);
 		return (uint8_t)(((64 - weights[index.value]) * uint16_t(e0) + weights[index.value] * uint16_t(e1) + 32) >> 6);
 	}

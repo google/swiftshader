@@ -23,7 +23,7 @@
 
 namespace sw {
 
-QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader)
+QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, const SpirvShader *spirvShader)
     : state(state)
     , spirvShader{ spirvShader }
 {

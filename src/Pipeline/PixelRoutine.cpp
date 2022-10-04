@@ -28,8 +28,8 @@ namespace sw {
 
 PixelRoutine::PixelRoutine(
     const PixelProcessor::State &state,
-    vk::PipelineLayout const *pipelineLayout,
-    SpirvShader const *spirvShader,
+    const vk::PipelineLayout *pipelineLayout,
+    const SpirvShader *spirvShader,
     const vk::DescriptorSet::Bindings &descriptorSets)
     : QuadRasterizer(state, spirvShader)
     , routine(pipelineLayout)

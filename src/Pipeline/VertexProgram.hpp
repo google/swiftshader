@@ -27,8 +27,8 @@ class VertexProgram : public VertexRoutine
 public:
 	VertexProgram(
 	    const VertexProcessor::State &state,
-	    vk::PipelineLayout const *pipelineLayout,
-	    SpirvShader const *spirvShader,
+	    const vk::PipelineLayout *pipelineLayout,
+	    const SpirvShader *spirvShader,
 	    const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~VertexProgram();

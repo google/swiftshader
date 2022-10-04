@@ -35,7 +35,7 @@ public:
 	// returned (as there was no Vulkan error), but calling Device::IsValid()
 	// on this device will return false.
 	static VkResult CreateComputeDevice(
-	    Driver const *driver, VkInstance instance, std::unique_ptr<Device> &out);
+	    const Driver *driver, VkInstance instance, std::unique_ptr<Device> &out);
 
 	// IsValid returns true if the Device is initialized and can be used.
 	bool IsValid() const;
@@ -137,20 +137,20 @@ public:
 	VkResult QueueSubmitAndWait(VkCommandBuffer commandBuffer) const;
 
 	static VkResult GetPhysicalDevices(
-	    Driver const *driver, VkInstance instance,
+	    const Driver *driver, VkInstance instance,
 	    std::vector<VkPhysicalDevice> &out);
 
 	static int GetComputeQueueFamilyIndex(
-	    Driver const *driver, VkPhysicalDevice device);
+	    const Driver *driver, VkPhysicalDevice device);
 
 private:
-	Device(Driver const *driver, VkDevice device, VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex);
+	Device(const Driver *driver, VkDevice device, VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex);
 
 	static std::vector<VkQueueFamilyProperties>
 	GetPhysicalDeviceQueueFamilyProperties(
-	    Driver const *driver, VkPhysicalDevice device);
+	    const Driver *driver, VkPhysicalDevice device);
 
-	Driver const *driver;
+	const Driver *driver;
 	VkDevice device;
 	VkPhysicalDevice physicalDevice;
 	uint32_t queueFamilyIndex;

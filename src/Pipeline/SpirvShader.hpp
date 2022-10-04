@@ -1362,10 +1362,10 @@ private:
 	//  - Pointer
 	//  - InterfaceVariable
 	// Calling GetPointerToData with objects of any other kind will assert.
-	SIMD::Pointer GetPointerToData(Object::ID id, SIMD::Int arrayIndex, bool nonUniform, EmitState const *state) const;
-	void OffsetToElement(SIMD::Pointer &ptr, Object::ID elementId, int32_t arrayStride, EmitState const *state) const;
+	SIMD::Pointer GetPointerToData(Object::ID id, SIMD::Int arrayIndex, bool nonUniform, const EmitState *state) const;
+	void OffsetToElement(SIMD::Pointer &ptr, Object::ID elementId, int32_t arrayStride, const EmitState *state) const;
 
-	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, EmitState const *state) const;
+	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, const EmitState *state) const;
 
 	SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, Object::ID elementId, const Span &indexIds, bool nonUniform, const EmitState *state) const;
 	SIMD::Pointer WalkAccessChain(Object::ID id, Object::ID elementId, const Span &indexIds, bool nonUniform, const EmitState *state) const;
@@ -1456,7 +1456,7 @@ private:
 	Pointer<Byte> lookupSamplerFunction(Pointer<Byte> imageDescriptor, Pointer<Byte> samplerDescriptor, const ImageInstruction &instruction, EmitState *state) const;
 	void callSamplerFunction(Pointer<Byte> samplerFunction, Array<SIMD::Float> &out, Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, EmitState *state) const;
 
-	void GetImageDimensions(EmitState const *state, const Type &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
+	void GetImageDimensions(const EmitState *state, const Type &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
 	struct TexelAddressData
 	{
 		bool isArrayed;
@@ -1523,9 +1523,9 @@ private:
 
 	// Helper as we often need to take dot products as part of doing other things.
 	static SIMD::Float FDot(unsigned numComponents, const Operand &x, const Operand &y);
-	static SIMD::Int SDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum);
-	static SIMD::UInt UDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum);
-	static SIMD::Int SUDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum);
+	static SIMD::Int SDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum);
+	static SIMD::UInt UDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum);
+	static SIMD::Int SUDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum);
 	static SIMD::Int AddSat(RValue<SIMD::Int> a, RValue<SIMD::Int> b);
 	static SIMD::UInt AddSat(RValue<SIMD::UInt> a, RValue<SIMD::UInt> b);
 
@@ -1598,7 +1598,7 @@ private:
 class SpirvRoutine
 {
 public:
-	SpirvRoutine(vk::PipelineLayout const *pipelineLayout);
+	SpirvRoutine(const vk::PipelineLayout *pipelineLayout);
 
 	using Variable = Array<SIMD::Float>;
 
@@ -1629,7 +1629,7 @@ public:
 		SIMD::Float rhwCentroid;
 	};
 
-	vk::PipelineLayout const *const pipelineLayout;
+	const vk::PipelineLayout *const pipelineLayout;
 
 	std::unordered_map<SpirvShader::Object::ID, Variable> variables;
 	std::unordered_map<uint32_t, SamplerCache> samplerCache;  // Indexed by the instruction position, in words.
@@ -1685,7 +1685,7 @@ public:
 
 	// setImmutableInputBuiltins() sets all the immutable input builtins,
 	// common for all shader types.
-	void setImmutableInputBuiltins(SpirvShader const *shader);
+	void setImmutableInputBuiltins(const SpirvShader *shader);
 
 	static SIMD::Float interpolateAtXY(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw, Pointer<Byte> planeEquation, Interpolation interpolation);
 
@@ -1694,7 +1694,7 @@ public:
 	// F is a function with the signature:
 	// void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 	template<typename F>
-	inline void setInputBuiltin(SpirvShader const *shader, spv::BuiltIn id, F &&f)
+	inline void setInputBuiltin(const SpirvShader *shader, spv::BuiltIn id, F &&f)
 	{
 		auto it = shader->inputBuiltins.find(id);
 		if(it != shader->inputBuiltins.end())

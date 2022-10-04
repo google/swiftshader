@@ -2754,10 +2754,10 @@ RValue<Float4> Float4::operator=(const Swizzle4<Float4, T> &rhs)
 }
 
 // Returns a reactor pointer to the fixed-address ptr.
-RValue<Pointer<Byte>> ConstantPointer(void const *ptr);
+RValue<Pointer<Byte>> ConstantPointer(const void *ptr);
 
 // Returns a reactor pointer to an immutable copy of the data of size bytes.
-RValue<Pointer<Byte>> ConstantData(void const *data, size_t size);
+RValue<Pointer<Byte>> ConstantData(const void *data, size_t size);
 
 template<class T>
 Pointer<T>::Pointer(Argument<Pointer<T>> argument)

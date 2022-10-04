@@ -247,7 +247,7 @@ void RenderPass::init(const T *pCreateInfo, void **mem)
 			{
 				// Renderpass uses multiview if this structure is present AND some subpass specifies
 				// a nonzero view mask
-				const auto *multiviewCreateInfo = reinterpret_cast<VkRenderPassMultiviewCreateInfo const *>(extensionCreateInfo);
+				const auto *multiviewCreateInfo = reinterpret_cast<const VkRenderPassMultiviewCreateInfo *>(extensionCreateInfo);
 				for(auto i = 0u; i < pCreateInfo->subpassCount; i++)
 				{
 					masks[i] = multiviewCreateInfo->pViewMasks[i];

@@ -23,7 +23,7 @@ Device::Device()
 {}
 
 Device::Device(
-    Driver const *driver, VkDevice device, VkPhysicalDevice physicalDevice,
+    const Driver *driver, VkDevice device, VkPhysicalDevice physicalDevice,
     uint32_t queueFamilyIndex)
     : driver(driver)
     , device(device)
@@ -46,7 +46,7 @@ bool Device::IsValid() const
 }
 
 VkResult Device::CreateComputeDevice(
-    Driver const *driver, VkInstance instance, std::unique_ptr<Device> &out)
+    const Driver *driver, VkInstance instance, std::unique_ptr<Device> &out)
 {
 	VkResult result;
 
@@ -105,7 +105,7 @@ VkResult Device::CreateComputeDevice(
 }
 
 int Device::GetComputeQueueFamilyIndex(
-    Driver const *driver, VkPhysicalDevice device)
+    const Driver *driver, VkPhysicalDevice device)
 {
 	auto properties = GetPhysicalDeviceQueueFamilyProperties(driver, device);
 	for(uint32_t i = 0; i < properties.size(); i++)
@@ -120,7 +120,7 @@ int Device::GetComputeQueueFamilyIndex(
 
 std::vector<VkQueueFamilyProperties>
 Device::GetPhysicalDeviceQueueFamilyProperties(
-    Driver const *driver, VkPhysicalDevice device)
+    const Driver *driver, VkPhysicalDevice device)
 {
 	std::vector<VkQueueFamilyProperties> out;
 	uint32_t count = 0;

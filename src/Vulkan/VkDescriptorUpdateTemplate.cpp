@@ -43,7 +43,7 @@ void DescriptorUpdateTemplate::updateDescriptorSet(Device *device, VkDescriptorS
 	for(uint32_t i = 0; i < descriptorUpdateEntryCount; i++)
 	{
 		DescriptorSetLayout::WriteDescriptorSet(device, descriptorSet, descriptorUpdateEntries[i],
-		                                        reinterpret_cast<char const *>(pData));
+		                                        reinterpret_cast<const char *>(pData));
 	}
 }
 

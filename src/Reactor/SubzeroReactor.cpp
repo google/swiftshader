@@ -110,7 +110,7 @@ Ice::Variable *allocateStackVariable(Ice::Cfg *function, Ice::Type type, int arr
 	return address;
 }
 
-Ice::Constant *getConstantPointer(Ice::GlobalContext *context, void const *ptr)
+Ice::Constant *getConstantPointer(Ice::GlobalContext *context, const void *ptr)
 {
 	if(sizeof(void *) == 8)
 	{
@@ -160,7 +160,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retT
 	return ret;
 }
 
-Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, void const *fptr, const std::vector<Ice::Operand *> &iceArgs, bool isVariadic)
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, const void *fptr, const std::vector<Ice::Operand *> &iceArgs, bool isVariadic)
 {
 	Ice::Operand *callTarget = getConstantPointer(function->getContext(), fptr);
 	return Call(function, basicBlock, retTy, callTarget, iceArgs, isVariadic);
@@ -174,7 +174,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(C
 
 	Ice::Type retTy = T(rr::CToReactorT<Return>::type());
 	std::vector<Ice::Operand *> iceArgs{ std::forward<RArgs>(args)... };
-	return Call(function, basicBlock, retTy, reinterpret_cast<void const *>(fptr), iceArgs, false);
+	return Call(function, basicBlock, retTy, reinterpret_cast<const void *>(fptr), iceArgs, false);
 }
 
 Ice::Variable *createTruncate(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Operand *from, Ice::Type toType)
@@ -2073,7 +2073,7 @@ Value *Nucleus::createNullPointer(Type *Ty)
 	return createNullValue(T(sizeof(void *) == 8 ? Ice::IceType_i64 : Ice::IceType_i32));
 }
 
-static Ice::Constant *IceConstantData(void const *data, size_t size, size_t alignment = 1)
+static Ice::Constant *IceConstantData(const void *data, size_t size, size_t alignment = 1)
 {
 	return sz::getConstantPointer(::context, ::routine->addConstantData(data, size, alignment));
 }
@@ -4044,13 +4044,13 @@ RValue<Long> Ticks()
 	return Long(Int(0));
 }
 
-RValue<Pointer<Byte>> ConstantPointer(void const *ptr)
+RValue<Pointer<Byte>> ConstantPointer(const void *ptr)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return RValue<Pointer<Byte>>{ V(sz::getConstantPointer(::context, ptr)) };
 }
 
-RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
+RValue<Pointer<Byte>> ConstantData(const void *data, size_t size)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return RValue<Pointer<Byte>>{ V(IceConstantData(data, size)) };

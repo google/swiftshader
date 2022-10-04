@@ -25,7 +25,7 @@ namespace sw {
 class QuadRasterizer : public Rasterizer
 {
 public:
-	QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader);
+	QuadRasterizer(const PixelProcessor::State &state, const SpirvShader *spirvShader);
 	virtual ~QuadRasterizer();
 
 	void generate();
