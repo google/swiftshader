@@ -41,7 +41,7 @@ elseif(LINUX)
         )
     endif()
 
-    if(HAVE_WAYLAND_CLIENT_H)
+    if(SWIFTSHADER_BUILD_WSI_WAYLAND)
         list(APPEND WSI_SRC_FILES
             WaylandSurfaceKHR.cpp
             WaylandSurfaceKHR.hpp
