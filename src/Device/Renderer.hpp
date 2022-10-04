@@ -211,7 +211,7 @@ public:
 
 	void draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState &dynamicState, unsigned int count, int baseVertex,
 	          CountedEvent *events, int instanceID, int layer, void *indexBuffer, const VkRect2D &renderArea,
-	          vk::Pipeline::PushConstantStorage const &pushConstants, bool update = true);
+	          const vk::Pipeline::PushConstantStorage &pushConstants, bool update = true);
 
 	void addQuery(vk::Query *query);
 	void removeQuery(vk::Query *query);

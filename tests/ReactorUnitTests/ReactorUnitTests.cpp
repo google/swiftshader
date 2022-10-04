@@ -3545,7 +3545,7 @@ TEST(ReactorUnitTests, Multithreaded_Coroutine)
 	{
 		for(int l = 0; l < numLoops; l++)
 		{
-			auto const &result = results[t * numLoops + l];
+			const auto &result = results[t * numLoops + l];
 			EXPECT_EQ(result.yieldReturns[0], true);
 			EXPECT_EQ(result.yieldValues[0], t);
 			EXPECT_EQ(result.yieldReturns[1], true);

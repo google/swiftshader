@@ -32,7 +32,7 @@
 
 namespace sw {
 
-static rr::RValue<rr::Int> PackFields(rr::Int4 const &ints, const sw::int4 shifts)
+static rr::RValue<rr::Int> PackFields(const rr::Int4 &ints, const sw::int4 shifts)
 {
 	return (rr::Int(ints.x) << shifts[0]) |
 	       (rr::Int(ints.y) << shifts[1]) |

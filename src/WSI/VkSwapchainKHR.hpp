@@ -45,7 +45,7 @@ public:
 	VkResult getNextImage(uint64_t timeout, BinarySemaphore *semaphore, Fence *fence, uint32_t *pImageIndex);
 
 	VkResult present(uint32_t index);
-	PresentImage const &getImage(uint32_t imageIndex) { return images[imageIndex]; }
+	const PresentImage &getImage(uint32_t imageIndex) { return images[imageIndex]; }
 
 private:
 	SurfaceKHR *surface = nullptr;

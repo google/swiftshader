@@ -104,7 +104,7 @@ public:
 	static void WriteDescriptorSet(Device *device, const VkWriteDescriptorSet &descriptorWrites);
 	static void CopyDescriptorSet(const VkCopyDescriptorSet &descriptorCopies);
 
-	static void WriteDescriptorSet(Device *device, DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src);
+	static void WriteDescriptorSet(Device *device, DescriptorSet *dstSet, const VkDescriptorUpdateTemplateEntry &entry, char const *src);
 
 	void initialize(DescriptorSet *descriptorSet, uint32_t variableDescriptorCount);
 

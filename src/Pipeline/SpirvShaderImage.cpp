@@ -526,7 +526,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySize(InsnIterator insn, EmitS
 	return EmitResult::Continue;
 }
 
-void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const
+void SpirvShader::GetImageDimensions(EmitState const *state, const Type &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const
 {
 	auto routine = state->routine;
 	auto &image = getObject(imageId);

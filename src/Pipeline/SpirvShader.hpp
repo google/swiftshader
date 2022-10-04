@@ -127,9 +127,9 @@ public:
 	}
 
 	// No copy/move construction or assignment
-	Intermediate(Intermediate const &) = delete;
+	Intermediate(const Intermediate &) = delete;
 	Intermediate(Intermediate &&) = delete;
-	Intermediate &operator=(Intermediate const &) = delete;
+	Intermediate &operator=(const Intermediate &) = delete;
 	Intermediate &operator=(Intermediate &&) = delete;
 
 	const uint32_t componentCount;
@@ -173,7 +173,7 @@ public:
 	{
 	public:
 		InsnIterator() = default;
-		InsnIterator(InsnIterator const &other) = default;
+		InsnIterator(const InsnIterator &other) = default;
 		InsnIterator &operator=(const InsnIterator &other) = default;
 
 		explicit InsnIterator(SpirvBinary::const_iterator iter)
@@ -260,12 +260,12 @@ public:
 			return static_cast<uint32_t>(iter - other.iter);
 		}
 
-		bool operator==(InsnIterator const &other) const
+		bool operator==(const InsnIterator &other) const
 		{
 			return iter == other.iter;
 		}
 
-		bool operator!=(InsnIterator const &other) const
+		bool operator!=(const InsnIterator &other) const
 		{
 			return iter != other.iter;
 		}
@@ -487,7 +487,7 @@ public:
 		// notPassingThrough.
 		bool ExistsPath(Block::ID from, Block::ID to, Block::ID notPassingThrough) const;
 
-		Block const &getBlock(Block::ID id) const
+		const Block &getBlock(Block::ID id) const
 		{
 			auto it = blocks.find(id);
 			ASSERT_MSG(it != blocks.end(), "Unknown block %d", id.value());
@@ -653,7 +653,7 @@ public:
 
 	SpirvShader(VkShaderStageFlagBits stage,
 	            const char *entryPointName,
-	            SpirvBinary const &insns,
+	            const SpirvBinary &insns,
 	            const vk::RenderPass *renderPass,
 	            uint32_t subpassIndex,
 	            bool robustBufferAccess,
@@ -862,9 +862,9 @@ public:
 		{
 		}
 
-		Decorations(Decorations const &) = default;
+		Decorations(const Decorations &) = default;
 
-		void Apply(Decorations const &src);
+		void Apply(const Decorations &src);
 
 		void Apply(spv::Decoration decoration, uint32_t arg);
 	};
@@ -878,7 +878,7 @@ public:
 		int32_t Binding = -1;
 		int32_t InputAttachmentIndex = -1;
 
-		void Apply(DescriptorDecorations const &src);
+		void Apply(const DescriptorDecorations &src);
 	};
 
 	std::unordered_map<Object::ID, DescriptorDecorations> descriptorDecorations;
@@ -943,7 +943,7 @@ public:
 	std::vector<InterfaceComponent> outputs;
 
 	void emitProlog(SpirvRoutine *routine) const;
-	void emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, RValue<SIMD::Int> const &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
+	void emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
 	void emitEpilog(SpirvRoutine *routine) const;
 	void clearPhis(SpirvRoutine *routine) const;
 
@@ -1168,7 +1168,7 @@ private:
 			return it.first->second;
 		}
 
-		Intermediate const &getIntermediate(Object::ID id) const
+		const Intermediate &getIntermediate(Object::ID id) const
 		{
 			auto it = intermediates.find(id);
 			ASSERT_MSG(it != intermediates.end(), "Unknown intermediate %d", id.value());
@@ -1181,7 +1181,7 @@ private:
 			ASSERT_MSG(added, "Pointer %d created twice", id.value());
 		}
 
-		SIMD::Pointer const &getPointer(Object::ID id) const
+		const SIMD::Pointer &getPointer(Object::ID id) const
 		{
 			auto it = pointers.find(id);
 			ASSERT_MSG(it != pointers.end(), "Unknown pointer %d", id.value());
@@ -1194,7 +1194,7 @@ private:
 			ASSERT_MSG(added, "Sampled image %d created twice", id.value());
 		}
 
-		SampledImagePointer const &getSampledImage(Object::ID id) const
+		const SampledImagePointer &getSampledImage(Object::ID id) const
 		{
 			auto it = sampledImages.find(id);
 			ASSERT_MSG(it != sampledImages.end(), "Unknown sampled image %d", id.value());
@@ -1206,7 +1206,7 @@ private:
 			return sampledImages.find(id) != sampledImages.end();
 		}
 
-		SIMD::Pointer const &getImage(Object::ID id) const
+		const SIMD::Pointer &getImage(Object::ID id) const
 		{
 			return isSampledImage(id) ? getSampledImage(id) : getPointer(id);
 		}
@@ -1310,45 +1310,45 @@ private:
 
 	RR_PRINT_ONLY(friend struct rr::PrintValue::Ty<Operand>;)
 
-	Type const &getType(Type::ID id) const
+	const Type &getType(Type::ID id) const
 	{
 		auto it = types.find(id);
 		ASSERT_MSG(it != types.end(), "Unknown type %d", id.value());
 		return it->second;
 	}
 
-	Type const &getType(const Object &object) const
+	const Type &getType(const Object &object) const
 	{
 		return getType(object.typeId());
 	}
 
-	Object const &getObject(Object::ID id) const
+	const Object &getObject(Object::ID id) const
 	{
 		auto it = defs.find(id);
 		ASSERT_MSG(it != defs.end(), "Unknown object %d", id.value());
 		return it->second;
 	}
 
-	Type const &getObjectType(Object::ID id) const
+	const Type &getObjectType(Object::ID id) const
 	{
 		return getType(getObject(id));
 	}
 
-	Function const &getFunction(Function::ID id) const
+	const Function &getFunction(Function::ID id) const
 	{
 		auto it = functions.find(id);
 		ASSERT_MSG(it != functions.end(), "Unknown function %d", id.value());
 		return it->second;
 	}
 
-	String const &getString(StringID id) const
+	const String &getString(StringID id) const
 	{
 		auto it = strings.find(id);
 		ASSERT_MSG(it != strings.end(), "Unknown string %d", id.value());
 		return it->second;
 	}
 
-	Extension const &getExtension(Extension::ID id) const
+	const Extension &getExtension(Extension::ID id) const
 	{
 		auto it = extensionsByID.find(id);
 		ASSERT_MSG(it != extensionsByID.end(), "Unknown extension %d", id.value());
@@ -1456,7 +1456,7 @@ private:
 	Pointer<Byte> lookupSamplerFunction(Pointer<Byte> imageDescriptor, Pointer<Byte> samplerDescriptor, const ImageInstruction &instruction, EmitState *state) const;
 	void callSamplerFunction(Pointer<Byte> samplerFunction, Array<SIMD::Float> &out, Pointer<Byte> imageDescriptor, const ImageInstruction &instruction, EmitState *state) const;
 
-	void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
+	void GetImageDimensions(EmitState const *state, const Type &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
 	struct TexelAddressData
 	{
 		bool isArrayed;
@@ -1482,7 +1482,7 @@ private:
 		AtSample,
 		AtOffset,
 	};
-	SIMD::Float EmitInterpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId,
+	SIMD::Float EmitInterpolate(const SIMD::Pointer &ptr, int32_t location, Object::ID paramId,
 	                            uint32_t component, EmitState *state, InterpolationType type) const;
 
 	// Helper for implementing OpStore, which doesn't take an InsnIterator so it
@@ -1496,7 +1496,7 @@ private:
 	// StorePhi updates the phi's alloca storage value using the incoming
 	// values from blocks that are both in the OpPhi instruction and in
 	// filter.
-	void StorePhi(Block::ID blockID, InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const &filter) const;
+	void StorePhi(Block::ID blockID, InsnIterator insn, EmitState *state, const std::unordered_set<SpirvShader::Block::ID> &filter) const;
 
 	// Emits a rr::Fence for the given MemorySemanticsMask.
 	void Fence(spv::MemorySemanticsMask semantics) const;
@@ -1522,10 +1522,10 @@ private:
 	static bool HasTypeAndResult(spv::Op op);
 
 	// Helper as we often need to take dot products as part of doing other things.
-	static SIMD::Float FDot(unsigned numComponents, Operand const &x, Operand const &y);
-	static SIMD::Int SDot(unsigned numComponents, Operand const &x, Operand const &y, Operand const *accum);
-	static SIMD::UInt UDot(unsigned numComponents, Operand const &x, Operand const &y, Operand const *accum);
-	static SIMD::Int SUDot(unsigned numComponents, Operand const &x, Operand const &y, Operand const *accum);
+	static SIMD::Float FDot(unsigned numComponents, const Operand &x, const Operand &y);
+	static SIMD::Int SDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum);
+	static SIMD::UInt UDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum);
+	static SIMD::Int SUDot(unsigned numComponents, const Operand &x, const Operand &y, Operand const *accum);
 	static SIMD::Int AddSat(RValue<SIMD::Int> a, RValue<SIMD::Int> b);
 	static SIMD::UInt AddSat(RValue<SIMD::UInt> a, RValue<SIMD::UInt> b);
 

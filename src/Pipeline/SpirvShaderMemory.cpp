@@ -174,7 +174,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 				auto &dst = routine->getVariable(resultId);
 				int offset = 0;
 				VisitInterface(resultId,
-				               [&](Decorations const &d, AttribType type) {
+				               [&](const Decorations &d, AttribType type) {
 					               auto scalarSlot = d.Location << 2 | d.Component;
 					               dst[offset++] = routine->inputs[scalarSlot];
 				               });

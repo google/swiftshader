@@ -151,7 +151,7 @@ private:
 	LineTokens const *getOrParseFileTokens(const char *path);
 
 	// Synchronizes diScope with the current backtrace.
-	void syncScope(Backtrace const &backtrace);
+	void syncScope(const Backtrace &backtrace);
 
 	IRBuilder *builder;
 	llvm::LLVMContext *context;

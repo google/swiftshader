@@ -85,7 +85,7 @@ public:
 	std::string get(const FormatFlags &fmt = FormatFlags::Default) override { return std::to_string(ref); }
 
 private:
-	T const &ref;
+	const T &ref;
 };
 
 // Struct is an implementation of Value that delegates calls to children() on to

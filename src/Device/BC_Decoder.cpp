@@ -117,7 +117,7 @@ private:
 			return res;
 		}
 
-		Color operator+(Color const &obj) const
+		Color operator+(const Color &obj) const
 		{
 			Color res;
 			for(int i = 0; i < 4; ++i)

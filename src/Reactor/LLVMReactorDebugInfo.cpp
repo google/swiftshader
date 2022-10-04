@@ -150,7 +150,7 @@ void DebugInfo::Flush()
 	}
 }
 
-void DebugInfo::syncScope(Backtrace const &backtrace)
+void DebugInfo::syncScope(const Backtrace &backtrace)
 {
 	using namespace ::llvm;
 

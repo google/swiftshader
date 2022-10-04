@@ -335,7 +335,7 @@ static void WriteTextureLevelInfo(sw::Texture *texture, uint32_t level, uint32_t
 	mipmap.sampleMax = sw::uint4(sampleMax);
 }
 
-void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, const char *src)
+void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstSet, const VkDescriptorUpdateTemplateEntry &entry, const char *src)
 {
 	DescriptorSetLayout *dstLayout = dstSet->header.layout;
 	const DescriptorSetLayout::Binding &binding = dstLayout->bindings[entry.dstBinding];

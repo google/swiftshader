@@ -1185,7 +1185,7 @@ public:
 	LocalVariableValue(debug::LocalVariable *variable, State const *const state, int lane);
 
 	LocalVariableValue(
-	    std::shared_ptr<const Shared> const &shared,
+	    const std::shared_ptr<const Shared> &shared,
 	    debug::Type const *ty,
 	    debug::LocalVariable::ValueNode const *node);
 
@@ -2020,7 +2020,7 @@ sw::SpirvShader::Impl::Debugger::LocalVariableValue::LocalVariableValue(
 {}
 
 sw::SpirvShader::Impl::Debugger::LocalVariableValue::LocalVariableValue(
-    std::shared_ptr<const Shared> const &shared,
+    const std::shared_ptr<const Shared> &shared,
     debug::Type const *ty,
     debug::LocalVariable::ValueNode const *node)
     : shared(shared)

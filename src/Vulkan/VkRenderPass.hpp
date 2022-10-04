@@ -48,7 +48,7 @@ public:
 		return subpassCount;
 	}
 
-	VkSubpassDescription const &getSubpass(uint32_t subpassIndex) const
+	const VkSubpassDescription &getSubpass(uint32_t subpassIndex) const
 	{
 		return subpasses[subpassIndex];
 	}

@@ -978,7 +978,7 @@ static SIMD::Float Interpolate(const SIMD::Float &x, const SIMD::Float &y, const
 	return interpolant;
 }
 
-SIMD::Float SpirvShader::EmitInterpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId,
+SIMD::Float SpirvShader::EmitInterpolate(const SIMD::Pointer &ptr, int32_t location, Object::ID paramId,
                                          uint32_t component, EmitState *state, InterpolationType type) const
 {
 	uint32_t interpolant = (location * 4);
