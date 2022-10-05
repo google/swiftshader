@@ -199,12 +199,6 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 
 	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets, state.multiSampleCount);
 	spirvShader->emitEpilog(&routine);
-	// At the last invocation of the fragment shader, clear phi data.
-	// TODO(b/178662288): Automatically clear phis through SpirvRoutine lifetime reduction.
-	if(samples[0] == static_cast<int>(state.multiSampleCount - 1))
-	{
-		spirvShader->clearPhis(&routine);
-	}
 
 	for(int i = 0; i < MAX_COLOR_BUFFERS; i++)
 	{

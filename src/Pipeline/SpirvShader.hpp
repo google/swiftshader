@@ -813,10 +813,10 @@ public:
 	std::vector<InterfaceComponent> inputs;
 	std::vector<InterfaceComponent> outputs;
 
+	// TODO(b/247020580): Move to SpirvRoutine
 	void emitProlog(SpirvRoutine *routine) const;
 	void emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
 	void emitEpilog(SpirvRoutine *routine) const;
-	void clearPhis(SpirvRoutine *routine) const;
 
 	uint32_t getWorkgroupSizeX() const;
 	uint32_t getWorkgroupSizeY() const;
@@ -990,22 +990,28 @@ class EmitState
 	using Span = SpirvShader::Span;
 
 public:
+	static void emit(const SpirvShader &shader,
+	                 SpirvRoutine *routine,
+	                 SpirvShader::Function::ID entryPoint,
+	                 RValue<SIMD::Int> activeLaneMask,
+	                 RValue<SIMD::Int> storesAndAtomicsMask,
+	                 const vk::DescriptorSet::Bindings &descriptorSets,
+	                 unsigned int multiSampleCount);
+
+	// Helper for calling rr::Yield with result cast to an rr::Int.
+	enum class YieldResult
+	{
+		ControlBarrier = 0,
+	};
+
+private:
 	EmitState(const SpirvShader &shader,
 	          SpirvRoutine *routine,
-	          SpirvShader::Function::ID function,
+	          SpirvShader::Function::ID entryPoint,
 	          RValue<SIMD::Int> activeLaneMask,
 	          RValue<SIMD::Int> storesAndAtomicsMask,
 	          const vk::DescriptorSet::Bindings &descriptorSets,
-	          unsigned int multiSampleCount)
-	    : shader(shader)
-	    , routine(routine)
-	    , function(function)
-	    , activeLaneMaskValue(activeLaneMask.value())
-	    , storesAndAtomicsMaskValue(storesAndAtomicsMask.value())
-	    , descriptorSets(descriptorSets)
-	    , multiSampleCount(multiSampleCount)
-	{
-	}
+	          unsigned int multiSampleCount);
 
 	// Returns the mask describing the active lanes as updated by dynamic
 	// control flow. Active lanes include helper invocations, used for
@@ -1481,16 +1487,11 @@ public:
 	// StorePhi updates the phi's alloca storage value using the incoming
 	// values from blocks that are both in the OpPhi instruction and in
 	// filter.
-	void StorePhi(Block::ID blockID, InsnIterator insn, const std::unordered_set<Block::ID> &filter) const;
+	void StorePhi(Block::ID blockID, InsnIterator insn, const std::unordered_set<Block::ID> &filter);
 
 	// Emits a rr::Fence for the given MemorySemanticsMask.
 	void Fence(spv::MemorySemanticsMask semantics) const;
 
-	// Helper for calling rr::Yield with res cast to an rr::Int.
-	enum class YieldResult
-	{
-		ControlBarrier = 0,
-	};
 	void Yield(YieldResult res) const;
 
 	// Helper as we often need to take dot products as part of doing other things.
@@ -1511,7 +1512,6 @@ public:
 	static sw::MipmapType convertMipmapMode(const vk::SamplerState *samplerState);
 	static sw::AddressingMode convertAddressingMode(int coordinateIndex, const vk::SamplerState *samplerState, VkImageViewType imageViewType);
 
-private:
 	const SpirvShader &shader;
 	SpirvRoutine *const routine;                     // The current routine being built.
 	SpirvShader::Function::ID function;              // The current function being built.
@@ -1525,6 +1525,7 @@ private:
 	const vk::DescriptorSet::Bindings &descriptorSets;
 
 	std::unordered_map<Object::ID, Intermediate> intermediates;
+	std::unordered_map<Object::ID, Array<SIMD::Float>> phis;
 	std::unordered_map<Object::ID, SIMD::Pointer> pointers;
 	std::unordered_map<Object::ID, SampledImagePointer> sampledImages;
 
@@ -1639,15 +1640,6 @@ public:
 			f(builtin, getVariable(builtin.Id));
 		}
 	}
-
-private:
-	// The phis are only accessible to SpirvShader
-	// as they are only used and exist between calls to
-	// SpirvShader::emitProlog() and SpirvShader::emitEpilog().
-	friend class SpirvShader;
-
-public:
-	std::unordered_map<Object::ID, Variable> phis;
 };
 
 }  // namespace sw

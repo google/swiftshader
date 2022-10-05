@@ -679,8 +679,8 @@ void EmitState::LoadPhi(InsnIterator insn)
 	auto type = shader.getType(typeId);
 	auto objectId = Object::ID(insn.word(2));
 
-	auto storageIt = routine->phis.find(objectId);
-	ASSERT(storageIt != routine->phis.end());
+	auto storageIt = phis.find(objectId);
+	ASSERT(storageIt != phis.end());
 	auto &storage = storageIt->second;
 
 	auto &dst = createIntermediate(objectId, type.componentCount);
@@ -691,14 +691,14 @@ void EmitState::LoadPhi(InsnIterator insn)
 	}
 }
 
-void EmitState::StorePhi(Block::ID currentBlock, InsnIterator insn, const std::unordered_set<Block::ID> &filter) const
+void EmitState::StorePhi(Block::ID currentBlock, InsnIterator insn, const std::unordered_set<Block::ID> &filter)
 {
 	auto typeId = Type::ID(insn.word(1));
 	auto type = shader.getType(typeId);
 	auto objectId = Object::ID(insn.word(2));
 
-	auto storageIt = routine->phis.find(objectId);
-	ASSERT(storageIt != routine->phis.end());
+	auto storageIt = phis.find(objectId);
+	ASSERT(storageIt != phis.end());
 	auto &storage = storageIt->second;
 
 	for(uint32_t w = 3; w < insn.wordCount(); w += 2)
