@@ -439,6 +439,29 @@ type deqpBuild struct {
 	hash string // hash of the deqp config
 }
 
+// DeqpConfig holds the JSON payload of the deqp.json file
+type DeqpConfig struct {
+	Remote  string   `json:"remote"`
+	Branch  string   `json:"branch"`
+	SHA     string   `json:"sha"`
+	Patches []string `json:"patches"`
+}
+
+func loadConfigFromFile(deqpConfigFile string) (DeqpConfig, error) {
+	file, err := os.Open(deqpConfigFile)
+	if err != nil {
+		return DeqpConfig{}, cause.Wrap(err, "Couldn't open dEQP config file")
+	}
+	defer file.Close()
+
+	cfg := DeqpConfig{}
+	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
+		return DeqpConfig{}, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
+	}
+
+	return cfg, nil
+}
+
 func (r *regres) getOrBuildDEQP(test *test) (deqpBuild, error) {
 	checkoutDir := test.checkoutDir
 	if p := path.Join(checkoutDir, deqpConfigRelPath); !util.IsFile(p) {
@@ -447,22 +470,16 @@ func (r *regres) getOrBuildDEQP(test *test) (deqpBuild, error) {
 	} else {
 		log.Println("Using dEQP config file from change")
 	}
-	file, err := os.Open(path.Join(checkoutDir, deqpConfigRelPath))
+
+	cfg, err := loadConfigFromFile(path.Join(checkoutDir, deqpConfigRelPath))
 	if err != nil {
-		return deqpBuild{}, cause.Wrap(err, "Couldn't open dEQP config file")
-	}
-	defer file.Close()
-
-	cfg := struct {
-		Remote  string   `json:"remote"`
-		Branch  string   `json:"branch"`
-		SHA     string   `json:"sha"`
-		Patches []string `json:"patches"`
-	}{}
-	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
-		return deqpBuild{}, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
+		return deqpBuild{}, cause.Wrap(err, "Loading config file failed")
 	}
 
+	return r.getOrBuildDEQPFromConfig(test, cfg, checkoutDir)
+}
+
+func (r *regres) getOrBuildDEQPFromConfig(test *test, cfg DeqpConfig, checkoutDir string) (deqpBuild, error) {
 	hasher := sha1.New()
 	if err := json.NewEncoder(hasher).Encode(&cfg); err != nil {
 		return deqpBuild{}, cause.Wrap(err, "Couldn't re-encode %s", deqpConfigRelPath)
@@ -746,20 +763,9 @@ func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 	if !util.IsFile(deqpJsonPath) {
 		return nil, fmt.Errorf("Failed to locate %s while trying to update the dEQP SHA", deqpConfigRelPath)
 	}
-	file, err := os.Open(deqpJsonPath)
+	cfg, err := loadConfigFromFile(deqpJsonPath)
 	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't open dEQP config file")
-	}
-	defer file.Close()
-
-	cfg := struct {
-		Remote  string   `json:"remote"`
-		Branch  string   `json:"branch"`
-		SHA     string   `json:"sha"`
-		Patches []string `json:"patches"`
-	}{}
-	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
-		return nil, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
+		return nil, cause.Wrap(err, "Loading config file failed")
 	}
 
 	hash, err := git.FetchRefHash("HEAD", cfg.Remote)
@@ -783,8 +789,8 @@ func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 	}
 	out = append(out, deqpJsonPath)
 
-	// Use getOrBuildDEQP as it'll prevent us from copying data from a revision of dEQP that has build errors.
-	deqpBuild, err := r.getOrBuildDEQP(test)
+	// Use getOrBuildDEQPFromConfig as it'll prevent us from copying data from a revision of dEQP that has build errors.
+	deqpBuild, err := r.getOrBuildDEQPFromConfig(test, cfg, test.checkoutDir)
 
 	if err != nil {
 		return nil, cause.Wrap(err, "Failed to retrieve dEQP build information")
