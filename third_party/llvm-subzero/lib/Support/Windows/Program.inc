@@ -13,7 +13,6 @@
 
 #include "WindowsSupport.h"
 #include "llvm/ADT/StringExtras.h"
-#include "llvm/Support/ConvertUTF.h"
 #include "llvm/Support/Errc.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/WindowsError.h"
@@ -489,50 +488,6 @@ std::error_code sys::ChangeStdoutToBinary() {
   if (result == -1)
     return std::error_code(errno, std::generic_category());
   return std::error_code();
-}
-
-std::error_code
-llvm::sys::writeFileWithEncoding(StringRef FileName, StringRef Contents,
-                                 WindowsEncodingMethod Encoding) {
-  std::error_code EC;
-  llvm::raw_fd_ostream OS(FileName, EC, llvm::sys::fs::OpenFlags::F_Text);
-  if (EC)
-    return EC;
-
-  if (Encoding == WEM_UTF8) {
-    OS << Contents;
-  } else if (Encoding == WEM_CurrentCodePage) {
-    SmallVector<wchar_t, 1> ArgsUTF16;
-    SmallVector<char, 1> ArgsCurCP;
-
-    if ((EC = windows::UTF8ToUTF16(Contents, ArgsUTF16)))
-      return EC;
-
-    if ((EC = windows::UTF16ToCurCP(
-             ArgsUTF16.data(), ArgsUTF16.size(), ArgsCurCP)))
-      return EC;
-
-    OS.write(ArgsCurCP.data(), ArgsCurCP.size());
-  } else if (Encoding == WEM_UTF16) {
-    SmallVector<wchar_t, 1> ArgsUTF16;
-
-    if ((EC = windows::UTF8ToUTF16(Contents, ArgsUTF16)))
-      return EC;
-
-    // Endianness guessing
-    char BOM[2];
-    uint16_t src = UNI_UTF16_BYTE_ORDER_MARK_NATIVE;
-    memcpy(BOM, &src, 2);
-    OS.write(BOM, 2);
-    OS.write((char *)ArgsUTF16.data(), ArgsUTF16.size() << 1);
-  } else {
-    llvm_unreachable("Unknown encoding");
-  }
-
-  if (OS.has_error())
-    return make_error_code(errc::io_error);
-
-  return EC;
 }
 
 bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program, ArrayRef<const char*> Args) {

@@ -429,23 +429,6 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
     return std::error_code();
 }
 
-std::error_code
-llvm::sys::writeFileWithEncoding(StringRef FileName, StringRef Contents,
-                                 WindowsEncodingMethod Encoding /*unused*/) {
-  std::error_code EC;
-  llvm::raw_fd_ostream OS(FileName, EC, llvm::sys::fs::OpenFlags::F_Text);
-
-  if (EC)
-    return EC;
-
-  OS << Contents;
-
-  if (OS.has_error())
-    return make_error_code(errc::io_error);
-
-  return EC;
-}
-
 bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program, ArrayRef<const char*> Args) {
   static long ArgMax = sysconf(_SC_ARG_MAX);
 

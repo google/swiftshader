@@ -77,8 +77,6 @@ cc_library_static {
         "lib/Support/Atomic.cpp",
         "lib/Support/circular_raw_ostream.cpp",
         "lib/Support/CommandLine.cpp",
-        "lib/Support/ConvertUTF.cpp",
-        "lib/Support/ConvertUTFWrapper.cpp",
         "lib/Support/Debug.cpp",
         "lib/Support/Errno.cpp",
         "lib/Support/ErrorHandling.cpp",

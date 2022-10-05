@@ -27,7 +27,6 @@
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Config/config.h"
-#include "llvm/Support/ConvertUTF.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FileSystem.h"
@@ -898,20 +897,6 @@ static bool ExpandResponseFile(StringRef FName, StringSaver &Saver,
     return false;
   MemoryBuffer &MemBuf = *MemBufOrErr.get();
   StringRef Str(MemBuf.getBufferStart(), MemBuf.getBufferSize());
-
-  // If we have a UTF-16 byte order mark, convert to UTF-8 for parsing.
-  ArrayRef<char> BufRef(MemBuf.getBufferStart(), MemBuf.getBufferEnd());
-  std::string UTF8Buf;
-  if (hasUTF16ByteOrderMark(BufRef)) {
-    if (!convertUTF16ToUTF8String(BufRef, UTF8Buf))
-      return false;
-    Str = StringRef(UTF8Buf);
-  }
-  // If we see UTF-8 BOM sequence at the beginning of a file, we shall remove
-  // these bytes before parsing.
-  // Reference: http://en.wikipedia.org/wiki/UTF-8#Byte_order_mark
-  else if (hasUTF8ByteOrderMark(BufRef))
-    Str = StringRef(BufRef.data() + 3, BufRef.size() - 3);
 
   // Tokenize the contents into NewArgv.
   Tokenizer(Str, Saver, NewArgv, MarkEOLs);

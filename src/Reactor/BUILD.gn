@@ -222,8 +222,6 @@ if (supports_subzero) {
       "$subzero_llvm_dir/lib/Support/APInt.cpp",
       "$subzero_llvm_dir/lib/Support/Atomic.cpp",
       "$subzero_llvm_dir/lib/Support/CommandLine.cpp",
-      "$subzero_llvm_dir/lib/Support/ConvertUTF.cpp",
-      "$subzero_llvm_dir/lib/Support/ConvertUTFWrapper.cpp",
       "$subzero_llvm_dir/lib/Support/Debug.cpp",
       "$subzero_llvm_dir/lib/Support/Errno.cpp",
       "$subzero_llvm_dir/lib/Support/ErrorHandling.cpp",
