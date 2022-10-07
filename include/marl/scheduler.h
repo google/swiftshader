@@ -21,7 +21,6 @@
 #include "export.h"
 #include "memory.h"
 #include "mutex.h"
-#include "sanitizers.h"
 #include "task.h"
 #include "thread.h"
 
@@ -574,7 +573,6 @@ bool Scheduler::Fiber::wait(
 }
 
 Scheduler::Worker* Scheduler::Worker::getCurrent() {
-  MSAN_UNPOISON(current, sizeof(Worker));
   return Worker::current;
 }
 
