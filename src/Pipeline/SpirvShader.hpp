@@ -19,7 +19,6 @@
 #include "ShaderCore.hpp"
 #include "SpirvBinary.hpp"
 #include "SpirvID.hpp"
-#include "SpirvProfiler.hpp"
 #include "Device/Config.hpp"
 #include "Device/Sampler.hpp"
 #include "System/Debug.hpp"
@@ -651,8 +650,7 @@ public:
 	            const SpirvBinary &insns,
 	            const vk::RenderPass *renderPass,
 	            uint32_t subpassIndex,
-	            bool robustBufferAccess,
-	            std::shared_ptr<SpirvProfiler> profiler);
+	            bool robustBufferAccess);
 
 	~SpirvShader();
 
@@ -972,13 +970,6 @@ private:
 	HandleMap<Object> defs;
 	HandleMap<Function> functions;
 	std::unordered_map<StringID, String> strings;
-
-	std::shared_ptr<SpirvProfiler> profiler;
-
-	bool IsProfilingEnabled() const
-	{
-		return profiler != nullptr;
-	}
 
 	// DeclareType creates a Type for the given OpTypeX instruction, storing
 	// it into the types map. It is called from the analysis pass (constructor).
@@ -1642,13 +1633,12 @@ public:
 	}
 
 private:
-	// The phis and the profile data are only accessible to SpirvShader
+	// The phis are only accessible to SpirvShader
 	// as they are only used and exist between calls to
 	// SpirvShader::emitProlog() and SpirvShader::emitEpilog().
 	friend class SpirvShader;
 
 	std::unordered_map<SpirvShader::Object::ID, Variable> phis;
-	std::unique_ptr<SpirvProfileData> profData;
 };
 
 }  // namespace sw

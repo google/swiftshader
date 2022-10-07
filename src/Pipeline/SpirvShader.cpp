@@ -33,13 +33,11 @@ SpirvShader::SpirvShader(
     const SpirvBinary &insns,
     const vk::RenderPass *renderPass,
     uint32_t subpassIndex,
-    bool robustBufferAccess,
-    std::shared_ptr<SpirvProfiler> profiler)
+    bool robustBufferAccess)
     : insns{ insns }
     , inputs{ MAX_INTERFACE_COMPONENTS }
     , outputs{ MAX_INTERFACE_COMPONENTS }
     , robustBufferAccess(robustBufferAccess)
-    , profiler(profiler)
 {
 	ASSERT(insns.size() > 0);
 
@@ -1772,11 +1770,6 @@ OutOfBoundsBehavior SpirvShader::getOutOfBoundsBehavior(Object::ID pointerId, co
 
 void SpirvShader::emitProlog(SpirvRoutine *routine) const
 {
-	if(IsProfilingEnabled())
-	{
-		routine->profData = std::make_unique<SpirvProfileData>();
-	}
-
 	for(auto insn : *this)
 	{
 		switch(insn.opcode())
@@ -1867,12 +1860,6 @@ void SpirvShader::EmitInstructions(InsnIterator begin, InsnIterator end, EmitSta
 SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitState *state) const
 {
 	auto opcode = insn.opcode();
-
-	if(IsProfilingEnabled() && IsStatement(opcode))
-	{
-		int64_t *counter = &state->routine->profData->spvOpExecutionCount[opcode];
-		AddAtomic(Pointer<Long>(ConstantPointer(counter)), 1);
-	}
 
 #if SPIRV_SHADER_ENABLE_DBG
 	{
@@ -2736,11 +2723,6 @@ void SpirvShader::emitEpilog(SpirvRoutine *routine) const
 		default:
 			break;
 		}
-	}
-
-	if(IsProfilingEnabled())
-	{
-		profiler->RegisterShaderForProfiling(std::to_string(insns.getIdentifier()) + "_" + std::to_string((uintptr_t)routine), std::move(routine->profData));
 	}
 }
 
