@@ -1853,7 +1853,7 @@ void EmitState::emit(const SpirvShader &shader,
 		if(insn.opcode() == spv::OpPhi)
 		{
 			auto type = shader.getType(insn.resultTypeId());
-			state.phis.emplace(insn.resultId(), Array<SIMD::Float>(type.componentCount));
+			state.phis.emplace(insn.resultId(), std::vector<SIMD::Float>(type.componentCount));
 		}
 	}
 

@@ -1525,7 +1525,7 @@ private:
 	const vk::DescriptorSet::Bindings &descriptorSets;
 
 	std::unordered_map<Object::ID, Intermediate> intermediates;
-	std::unordered_map<Object::ID, Array<SIMD::Float>> phis;
+	std::unordered_map<Object::ID, std::vector<SIMD::Float>> phis;
 	std::unordered_map<Object::ID, SIMD::Pointer> pointers;
 	std::unordered_map<Object::ID, SampledImagePointer> sampledImages;
 

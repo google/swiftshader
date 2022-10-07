@@ -681,7 +681,7 @@ void EmitState::LoadPhi(InsnIterator insn)
 
 	auto storageIt = phis.find(objectId);
 	ASSERT(storageIt != phis.end());
-	auto &storage = storageIt->second;
+	const auto &storage = storageIt->second;
 
 	auto &dst = createIntermediate(objectId, type.componentCount);
 	for(uint32_t i = 0; i < type.componentCount; i++)
