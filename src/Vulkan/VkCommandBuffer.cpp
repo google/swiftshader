@@ -1801,19 +1801,6 @@ VkResult CommandBuffer::end()
 
 	state = EXECUTABLE;
 
-#ifdef ENABLE_VK_DEBUGGER
-	auto debuggerContext = device->getDebuggerContext();
-	if(debuggerContext)
-	{
-		std::string source;
-		for(auto &command : commands)
-		{
-			source += command->description() + "\n";
-		}
-		debuggerFile = debuggerContext->lock().createVirtualFile("VkCommandBuffer", source.c_str());
-	}
-#endif  // ENABLE_VK_DEBUGGER
-
 	return VK_SUCCESS;
 }
 
@@ -2331,30 +2318,8 @@ void CommandBuffer::submit(CommandBuffer::ExecutionState &executionState)
 	// Perform recorded work
 	state = PENDING;
 
-#ifdef ENABLE_VK_DEBUGGER
-	std::shared_ptr<vk::dbg::Thread> debuggerThread;
-	auto *debuggerContext = device->getDebuggerContext();
-	if(debuggerContext)
-	{
-		debuggerThread = debuggerContext->lock().currentThread();
-		debuggerThread->setName("vkQueue processor");
-		debuggerThread->enter(debuggerFile, "vkCommandBuffer::submit");
-	}
-	defer(if(debuggerThread) { debuggerThread->exit(); });
-	int line = 1;
-#endif  // ENABLE_VK_DEBUGGER
-
 	for(auto &command : commands)
 	{
-#ifdef ENABLE_VK_DEBUGGER
-		if(debuggerThread)
-		{
-			debuggerThread->update(true, [&](vk::dbg::Frame &frame) {
-				frame.location = { debuggerFile, line++, 0 };
-			});
-		}
-#endif  // ENABLE_VK_DEBUGGER
-
 		command->execute(executionState);
 	}
 

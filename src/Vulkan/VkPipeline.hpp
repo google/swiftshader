@@ -28,10 +28,6 @@ class SpirvShader;
 
 namespace vk {
 
-namespace dbg {
-class Context;
-}  // namespace dbg
-
 class ShaderModule;
 
 class Pipeline

@@ -397,7 +397,6 @@ void SpirvShader::EmitLoop(EmitState *state) const
 		if(insn.opcode() == spv::OpPhi)
 		{
 			LoadPhi(insn, state);
-			dbgEndEmitInstruction(insn, state);
 		}
 		else
 		{
@@ -737,7 +736,6 @@ void SpirvShader::Yield(YieldResult res) const
 void SpirvShader::SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const
 {
 	state->activeLaneMaskValue = mask.value();
-	dbgUpdateActiveLaneMask(mask, state);
 }
 
 void SpirvShader::SetStoresAndAtomicsMask(RValue<SIMD::Int> mask, EmitState *state) const

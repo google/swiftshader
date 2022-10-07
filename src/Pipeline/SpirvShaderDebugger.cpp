@@ -2805,34 +2805,4 @@ SpirvShader::EmitResult SpirvShader::EmitOpenCLDebugInfo100(InsnIterator insn, E
 
 }  // namespace sw
 
-#else  // ENABLE_VK_DEBUGGER
-
-// Stub implementations of the dbgXXX functions.
-namespace sw {
-
-void SpirvShader::dbgInit(const std::shared_ptr<vk::dbg::Context> &dbgctx) {}
-void SpirvShader::dbgTerm() {}
-void SpirvShader::dbgCreateFile() {}
-void SpirvShader::dbgBeginEmit(EmitState *state) const {}
-void SpirvShader::dbgEndEmit(EmitState *state) const {}
-void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) const {}
-void SpirvShader::dbgEndEmitInstruction(InsnIterator insn, EmitState *state) const {}
-void SpirvShader::dbgExposeIntermediate(Object::ID id, EmitState *state) const {}
-void SpirvShader::dbgUpdateActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const {}
-void SpirvShader::dbgDeclareResult(const InsnIterator &insn, Object::ID resultId) const {}
-
-void SpirvShader::DefineOpenCLDebugInfo100(const InsnIterator &insn) {}
-
-SpirvShader::EmitResult SpirvShader::EmitOpenCLDebugInfo100(InsnIterator insn, EmitState *state) const
-{
-	return EmitResult::Continue;
-}
-
-SpirvShader::EmitResult SpirvShader::EmitLine(InsnIterator insn, EmitState *state) const
-{
-	return EmitResult::Continue;
-}
-
-}  // namespace sw
-
 #endif  // ENABLE_VK_DEBUGGER

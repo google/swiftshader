@@ -152,22 +152,10 @@ Device::Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice 
 		UNSUPPORTED("enabledLayerCount");
 	}
 
-	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
+	// TODO(b/119409619): use an allocator here so we can control all memory allocations
 	blitter.reset(new sw::Blitter());
 	samplingRoutineCache.reset(new SamplingRoutineCache());
 	samplerIndexer.reset(new SamplerIndexer());
-
-#ifdef ENABLE_VK_DEBUGGER
-	static auto port = getenv("VK_DEBUGGER_PORT");
-	if(port)
-	{
-		// Construct the debugger context and server - this may block for a
-		// debugger connection, allowing breakpoints to be set before they're
-		// executed.
-		debugger.context = vk::dbg::Context::create();
-		debugger.server = vk::dbg::Server::create(debugger.context, atoi(port));
-	}
-#endif  // ENABLE_VK_DEBUGGER
 
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
 	const auto *deviceMemoryReportCreateInfo = GetExtendedStruct<VkDeviceDeviceMemoryReportCreateInfoEXT>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT);
