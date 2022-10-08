@@ -1589,7 +1589,6 @@ private:
 	struct Impl
 	{
 		struct Debugger;
-		struct Group;
 		Debugger *debugger = nullptr;
 	};
 	Impl impl;
