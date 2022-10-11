@@ -74,6 +74,8 @@ public:
 		VkCompareOp depthCompareMode;
 		bool depthWriteEnable;
 
+		bool robustBufferAccess;
+
 		bool stencilActive;
 		StencilOpState frontStencil;
 		StencilOpState backStencil;

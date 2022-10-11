@@ -87,11 +87,13 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 	{
 		state.shaderID = fragmentShader->getIdentifier();
 		state.pipelineLayoutIdentifier = fragmentState.getPipelineLayout()->identifier;
+		state.robustBufferAccess = fragmentShader->getRobustBufferAccess();
 	}
 	else
 	{
 		state.shaderID = 0;
 		state.pipelineLayoutIdentifier = 0;
+		state.robustBufferAccess = false;
 	}
 
 	state.alphaToCoverage = fragmentOutputInterfaceState.hasAlphaToCoverage();
