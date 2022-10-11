@@ -375,6 +375,17 @@ dEQP-VK.protected_memory.interaction.wsi.headless.swapchain.create.composite_alp
 dEQP-VK.protected_memory.interaction.wsi.headless.swapchain.create.present_mode
 dEQP-VK.protected_memory.interaction.wsi.headless.swapchain.create.clipped
 dEQP-VK.protected_memory.interaction.wsi.headless.swapchain.render.basic
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.min_image_count
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.image_format
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.image_extent
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.image_array_layers
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.image_usage
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.image_sharing_mode
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.pre_transform
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.composite_alpha
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.present_mode
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.clipped
+dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.render.basic
 dEQP-VK.protected_memory.interaction.ycbcr.r4g4b4a4_unorm_pack16.fragment.rgb_identity.itu_full.tiling_optimal_cosited
 dEQP-VK.protected_memory.interaction.ycbcr.r4g4b4a4_unorm_pack16.fragment.rgb_identity.itu_full.tiling_optimal_cosited_disjoint
 dEQP-VK.protected_memory.interaction.ycbcr.r4g4b4a4_unorm_pack16.fragment.rgb_identity.itu_full.tiling_optimal_midpoint
