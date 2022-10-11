@@ -785,10 +785,13 @@ SpirvShader::SpirvShader(
 
 		case spv::OpStore:
 		case spv::OpAtomicStore:
-		case spv::OpImageWrite:
 		case spv::OpCopyMemory:
 		case spv::OpMemoryBarrier:
 			// Don't need to do anything during analysis pass
+			break;
+
+		case spv::OpImageWrite:
+			analysis.ContainsImageWrite = true;
 			break;
 
 		case spv::OpControlBarrier:

@@ -681,12 +681,11 @@ public:
 		bool ContainsControlBarriers : 1;
 		bool NeedsCentroid : 1;
 		bool ContainsSampleQualifier : 1;
+		bool ContainsImageWrite : 1;
 	};
 
-	const Analysis &getAnalysis() const
-	{
-		return analysis;
-	}
+	const Analysis &getAnalysis() const { return analysis; }
+	bool containsImageWrite() const { return analysis.ContainsImageWrite; }
 
 	bool coverageModified() const
 	{
@@ -943,7 +942,6 @@ public:
 	uint32_t getWorkgroupSizeY() const;
 	uint32_t getWorkgroupSizeZ() const;
 
-	bool containsImageWrite() const { return imageWriteEmitted; }
 	bool getRobustBufferAccess() const { return robustBufferAccess; }
 
 	using BuiltInHash = std::hash<std::underlying_type<spv::BuiltIn>::type>;
@@ -964,7 +962,6 @@ private:
 	std::unordered_set<uint32_t> extensionsImported;
 
 	Analysis analysis = {};
-	mutable bool imageWriteEmitted = false;
 
 	HandleMap<Type> types;
 	HandleMap<Object> defs;

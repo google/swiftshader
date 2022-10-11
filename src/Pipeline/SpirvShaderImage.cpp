@@ -1249,8 +1249,6 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(const ImageInstruction &instr
 
 SpirvShader::EmitResult SpirvShader::EmitImageWrite(const ImageInstruction &instruction, EmitState *state) const
 {
-	imageWriteEmitted = true;
-
 	auto &image = getObject(instruction.imageId);
 	auto &imageType = getType(image);
 
