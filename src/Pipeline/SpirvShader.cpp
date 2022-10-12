@@ -30,30 +30,12 @@ namespace sw {
 Spirv::Spirv(
     VkShaderStageFlagBits pipelineStage,
     const char *entryPointName,
-    const SpirvBinary &insns,
-    const vk::RenderPass *renderPass,
-    uint32_t subpassIndex,
-    bool robustBufferAccess)
+    const SpirvBinary &insns)
     : insns{ insns }
     , inputs{ MAX_INTERFACE_COMPONENTS }
     , outputs{ MAX_INTERFACE_COMPONENTS }
-    , robustBufferAccess(robustBufferAccess)
 {
 	ASSERT(insns.size() > 0);
-
-	if(renderPass)
-	{
-		// capture formats of any input attachments present
-		auto subpass = renderPass->getSubpass(subpassIndex);
-		inputAttachmentFormats.reserve(subpass.inputAttachmentCount);
-		for(auto i = 0u; i < subpass.inputAttachmentCount; i++)
-		{
-			auto attachmentIndex = subpass.pInputAttachments[i].attachment;
-			inputAttachmentFormats.push_back(attachmentIndex != VK_ATTACHMENT_UNUSED
-			                                     ? renderPass->getAttachment(attachmentIndex).format
-			                                     : VK_FORMAT_UNDEFINED);
-		}
-	}
 
 	// The identifiers of all OpVariables that define the entry point's IO variables.
 	std::unordered_set<Object::ID> interfaceIds;
@@ -1716,7 +1698,7 @@ void Spirv::DefineResult(const InsnIterator &insn)
 	object.definition = insn;
 }
 
-OutOfBoundsBehavior Spirv::getOutOfBoundsBehavior(Object::ID pointerId, const vk::PipelineLayout *pipelineLayout) const
+OutOfBoundsBehavior SpirvShader::getOutOfBoundsBehavior(Object::ID pointerId, const vk::PipelineLayout *pipelineLayout) const
 {
 	auto it = descriptorDecorations.find(pointerId);
 	if(it != descriptorDecorations.end())
@@ -1770,7 +1752,7 @@ OutOfBoundsBehavior Spirv::getOutOfBoundsBehavior(Object::ID pointerId, const vk
 
 // emit-time
 
-void Spirv::emitProlog(SpirvRoutine *routine) const
+void SpirvShader::emitProlog(SpirvRoutine *routine) const
 {
 	for(auto insn : *this)
 	{
@@ -1815,7 +1797,7 @@ void Spirv::emitProlog(SpirvRoutine *routine) const
 	}
 }
 
-void Spirv::emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount) const
+void SpirvShader::emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount) const
 {
 	SpirvEmitter::emit(*this, routine, entryPoint, activeLaneMask, storesAndAtomicsMask, descriptorSets, multiSampleCount);
 }
@@ -1826,15 +1808,29 @@ SpirvShader::SpirvShader(VkShaderStageFlagBits stage,
                          const vk::RenderPass *renderPass,
                          uint32_t subpassIndex,
                          bool robustBufferAccess)
-    : Spirv(stage, entryPointName, insns, renderPass, subpassIndex, robustBufferAccess)
+    : Spirv(stage, entryPointName, insns)
+    , robustBufferAccess(robustBufferAccess)
 {
+	if(renderPass)
+	{
+		// capture formats of any input attachments present
+		auto subpass = renderPass->getSubpass(subpassIndex);
+		inputAttachmentFormats.reserve(subpass.inputAttachmentCount);
+		for(auto i = 0u; i < subpass.inputAttachmentCount; i++)
+		{
+			auto attachmentIndex = subpass.pInputAttachments[i].attachment;
+			inputAttachmentFormats.push_back(attachmentIndex != VK_ATTACHMENT_UNUSED
+			                                     ? renderPass->getAttachment(attachmentIndex).format
+			                                     : VK_FORMAT_UNDEFINED);
+		}
+	}
 }
 
 SpirvShader::~SpirvShader()
 {
 }
 
-SpirvEmitter::SpirvEmitter(const Spirv &shader,
+SpirvEmitter::SpirvEmitter(const SpirvShader &shader,
                            SpirvRoutine *routine,
                            Spirv::Function::ID entryPoint,
                            RValue<SIMD::Int> activeLaneMask,
@@ -1851,7 +1847,7 @@ SpirvEmitter::SpirvEmitter(const Spirv &shader,
 {
 }
 
-void SpirvEmitter::emit(const Spirv &shader,
+void SpirvEmitter::emit(const SpirvShader &shader,
                         SpirvRoutine *routine,
                         Spirv::Function::ID entryPoint,
                         RValue<SIMD::Int> activeLaneMask,
@@ -2722,7 +2718,7 @@ uint32_t Spirv::GetConstScalarInt(Object::ID id) const
 	return scopeObj.constantValue[0];
 }
 
-void Spirv::emitEpilog(SpirvRoutine *routine) const
+void SpirvShader::emitEpilog(SpirvRoutine *routine) const
 {
 	for(auto insn : *this)
 	{

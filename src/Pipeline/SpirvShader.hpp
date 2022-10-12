@@ -146,15 +146,14 @@ private:
 #endif  // ENABLE_RR_PRINT
 };
 
+// The Spirv class parses a SPIR-V binary and provides utilities for retrieving
+// information about instructions, objects, types, etc.
 class Spirv
 {
 public:
 	Spirv(VkShaderStageFlagBits stage,
 	      const char *entryPointName,
-	      const SpirvBinary &insns,
-	      const vk::RenderPass *renderPass,
-	      uint32_t subpassIndex,
-	      bool robustBufferAccess);
+	      const SpirvBinary &insns);
 
 	~Spirv();
 
@@ -753,7 +752,6 @@ public:
 	};
 
 	std::unordered_map<Object::ID, DescriptorDecorations> descriptorDecorations;
-	std::vector<vk::Format> inputAttachmentFormats;
 
 	struct InterfaceComponent
 	{
@@ -813,24 +811,14 @@ public:
 	std::vector<InterfaceComponent> inputs;
 	std::vector<InterfaceComponent> outputs;
 
-	// TODO(b/247020580): Move to SpirvRoutine
-	void emitProlog(SpirvRoutine *routine) const;
-	void emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
-	void emitEpilog(SpirvRoutine *routine) const;
-
 	uint32_t getWorkgroupSizeX() const;
 	uint32_t getWorkgroupSizeY() const;
 	uint32_t getWorkgroupSizeZ() const;
-
-	bool getRobustBufferAccess() const { return robustBufferAccess; }
 
 	using BuiltInHash = std::hash<std::underlying_type<spv::BuiltIn>::type>;
 	std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> inputBuiltins;
 	std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> outputBuiltins;
 	WorkgroupMemory workgroupMemory;
-
-private:
-	const bool robustBufferAccess;
 
 	Function::ID entryPoint;
 	spv::ExecutionModel executionModel = spv::ExecutionModelMax;  // Invalid prior to OpEntryPoint parsing.
@@ -940,8 +928,6 @@ public:
 		return it->second;
 	}
 
-	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, const vk::PipelineLayout *pipelineLayout) const;
-
 	// Returns the *component* offset in the literal for the given access chain.
 	uint32_t WalkLiteralAccessChain(Type::ID id, const Span &indexes) const;
 
@@ -979,7 +965,8 @@ public:
 	static bool IsTerminator(spv::Op opcode);
 };
 
-// TODO(b/247020580): Move state from Spirv to SpirvShader
+// The SpirvShader class holds a parsed SPIR-V shader but also the pipeline
+// state which affects code emission when passing it to SpirvEmitter.
 class SpirvShader : public Spirv
 {
 public:
@@ -991,6 +978,21 @@ public:
 	            bool robustBufferAccess);
 
 	~SpirvShader();
+
+	// TODO(b/247020580): Move to SpirvRoutine
+	void emitProlog(SpirvRoutine *routine) const;
+	void emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
+	void emitEpilog(SpirvRoutine *routine) const;
+
+	bool getRobustBufferAccess() const { return robustBufferAccess; }
+	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, const vk::PipelineLayout *pipelineLayout) const;
+
+	vk::Format getInputAttachmentFormat(int32_t index) const { return inputAttachmentFormats[index]; }
+
+private:
+	const bool robustBufferAccess;
+
+	std::vector<vk::Format> inputAttachmentFormats;
 };
 
 // The SpirvEmitter class translates the parsed SPIR-V shader into Reactor code.
@@ -1004,7 +1006,7 @@ class SpirvEmitter
 	using Span = Spirv::Span;
 
 public:
-	static void emit(const Spirv &shader,
+	static void emit(const SpirvShader &shader,
 	                 SpirvRoutine *routine,
 	                 Spirv::Function::ID entryPoint,
 	                 RValue<SIMD::Int> activeLaneMask,
@@ -1019,7 +1021,7 @@ public:
 	};
 
 private:
-	SpirvEmitter(const Spirv &shader,
+	SpirvEmitter(const SpirvShader &shader,
 	             SpirvRoutine *routine,
 	             Spirv::Function::ID entryPoint,
 	             RValue<SIMD::Int> activeLaneMask,
@@ -1519,7 +1521,7 @@ private:
 	static sw::MipmapType convertMipmapMode(const vk::SamplerState *samplerState);
 	static sw::AddressingMode convertAddressingMode(int coordinateIndex, const vk::SamplerState *samplerState, VkImageViewType imageViewType);
 
-	const Spirv &shader;
+	const SpirvShader &shader;
 	SpirvRoutine *const routine;                     // The current routine being built.
 	Spirv::Function::ID function;                    // The current function being built.
 	Block::ID block;                                 // The current block being built.
