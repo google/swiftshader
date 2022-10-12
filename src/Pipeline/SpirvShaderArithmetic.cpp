@@ -23,7 +23,7 @@
 
 namespace sw {
 
-void SpirvEmitter::EmitVectorTimesScalar(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitVectorTimesScalar(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -36,7 +36,7 @@ void SpirvEmitter::EmitVectorTimesScalar(SpirvShader::InsnIterator insn)
 	}
 }
 
-void SpirvEmitter::EmitMatrixTimesVector(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitMatrixTimesVector(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -54,7 +54,7 @@ void SpirvEmitter::EmitMatrixTimesVector(SpirvShader::InsnIterator insn)
 	}
 }
 
-void SpirvEmitter::EmitVectorTimesMatrix(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitVectorTimesMatrix(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -72,7 +72,7 @@ void SpirvEmitter::EmitVectorTimesMatrix(SpirvShader::InsnIterator insn)
 	}
 }
 
-void SpirvEmitter::EmitMatrixTimesMatrix(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitMatrixTimesMatrix(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -97,7 +97,7 @@ void SpirvEmitter::EmitMatrixTimesMatrix(SpirvShader::InsnIterator insn)
 	}
 }
 
-void SpirvEmitter::EmitOuterProduct(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitOuterProduct(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -116,7 +116,7 @@ void SpirvEmitter::EmitOuterProduct(SpirvShader::InsnIterator insn)
 	}
 }
 
-void SpirvEmitter::EmitTranspose(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitTranspose(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -134,7 +134,7 @@ void SpirvEmitter::EmitTranspose(SpirvShader::InsnIterator insn)
 	}
 }
 
-void SpirvEmitter::EmitBitcastPointer(SpirvShader::Object::ID resultID, Operand &src)
+void SpirvEmitter::EmitBitcastPointer(Spirv::Object::ID resultID, Operand &src)
 {
 	if(src.isPointer())  // Pointer -> Integer bits
 	{
@@ -174,12 +174,12 @@ void SpirvEmitter::EmitBitcastPointer(SpirvShader::Object::ID resultID, Operand 
 	}
 }
 
-void SpirvEmitter::EmitUnaryOp(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitUnaryOp(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto src = Operand(shader, *this, insn.word(3));
 
-	bool dstIsPointer = shader.getObject(insn.resultId()).kind == SpirvShader::Object::Kind::Pointer;
+	bool dstIsPointer = shader.getObject(insn.resultId()).kind == Spirv::Object::Kind::Pointer;
 	bool srcIsPointer = src.isPointer();
 	if(srcIsPointer || dstIsPointer)
 	{
@@ -345,7 +345,7 @@ void SpirvEmitter::EmitUnaryOp(SpirvShader::InsnIterator insn)
 	}
 }
 
-void SpirvEmitter::EmitBinaryOp(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitBinaryOp(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -556,7 +556,7 @@ void SpirvEmitter::EmitBinaryOp(SpirvShader::InsnIterator insn)
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), rhs);
 }
 
-void SpirvEmitter::EmitDot(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitDot(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);

@@ -25,7 +25,7 @@ namespace sw {
 
 static constexpr float PI = 3.141592653589793f;
 
-void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitExtGLSLstd450(Spirv::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -283,7 +283,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 			auto I = Operand(shader, *this, insn.word(5));
 			auto N = Operand(shader, *this, insn.word(6));
 			auto eta = Operand(shader, *this, insn.word(7));
-			SpirvShader::Decorations r = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations r = shader.GetDecorationsForId(insn.resultId());
 
 			SIMD::Float d = FDot(type.componentCount, I, N);
 			SIMD::Float k = SIMD::Float(1.0f) - eta.Float(0) * eta.Float(0) * (SIMD::Float(1.0f) - d * d);
@@ -316,7 +316,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 		{
 			auto x = Operand(shader, *this, insn.word(5));
 			SIMD::Float d = FDot(shader.getObjectType(insn.word(5)).componentCount, x, x);
-			SpirvShader::Decorations r = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations r = shader.GetDecorationsForId(insn.resultId());
 
 			dst.move(0, Sqrt(d, r.RelaxedPrecision));
 		}
@@ -324,7 +324,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Normalize:
 		{
 			auto x = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations r = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations r = shader.GetDecorationsForId(insn.resultId());
 
 			SIMD::Float d = FDot(shader.getObjectType(insn.word(5)).componentCount, x, x);
 			SIMD::Float invLength = SIMD::Float(1.0f) / Sqrt(d, r.RelaxedPrecision);
@@ -339,7 +339,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 		{
 			auto p0 = Operand(shader, *this, insn.word(5));
 			auto p1 = Operand(shader, *this, insn.word(6));
-			SpirvShader::Decorations r = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations r = shader.GetDecorationsForId(insn.resultId());
 
 			// sqrt(dot(p0-p1, p0-p1))
 			SIMD::Float d = (p0.Float(0) - p1.Float(0)) * (p0.Float(0) - p1.Float(0));
@@ -355,7 +355,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Modf:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			auto ptrId = SpirvShader::Object::ID(insn.word(6));
+			auto ptrId = Spirv::Object::ID(insn.word(6));
 
 			Intermediate whole(type.componentCount);
 
@@ -492,7 +492,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Frexp:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			auto ptrId = SpirvShader::Object::ID(insn.word(6));
+			auto ptrId = Spirv::Object::ID(insn.word(6));
 
 			Intermediate exp(type.componentCount);
 
@@ -550,7 +550,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Sin:
 		{
 			auto radians = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -561,7 +561,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Cos:
 		{
 			auto radians = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -572,7 +572,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Tan:
 		{
 			auto radians = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -583,7 +583,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Asin:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -594,7 +594,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Acos:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -605,7 +605,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Atan:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -616,7 +616,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Sinh:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -627,7 +627,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Cosh:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -638,7 +638,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Tanh:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -649,7 +649,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Asinh:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -660,7 +660,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Acosh:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -671,7 +671,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Atanh:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -683,7 +683,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 		{
 			auto x = Operand(shader, *this, insn.word(5));
 			auto y = Operand(shader, *this, insn.word(6));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -695,7 +695,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 		{
 			auto x = Operand(shader, *this, insn.word(5));
 			auto y = Operand(shader, *this, insn.word(6));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -706,7 +706,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Exp:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -717,7 +717,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Log:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -728,7 +728,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Exp2:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -739,7 +739,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Log2:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -750,7 +750,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450Sqrt:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -761,7 +761,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 	case GLSLstd450InverseSqrt:
 		{
 			auto val = Operand(shader, *this, insn.word(5));
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.resultId());
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.resultId());
 
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -891,7 +891,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 		break;
 	case GLSLstd450InterpolateAtCentroid:
 		{
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.word(5));
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.word(5));
 			auto ptr = getPointer(insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -901,7 +901,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 		break;
 	case GLSLstd450InterpolateAtSample:
 		{
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.word(5));
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.word(5));
 			auto ptr = getPointer(insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -911,7 +911,7 @@ void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 		break;
 	case GLSLstd450InterpolateAtOffset:
 		{
-			SpirvShader::Decorations d = shader.GetDecorationsForId(insn.word(5));
+			Spirv::Decorations d = shader.GetDecorationsForId(insn.word(5));
 			auto ptr = getPointer(insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
@@ -976,7 +976,7 @@ static SIMD::Float Interpolate(const SIMD::Float &x, const SIMD::Float &y, const
 	return interpolant;
 }
 
-SIMD::Float SpirvEmitter::EmitInterpolate(const SIMD::Pointer &ptr, int32_t location, SpirvShader::Object::ID paramId,
+SIMD::Float SpirvEmitter::EmitInterpolate(const SIMD::Pointer &ptr, int32_t location, Spirv::Object::ID paramId,
                                           uint32_t component, InterpolationType type) const
 {
 	uint32_t interpolant = (location * 4);

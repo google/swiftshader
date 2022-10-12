@@ -74,7 +74,7 @@ static vk::Format SpirvFormatToVulkanFormat(spv::ImageFormat format)
 	}
 }
 
-SpirvEmitter::ImageInstruction::ImageInstruction(InsnIterator insn, const SpirvShader &shader, const SpirvEmitter &state)
+SpirvEmitter::ImageInstruction::ImageInstruction(InsnIterator insn, const Spirv &shader, const SpirvEmitter &state)
     : ImageInstructionSignature(parseVariantAndMethod(insn))
     , position(insn.distanceFrom(shader.begin()))
 {
@@ -529,7 +529,7 @@ void SpirvEmitter::GetImageDimensions(const Type &resultTy, Object::ID imageId, 
 	bool isArrayed = imageType.definition.word(5) != 0;
 	uint32_t dimensions = resultTy.componentCount - (isArrayed ? 1 : 0);
 
-	const SpirvShader::DescriptorDecorations &d = shader.descriptorDecorations.at(imageId);
+	const Spirv::DescriptorDecorations &d = shader.descriptorDecorations.at(imageId);
 	auto descriptorType = routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding);
 
 	Pointer<Byte> descriptor = getPointer(imageId).getUniformPointer();
@@ -588,7 +588,7 @@ void SpirvEmitter::EmitImageQueryLevels(InsnIterator insn)
 	ASSERT(resultTy.componentCount == 1);
 	auto imageId = Object::ID(insn.word(3));
 
-	const SpirvShader::DescriptorDecorations &d = shader.descriptorDecorations.at(imageId);
+	const Spirv::DescriptorDecorations &d = shader.descriptorDecorations.at(imageId);
 	auto descriptorType = routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding);
 
 	Pointer<Byte> descriptor = getPointer(imageId).getUniformPointer();
@@ -618,7 +618,7 @@ void SpirvEmitter::EmitImageQuerySamples(InsnIterator insn)
 	ASSERT(imageTy.definition.word(3) == spv::Dim2D);
 	ASSERT(imageTy.definition.word(6 /* MS */) == 1);
 
-	const SpirvShader::DescriptorDecorations &d = shader.descriptorDecorations.at(imageId);
+	const Spirv::DescriptorDecorations &d = shader.descriptorDecorations.at(imageId);
 	auto descriptorType = routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding);
 
 	Pointer<Byte> descriptor = getPointer(imageId).getUniformPointer();
@@ -830,7 +830,7 @@ void SpirvEmitter::EmitImageRead(const ImageInstruction &instruction)
 	auto dim = static_cast<spv::Dim>(instruction.dim);
 
 	auto coordinate = Operand(shader, *this, instruction.coordinateId);
-	const SpirvShader::DescriptorDecorations &d = shader.descriptorDecorations.at(instruction.imageId);
+	const Spirv::DescriptorDecorations &d = shader.descriptorDecorations.at(instruction.imageId);
 
 	// For subpass data, format in the instruction is spv::ImageFormatUnknown. Get it from
 	// the renderpass data instead. In all other cases, we can use the format in the instruction.

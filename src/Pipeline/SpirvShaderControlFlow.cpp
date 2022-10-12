@@ -28,7 +28,7 @@
 
 namespace sw {
 
-SpirvShader::Block::Block(InsnIterator begin, InsnIterator end)
+Spirv::Block::Block(InsnIterator begin, InsnIterator end)
     : begin_(begin)
     , end_(end)
 {
@@ -117,7 +117,7 @@ SpirvShader::Block::Block(InsnIterator begin, InsnIterator end)
 	}
 }
 
-void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, Block::Set &reachable) const
+void Spirv::Function::TraverseReachableBlocks(Block::ID id, Block::Set &reachable) const
 {
 	if(reachable.count(id) == 0)
 	{
@@ -129,7 +129,7 @@ void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, Block::Set &re
 	}
 }
 
-void SpirvShader::Function::AssignBlockFields()
+void Spirv::Function::AssignBlockFields()
 {
 	Block::Set reachable;
 	TraverseReachableBlocks(entry, reachable);
@@ -157,7 +157,7 @@ void SpirvShader::Function::AssignBlockFields()
 	}
 }
 
-void SpirvShader::Function::ForeachBlockDependency(Block::ID blockId, std::function<void(Block::ID)> f) const
+void Spirv::Function::ForeachBlockDependency(Block::ID blockId, std::function<void(Block::ID)> f) const
 {
 	auto block = getBlock(blockId);
 	for(auto dep : block.ins)
@@ -170,7 +170,7 @@ void SpirvShader::Function::ForeachBlockDependency(Block::ID blockId, std::funct
 	}
 }
 
-bool SpirvShader::Function::ExistsPath(Block::ID from, Block::ID to, Block::ID notPassingThrough) const
+bool Spirv::Function::ExistsPath(Block::ID from, Block::ID to, Block::ID notPassingThrough) const
 {
 	// TODO: Optimize: This can be cached on the block.
 	Block::Set seen;
@@ -589,7 +589,7 @@ void SpirvEmitter::EmitIsHelperInvocation(InsnIterator insn)
 
 void SpirvEmitter::EmitFunctionCall(InsnIterator insn)
 {
-	auto functionId = SpirvShader::Function::ID(insn.word(3));
+	auto functionId = Spirv::Function::ID(insn.word(3));
 	const auto &functionIt = shader.functions.find(functionId);
 	ASSERT(functionIt != shader.functions.end());
 	auto &function = functionIt->second;
@@ -732,7 +732,7 @@ void SpirvEmitter::SetStoresAndAtomicsMask(RValue<SIMD::Int> mask)
 	storesAndAtomicsMaskValue = mask.value();
 }
 
-void SpirvShader::WriteCFGGraphVizDotFile(const char *path) const
+void Spirv::WriteCFGGraphVizDotFile(const char *path) const
 {
 	std::ofstream file(path);
 	file << "digraph D {" << std::endl;

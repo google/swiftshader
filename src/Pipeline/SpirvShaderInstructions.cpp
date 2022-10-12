@@ -20,13 +20,13 @@
 
 namespace sw {
 
-const char *SpirvShader::OpcodeName(spv::Op opcode)
+const char *Spirv::OpcodeName(spv::Op opcode)
 {
 	return spvOpcodeString(opcode);
 }
 
 // This function is used by the shader debugger to determine whether an instruction is steppable.
-bool SpirvShader::IsStatement(spv::Op opcode)
+bool Spirv::IsStatement(spv::Op opcode)
 {
 	switch(opcode)
 	{
@@ -91,7 +91,7 @@ bool SpirvShader::IsStatement(spv::Op opcode)
 	}
 }
 
-bool SpirvShader::IsTerminator(spv::Op opcode)
+bool Spirv::IsTerminator(spv::Op opcode)
 {
 	switch(opcode)
 	{

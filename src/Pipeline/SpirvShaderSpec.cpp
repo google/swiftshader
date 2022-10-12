@@ -18,7 +18,7 @@
 
 namespace sw {
 
-void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
+void Spirv::EvalSpecConstantOp(InsnIterator insn)
 {
 	auto opcode = static_cast<spv::Op>(insn.word(3));
 
@@ -153,7 +153,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 	}
 }
 
-void SpirvShader::EvalSpecConstantUnaryOp(InsnIterator insn)
+void Spirv::EvalSpecConstantUnaryOp(InsnIterator insn)
 {
 	auto &result = CreateConstant(insn);
 
@@ -203,7 +203,7 @@ void SpirvShader::EvalSpecConstantUnaryOp(InsnIterator insn)
 	}
 }
 
-void SpirvShader::EvalSpecConstantBinaryOp(InsnIterator insn)
+void Spirv::EvalSpecConstantBinaryOp(InsnIterator insn)
 {
 	auto &result = CreateConstant(insn);
 

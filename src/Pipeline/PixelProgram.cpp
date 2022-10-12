@@ -104,12 +104,12 @@ void PixelProgram::setBuiltins(Int &x, Int &y, SIMD::Float (&z)[4], SIMD::Float 
 	routine.pointCoord[0] = SIMD::Float(0.5f) + pointSizeInv * (((SIMD::Float(Float(x)) + SIMD::Float(0.0f, 1.0f, 0.0f, 1.0f)) - SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, x0)))));
 	routine.pointCoord[1] = SIMD::Float(0.5f) + pointSizeInv * (((SIMD::Float(Float(y)) + SIMD::Float(0.0f, 0.0f, 1.0f, 1.0f)) - SIMD::Float(*Pointer<Float>(primitive + OFFSET(Primitive, y0)))));
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
+	routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const Spirv::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(routine.layer));
 	});
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInFragCoord, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
+	routine.setInputBuiltin(spirvShader, spv::BuiltInFragCoord, [&](const Spirv::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 4);
 		value[builtin.FirstComponent + 0] = routine.fragCoord[0];
 		value[builtin.FirstComponent + 1] = routine.fragCoord[1];
@@ -117,18 +117,18 @@ void PixelProgram::setBuiltins(Int &x, Int &y, SIMD::Float (&z)[4], SIMD::Float 
 		value[builtin.FirstComponent + 3] = routine.fragCoord[3];
 	});
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInPointCoord, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
+	routine.setInputBuiltin(spirvShader, spv::BuiltInPointCoord, [&](const Spirv::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 2);
 		value[builtin.FirstComponent + 0] = routine.pointCoord[0];
 		value[builtin.FirstComponent + 1] = routine.pointCoord[1];
 	});
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInSubgroupSize, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
+	routine.setInputBuiltin(spirvShader, spv::BuiltInSubgroupSize, [&](const Spirv::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(SIMD::Width));
 	});
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInHelperInvocation, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
+	routine.setInputBuiltin(spirvShader, spv::BuiltInHelperInvocation, [&](const Spirv::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<SIMD::Float>(routine.helperInvocation);
 	});

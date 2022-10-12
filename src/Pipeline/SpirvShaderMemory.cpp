@@ -57,7 +57,7 @@ void SpirvEmitter::EmitLoad(InsnIterator insn)
 
 	if(result.kind == Object::Kind::Pointer)
 	{
-		shader.VisitMemoryObject(pointerId, true, [&](const SpirvShader::MemoryElement &el) {
+		shader.VisitMemoryObject(pointerId, true, [&](const Spirv::MemoryElement &el) {
 			ASSERT(el.index == 0);
 			auto p = GetElementPointer(ptr, el.offset, pointerTy.storageClass);
 			createPointer(resultId, p.Load<SIMD::Pointer>(robustness, activeLaneMask(), atomic, memoryOrder, sizeof(void *)));
@@ -68,7 +68,7 @@ void SpirvEmitter::EmitLoad(InsnIterator insn)
 	else
 	{
 		auto &dst = createIntermediate(resultId, resultTy.componentCount);
-		shader.VisitMemoryObject(pointerId, false, [&](const SpirvShader::MemoryElement &el) {
+		shader.VisitMemoryObject(pointerId, false, [&](const Spirv::MemoryElement &el) {
 			auto p = GetElementPointer(ptr, el.offset, pointerTy.storageClass);
 			dst.move(el.index, p.Load<SIMD::Float>(robustness, activeLaneMask(), atomic, memoryOrder));
 		});
@@ -117,7 +117,7 @@ void SpirvEmitter::Store(Object::ID pointerId, const Operand &value, bool atomic
 
 	if(value.isPointer())
 	{
-		shader.VisitMemoryObject(pointerId, true, [&](const SpirvShader::MemoryElement &el) {
+		shader.VisitMemoryObject(pointerId, true, [&](const Spirv::MemoryElement &el) {
 			ASSERT(el.index == 0);
 			auto p = GetElementPointer(ptr, el.offset, pointerTy.storageClass);
 			p.Store(value.Pointer(), robustness, mask, atomic, memoryOrder);
@@ -125,7 +125,7 @@ void SpirvEmitter::Store(Object::ID pointerId, const Operand &value, bool atomic
 	}
 	else
 	{
-		shader.VisitMemoryObject(pointerId, false, [&](const SpirvShader::MemoryElement &el) {
+		shader.VisitMemoryObject(pointerId, false, [&](const Spirv::MemoryElement &el) {
 			auto p = GetElementPointer(ptr, el.offset, pointerTy.storageClass);
 			p.Store(value.Float(el.index), robustness, mask, atomic, memoryOrder);
 		});
@@ -166,7 +166,7 @@ void SpirvEmitter::EmitVariable(InsnIterator insn)
 				auto &dst = routine->getVariable(resultId);
 				int offset = 0;
 				shader.VisitInterface(resultId,
-				                      [&](const Decorations &d, SpirvShader::AttribType type) {
+				                      [&](const Decorations &d, Spirv::AttribType type) {
 					                      auto scalarSlot = d.Location << 2 | d.Component;
 					                      dst[offset++] = routine->inputs[scalarSlot];
 				                      });
@@ -239,7 +239,7 @@ void SpirvEmitter::EmitVariable(InsnIterator insn)
 				auto ptr = GetPointerToData(resultId, 0, false);
 				Operand initialValue(shader, *this, initializerId);
 
-				shader.VisitMemoryObject(resultId, false, [&](const SpirvShader::MemoryElement &el) {
+				shader.VisitMemoryObject(resultId, false, [&](const Spirv::MemoryElement &el) {
 					auto p = GetElementPointer(ptr, el.offset, objectTy.storageClass);
 					auto robustness = OutOfBoundsBehavior::UndefinedBehavior;  // Local variables are always within bounds.
 					p.Store(initialValue.Float(el.index), robustness, activeLaneMask());
@@ -272,9 +272,9 @@ void SpirvEmitter::EmitCopyMemory(InsnIterator insn)
 
 	std::unordered_map<uint32_t, uint32_t> srcOffsets;
 
-	shader.VisitMemoryObject(srcPtrId, false, [&](const SpirvShader::MemoryElement &el) { srcOffsets[el.index] = el.offset; });
+	shader.VisitMemoryObject(srcPtrId, false, [&](const Spirv::MemoryElement &el) { srcOffsets[el.index] = el.offset; });
 
-	shader.VisitMemoryObject(dstPtrId, false, [&](const SpirvShader::MemoryElement &el) {
+	shader.VisitMemoryObject(dstPtrId, false, [&](const Spirv::MemoryElement &el) {
 		auto it = srcOffsets.find(el.index);
 		ASSERT(it != srcOffsets.end());
 		auto srcOffset = it->second;
@@ -299,7 +299,7 @@ void SpirvEmitter::EmitMemoryBarrier(InsnIterator insn)
 	Fence(semantics);
 }
 
-void SpirvShader::VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, bool resultIsPointer, const MemoryVisitor &f) const
+void Spirv::VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, bool resultIsPointer, const MemoryVisitor &f) const
 {
 	ApplyDecorationsForId(&d, id);
 	const auto &type = getType(id);
@@ -370,7 +370,7 @@ void SpirvShader::VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &i
 	}
 }
 
-void SpirvShader::VisitMemoryObject(Object::ID id, bool resultIsPointer, const MemoryVisitor &f) const
+void Spirv::VisitMemoryObject(Object::ID id, bool resultIsPointer, const MemoryVisitor &f) const
 {
 	auto typeId = getObject(id).typeId();
 	const auto &type = getType(typeId);
@@ -505,7 +505,7 @@ void SpirvEmitter::Fence(spv::MemorySemanticsMask semantics) const
 	}
 }
 
-std::memory_order SpirvShader::MemoryOrder(spv::MemorySemanticsMask memorySemantics)
+std::memory_order Spirv::MemoryOrder(spv::MemorySemanticsMask memorySemantics)
 {
 	uint32_t control = static_cast<uint32_t>(memorySemantics) & static_cast<uint32_t>(
 	                                                                spv::MemorySemanticsAcquireMask |
@@ -527,7 +527,7 @@ std::memory_order SpirvShader::MemoryOrder(spv::MemorySemanticsMask memorySemant
 	}
 }
 
-bool SpirvShader::StoresInHelperInvocationsHaveNoEffect(spv::StorageClass storageClass)
+bool Spirv::StoresInHelperInvocationsHaveNoEffect(spv::StorageClass storageClass)
 {
 	switch(storageClass)
 	{
@@ -542,7 +542,7 @@ bool SpirvShader::StoresInHelperInvocationsHaveNoEffect(spv::StorageClass storag
 	}
 }
 
-bool SpirvShader::IsExplicitLayout(spv::StorageClass storageClass)
+bool Spirv::IsExplicitLayout(spv::StorageClass storageClass)
 {
 	// From the Vulkan spec:
 	// "Composite objects in the StorageBuffer, PhysicalStorageBuffer, Uniform,
