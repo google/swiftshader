@@ -25,7 +25,7 @@ namespace sw {
 
 static constexpr float PI = 3.141592653589793f;
 
-EmitState::EmitResult EmitState::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
+void EmitState::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -955,8 +955,6 @@ EmitState::EmitResult EmitState::EmitExtGLSLstd450(SpirvShader::InsnIterator ins
 		UNREACHABLE("ExtInst %d", int(extInstIndex));
 		break;
 	}
-
-	return EmitResult::Continue;
 }
 
 static SIMD::Float Interpolate(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw,

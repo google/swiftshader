@@ -23,7 +23,7 @@
 
 namespace sw {
 
-EmitState::EmitResult EmitState::EmitLoad(InsnIterator insn)
+void EmitState::EmitLoad(InsnIterator insn)
 {
 	bool atomic = (insn.opcode() == spv::OpAtomicLoad);
 	Object::ID resultId = insn.word(2);
@@ -43,7 +43,6 @@ EmitState::EmitResult EmitState::EmitLoad(InsnIterator insn)
 		// Just propagate the pointer.
 		auto &ptr = getPointer(pointerId);
 		createPointer(resultId, ptr);
-		return EmitResult::Continue;
 	}
 
 	if(atomic)
@@ -76,11 +75,9 @@ EmitState::EmitResult EmitState::EmitLoad(InsnIterator insn)
 
 		SPIRV_SHADER_DBG("Load(atomic: {0}, order: {1}, ptr: {2}, val: {3}, mask: {4})", atomic, int(memoryOrder), ptr, dst, activeLaneMask());
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitStore(InsnIterator insn)
+void EmitState::EmitStore(InsnIterator insn)
 {
 	bool atomic = (insn.opcode() == spv::OpAtomicStore);
 	Object::ID pointerId = insn.word(1);
@@ -97,8 +94,6 @@ EmitState::EmitResult EmitState::EmitStore(InsnIterator insn)
 	const auto &value = Operand(shader, *this, objectId);
 
 	Store(pointerId, value, atomic, memoryOrder);
-
-	return EmitResult::Continue;
 }
 
 void EmitState::Store(Object::ID pointerId, const Operand &value, bool atomic, std::memory_order memoryOrder) const
@@ -137,7 +132,7 @@ void EmitState::Store(Object::ID pointerId, const Operand &value, bool atomic, s
 	}
 }
 
-EmitState::EmitResult EmitState::EmitVariable(InsnIterator insn)
+void EmitState::EmitVariable(InsnIterator insn)
 {
 	Object::ID resultId = insn.word(2);
 	auto &object = shader.getObject(resultId);
@@ -262,11 +257,9 @@ EmitState::EmitResult EmitState::EmitVariable(InsnIterator insn)
 			ASSERT_MSG(initializerId == 0, "Vulkan does not permit variables of storage class %d to have initializers", int(objectTy.storageClass));
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitCopyMemory(InsnIterator insn)
+void EmitState::EmitCopyMemory(InsnIterator insn)
 {
 	Object::ID dstPtrId = insn.word(1);
 	Object::ID srcPtrId = insn.word(2);
@@ -296,16 +289,14 @@ EmitState::EmitResult EmitState::EmitCopyMemory(InsnIterator insn)
 		auto value = src.Load<SIMD::Float>(robustness, activeLaneMask());
 		dst.Store(value, robustness, activeLaneMask());
 	});
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitMemoryBarrier(InsnIterator insn)
+void EmitState::EmitMemoryBarrier(InsnIterator insn)
 {
 	auto semantics = spv::MemorySemanticsMask(shader.GetConstScalarInt(insn.word(2)));
 	// TODO(b/176819536): We probably want to consider the memory scope here.
 	// For now, just always emit the full fence.
 	Fence(semantics);
-	return EmitResult::Continue;
 }
 
 void SpirvShader::VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, bool resultIsPointer, const MemoryVisitor &f) const

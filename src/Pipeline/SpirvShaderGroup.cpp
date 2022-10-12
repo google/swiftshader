@@ -64,7 +64,7 @@ static RValue<TYPE> BinaryOperation(
 	}
 }
 
-EmitState::EmitResult EmitState::EmitGroupNonUniform(InsnIterator insn)
+void EmitState::EmitGroupNonUniform(InsnIterator insn)
 {
 	ASSERT(SIMD::Width == 4);  // EmitGroupNonUniform makes many assumptions that the SIMD vector width is 4
 
@@ -505,7 +505,6 @@ EmitState::EmitResult EmitState::EmitGroupNonUniform(InsnIterator insn)
 		}
 		break;
 	}
-	return EmitResult::Continue;
 }
 
 }  // namespace sw

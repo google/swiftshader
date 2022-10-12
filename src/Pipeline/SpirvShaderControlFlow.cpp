@@ -429,6 +429,7 @@ void EmitState::EmitLoop()
 	{
 		auto edge = Block::Edge{ in, mergeBlockId };
 		auto it = edgeActiveLaneMasks.find(edge);
+
 		if(it != edgeActiveLaneMasks.end())
 		{
 			mergeActiveLaneMasks[in] |= it->second;
@@ -486,20 +487,20 @@ void EmitState::EmitLoop()
 	// Continue emitting from the merge block.
 	Nucleus::setInsertBlock(mergeBasicBlock);
 	pending->push_back(mergeBlockId);
+
 	for(const auto &it : mergeActiveLaneMasks)
 	{
 		addActiveLaneMaskEdge(it.first, mergeBlockId, it.second);
 	}
 }
 
-EmitState::EmitResult EmitState::EmitBranch(InsnIterator insn)
+void EmitState::EmitBranch(InsnIterator insn)
 {
 	auto target = Block::ID(insn.word(1));
 	addActiveLaneMaskEdge(block, target, activeLaneMask());
-	return EmitResult::Terminator;
 }
 
-EmitState::EmitResult EmitState::EmitBranchConditional(InsnIterator insn)
+void EmitState::EmitBranchConditional(InsnIterator insn)
 {
 	auto &function = shader.getFunction(this->function);
 	auto block = function.getBlock(this->block);
@@ -516,11 +517,9 @@ EmitState::EmitResult EmitState::EmitBranchConditional(InsnIterator insn)
 
 	addOutputActiveLaneMaskEdge(trueBlockId, cond.Int(0));
 	addOutputActiveLaneMaskEdge(falseBlockId, ~cond.Int(0));
-
-	return EmitResult::Terminator;
 }
 
-EmitState::EmitResult EmitState::EmitSwitch(InsnIterator insn)
+void EmitState::EmitSwitch(InsnIterator insn)
 {
 	auto &function = shader.getFunction(this->function);
 	auto block = function.getBlock(this->block);
@@ -541,6 +540,7 @@ EmitState::EmitResult EmitState::EmitSwitch(InsnIterator insn)
 	// Gather up the case label matches and calculate defaultLaneMask.
 	std::vector<RValue<SIMD::Int>> caseLabelMatches;
 	caseLabelMatches.reserve(numCases);
+
 	for(uint32_t i = 0; i < numCases; i++)
 	{
 		auto label = block.branchInstruction.word(i * 2 + 3);
@@ -554,47 +554,40 @@ EmitState::EmitResult EmitState::EmitSwitch(InsnIterator insn)
 	auto defaultBlockId = Block::ID(block.branchInstruction.word(2));
 	SPIRV_SHADER_DBG("default: {0}", defaultLaneMask);
 	addOutputActiveLaneMaskEdge(defaultBlockId, defaultLaneMask);
-
-	return EmitResult::Terminator;
 }
 
-EmitState::EmitResult EmitState::EmitUnreachable(InsnIterator insn)
+void EmitState::EmitUnreachable(InsnIterator insn)
 {
 	// TODO: Log something in this case?
 	SetActiveLaneMask(SIMD::Int(0));
-	return EmitResult::Terminator;
 }
 
-EmitState::EmitResult EmitState::EmitReturn(InsnIterator insn)
+void EmitState::EmitReturn(InsnIterator insn)
 {
 	SetActiveLaneMask(SIMD::Int(0));
-	return EmitResult::Terminator;
 }
 
-EmitState::EmitResult EmitState::EmitTerminateInvocation(InsnIterator insn)
+void EmitState::EmitTerminateInvocation(InsnIterator insn)
 {
 	routine->discardMask |= SignMask(activeLaneMask());
 	SetActiveLaneMask(SIMD::Int(0));
-	return EmitResult::Terminator;
 }
 
-EmitState::EmitResult EmitState::EmitDemoteToHelperInvocation(InsnIterator insn)
+void EmitState::EmitDemoteToHelperInvocation(InsnIterator insn)
 {
 	routine->helperInvocation |= activeLaneMask();
 	routine->discardMask |= SignMask(activeLaneMask());
 	SetStoresAndAtomicsMask(storesAndAtomicsMask() & ~activeLaneMask());
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitIsHelperInvocation(InsnIterator insn)
+void EmitState::EmitIsHelperInvocation(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
 	dst.move(0, routine->helperInvocation);
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitFunctionCall(InsnIterator insn)
+void EmitState::EmitFunctionCall(InsnIterator insn)
 {
 	auto functionId = SpirvShader::Function::ID(insn.word(3));
 	const auto &functionIt = shader.functions.find(functionId);
@@ -615,13 +608,11 @@ EmitState::EmitResult EmitState::EmitFunctionCall(InsnIterator insn)
 			if(insnNumber > 1)
 			{
 				UNIMPLEMENTED("b/141246700: Function block number of instructions: %d", insnNumber);  // FIXME(b/141246700)
-				return EmitResult::Continue;
 			}
 
 			if(blockInsn.opcode() != wrapOpKill[insnNumber++])
 			{
 				UNIMPLEMENTED("b/141246700: Function block instruction %d : %s", insnNumber - 1, shader.OpcodeName(blockInsn.opcode()));  // FIXME(b/141246700)
-				return EmitResult::Continue;
 			}
 
 			if(blockInsn.opcode() == spv::OpKill)
@@ -630,11 +621,9 @@ EmitState::EmitResult EmitState::EmitFunctionCall(InsnIterator insn)
 			}
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitControlBarrier(InsnIterator insn)
+void EmitState::EmitControlBarrier(InsnIterator insn)
 {
 	auto executionScope = spv::Scope(shader.GetConstScalarInt(insn.word(1)));
 	auto semantics = spv::MemorySemanticsMask(shader.GetConstScalarInt(insn.word(3)));
@@ -654,14 +643,13 @@ EmitState::EmitResult EmitState::EmitControlBarrier(InsnIterator insn)
 		UNREACHABLE("Scope for execution must be limited to Workgroup or Subgroup");
 		break;
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitPhi(InsnIterator insn)
+void EmitState::EmitPhi(InsnIterator insn)
 {
 	auto &function = shader.getFunction(this->function);
 	auto currentBlock = function.getBlock(block);
+
 	if(!currentBlock.isLoopMerge)
 	{
 		// If this is a loop merge block, then don't attempt to update the
@@ -669,8 +657,8 @@ EmitState::EmitResult EmitState::EmitPhi(InsnIterator insn)
 		// of this phi in order to correctly deal with divergent lanes.
 		StorePhi(block, insn, currentBlock.ins);
 	}
+
 	LoadPhi(insn);
-	return EmitResult::Continue;
 }
 
 void EmitState::LoadPhi(InsnIterator insn)
@@ -684,6 +672,7 @@ void EmitState::LoadPhi(InsnIterator insn)
 	const auto &storage = storageIt->second;
 
 	auto &dst = createIntermediate(objectId, type.componentCount);
+
 	for(uint32_t i = 0; i < type.componentCount; i++)
 	{
 		dst.move(i, storage[i]);

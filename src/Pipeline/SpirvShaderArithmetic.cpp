@@ -23,7 +23,7 @@
 
 namespace sw {
 
-EmitState::EmitResult EmitState::EmitVectorTimesScalar(SpirvShader::InsnIterator insn)
+void EmitState::EmitVectorTimesScalar(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -34,11 +34,9 @@ EmitState::EmitResult EmitState::EmitVectorTimesScalar(SpirvShader::InsnIterator
 	{
 		dst.move(i, lhs.Float(i) * rhs.Float(0));
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitState::EmitMatrixTimesVector(SpirvShader::InsnIterator insn)
+void EmitState::EmitState::EmitMatrixTimesVector(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -54,11 +52,9 @@ EmitState::EmitResult EmitState::EmitState::EmitMatrixTimesVector(SpirvShader::I
 		}
 		dst.move(i, v);
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitVectorTimesMatrix(SpirvShader::InsnIterator insn)
+void EmitState::EmitVectorTimesMatrix(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -74,11 +70,9 @@ EmitState::EmitResult EmitState::EmitVectorTimesMatrix(SpirvShader::InsnIterator
 		}
 		dst.move(i, v);
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitMatrixTimesMatrix(SpirvShader::InsnIterator insn)
+void EmitState::EmitMatrixTimesMatrix(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -101,11 +95,9 @@ EmitState::EmitResult EmitState::EmitMatrixTimesMatrix(SpirvShader::InsnIterator
 			dst.move(numRows * col + row, v);
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitOuterProduct(SpirvShader::InsnIterator insn)
+void EmitState::EmitOuterProduct(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -122,11 +114,9 @@ EmitState::EmitResult EmitState::EmitOuterProduct(SpirvShader::InsnIterator insn
 			dst.move(col * numRows + row, lhs.Float(row) * rhs.Float(col));
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitState::EmitTranspose(SpirvShader::InsnIterator insn)
+void EmitState::EmitState::EmitTranspose(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -142,11 +132,9 @@ EmitState::EmitResult EmitState::EmitState::EmitTranspose(SpirvShader::InsnItera
 			dst.move(col * numRows + row, mat.Float(row * numCols + col));
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitBitcastPointer(SpirvShader::Object::ID resultID, Operand &src)
+void EmitState::EmitBitcastPointer(SpirvShader::Object::ID resultID, Operand &src)
 {
 	if(src.isPointer())  // Pointer -> Integer bits
 	{
@@ -184,11 +172,9 @@ EmitState::EmitResult EmitState::EmitBitcastPointer(SpirvShader::Object::ID resu
 			createPointer(resultID, SIMD::Pointer(src.UInt(0), src.UInt(1)));
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitUnaryOp(SpirvShader::InsnIterator insn)
+void EmitState::EmitUnaryOp(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto src = Operand(shader, *this, insn.word(3));
@@ -357,11 +343,9 @@ EmitState::EmitResult EmitState::EmitUnaryOp(SpirvShader::InsnIterator insn)
 			UNREACHABLE("%s", shader.OpcodeName(insn.opcode()));
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitBinaryOp(SpirvShader::InsnIterator insn)
+void EmitState::EmitBinaryOp(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -570,11 +554,9 @@ EmitState::EmitResult EmitState::EmitBinaryOp(SpirvShader::InsnIterator insn)
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(2), dst);
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), lhs);
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), rhs);
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitDot(SpirvShader::InsnIterator insn)
+void EmitState::EmitDot(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
@@ -624,8 +606,6 @@ EmitState::EmitResult EmitState::EmitDot(SpirvShader::InsnIterator insn)
 	SPIRV_SHADER_DBG("{0}: {1}", insn.resultId(), dst);
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), lhs);
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), rhs);
-
-	return EmitResult::Continue;
 }
 
 SIMD::Float EmitState::FDot(unsigned numComponents, const Operand &x, const Operand &y)

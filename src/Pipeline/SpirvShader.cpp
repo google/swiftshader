@@ -1877,21 +1877,16 @@ void EmitState::EmitInstructions(InsnIterator begin, InsnIterator end)
 {
 	for(auto insn = begin; insn != end; insn++)
 	{
-		auto result = EmitInstruction(insn);
-		switch(result)
+		EmitInstruction(insn);
+
+		if(shader.IsTerminator(insn.opcode()))
 		{
-		case EmitResult::Continue:
-			continue;
-		case EmitResult::Terminator:
-			break;
-		default:
-			UNREACHABLE("Unexpected EmitResult %d", int(result));
 			break;
 		}
 	}
 }
 
-EmitState::EmitResult EmitState::EmitInstruction(InsnIterator insn)
+void EmitState::EmitInstruction(InsnIterator insn)
 {
 	auto opcode = insn.opcode();
 
@@ -1908,377 +1903,387 @@ EmitState::EmitResult EmitState::EmitInstruction(InsnIterator insn)
 	}
 #endif  // ENABLE_DBG_MSGS
 
-	switch(opcode)
+	if(shader.IsTerminator(opcode))
 	{
-	case spv::OpTypeVoid:
-	case spv::OpTypeInt:
-	case spv::OpTypeFloat:
-	case spv::OpTypeBool:
-	case spv::OpTypeVector:
-	case spv::OpTypeArray:
-	case spv::OpTypeRuntimeArray:
-	case spv::OpTypeMatrix:
-	case spv::OpTypeStruct:
-	case spv::OpTypePointer:
-	case spv::OpTypeForwardPointer:
-	case spv::OpTypeFunction:
-	case spv::OpTypeImage:
-	case spv::OpTypeSampledImage:
-	case spv::OpTypeSampler:
-	case spv::OpExecutionMode:
-	case spv::OpExecutionModeId:
-	case spv::OpMemoryModel:
-	case spv::OpFunction:
-	case spv::OpFunctionEnd:
-	case spv::OpConstant:
-	case spv::OpConstantNull:
-	case spv::OpConstantTrue:
-	case spv::OpConstantFalse:
-	case spv::OpConstantComposite:
-	case spv::OpSpecConstant:
-	case spv::OpSpecConstantTrue:
-	case spv::OpSpecConstantFalse:
-	case spv::OpSpecConstantComposite:
-	case spv::OpSpecConstantOp:
-	case spv::OpUndef:
-	case spv::OpExtension:
-	case spv::OpCapability:
-	case spv::OpEntryPoint:
-	case spv::OpExtInstImport:
-	case spv::OpDecorate:
-	case spv::OpMemberDecorate:
-	case spv::OpGroupDecorate:
-	case spv::OpGroupMemberDecorate:
-	case spv::OpDecorationGroup:
-	case spv::OpDecorateId:
-	case spv::OpDecorateString:
-	case spv::OpMemberDecorateString:
-	case spv::OpName:
-	case spv::OpMemberName:
-	case spv::OpSource:
-	case spv::OpSourceContinued:
-	case spv::OpSourceExtension:
-	case spv::OpNoLine:
-	case spv::OpModuleProcessed:
-	case spv::OpString:
-		// Nothing to do at emit time. These are either fully handled at analysis time,
-		// or don't require any work at all.
-		return EmitResult::Continue;
+		switch(opcode)
+		{
+		case spv::OpBranch:
+			return EmitBranch(insn);
 
-	case spv::OpLine:
-		return EmitResult::Continue;  // TODO(b/251802301)
+		case spv::OpBranchConditional:
+			return EmitBranchConditional(insn);
 
-	case spv::OpLabel:
-		return EmitResult::Continue;
+		case spv::OpSwitch:
+			return EmitSwitch(insn);
 
-	case spv::OpVariable:
-		return EmitVariable(insn);
+		case spv::OpUnreachable:
+			return EmitUnreachable(insn);
 
-	case spv::OpLoad:
-	case spv::OpAtomicLoad:
-		return EmitLoad(insn);
+		case spv::OpReturn:
+			return EmitReturn(insn);
 
-	case spv::OpStore:
-	case spv::OpAtomicStore:
-		return EmitStore(insn);
+		case spv::OpKill:
+		case spv::OpTerminateInvocation:
+			return EmitTerminateInvocation(insn);
 
-	case spv::OpAtomicIAdd:
-	case spv::OpAtomicISub:
-	case spv::OpAtomicSMin:
-	case spv::OpAtomicSMax:
-	case spv::OpAtomicUMin:
-	case spv::OpAtomicUMax:
-	case spv::OpAtomicAnd:
-	case spv::OpAtomicOr:
-	case spv::OpAtomicXor:
-	case spv::OpAtomicIIncrement:
-	case spv::OpAtomicIDecrement:
-	case spv::OpAtomicExchange:
-		return EmitAtomicOp(insn);
-
-	case spv::OpAtomicCompareExchange:
-		return EmitAtomicCompareExchange(insn);
-
-	case spv::OpAccessChain:
-	case spv::OpInBoundsAccessChain:
-	case spv::OpPtrAccessChain:
-		return EmitAccessChain(insn);
-
-	case spv::OpCompositeConstruct:
-		return EmitCompositeConstruct(insn);
-
-	case spv::OpCompositeInsert:
-		return EmitCompositeInsert(insn);
-
-	case spv::OpCompositeExtract:
-		return EmitCompositeExtract(insn);
-
-	case spv::OpVectorShuffle:
-		return EmitVectorShuffle(insn);
-
-	case spv::OpVectorExtractDynamic:
-		return EmitVectorExtractDynamic(insn);
-
-	case spv::OpVectorInsertDynamic:
-		return EmitVectorInsertDynamic(insn);
-
-	case spv::OpVectorTimesScalar:
-	case spv::OpMatrixTimesScalar:
-		return EmitVectorTimesScalar(insn);
-
-	case spv::OpMatrixTimesVector:
-		return EmitMatrixTimesVector(insn);
-
-	case spv::OpVectorTimesMatrix:
-		return EmitVectorTimesMatrix(insn);
-
-	case spv::OpMatrixTimesMatrix:
-		return EmitMatrixTimesMatrix(insn);
-
-	case spv::OpOuterProduct:
-		return EmitOuterProduct(insn);
-
-	case spv::OpTranspose:
-		return EmitTranspose(insn);
-
-	case spv::OpNot:
-	case spv::OpBitFieldInsert:
-	case spv::OpBitFieldSExtract:
-	case spv::OpBitFieldUExtract:
-	case spv::OpBitReverse:
-	case spv::OpBitCount:
-	case spv::OpSNegate:
-	case spv::OpFNegate:
-	case spv::OpLogicalNot:
-	case spv::OpConvertFToU:
-	case spv::OpConvertFToS:
-	case spv::OpConvertSToF:
-	case spv::OpConvertUToF:
-	case spv::OpBitcast:
-	case spv::OpIsInf:
-	case spv::OpIsNan:
-	case spv::OpDPdx:
-	case spv::OpDPdxCoarse:
-	case spv::OpDPdy:
-	case spv::OpDPdyCoarse:
-	case spv::OpFwidth:
-	case spv::OpFwidthCoarse:
-	case spv::OpDPdxFine:
-	case spv::OpDPdyFine:
-	case spv::OpFwidthFine:
-	case spv::OpQuantizeToF16:
-		return EmitUnaryOp(insn);
-
-	case spv::OpIAdd:
-	case spv::OpISub:
-	case spv::OpIMul:
-	case spv::OpSDiv:
-	case spv::OpUDiv:
-	case spv::OpFAdd:
-	case spv::OpFSub:
-	case spv::OpFMul:
-	case spv::OpFDiv:
-	case spv::OpFMod:
-	case spv::OpFRem:
-	case spv::OpFOrdEqual:
-	case spv::OpFUnordEqual:
-	case spv::OpFOrdNotEqual:
-	case spv::OpFUnordNotEqual:
-	case spv::OpFOrdLessThan:
-	case spv::OpFUnordLessThan:
-	case spv::OpFOrdGreaterThan:
-	case spv::OpFUnordGreaterThan:
-	case spv::OpFOrdLessThanEqual:
-	case spv::OpFUnordLessThanEqual:
-	case spv::OpFOrdGreaterThanEqual:
-	case spv::OpFUnordGreaterThanEqual:
-	case spv::OpSMod:
-	case spv::OpSRem:
-	case spv::OpUMod:
-	case spv::OpIEqual:
-	case spv::OpINotEqual:
-	case spv::OpUGreaterThan:
-	case spv::OpSGreaterThan:
-	case spv::OpUGreaterThanEqual:
-	case spv::OpSGreaterThanEqual:
-	case spv::OpULessThan:
-	case spv::OpSLessThan:
-	case spv::OpULessThanEqual:
-	case spv::OpSLessThanEqual:
-	case spv::OpShiftRightLogical:
-	case spv::OpShiftRightArithmetic:
-	case spv::OpShiftLeftLogical:
-	case spv::OpBitwiseOr:
-	case spv::OpBitwiseXor:
-	case spv::OpBitwiseAnd:
-	case spv::OpLogicalOr:
-	case spv::OpLogicalAnd:
-	case spv::OpLogicalEqual:
-	case spv::OpLogicalNotEqual:
-	case spv::OpUMulExtended:
-	case spv::OpSMulExtended:
-	case spv::OpIAddCarry:
-	case spv::OpISubBorrow:
-		return EmitBinaryOp(insn);
-
-	case spv::OpDot:
-	case spv::OpSDot:
-	case spv::OpUDot:
-	case spv::OpSUDot:
-	case spv::OpSDotAccSat:
-	case spv::OpUDotAccSat:
-	case spv::OpSUDotAccSat:
-		return EmitDot(insn);
-
-	case spv::OpSelect:
-		return EmitSelect(insn);
-
-	case spv::OpExtInst:
-		return EmitExtendedInstruction(insn);
-
-	case spv::OpAny:
-		return EmitAny(insn);
-
-	case spv::OpAll:
-		return EmitAll(insn);
-
-	case spv::OpBranch:
-		return EmitBranch(insn);
-
-	case spv::OpPhi:
-		return EmitPhi(insn);
-
-	case spv::OpSelectionMerge:
-	case spv::OpLoopMerge:
-		return EmitResult::Continue;
-
-	case spv::OpBranchConditional:
-		return EmitBranchConditional(insn);
-
-	case spv::OpSwitch:
-		return EmitSwitch(insn);
-
-	case spv::OpUnreachable:
-		return EmitUnreachable(insn);
-
-	case spv::OpReturn:
-		return EmitReturn(insn);
-
-	case spv::OpFunctionCall:
-		return EmitFunctionCall(insn);
-
-	case spv::OpKill:
-	case spv::OpTerminateInvocation:
-		return EmitTerminateInvocation(insn);
-
-	case spv::OpDemoteToHelperInvocation:
-		return EmitDemoteToHelperInvocation(insn);
-
-	case spv::OpIsHelperInvocationEXT:
-		return EmitIsHelperInvocation(insn);
-
-	case spv::OpImageSampleImplicitLod:
-	case spv::OpImageSampleExplicitLod:
-	case spv::OpImageSampleDrefImplicitLod:
-	case spv::OpImageSampleDrefExplicitLod:
-	case spv::OpImageSampleProjImplicitLod:
-	case spv::OpImageSampleProjExplicitLod:
-	case spv::OpImageSampleProjDrefImplicitLod:
-	case spv::OpImageSampleProjDrefExplicitLod:
-	case spv::OpImageGather:
-	case spv::OpImageDrefGather:
-	case spv::OpImageFetch:
-	case spv::OpImageQueryLod:
-		return EmitImageSample(ImageInstruction(insn, shader, *this));
-
-	case spv::OpImageQuerySizeLod:
-		return EmitImageQuerySizeLod(insn);
-
-	case spv::OpImageQuerySize:
-		return EmitImageQuerySize(insn);
-
-	case spv::OpImageQueryLevels:
-		return EmitImageQueryLevels(insn);
-
-	case spv::OpImageQuerySamples:
-		return EmitImageQuerySamples(insn);
-
-	case spv::OpImageRead:
-		return EmitImageRead(ImageInstruction(insn, shader, *this));
-
-	case spv::OpImageWrite:
-		return EmitImageWrite(ImageInstruction(insn, shader, *this));
-
-	case spv::OpImageTexelPointer:
-		return EmitImageTexelPointer(ImageInstruction(insn, shader, *this));
-
-	case spv::OpSampledImage:
-		return EmitSampledImage(insn);
-
-	case spv::OpImage:
-		return EmitImage(insn);
-
-	case spv::OpCopyObject:
-	case spv::OpCopyLogical:
-		return EmitCopyObject(insn);
-
-	case spv::OpCopyMemory:
-		return EmitCopyMemory(insn);
-
-	case spv::OpControlBarrier:
-		return EmitControlBarrier(insn);
-
-	case spv::OpMemoryBarrier:
-		return EmitMemoryBarrier(insn);
-
-	case spv::OpGroupNonUniformElect:
-	case spv::OpGroupNonUniformAll:
-	case spv::OpGroupNonUniformAny:
-	case spv::OpGroupNonUniformAllEqual:
-	case spv::OpGroupNonUniformBroadcast:
-	case spv::OpGroupNonUniformBroadcastFirst:
-	case spv::OpGroupNonUniformQuadBroadcast:
-	case spv::OpGroupNonUniformQuadSwap:
-	case spv::OpGroupNonUniformBallot:
-	case spv::OpGroupNonUniformInverseBallot:
-	case spv::OpGroupNonUniformBallotBitExtract:
-	case spv::OpGroupNonUniformBallotBitCount:
-	case spv::OpGroupNonUniformBallotFindLSB:
-	case spv::OpGroupNonUniformBallotFindMSB:
-	case spv::OpGroupNonUniformShuffle:
-	case spv::OpGroupNonUniformShuffleXor:
-	case spv::OpGroupNonUniformShuffleUp:
-	case spv::OpGroupNonUniformShuffleDown:
-	case spv::OpGroupNonUniformIAdd:
-	case spv::OpGroupNonUniformFAdd:
-	case spv::OpGroupNonUniformIMul:
-	case spv::OpGroupNonUniformFMul:
-	case spv::OpGroupNonUniformSMin:
-	case spv::OpGroupNonUniformUMin:
-	case spv::OpGroupNonUniformFMin:
-	case spv::OpGroupNonUniformSMax:
-	case spv::OpGroupNonUniformUMax:
-	case spv::OpGroupNonUniformFMax:
-	case spv::OpGroupNonUniformBitwiseAnd:
-	case spv::OpGroupNonUniformBitwiseOr:
-	case spv::OpGroupNonUniformBitwiseXor:
-	case spv::OpGroupNonUniformLogicalAnd:
-	case spv::OpGroupNonUniformLogicalOr:
-	case spv::OpGroupNonUniformLogicalXor:
-		return EmitGroupNonUniform(insn);
-
-	case spv::OpArrayLength:
-		return EmitArrayLength(insn);
-
-	default:
-		UNREACHABLE("%s", shader.OpcodeName(opcode));
-		break;
+		default:
+			UNREACHABLE("Unknown terminal instruction %s", shader.OpcodeName(opcode));
+			break;
+		}
 	}
+	else  // Non-terminal instructions
+	{
+		switch(opcode)
+		{
+		case spv::OpTypeVoid:
+		case spv::OpTypeInt:
+		case spv::OpTypeFloat:
+		case spv::OpTypeBool:
+		case spv::OpTypeVector:
+		case spv::OpTypeArray:
+		case spv::OpTypeRuntimeArray:
+		case spv::OpTypeMatrix:
+		case spv::OpTypeStruct:
+		case spv::OpTypePointer:
+		case spv::OpTypeForwardPointer:
+		case spv::OpTypeFunction:
+		case spv::OpTypeImage:
+		case spv::OpTypeSampledImage:
+		case spv::OpTypeSampler:
+		case spv::OpExecutionMode:
+		case spv::OpExecutionModeId:
+		case spv::OpMemoryModel:
+		case spv::OpFunction:
+		case spv::OpFunctionEnd:
+		case spv::OpConstant:
+		case spv::OpConstantNull:
+		case spv::OpConstantTrue:
+		case spv::OpConstantFalse:
+		case spv::OpConstantComposite:
+		case spv::OpSpecConstant:
+		case spv::OpSpecConstantTrue:
+		case spv::OpSpecConstantFalse:
+		case spv::OpSpecConstantComposite:
+		case spv::OpSpecConstantOp:
+		case spv::OpUndef:
+		case spv::OpExtension:
+		case spv::OpCapability:
+		case spv::OpEntryPoint:
+		case spv::OpExtInstImport:
+		case spv::OpDecorate:
+		case spv::OpMemberDecorate:
+		case spv::OpGroupDecorate:
+		case spv::OpGroupMemberDecorate:
+		case spv::OpDecorationGroup:
+		case spv::OpDecorateId:
+		case spv::OpDecorateString:
+		case spv::OpMemberDecorateString:
+		case spv::OpName:
+		case spv::OpMemberName:
+		case spv::OpSource:
+		case spv::OpSourceContinued:
+		case spv::OpSourceExtension:
+		case spv::OpNoLine:
+		case spv::OpModuleProcessed:
+		case spv::OpString:
+			// Nothing to do at emit time. These are either fully handled at analysis time,
+			// or don't require any work at all.
+			return;
 
-	return EmitResult::Continue;
+		case spv::OpLine:
+			return;  // TODO(b/251802301)
+
+		case spv::OpLabel:
+			return;
+
+		case spv::OpVariable:
+			return EmitVariable(insn);
+
+		case spv::OpLoad:
+		case spv::OpAtomicLoad:
+			return EmitLoad(insn);
+
+		case spv::OpStore:
+		case spv::OpAtomicStore:
+			return EmitStore(insn);
+
+		case spv::OpAtomicIAdd:
+		case spv::OpAtomicISub:
+		case spv::OpAtomicSMin:
+		case spv::OpAtomicSMax:
+		case spv::OpAtomicUMin:
+		case spv::OpAtomicUMax:
+		case spv::OpAtomicAnd:
+		case spv::OpAtomicOr:
+		case spv::OpAtomicXor:
+		case spv::OpAtomicIIncrement:
+		case spv::OpAtomicIDecrement:
+		case spv::OpAtomicExchange:
+			return EmitAtomicOp(insn);
+
+		case spv::OpAtomicCompareExchange:
+			return EmitAtomicCompareExchange(insn);
+
+		case spv::OpAccessChain:
+		case spv::OpInBoundsAccessChain:
+		case spv::OpPtrAccessChain:
+			return EmitAccessChain(insn);
+
+		case spv::OpCompositeConstruct:
+			return EmitCompositeConstruct(insn);
+
+		case spv::OpCompositeInsert:
+			return EmitCompositeInsert(insn);
+
+		case spv::OpCompositeExtract:
+			return EmitCompositeExtract(insn);
+
+		case spv::OpVectorShuffle:
+			return EmitVectorShuffle(insn);
+
+		case spv::OpVectorExtractDynamic:
+			return EmitVectorExtractDynamic(insn);
+
+		case spv::OpVectorInsertDynamic:
+			return EmitVectorInsertDynamic(insn);
+
+		case spv::OpVectorTimesScalar:
+		case spv::OpMatrixTimesScalar:
+			return EmitVectorTimesScalar(insn);
+
+		case spv::OpMatrixTimesVector:
+			return EmitMatrixTimesVector(insn);
+
+		case spv::OpVectorTimesMatrix:
+			return EmitVectorTimesMatrix(insn);
+
+		case spv::OpMatrixTimesMatrix:
+			return EmitMatrixTimesMatrix(insn);
+
+		case spv::OpOuterProduct:
+			return EmitOuterProduct(insn);
+
+		case spv::OpTranspose:
+			return EmitTranspose(insn);
+
+		case spv::OpNot:
+		case spv::OpBitFieldInsert:
+		case spv::OpBitFieldSExtract:
+		case spv::OpBitFieldUExtract:
+		case spv::OpBitReverse:
+		case spv::OpBitCount:
+		case spv::OpSNegate:
+		case spv::OpFNegate:
+		case spv::OpLogicalNot:
+		case spv::OpConvertFToU:
+		case spv::OpConvertFToS:
+		case spv::OpConvertSToF:
+		case spv::OpConvertUToF:
+		case spv::OpBitcast:
+		case spv::OpIsInf:
+		case spv::OpIsNan:
+		case spv::OpDPdx:
+		case spv::OpDPdxCoarse:
+		case spv::OpDPdy:
+		case spv::OpDPdyCoarse:
+		case spv::OpFwidth:
+		case spv::OpFwidthCoarse:
+		case spv::OpDPdxFine:
+		case spv::OpDPdyFine:
+		case spv::OpFwidthFine:
+		case spv::OpQuantizeToF16:
+			return EmitUnaryOp(insn);
+
+		case spv::OpIAdd:
+		case spv::OpISub:
+		case spv::OpIMul:
+		case spv::OpSDiv:
+		case spv::OpUDiv:
+		case spv::OpFAdd:
+		case spv::OpFSub:
+		case spv::OpFMul:
+		case spv::OpFDiv:
+		case spv::OpFMod:
+		case spv::OpFRem:
+		case spv::OpFOrdEqual:
+		case spv::OpFUnordEqual:
+		case spv::OpFOrdNotEqual:
+		case spv::OpFUnordNotEqual:
+		case spv::OpFOrdLessThan:
+		case spv::OpFUnordLessThan:
+		case spv::OpFOrdGreaterThan:
+		case spv::OpFUnordGreaterThan:
+		case spv::OpFOrdLessThanEqual:
+		case spv::OpFUnordLessThanEqual:
+		case spv::OpFOrdGreaterThanEqual:
+		case spv::OpFUnordGreaterThanEqual:
+		case spv::OpSMod:
+		case spv::OpSRem:
+		case spv::OpUMod:
+		case spv::OpIEqual:
+		case spv::OpINotEqual:
+		case spv::OpUGreaterThan:
+		case spv::OpSGreaterThan:
+		case spv::OpUGreaterThanEqual:
+		case spv::OpSGreaterThanEqual:
+		case spv::OpULessThan:
+		case spv::OpSLessThan:
+		case spv::OpULessThanEqual:
+		case spv::OpSLessThanEqual:
+		case spv::OpShiftRightLogical:
+		case spv::OpShiftRightArithmetic:
+		case spv::OpShiftLeftLogical:
+		case spv::OpBitwiseOr:
+		case spv::OpBitwiseXor:
+		case spv::OpBitwiseAnd:
+		case spv::OpLogicalOr:
+		case spv::OpLogicalAnd:
+		case spv::OpLogicalEqual:
+		case spv::OpLogicalNotEqual:
+		case spv::OpUMulExtended:
+		case spv::OpSMulExtended:
+		case spv::OpIAddCarry:
+		case spv::OpISubBorrow:
+			return EmitBinaryOp(insn);
+
+		case spv::OpDot:
+		case spv::OpSDot:
+		case spv::OpUDot:
+		case spv::OpSUDot:
+		case spv::OpSDotAccSat:
+		case spv::OpUDotAccSat:
+		case spv::OpSUDotAccSat:
+			return EmitDot(insn);
+
+		case spv::OpSelect:
+			return EmitSelect(insn);
+
+		case spv::OpExtInst:
+			return EmitExtendedInstruction(insn);
+
+		case spv::OpAny:
+			return EmitAny(insn);
+
+		case spv::OpAll:
+			return EmitAll(insn);
+
+		case spv::OpPhi:
+			return EmitPhi(insn);
+
+		case spv::OpSelectionMerge:
+		case spv::OpLoopMerge:
+			return;
+
+		case spv::OpFunctionCall:
+			return EmitFunctionCall(insn);
+
+		case spv::OpDemoteToHelperInvocation:
+			return EmitDemoteToHelperInvocation(insn);
+
+		case spv::OpIsHelperInvocationEXT:
+			return EmitIsHelperInvocation(insn);
+
+		case spv::OpImageSampleImplicitLod:
+		case spv::OpImageSampleExplicitLod:
+		case spv::OpImageSampleDrefImplicitLod:
+		case spv::OpImageSampleDrefExplicitLod:
+		case spv::OpImageSampleProjImplicitLod:
+		case spv::OpImageSampleProjExplicitLod:
+		case spv::OpImageSampleProjDrefImplicitLod:
+		case spv::OpImageSampleProjDrefExplicitLod:
+		case spv::OpImageGather:
+		case spv::OpImageDrefGather:
+		case spv::OpImageFetch:
+		case spv::OpImageQueryLod:
+			return EmitImageSample(ImageInstruction(insn, shader, *this));
+
+		case spv::OpImageQuerySizeLod:
+			return EmitImageQuerySizeLod(insn);
+
+		case spv::OpImageQuerySize:
+			return EmitImageQuerySize(insn);
+
+		case spv::OpImageQueryLevels:
+			return EmitImageQueryLevels(insn);
+
+		case spv::OpImageQuerySamples:
+			return EmitImageQuerySamples(insn);
+
+		case spv::OpImageRead:
+			return EmitImageRead(ImageInstruction(insn, shader, *this));
+
+		case spv::OpImageWrite:
+			return EmitImageWrite(ImageInstruction(insn, shader, *this));
+
+		case spv::OpImageTexelPointer:
+			return EmitImageTexelPointer(ImageInstruction(insn, shader, *this));
+
+		case spv::OpSampledImage:
+			return EmitSampledImage(insn);
+
+		case spv::OpImage:
+			return EmitImage(insn);
+
+		case spv::OpCopyObject:
+		case spv::OpCopyLogical:
+			return EmitCopyObject(insn);
+
+		case spv::OpCopyMemory:
+			return EmitCopyMemory(insn);
+
+		case spv::OpControlBarrier:
+			return EmitControlBarrier(insn);
+
+		case spv::OpMemoryBarrier:
+			return EmitMemoryBarrier(insn);
+
+		case spv::OpGroupNonUniformElect:
+		case spv::OpGroupNonUniformAll:
+		case spv::OpGroupNonUniformAny:
+		case spv::OpGroupNonUniformAllEqual:
+		case spv::OpGroupNonUniformBroadcast:
+		case spv::OpGroupNonUniformBroadcastFirst:
+		case spv::OpGroupNonUniformQuadBroadcast:
+		case spv::OpGroupNonUniformQuadSwap:
+		case spv::OpGroupNonUniformBallot:
+		case spv::OpGroupNonUniformInverseBallot:
+		case spv::OpGroupNonUniformBallotBitExtract:
+		case spv::OpGroupNonUniformBallotBitCount:
+		case spv::OpGroupNonUniformBallotFindLSB:
+		case spv::OpGroupNonUniformBallotFindMSB:
+		case spv::OpGroupNonUniformShuffle:
+		case spv::OpGroupNonUniformShuffleXor:
+		case spv::OpGroupNonUniformShuffleUp:
+		case spv::OpGroupNonUniformShuffleDown:
+		case spv::OpGroupNonUniformIAdd:
+		case spv::OpGroupNonUniformFAdd:
+		case spv::OpGroupNonUniformIMul:
+		case spv::OpGroupNonUniformFMul:
+		case spv::OpGroupNonUniformSMin:
+		case spv::OpGroupNonUniformUMin:
+		case spv::OpGroupNonUniformFMin:
+		case spv::OpGroupNonUniformSMax:
+		case spv::OpGroupNonUniformUMax:
+		case spv::OpGroupNonUniformFMax:
+		case spv::OpGroupNonUniformBitwiseAnd:
+		case spv::OpGroupNonUniformBitwiseOr:
+		case spv::OpGroupNonUniformBitwiseXor:
+		case spv::OpGroupNonUniformLogicalAnd:
+		case spv::OpGroupNonUniformLogicalOr:
+		case spv::OpGroupNonUniformLogicalXor:
+			return EmitGroupNonUniform(insn);
+
+		case spv::OpArrayLength:
+			return EmitArrayLength(insn);
+
+		default:
+			UNREACHABLE("Unknown non-terminal instruction %s", shader.OpcodeName(opcode));
+			break;
+		}
+	}
 }
 
-EmitState::EmitResult EmitState::EmitAccessChain(InsnIterator insn)
+void EmitState::EmitAccessChain(InsnIterator insn)
 {
 	Type::ID typeId = insn.word(1);
 	Object::ID resultId = insn.word(2);
@@ -2317,11 +2322,9 @@ EmitState::EmitResult EmitState::EmitAccessChain(InsnIterator insn)
 		auto ptr = WalkAccessChain(baseId, elementId, Span(insn, indexId, insn.wordCount() - indexId), nonUniform);
 		createPointer(resultId, ptr);
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitCompositeConstruct(InsnIterator insn)
+void EmitState::EmitCompositeConstruct(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2339,11 +2342,9 @@ EmitState::EmitResult EmitState::EmitCompositeConstruct(InsnIterator insn)
 			dst.move(offset++, srcObjectAccess.Float(j));
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitCompositeInsert(InsnIterator insn)
+void EmitState::EmitCompositeInsert(InsnIterator insn)
 {
 	Type::ID resultTypeId = insn.word(1);
 	auto &type = shader.getType(resultTypeId);
@@ -2370,11 +2371,9 @@ EmitState::EmitResult EmitState::EmitCompositeInsert(InsnIterator insn)
 	{
 		dst.move(i, srcObjectAccess.Float(i));
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitCompositeExtract(InsnIterator insn)
+void EmitState::EmitCompositeExtract(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2387,11 +2386,9 @@ EmitState::EmitResult EmitState::EmitCompositeExtract(InsnIterator insn)
 	{
 		dst.move(i, compositeObjectAccess.Float(firstComponent + i));
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitVectorShuffle(InsnIterator insn)
+void EmitState::EmitVectorShuffle(InsnIterator insn)
 {
 	// Note: number of components in result, first vector, and second vector are all independent.
 	uint32_t resultSize = shader.getType(insn.resultTypeId()).componentCount;
@@ -2417,11 +2414,9 @@ EmitState::EmitResult EmitState::EmitVectorShuffle(InsnIterator insn)
 			result.move(i, secondVector.Float(selector - firstVectorSize));
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitVectorExtractDynamic(InsnIterator insn)
+void EmitState::EmitVectorExtractDynamic(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2438,10 +2433,9 @@ EmitState::EmitResult EmitState::EmitVectorExtractDynamic(InsnIterator insn)
 	}
 
 	dst.move(0, v);
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitVectorInsertDynamic(InsnIterator insn)
+void EmitState::EmitVectorInsertDynamic(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2455,10 +2449,9 @@ EmitState::EmitResult EmitState::EmitVectorInsertDynamic(InsnIterator insn)
 		SIMD::UInt mask = CmpEQ(SIMD::UInt(i), index.UInt(0));
 		dst.move(i, (src.UInt(i) & ~mask) | (component.UInt(0) & mask));
 	}
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitSelect(InsnIterator insn)
+void EmitState::EmitSelect(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto result = shader.getObject(insn.resultId());
@@ -2495,11 +2488,9 @@ EmitState::EmitResult EmitState::EmitSelect(InsnIterator insn)
 		SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), lhs);
 		SPIRV_SHADER_DBG("{0}: {1}", insn.word(5), rhs);
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitAny(InsnIterator insn)
+void EmitState::EmitAny(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
@@ -2515,10 +2506,9 @@ EmitState::EmitResult EmitState::EmitAny(InsnIterator insn)
 	}
 
 	dst.move(0, result);
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitAll(InsnIterator insn)
+void EmitState::EmitAll(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
@@ -2534,10 +2524,9 @@ EmitState::EmitResult EmitState::EmitAll(InsnIterator insn)
 	}
 
 	dst.move(0, result);
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitAtomicOp(InsnIterator insn)
+void EmitState::EmitAtomicOp(InsnIterator insn)
 {
 	auto &resultType = shader.getType(Type::ID(insn.word(1)));
 	Object::ID resultId = insn.word(2);
@@ -2607,10 +2596,9 @@ EmitState::EmitResult EmitState::EmitAtomicOp(InsnIterator insn)
 	}
 
 	dst.move(0, result);
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitAtomicCompareExchange(InsnIterator insn)
+void EmitState::EmitAtomicCompareExchange(InsnIterator insn)
 {
 	// Separate from EmitAtomicOp due to different instruction encoding
 	auto &resultType = shader.getType(Type::ID(insn.word(1)));
@@ -2640,10 +2628,9 @@ EmitState::EmitResult EmitState::EmitAtomicCompareExchange(InsnIterator insn)
 	}
 
 	dst.move(0, x);
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitCopyObject(InsnIterator insn)
+void EmitState::EmitCopyObject(InsnIterator insn)
 {
 	auto src = Operand(shader, *this, insn.word(3));
 	if(src.isPointer())
@@ -2663,10 +2650,9 @@ EmitState::EmitResult EmitState::EmitCopyObject(InsnIterator insn)
 			dst.move(i, src.Int(i));
 		}
 	}
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitArrayLength(InsnIterator insn)
+void EmitState::EmitArrayLength(InsnIterator insn)
 {
 	auto structPtrId = Object::ID(insn.word(3));
 	auto arrayFieldIdx = insn.word(4);
@@ -2694,11 +2680,9 @@ EmitState::EmitResult EmitState::EmitArrayLength(InsnIterator insn)
 	auto arrayLength = arraySizeInBytes / SIMD::Int(arrayDecorations.ArrayStride);
 
 	result.move(0, SIMD::Int(arrayLength));
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitExtendedInstruction(InsnIterator insn)
+void EmitState::EmitExtendedInstruction(InsnIterator insn)
 {
 	auto ext = shader.getExtension(insn.word(3));
 	switch(ext.name)
@@ -2713,7 +2697,6 @@ EmitState::EmitResult EmitState::EmitExtendedInstruction(InsnIterator insn)
 	default:
 		UNREACHABLE("Unknown Extension::Name<%d>", int(ext.name));
 	}
-	return EmitResult::Continue;
 }
 
 uint32_t SpirvShader::GetConstScalarInt(Object::ID id) const
@@ -2721,6 +2704,7 @@ uint32_t SpirvShader::GetConstScalarInt(Object::ID id) const
 	auto &scopeObj = getObject(id);
 	ASSERT(scopeObj.kind == Object::Kind::Constant);
 	ASSERT(getType(scopeObj).componentCount == 1);
+
 	return scopeObj.constantValue[0];
 }
 

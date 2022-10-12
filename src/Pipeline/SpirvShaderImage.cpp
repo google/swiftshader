@@ -329,7 +329,7 @@ uint32_t EmitState::ImageInstruction::getImageOperandsMask(InsnIterator insn)
 	return (operandsIndex != 0) ? insn.word(operandsIndex) : 0;
 }
 
-EmitState::EmitResult EmitState::EmitImageSample(const ImageInstruction &instruction)
+void EmitState::EmitImageSample(const ImageInstruction &instruction)
 {
 	auto &resultType = shader.getType(instruction.resultTypeId);
 	auto &result = createIntermediate(instruction.resultId, resultType.componentCount);
@@ -344,8 +344,6 @@ EmitState::EmitResult EmitState::EmitImageSample(const ImageInstruction &instruc
 	}
 
 	for(auto i = 0u; i < resultType.componentCount; i++) { result.move(i, out[i]); }
-
-	return EmitResult::Continue;
 }
 
 void EmitState::EmitImageSampleUnconditional(Array<SIMD::Float> &out, const ImageInstruction &instruction) const
@@ -502,7 +500,7 @@ void EmitState::callSamplerFunction(Pointer<Byte> samplerFunction, Array<SIMD::F
 	Call<ImageSampler>(samplerFunction, texture, &in, &out, routine->constants);
 }
 
-EmitState::EmitResult EmitState::EmitImageQuerySizeLod(InsnIterator insn)
+void EmitState::EmitImageQuerySizeLod(InsnIterator insn)
 {
 	auto &resultTy = shader.getType(insn.resultTypeId());
 	auto imageId = Object::ID(insn.word(3));
@@ -510,11 +508,9 @@ EmitState::EmitResult EmitState::EmitImageQuerySizeLod(InsnIterator insn)
 
 	auto &dst = createIntermediate(insn.resultId(), resultTy.componentCount);
 	GetImageDimensions(resultTy, imageId, lodId, dst);
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitImageQuerySize(InsnIterator insn)
+void EmitState::EmitImageQuerySize(InsnIterator insn)
 {
 	auto &resultTy = shader.getType(insn.resultTypeId());
 	auto imageId = Object::ID(insn.word(3));
@@ -522,8 +518,6 @@ EmitState::EmitResult EmitState::EmitImageQuerySize(InsnIterator insn)
 
 	auto &dst = createIntermediate(insn.resultId(), resultTy.componentCount);
 	GetImageDimensions(resultTy, imageId, lodId, dst);
-
-	return EmitResult::Continue;
 }
 
 void EmitState::GetImageDimensions(const Type &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const
@@ -588,7 +582,7 @@ void EmitState::GetImageDimensions(const Type &resultTy, Object::ID imageId, Obj
 	}
 }
 
-EmitState::EmitResult EmitState::EmitImageQueryLevels(InsnIterator insn)
+void EmitState::EmitImageQueryLevels(InsnIterator insn)
 {
 	auto &resultTy = shader.getType(insn.resultTypeId());
 	ASSERT(resultTy.componentCount == 1);
@@ -612,11 +606,9 @@ EmitState::EmitResult EmitState::EmitImageQueryLevels(InsnIterator insn)
 
 	auto &dst = createIntermediate(insn.resultId(), 1);
 	dst.move(0, SIMD::Int(mipLevels));
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitImageQuerySamples(InsnIterator insn)
+void EmitState::EmitImageQuerySamples(InsnIterator insn)
 {
 	auto &resultTy = shader.getType(insn.resultTypeId());
 	ASSERT(resultTy.componentCount == 1);
@@ -647,8 +639,6 @@ EmitState::EmitResult EmitState::EmitImageQuerySamples(InsnIterator insn)
 
 	auto &dst = createIntermediate(insn.resultId(), 1);
 	dst.move(0, SIMD::Int(sampleCount));
-
-	return EmitResult::Continue;
 }
 
 EmitState::TexelAddressData EmitState::setupTexelAddressData(SIMD::Int rowPitch, SIMD::Int slicePitch, SIMD::Int samplePitch, ImageInstructionSignature instruction, SIMD::Int coordinate[], SIMD::Int sample, vk::Format imageFormat, const SpirvRoutine *routine)
@@ -830,7 +820,7 @@ SIMD::Pointer EmitState::GetTexelAddress(ImageInstructionSignature instruction, 
 	return SIMD::Pointer(imageBase, imageSizeInBytes, texelData.ptrOffset);
 }
 
-EmitState::EmitResult EmitState::EmitImageRead(const ImageInstruction &instruction)
+void EmitState::EmitImageRead(const ImageInstruction &instruction)
 {
 	auto &resultType = shader.getObjectType(instruction.resultId);
 	auto &image = shader.getObject(instruction.imageId);
@@ -1241,11 +1231,9 @@ EmitState::EmitResult EmitState::EmitImageRead(const ImageInstruction &instructi
 		UNSUPPORTED("VkFormat %d", int(imageFormat));
 		break;
 	}
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitImageWrite(const ImageInstruction &instruction)
+void EmitState::EmitImageWrite(const ImageInstruction &instruction)
 {
 	auto &image = shader.getObject(instruction.imageId);
 	auto &imageType = shader.getType(image);
@@ -1317,8 +1305,6 @@ EmitState::EmitResult EmitState::EmitImageWrite(const ImageInstruction &instruct
 			}
 		}
 	}
-
-	return EmitResult::Continue;
 }
 
 void EmitState::WriteImage(ImageInstructionSignature instruction, Pointer<Byte> descriptor, const Pointer<SIMD::Int> &coord, const Pointer<SIMD::Int> &texelAndMask, vk::Format imageFormat)
@@ -1551,7 +1537,7 @@ void EmitState::WriteImage(ImageInstructionSignature instruction, Pointer<Byte> 
 		UNREACHABLE("texelSize: %d", int(texelSize));
 }
 
-EmitState::EmitResult EmitState::EmitImageTexelPointer(const ImageInstruction &instruction)
+void EmitState::EmitImageTexelPointer(const ImageInstruction &instruction)
 {
 	auto coordinate = Operand(shader, *this, instruction.coordinateId);
 
@@ -1576,11 +1562,9 @@ EmitState::EmitResult EmitState::EmitImageTexelPointer(const ImageInstruction &i
 	                    : GetNonUniformTexelAddress(instruction, ptr, uvwa, sample, imageFormat, robustness, activeLaneMask(), routine);
 
 	createPointer(instruction.resultId, texelPtr);
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitSampledImage(InsnIterator insn)
+void EmitState::EmitSampledImage(InsnIterator insn)
 {
 	Object::ID resultId = insn.word(2);
 	Object::ID imageId = insn.word(3);
@@ -1588,19 +1572,15 @@ EmitState::EmitResult EmitState::EmitSampledImage(InsnIterator insn)
 
 	// Create a sampled image, containing both a sampler and an image
 	createSampledImage(resultId, { getPointer(imageId), samplerId });
-
-	return EmitResult::Continue;
 }
 
-EmitState::EmitResult EmitState::EmitImage(InsnIterator insn)
+void EmitState::EmitImage(InsnIterator insn)
 {
 	Object::ID resultId = insn.word(2);
 	Object::ID imageId = insn.word(3);
 
 	// Extract the image from a sampled image.
 	createPointer(resultId, getImage(imageId));
-
-	return EmitResult::Continue;
 }
 
 }  // namespace sw
