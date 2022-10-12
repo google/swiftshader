@@ -1260,7 +1260,7 @@ void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecor
 	}
 }
 
-SIMD::Pointer EmitState::WalkExplicitLayoutAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, bool nonUniform) const
+SIMD::Pointer SpirvEmitter::WalkExplicitLayoutAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, bool nonUniform) const
 {
 	// Produce a offset into external memory in sizeof(float) units
 
@@ -1372,7 +1372,7 @@ SIMD::Pointer EmitState::WalkExplicitLayoutAccessChain(Object::ID baseId, Object
 	return ptr;
 }
 
-SIMD::Pointer EmitState::WalkAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, bool nonUniform) const
+SIMD::Pointer SpirvEmitter::WalkAccessChain(Object::ID baseId, Object::ID elementId, const Span &indexIds, bool nonUniform) const
 {
 	// TODO: avoid doing per-lane work in some cases if we can?
 	auto &baseObject = shader.getObject(baseId);
@@ -1817,16 +1817,16 @@ void SpirvShader::emitProlog(SpirvRoutine *routine) const
 
 void SpirvShader::emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount) const
 {
-	EmitState::emit(*this, routine, entryPoint, activeLaneMask, storesAndAtomicsMask, descriptorSets, multiSampleCount);
+	SpirvEmitter::emit(*this, routine, entryPoint, activeLaneMask, storesAndAtomicsMask, descriptorSets, multiSampleCount);
 }
 
-EmitState::EmitState(const SpirvShader &shader,
-                     SpirvRoutine *routine,
-                     SpirvShader::Function::ID entryPoint,
-                     RValue<SIMD::Int> activeLaneMask,
-                     RValue<SIMD::Int> storesAndAtomicsMask,
-                     const vk::DescriptorSet::Bindings &descriptorSets,
-                     unsigned int multiSampleCount)
+SpirvEmitter::SpirvEmitter(const SpirvShader &shader,
+                           SpirvRoutine *routine,
+                           SpirvShader::Function::ID entryPoint,
+                           RValue<SIMD::Int> activeLaneMask,
+                           RValue<SIMD::Int> storesAndAtomicsMask,
+                           const vk::DescriptorSet::Bindings &descriptorSets,
+                           unsigned int multiSampleCount)
     : shader(shader)
     , routine(routine)
     , function(entryPoint)
@@ -1837,15 +1837,15 @@ EmitState::EmitState(const SpirvShader &shader,
 {
 }
 
-void EmitState::emit(const SpirvShader &shader,
-                     SpirvRoutine *routine,
-                     SpirvShader::Function::ID entryPoint,
-                     RValue<SIMD::Int> activeLaneMask,
-                     RValue<SIMD::Int> storesAndAtomicsMask,
-                     const vk::DescriptorSet::Bindings &descriptorSets,
-                     unsigned int multiSampleCount)
+void SpirvEmitter::emit(const SpirvShader &shader,
+                        SpirvRoutine *routine,
+                        SpirvShader::Function::ID entryPoint,
+                        RValue<SIMD::Int> activeLaneMask,
+                        RValue<SIMD::Int> storesAndAtomicsMask,
+                        const vk::DescriptorSet::Bindings &descriptorSets,
+                        unsigned int multiSampleCount)
 {
-	EmitState state(shader, routine, entryPoint, activeLaneMask, storesAndAtomicsMask, descriptorSets, multiSampleCount);
+	SpirvEmitter state(shader, routine, entryPoint, activeLaneMask, storesAndAtomicsMask, descriptorSets, multiSampleCount);
 
 	// Create phi variables
 	for(auto insn : shader)
@@ -1873,7 +1873,7 @@ void EmitState::emit(const SpirvShader &shader,
 	state.EmitBlocks(shader.getFunction(entryPoint).entry);
 }
 
-void EmitState::EmitInstructions(InsnIterator begin, InsnIterator end)
+void SpirvEmitter::EmitInstructions(InsnIterator begin, InsnIterator end)
 {
 	for(auto insn = begin; insn != end; insn++)
 	{
@@ -1886,7 +1886,7 @@ void EmitState::EmitInstructions(InsnIterator begin, InsnIterator end)
 	}
 }
 
-void EmitState::EmitInstruction(InsnIterator insn)
+void SpirvEmitter::EmitInstruction(InsnIterator insn)
 {
 	auto opcode = insn.opcode();
 
@@ -2283,7 +2283,7 @@ void EmitState::EmitInstruction(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitAccessChain(InsnIterator insn)
+void SpirvEmitter::EmitAccessChain(InsnIterator insn)
 {
 	Type::ID typeId = insn.word(1);
 	Object::ID resultId = insn.word(2);
@@ -2324,7 +2324,7 @@ void EmitState::EmitAccessChain(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitCompositeConstruct(InsnIterator insn)
+void SpirvEmitter::EmitCompositeConstruct(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2344,7 +2344,7 @@ void EmitState::EmitCompositeConstruct(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitCompositeInsert(InsnIterator insn)
+void SpirvEmitter::EmitCompositeInsert(InsnIterator insn)
 {
 	Type::ID resultTypeId = insn.word(1);
 	auto &type = shader.getType(resultTypeId);
@@ -2373,7 +2373,7 @@ void EmitState::EmitCompositeInsert(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitCompositeExtract(InsnIterator insn)
+void SpirvEmitter::EmitCompositeExtract(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2388,7 +2388,7 @@ void EmitState::EmitCompositeExtract(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitVectorShuffle(InsnIterator insn)
+void SpirvEmitter::EmitVectorShuffle(InsnIterator insn)
 {
 	// Note: number of components in result, first vector, and second vector are all independent.
 	uint32_t resultSize = shader.getType(insn.resultTypeId()).componentCount;
@@ -2416,7 +2416,7 @@ void EmitState::EmitVectorShuffle(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitVectorExtractDynamic(InsnIterator insn)
+void SpirvEmitter::EmitVectorExtractDynamic(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2435,7 +2435,7 @@ void EmitState::EmitVectorExtractDynamic(InsnIterator insn)
 	dst.move(0, v);
 }
 
-void EmitState::EmitVectorInsertDynamic(InsnIterator insn)
+void SpirvEmitter::EmitVectorInsertDynamic(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -2451,7 +2451,7 @@ void EmitState::EmitVectorInsertDynamic(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitSelect(InsnIterator insn)
+void SpirvEmitter::EmitSelect(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto result = shader.getObject(insn.resultId());
@@ -2490,7 +2490,7 @@ void EmitState::EmitSelect(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitAny(InsnIterator insn)
+void SpirvEmitter::EmitAny(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
@@ -2508,7 +2508,7 @@ void EmitState::EmitAny(InsnIterator insn)
 	dst.move(0, result);
 }
 
-void EmitState::EmitAll(InsnIterator insn)
+void SpirvEmitter::EmitAll(InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
@@ -2526,7 +2526,7 @@ void EmitState::EmitAll(InsnIterator insn)
 	dst.move(0, result);
 }
 
-void EmitState::EmitAtomicOp(InsnIterator insn)
+void SpirvEmitter::EmitAtomicOp(InsnIterator insn)
 {
 	auto &resultType = shader.getType(Type::ID(insn.word(1)));
 	Object::ID resultId = insn.word(2);
@@ -2598,7 +2598,7 @@ void EmitState::EmitAtomicOp(InsnIterator insn)
 	dst.move(0, result);
 }
 
-void EmitState::EmitAtomicCompareExchange(InsnIterator insn)
+void SpirvEmitter::EmitAtomicCompareExchange(InsnIterator insn)
 {
 	// Separate from EmitAtomicOp due to different instruction encoding
 	auto &resultType = shader.getType(Type::ID(insn.word(1)));
@@ -2630,7 +2630,7 @@ void EmitState::EmitAtomicCompareExchange(InsnIterator insn)
 	dst.move(0, x);
 }
 
-void EmitState::EmitCopyObject(InsnIterator insn)
+void SpirvEmitter::EmitCopyObject(InsnIterator insn)
 {
 	auto src = Operand(shader, *this, insn.word(3));
 	if(src.isPointer())
@@ -2652,7 +2652,7 @@ void EmitState::EmitCopyObject(InsnIterator insn)
 	}
 }
 
-void EmitState::EmitArrayLength(InsnIterator insn)
+void SpirvEmitter::EmitArrayLength(InsnIterator insn)
 {
 	auto structPtrId = Object::ID(insn.word(3));
 	auto arrayFieldIdx = insn.word(4);
@@ -2682,7 +2682,7 @@ void EmitState::EmitArrayLength(InsnIterator insn)
 	result.move(0, SIMD::Int(arrayLength));
 }
 
-void EmitState::EmitExtendedInstruction(InsnIterator insn)
+void SpirvEmitter::EmitExtendedInstruction(InsnIterator insn)
 {
 	auto ext = shader.getExtension(insn.word(3));
 	switch(ext.name)
@@ -2757,11 +2757,11 @@ VkShaderStageFlagBits SpirvShader::executionModelToStage(spv::ExecutionModel mod
 	}
 }
 
-EmitState::Operand::Operand(const SpirvShader &shader, const EmitState &state, Object::ID objectId)
+SpirvEmitter::Operand::Operand(const SpirvShader &shader, const SpirvEmitter &state, Object::ID objectId)
     : Operand(state, shader.getObject(objectId))
 {}
 
-EmitState::Operand::Operand(const EmitState &state, const Object &object)
+SpirvEmitter::Operand::Operand(const SpirvEmitter &state, const Object &object)
     : constant(object.kind == Object::Kind::Constant ? object.constantValue.data() : nullptr)
     , intermediate(object.kind == Object::Kind::Intermediate ? &state.getIntermediate(object.id()) : nullptr)
     , pointer(object.kind == Object::Kind::Pointer ? &state.getPointer(object.id()) : nullptr)
@@ -2771,7 +2771,7 @@ EmitState::Operand::Operand(const EmitState &state, const Object &object)
 	ASSERT(intermediate || constant || pointer || sampledImage);
 }
 
-EmitState::Operand::Operand(const Intermediate &value)
+SpirvEmitter::Operand::Operand(const Intermediate &value)
     : intermediate(&value)
     , componentCount(value.componentCount)
 {

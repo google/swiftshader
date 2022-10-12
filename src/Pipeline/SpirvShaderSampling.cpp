@@ -30,7 +30,7 @@
 
 namespace sw {
 
-EmitState::ImageSampler *EmitState::getImageSampler(const vk::Device *device, uint32_t signature, uint32_t samplerId, uint32_t imageViewId)
+SpirvEmitter::ImageSampler *SpirvEmitter::getImageSampler(const vk::Device *device, uint32_t signature, uint32_t samplerId, uint32_t imageViewId)
 {
 	ImageInstructionSignature instruction(signature);
 	ASSERT(imageViewId != 0 && (samplerId != 0 || instruction.samplerMethod == Fetch || instruction.samplerMethod == Write));
@@ -125,7 +125,7 @@ EmitState::ImageSampler *EmitState::getImageSampler(const vk::Device *device, ui
 	return (ImageSampler *)(routine->getEntry());
 }
 
-std::shared_ptr<rr::Routine> EmitState::emitWriteRoutine(ImageInstructionSignature instruction, const Sampler &samplerState)
+std::shared_ptr<rr::Routine> SpirvEmitter::emitWriteRoutine(ImageInstructionSignature instruction, const Sampler &samplerState)
 {
 	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
 	rr::Function<Void(Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
@@ -141,7 +141,7 @@ std::shared_ptr<rr::Routine> EmitState::emitWriteRoutine(ImageInstructionSignatu
 	return function("sampler");
 }
 
-std::shared_ptr<rr::Routine> EmitState::emitSamplerRoutine(ImageInstructionSignature instruction, const Sampler &samplerState)
+std::shared_ptr<rr::Routine> SpirvEmitter::emitSamplerRoutine(ImageInstructionSignature instruction, const Sampler &samplerState)
 {
 	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
 	rr::Function<Void(Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
@@ -263,7 +263,7 @@ std::shared_ptr<rr::Routine> EmitState::emitSamplerRoutine(ImageInstructionSigna
 	return function("sampler");
 }
 
-sw::FilterType EmitState::convertFilterMode(const vk::SamplerState *samplerState, VkImageViewType imageViewType, SamplerMethod samplerMethod)
+sw::FilterType SpirvEmitter::convertFilterMode(const vk::SamplerState *samplerState, VkImageViewType imageViewType, SamplerMethod samplerMethod)
 {
 	if(samplerMethod == Gather)
 	{
@@ -316,7 +316,7 @@ sw::FilterType EmitState::convertFilterMode(const vk::SamplerState *samplerState
 	return FILTER_POINT;
 }
 
-sw::MipmapType EmitState::convertMipmapMode(const vk::SamplerState *samplerState)
+sw::MipmapType SpirvEmitter::convertMipmapMode(const vk::SamplerState *samplerState)
 {
 	if(!samplerState)
 	{
@@ -339,7 +339,7 @@ sw::MipmapType EmitState::convertMipmapMode(const vk::SamplerState *samplerState
 	}
 }
 
-sw::AddressingMode EmitState::convertAddressingMode(int coordinateIndex, const vk::SamplerState *samplerState, VkImageViewType imageViewType)
+sw::AddressingMode SpirvEmitter::convertAddressingMode(int coordinateIndex, const vk::SamplerState *samplerState, VkImageViewType imageViewType)
 {
 	switch(imageViewType)
 	{

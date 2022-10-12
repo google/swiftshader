@@ -981,7 +981,8 @@ public:
 	static bool IsTerminator(spv::Op opcode);
 };
 
-class EmitState
+// The SpirvEmitter class translates the parsed SPIR-V shader into Reactor code.
+class SpirvEmitter
 {
 	using Type = SpirvShader::Type;
 	using Object = SpirvShader::Object;
@@ -1006,13 +1007,13 @@ public:
 	};
 
 private:
-	EmitState(const SpirvShader &shader,
-	          SpirvRoutine *routine,
-	          SpirvShader::Function::ID entryPoint,
-	          RValue<SIMD::Int> activeLaneMask,
-	          RValue<SIMD::Int> storesAndAtomicsMask,
-	          const vk::DescriptorSet::Bindings &descriptorSets,
-	          unsigned int multiSampleCount);
+	SpirvEmitter(const SpirvShader &shader,
+	             SpirvRoutine *routine,
+	             SpirvShader::Function::ID entryPoint,
+	             RValue<SIMD::Int> activeLaneMask,
+	             RValue<SIMD::Int> storesAndAtomicsMask,
+	             const vk::DescriptorSet::Bindings &descriptorSets,
+	             unsigned int multiSampleCount);
 
 	// Returns the mask describing the active lanes as updated by dynamic
 	// control flow. Active lanes include helper invocations, used for
@@ -1136,7 +1137,7 @@ private:
 
 	struct ImageInstruction : public ImageInstructionSignature
 	{
-		ImageInstruction(InsnIterator insn, const SpirvShader &shader, const EmitState &state);
+		ImageInstruction(InsnIterator insn, const SpirvShader &shader, const SpirvEmitter &state);
 
 		const uint32_t position;
 
@@ -1176,7 +1177,7 @@ private:
 	class Operand
 	{
 	public:
-		Operand(const SpirvShader &shader, const EmitState &state, Object::ID objectId);
+		Operand(const SpirvShader &shader, const SpirvEmitter &state, Object::ID objectId);
 		Operand(const Intermediate &value);
 
 		RValue<SIMD::Float> Float(uint32_t i) const
@@ -1240,7 +1241,7 @@ private:
 		RR_PRINT_ONLY(friend struct rr::PrintValue::Ty<Operand>;)
 
 		// Delegate constructor
-		Operand(const EmitState &state, const Object &object);
+		Operand(const SpirvEmitter &state, const Object &object);
 
 		const uint32_t *constant = nullptr;
 		const Intermediate *intermediate = nullptr;

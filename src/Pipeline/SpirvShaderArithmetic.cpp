@@ -23,7 +23,7 @@
 
 namespace sw {
 
-void EmitState::EmitVectorTimesScalar(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitVectorTimesScalar(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -36,7 +36,7 @@ void EmitState::EmitVectorTimesScalar(SpirvShader::InsnIterator insn)
 	}
 }
 
-void EmitState::EmitState::EmitMatrixTimesVector(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitMatrixTimesVector(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -54,7 +54,7 @@ void EmitState::EmitState::EmitMatrixTimesVector(SpirvShader::InsnIterator insn)
 	}
 }
 
-void EmitState::EmitVectorTimesMatrix(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitVectorTimesMatrix(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -72,7 +72,7 @@ void EmitState::EmitVectorTimesMatrix(SpirvShader::InsnIterator insn)
 	}
 }
 
-void EmitState::EmitMatrixTimesMatrix(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitMatrixTimesMatrix(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -97,7 +97,7 @@ void EmitState::EmitMatrixTimesMatrix(SpirvShader::InsnIterator insn)
 	}
 }
 
-void EmitState::EmitOuterProduct(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitOuterProduct(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -116,7 +116,7 @@ void EmitState::EmitOuterProduct(SpirvShader::InsnIterator insn)
 	}
 }
 
-void EmitState::EmitState::EmitTranspose(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitTranspose(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -134,7 +134,7 @@ void EmitState::EmitState::EmitTranspose(SpirvShader::InsnIterator insn)
 	}
 }
 
-void EmitState::EmitBitcastPointer(SpirvShader::Object::ID resultID, Operand &src)
+void SpirvEmitter::EmitBitcastPointer(SpirvShader::Object::ID resultID, Operand &src)
 {
 	if(src.isPointer())  // Pointer -> Integer bits
 	{
@@ -174,7 +174,7 @@ void EmitState::EmitBitcastPointer(SpirvShader::Object::ID resultID, Operand &sr
 	}
 }
 
-void EmitState::EmitUnaryOp(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitUnaryOp(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto src = Operand(shader, *this, insn.word(3));
@@ -345,7 +345,7 @@ void EmitState::EmitUnaryOp(SpirvShader::InsnIterator insn)
 	}
 }
 
-void EmitState::EmitBinaryOp(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitBinaryOp(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -556,7 +556,7 @@ void EmitState::EmitBinaryOp(SpirvShader::InsnIterator insn)
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), rhs);
 }
 
-void EmitState::EmitDot(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitDot(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	ASSERT(type.componentCount == 1);
@@ -608,7 +608,7 @@ void EmitState::EmitDot(SpirvShader::InsnIterator insn)
 	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), rhs);
 }
 
-SIMD::Float EmitState::FDot(unsigned numComponents, const Operand &x, const Operand &y)
+SIMD::Float SpirvEmitter::FDot(unsigned numComponents, const Operand &x, const Operand &y)
 {
 	SIMD::Float d = x.Float(0) * y.Float(0);
 
@@ -620,7 +620,7 @@ SIMD::Float EmitState::FDot(unsigned numComponents, const Operand &x, const Oper
 	return d;
 }
 
-SIMD::Int EmitState::SDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
+SIMD::Int SpirvEmitter::SDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
 {
 	SIMD::Int d(0);
 
@@ -656,7 +656,7 @@ SIMD::Int EmitState::SDot(unsigned numComponents, const Operand &x, const Operan
 	return d;
 }
 
-SIMD::UInt EmitState::UDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
+SIMD::UInt SpirvEmitter::UDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
 {
 	SIMD::UInt d(0);
 
@@ -692,7 +692,7 @@ SIMD::UInt EmitState::UDot(unsigned numComponents, const Operand &x, const Opera
 	return d;
 }
 
-SIMD::Int EmitState::SUDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
+SIMD::Int SpirvEmitter::SUDot(unsigned numComponents, const Operand &x, const Operand &y, const Operand *accum)
 {
 	SIMD::Int d(0);
 
@@ -728,7 +728,7 @@ SIMD::Int EmitState::SUDot(unsigned numComponents, const Operand &x, const Opera
 	return d;
 }
 
-SIMD::Int EmitState::AddSat(RValue<SIMD::Int> a, RValue<SIMD::Int> b)
+SIMD::Int SpirvEmitter::AddSat(RValue<SIMD::Int> a, RValue<SIMD::Int> b)
 {
 	SIMD::Int sum = a + b;
 	SIMD::Int sSign = sum >> 31;
@@ -745,7 +745,7 @@ SIMD::Int EmitState::AddSat(RValue<SIMD::Int> a, RValue<SIMD::Int> b)
 	       (~oob & sum);
 }
 
-SIMD::UInt EmitState::AddSat(RValue<SIMD::UInt> a, RValue<SIMD::UInt> b)
+SIMD::UInt SpirvEmitter::AddSat(RValue<SIMD::UInt> a, RValue<SIMD::UInt> b)
 {
 	SIMD::UInt sum = a + b;
 

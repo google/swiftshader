@@ -64,7 +64,7 @@ static RValue<TYPE> BinaryOperation(
 	}
 }
 
-void EmitState::EmitGroupNonUniform(InsnIterator insn)
+void SpirvEmitter::EmitGroupNonUniform(InsnIterator insn)
 {
 	ASSERT(SIMD::Width == 4);  // EmitGroupNonUniform makes many assumptions that the SIMD vector width is 4
 

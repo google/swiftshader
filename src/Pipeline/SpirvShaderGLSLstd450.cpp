@@ -25,7 +25,7 @@ namespace sw {
 
 static constexpr float PI = 3.141592653589793f;
 
-void EmitState::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
+void SpirvEmitter::EmitExtGLSLstd450(SpirvShader::InsnIterator insn)
 {
 	auto &type = shader.getType(insn.resultTypeId());
 	auto &dst = createIntermediate(insn.resultId(), type.componentCount);
@@ -976,8 +976,8 @@ static SIMD::Float Interpolate(const SIMD::Float &x, const SIMD::Float &y, const
 	return interpolant;
 }
 
-SIMD::Float EmitState::EmitInterpolate(const SIMD::Pointer &ptr, int32_t location, SpirvShader::Object::ID paramId,
-                                       uint32_t component, InterpolationType type) const
+SIMD::Float SpirvEmitter::EmitInterpolate(const SIMD::Pointer &ptr, int32_t location, SpirvShader::Object::ID paramId,
+                                          uint32_t component, InterpolationType type) const
 {
 	uint32_t interpolant = (location * 4);
 	uint32_t components_per_row = shader.GetNumInputComponents(location);
