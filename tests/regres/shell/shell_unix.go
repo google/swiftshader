@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build darwin || linux
 // +build darwin linux
 
 package shell
@@ -84,7 +85,10 @@ func init() {
 // Exec runs the executable exe with the given arguments, in the working
 // directory wd, with the custom environment flags.
 // If the process does not finish within timeout a errTimeout will be returned.
-func Exec(timeout time.Duration, exe, wd string, env []string, args ...string) ([]byte, error) {
+func Exec(timeout time.Duration, exe, wd string, env []string, toStdin string, args ...string) ([]byte, error) {
+	stdin := &bytes.Buffer{}
+	stdin.WriteString(toStdin)
+
 	// Shell via regres: --exec N <exe> <args...>
 	// See main() for details.
 	args = append([]string{"--exec", exe, fmt.Sprintf("%v", MaxProcMemory)}, args...)
@@ -92,6 +96,7 @@ func Exec(timeout time.Duration, exe, wd string, env []string, args ...string) (
 	c := exec.Command(os.Args[0], args...)
 	c.Dir = wd
 	c.Env = env
+	c.Stdin = stdin
 	c.Stdout = &b
 	c.Stderr = &b
 

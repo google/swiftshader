@@ -23,11 +23,15 @@ import (
 // Exec runs the executable exe with the given arguments, in the working
 // directory wd, with the custom environment flags.
 // If the process does not finish within timeout a errTimeout will be returned.
-func Exec(timeout time.Duration, exe, wd string, env []string, args ...string) ([]byte, error) {
+func Exec(timeout time.Duration, exe, wd string, env []string, toStdin string, args ...string) ([]byte, error) {
+	stdin := &bytes.Buffer{}
+	stdin.WriteString(toStdin)
+
 	b := bytes.Buffer{}
 	c := exec.Command(exe, args...)
 	c.Dir = wd
 	c.Env = env
+	c.Stdin = stdin
 	c.Stdout = &b
 	c.Stderr = &b
 

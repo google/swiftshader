@@ -327,7 +327,10 @@ func (c *Config) PerformTest(exe string, env []string, coverageFile string, logP
 		validation = "enable"
 	}
 
-	outRaw, err := shell.Exec(c.TestTimeout, exe, filepath.Dir(exe), env,
+	// The list of test names will be passed to stdin, since the deqp-stdin-caselist option is used
+	testNames := name + "\n"
+
+	outRaw, err := shell.Exec(c.TestTimeout, exe, filepath.Dir(exe), env, testNames,
 		"--deqp-validation="+validation,
 		"--deqp-surface-type=pbuffer",
 		"--deqp-shadercache=disable",
@@ -337,7 +340,7 @@ func (c *Config) PerformTest(exe string, env []string, coverageFile string, logP
 		"--deqp-log-empty-loginfo=disable",
 		"--deqp-log-flush=disable",
 		"--deqp-log-filename="+logPath,
-		"-n="+name)
+		"--deqp-stdin-caselist")
 	duration := time.Since(start)
 	out := string(outRaw)
 	out = strings.ReplaceAll(out, exe, "<dEQP>")
