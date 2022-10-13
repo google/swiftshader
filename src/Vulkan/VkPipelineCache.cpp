@@ -20,9 +20,11 @@ namespace vk {
 
 PipelineCache::SpirvBinaryKey::SpirvBinaryKey(const sw::SpirvBinary &spirv,
                                               const VkSpecializationInfo *specializationInfo,
+                                              bool robustBufferAccess,
                                               bool optimize)
     : spirv(spirv)
     , specializationInfo(specializationInfo)
+    , robustBufferAccess(robustBufferAccess)
     , optimize(optimize)
 {
 }
@@ -38,6 +40,11 @@ bool PipelineCache::SpirvBinaryKey::operator<(const SpirvBinaryKey &other) const
 	if(cmp != 0)
 	{
 		return cmp < 0;
+	}
+
+	if(robustBufferAccess != other.robustBufferAccess)
+	{
+		return !robustBufferAccess && other.robustBufferAccess;
 	}
 
 	if(optimize != other.optimize)

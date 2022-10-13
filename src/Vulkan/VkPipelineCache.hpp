@@ -59,6 +59,7 @@ public:
 	{
 		SpirvBinaryKey(const sw::SpirvBinary &spirv,
 		               const VkSpecializationInfo *specializationInfo,
+		               bool robustBufferAccess,
 		               bool optimize);
 
 		bool operator<(const SpirvBinaryKey &other) const;
@@ -70,6 +71,7 @@ public:
 	private:
 		const sw::SpirvBinary spirv;
 		const vk::SpecializationInfo specializationInfo;
+		const bool robustBufferAccess;
 		const bool optimize;
 	};
 
