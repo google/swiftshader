@@ -17,7 +17,6 @@
 #include "marl/scheduler.h"
 
 #include "marl/debug.h"
-#include "marl/sanitizers.h"
 #include "marl/thread.h"
 #include "marl/trace.h"
 
@@ -87,24 +86,17 @@ namespace marl {
 ////////////////////////////////////////////////////////////////////////////////
 thread_local Scheduler* Scheduler::bound = nullptr;
 
-CLANG_NO_SANITIZE_MEMORY
 Scheduler* Scheduler::get() {
+  MSAN_UNPOISON(&bound, sizeof(Scheduler*));
   return bound;
 }
 
-CLANG_NO_SANITIZE_MEMORY
 void Scheduler::setBound(Scheduler* scheduler) {
     bound = scheduler;
 }
 
 void Scheduler::bind() {
-#if !MEMORY_SANITIZER_ENABLED
-  // thread_local variables in shared libraries are initialized at load-time,
-  // but this is not observed by MemorySanitizer if the loader itself was not
-  // instrumented, leading to false-positive unitialized variable errors.
-  // See https://github.com/google/marl/issues/184
   MARL_ASSERT(get() == nullptr, "Scheduler already bound");
-#endif
   setBound(this);
   {
     marl::lock lock(singleThreadedWorkers.mutex);
@@ -240,9 +232,6 @@ Scheduler::Fiber::Fiber(Allocator::unique_ptr<OSFiber>&& impl, uint32_t id)
   MARL_ASSERT(worker != nullptr, "No Scheduler::Worker bound");
 }
 
-// TODO(chromium:1211047): Testing the static thread_local Worker::current for
-// null causes a MemorySantizer false positive.
-CLANG_NO_SANITIZE_MEMORY
 Scheduler::Fiber* Scheduler::Fiber::current() {
   auto worker = Worker::getCurrent();
   return worker != nullptr ? worker->getCurrentFiber() : nullptr;
