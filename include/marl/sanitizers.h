@@ -78,13 +78,14 @@
 #define THREAD_SANITIZER_ONLY(x)
 #endif  // THREAD_SANITIZER_ENABLED
 
-// The CLANG_NO_SANITIZE_MEMORY macro suppresses MemorySanitizer checks for
-// use-of-uninitialized-data. It can be used to decorate functions with known
-// false positives.
-#ifdef __clang__
-#define CLANG_NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
+// The MSAN_UNPOISON macro marks uninitialized memory as initialized for MSAN.
+// It can be used to suppress false-positive MSAN errors before reading
+// thread-local variables. See https://github.com/google/sanitizers/issues/1265
+#if MEMORY_SANITIZER_ENABLED
+#include <sanitizer/msan_interface.h>
+#define MSAN_UNPOISON(p, size) __msan_unpoison(p, size)
 #else
-#define CLANG_NO_SANITIZE_MEMORY
+#define MSAN_UNPOISON(p, size)
 #endif
 
 #endif  // marl_sanitizers_h
