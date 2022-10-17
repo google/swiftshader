@@ -29,7 +29,7 @@ import (
 	"sort"
 	"strconv"
 
-	"../util"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/util"
 )
 
 const maxLLVMVersion = 10

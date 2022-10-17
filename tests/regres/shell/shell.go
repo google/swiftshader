@@ -18,8 +18,6 @@ package shell
 import (
 	"fmt"
 	"time"
-
-	"../cause"
 )
 
 // MaxProcMemory is the maximum virtual memory per child process.
@@ -39,7 +37,7 @@ func Shell(timeout time.Duration, exe, wd string, args ...string) error {
 // If the process does not finish within timeout a errTimeout will be returned.
 func Env(timeout time.Duration, exe, wd string, env []string, args ...string) error {
 	if out, err := Exec(timeout, exe, wd, env, "", args...); err != nil {
-		return cause.Wrap(err, "%s", out)
+		return fmt.Errorf("%s\n%w", out, err)
 	}
 	return nil
 }

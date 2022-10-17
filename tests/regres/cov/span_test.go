@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	cov "."
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/cov"
 )
 
 func TestSpanListAddNoMerge(t *testing.T) {

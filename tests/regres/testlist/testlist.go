@@ -21,12 +21,11 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"../cause"
 )
 
 // API is an enumerator of graphics APIs.
@@ -57,7 +56,7 @@ func (g *Group) LoadFile(file string) error {
 	dir, _ := filepath.Split(file)
 	tests, err := ioutil.ReadFile(file)
 	if err != nil {
-		return cause.Wrap(err, "Couldn't read '%s'", file)
+		return fmt.Errorf("failed to read '%s': %w", file, err)
 	}
 	for _, line := range strings.Split(string(tests), "\n") {
 		line = strings.TrimSpace(line)
@@ -121,7 +120,7 @@ func (l Lists) Filter(pred func(string) bool) Lists {
 func (l Lists) Hash() string {
 	h := sha1.New()
 	if err := gob.NewEncoder(h).Encode(l); err != nil {
-		panic(cause.Wrap(err, "Could not encode testlist to produce hash"))
+		panic(fmt.Errorf("failed to encode testlist to produce hash: %w", err))
 	}
 	return hex.EncodeToString(h.Sum(nil))
 }
@@ -130,17 +129,17 @@ func (l Lists) Hash() string {
 func Load(root, jsonPath string) (Lists, error) {
 	root, err := filepath.Abs(root)
 	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't get absolute path of '%s'", root)
+		return nil, fmt.Errorf("failed to get absolute path of '%s': %w", root, err)
 	}
 
 	jsonPath, err = filepath.Abs(jsonPath)
 	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't get absolute path of '%s'", jsonPath)
+		return nil, fmt.Errorf("failed to get absolute path of '%s': %w", jsonPath, err)
 	}
 
 	i, err := ioutil.ReadFile(jsonPath)
 	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't read test list from '%s'", jsonPath)
+		return nil, fmt.Errorf("failed to read test list from '%s': %w", jsonPath, err)
 	}
 
 	var jsonGroups []struct {
@@ -149,7 +148,7 @@ func Load(root, jsonPath string) (Lists, error) {
 		TestFile string `json:"tests"`
 	}
 	if err := json.NewDecoder(bytes.NewReader(i)).Decode(&jsonGroups); err != nil {
-		return nil, cause.Wrap(err, "Couldn't parse '%s'", jsonPath)
+		return nil, fmt.Errorf("failed to parse '%s': %w", jsonPath, err)
 	}
 
 	dir := filepath.Dir(jsonPath)
@@ -168,7 +167,7 @@ func Load(root, jsonPath string) (Lists, error) {
 		// Make the path relative before displaying it to the world.
 		relPath, err := filepath.Rel(root, group.File)
 		if err != nil {
-			return nil, cause.Wrap(err, "Couldn't get relative path for '%s'", group.File)
+			return nil, fmt.Errorf("failed to get relative path for '%s': %w", group.File, err)
 		}
 		group.File = relPath
 

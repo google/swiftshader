@@ -25,8 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"../cause"
-	"../shell"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/shell"
 )
 
 const (
@@ -38,7 +37,7 @@ var exe string
 func init() {
 	path, err := exec.LookPath("git")
 	if err != nil {
-		panic(cause.Wrap(err, "Couldn't find path to git executable"))
+		panic(fmt.Errorf("failed to find path to git executable: %w", err))
 	}
 	exe = path
 }
@@ -59,7 +58,7 @@ func ParseHash(s string) Hash {
 // Add calls 'git add <file>'.
 func Add(wd, file string) error {
 	if err := shell.Shell(gitTimeout, exe, wd, "add", file); err != nil {
-		return cause.Wrap(err, "`git add %v` in working directory %v failed", file, wd)
+		return fmt.Errorf("`git add %v` in working directory %v failed: %w", file, wd, err)
 	}
 	return nil
 }
@@ -95,13 +94,13 @@ func Push(wd, remote, localBranch, remoteBranch string, flags PushFlags) error {
 	if flags.Username != "" {
 		f, err := ioutil.TempFile("", "regres-cookies.txt")
 		if err != nil {
-			return cause.Wrap(err, "Couldn't create cookie file")
+			return fmt.Errorf("failed to create cookie file: %w", err)
 		}
 		defer f.Close()
 		defer os.Remove(f.Name())
 		u, err := url.Parse(remote)
 		if err != nil {
-			return cause.Wrap(err, "Couldn't parse url '%v'", remote)
+			return fmt.Errorf("failed to parse url '%v': %w", remote, err)
 		}
 		f.WriteString(fmt.Sprintf("%v	FALSE	/	TRUE	2147483647	o	%v=%v\n", u.Host, flags.Username, flags.Password))
 		f.Close()
@@ -114,7 +113,7 @@ func Push(wd, remote, localBranch, remoteBranch string, flags PushFlags) error {
 // CheckoutRemoteBranch performs a git fetch and checkout of the given branch into path.
 func CheckoutRemoteBranch(path, url string, branch string) error {
 	if err := os.MkdirAll(path, 0777); err != nil {
-		return cause.Wrap(err, "mkdir '"+path+"' failed")
+		return fmt.Errorf("mkdir '"+path+"' failed: %w", err)
 	}
 
 	for _, cmds := range [][]string{
@@ -135,7 +134,7 @@ func CheckoutRemoteBranch(path, url string, branch string) error {
 // CheckoutRemoteCommit performs a git fetch and checkout of the given commit into path.
 func CheckoutRemoteCommit(path, url string, commit Hash) error {
 	if err := os.MkdirAll(path, 0777); err != nil {
-		return cause.Wrap(err, "mkdir '"+path+"' failed")
+		return fmt.Errorf("mkdir '"+path+"' failed: %w", err)
 	}
 
 	for _, cmds := range [][]string{

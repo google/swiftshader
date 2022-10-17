@@ -15,14 +15,26 @@
 package llvm_test
 
 import (
+	"flag"
+	"os"
 	"testing"
 
-	llvm "."
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/llvm"
 )
 
+var testLLVMDownloads = flag.Bool("test-llvm-downloads", false, "include download tests of llvm")
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	os.Exit(m.Run())
+}
+
 func TestLLVMDownloads(t *testing.T) {
+	if !*testLLVMDownloads {
+		t.Skip("LLVM download tests disabled. Enable with --test-llvm-downloads")
+	}
 	for _, version := range []llvm.Version{
-		llvm.Version{Major: 10, Minor: 0, Point: 0},
+		{Major: 10, Minor: 0, Point: 0},
 	} {
 		t.Logf("Downloading %v...", version)
 		for _, os := range []string{"linux", "darwin", "windows"} {

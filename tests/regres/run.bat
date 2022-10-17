@@ -1,1 +1,3 @@
-go run %~dp0cmd\regres\main.go %*
+PUSHD %~dp0
+go run .\cmd\regres\main.go %*
+POPD

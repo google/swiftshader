@@ -36,13 +36,12 @@ import (
 	"strings"
 	"time"
 
-	"../../cause"
-	"../../cov"
-	"../../deqp"
-	"../../llvm"
-	"../../shell"
-	"../../testlist"
-	"../../util"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/cov"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/deqp"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/llvm"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/shell"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/testlist"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/util"
 )
 
 func min(a, b int) int {
@@ -146,10 +145,10 @@ func run() error {
 	if *genCoverage {
 		f, err := os.Create("coverage.dat")
 		if err != nil {
-			return cause.Wrap(err, "Couldn't open coverage.dat file")
+			return fmt.Errorf("failed to open coverage.dat file: %w", err)
 		}
 		if err := res.Coverage.Encode("master", f); err != nil {
-			return cause.Wrap(err, "Couldn't encode coverage data")
+			return fmt.Errorf("failed to encode coverage data: %w", err)
 		}
 	}
 

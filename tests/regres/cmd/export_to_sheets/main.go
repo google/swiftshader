@@ -30,10 +30,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"../../cause"
-	"../../consts"
-	"../../git"
-	"../../testlist"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/consts"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/git"
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/testlist"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -64,23 +63,23 @@ func run() error {
 	// Load the full test list. We use this to find the test file names.
 	lists, err := testlist.Load(".", *testListPath)
 	if err != nil {
-		return cause.Wrap(err, "Unable to load test list")
+		return fmt.Errorf("failed to load test list: %w", err)
 	}
 
 	// Load the creditials used for editing the Google Sheets spreadsheet.
 	srv, err := createSheetsService(*authdir)
 	if err != nil {
-		return cause.Wrap(err, "Unable to authenticate")
+		return fmt.Errorf("failed to authenticate: %w", err)
 	}
 
 	// Ensure that there is a sheet for each of the test lists.
 	if err := createTestListSheets(srv, lists); err != nil {
-		return cause.Wrap(err, "Unable to create sheets")
+		return fmt.Errorf("failed to create sheets: %w", err)
 	}
 
 	spreadsheet, err := srv.Spreadsheets.Get(*spreadsheetID).Do()
 	if err != nil {
-		return cause.Wrap(err, "Unable to get spreadsheet")
+		return fmt.Errorf("failed to get spreadsheet: %w", err)
 	}
 
 	req := sheets.BatchUpdateValuesRequest{
@@ -90,7 +89,7 @@ func run() error {
 	testListDir := filepath.Dir(filepath.Join(*projectPath, *testListPath))
 	changes, err := git.Log(testListDir, 100)
 	if err != nil {
-		return cause.Wrap(err, "Couldn't get git changes for '%v'", testListDir)
+		return fmt.Errorf("failed to get git changes for '%v': %w", testListDir, err)
 	}
 
 	for _, group := range lists {
@@ -98,24 +97,24 @@ func run() error {
 		fmt.Println("Processing sheet", sheetName)
 		sheet := getSheet(spreadsheet, sheetName)
 		if sheet == nil {
-			return cause.Wrap(err, "Sheet '%v' not found", sheetName)
+			return fmt.Errorf("sheet '%v' not found: %w", sheetName, err)
 		}
 
 		columnHeaders, err := fetchRow(srv, spreadsheet, sheet, 0)
 		if err != nil {
-			return cause.Wrap(err, "Couldn't get sheet '%v' column headers", sheetName)
+			return fmt.Errorf("failed to get sheet '%v' column headers: %w", sheetName, err)
 		}
 
 		columnIndices := listToMap(columnHeaders)
 
 		hashColumnIndex, found := columnIndices[columnGitHash]
 		if !found {
-			return cause.Wrap(err, "Couldn't find sheet '%v' column header '%v'", sheetName, columnGitHash)
+			return fmt.Errorf("failed to find sheet '%v' column header '%v': %w", sheetName, columnGitHash, err)
 		}
 
 		hashValues, err := fetchColumn(srv, spreadsheet, sheet, hashColumnIndex)
 		if err != nil {
-			return cause.Wrap(err, "Couldn't get sheet '%v' column headers", sheetName)
+			return fmt.Errorf("failed to get sheet '%v' column headers: %w", sheetName, err)
 		}
 		hashValues = hashValues[1:] // Skip header
 
@@ -148,7 +147,7 @@ func run() error {
 				}
 				lines, err := countLines(data)
 				if err != nil {
-					return cause.Wrap(err, "Couldn't count lines in file '%s'", path)
+					return fmt.Errorf("failed to count lines in file '%s': %w", path, err)
 				}
 
 				rowValues[string(status)] = lines
@@ -161,7 +160,7 @@ func run() error {
 
 			data, err := mapToList(columnIndices, rowValues)
 			if err != nil {
-				return cause.Wrap(err, "Couldn't map row values to column for sheet %v. Column headers: [%+v]", sheetName, columnHeaders)
+				return fmt.Errorf("failed to map row values to column for sheet %v. Column headers: [%+v]: %w", sheetName, columnHeaders, err)
 			}
 
 			req.Data = append(req.Data, &sheets.ValueRange{
@@ -175,7 +174,7 @@ func run() error {
 	}
 
 	if _, err := srv.Spreadsheets.Values.BatchUpdate(*spreadsheetID, &req).Do(); err != nil {
-		return cause.Wrap(err, "Values BatchUpdate failed")
+		return fmt.Errorf("Values.BatchUpdate() failed: %w", err)
 	}
 
 	return nil
@@ -251,7 +250,7 @@ func fetchRow(srv *sheets.Service, spreadsheet *sheets.Spreadsheet, sheet *sheet
 	rng := rowRange(row, sheet)
 	data, err := srv.Spreadsheets.Values.Get(spreadsheet.SpreadsheetId, rng).Do()
 	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't fetch %v", rng)
+		return nil, fmt.Errorf("failed to fetch %v: %w", rng, err)
 	}
 	return data.Values[0], nil
 }
@@ -261,7 +260,7 @@ func fetchColumn(srv *sheets.Service, spreadsheet *sheets.Spreadsheet, sheet *sh
 	rng := columnRange(row, sheet)
 	data, err := srv.Spreadsheets.Values.Get(spreadsheet.SpreadsheetId, rng).Do()
 	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't fetch %v", rng)
+		return nil, fmt.Errorf("failed to fetch %v: %w", rng, err)
 	}
 	out := make([]interface{}, len(data.Values))
 	for i, l := range data.Values {
@@ -287,7 +286,7 @@ func insertRows(srv *sheets.Service, spreadsheet *sheets.Spreadsheet, sheet *she
 		},
 	}
 	if _, err := srv.Spreadsheets.BatchUpdate(*spreadsheetID, &req).Do(); err != nil {
-		return cause.Wrap(err, "Values BatchUpdate failed")
+		return fmt.Errorf("Spreadsheets.BatchUpdate() failed: %w", err)
 	}
 	return nil
 }
@@ -297,7 +296,7 @@ func insertRows(srv *sheets.Service, spreadsheet *sheets.Spreadsheet, sheet *she
 func createTestListSheets(srv *sheets.Service, testlists testlist.Lists) error {
 	spreadsheet, err := srv.Spreadsheets.Get(*spreadsheetID).Do()
 	if err != nil {
-		return cause.Wrap(err, "Unable to get spreadsheet")
+		return fmt.Errorf("failed to get spreadsheet: %w", err)
 	}
 
 	spreadsheetReq := sheets.BatchUpdateSpreadsheetRequest{}
@@ -328,12 +327,12 @@ func createTestListSheets(srv *sheets.Service, testlists testlist.Lists) error {
 
 	if len(spreadsheetReq.Requests) > 0 {
 		if _, err := srv.Spreadsheets.BatchUpdate(*spreadsheetID, &spreadsheetReq).Do(); err != nil {
-			return cause.Wrap(err, "Spreadsheets BatchUpdate failed")
+			return fmt.Errorf("Spreadsheets.BatchUpdate() failed: %w", err)
 		}
 	}
 	if len(updateReq.Data) > 0 {
 		if _, err := srv.Spreadsheets.Values.BatchUpdate(*spreadsheetID, &updateReq).Do(); err != nil {
-			return cause.Wrap(err, "Values BatchUpdate failed")
+			return fmt.Errorf("Values.BatchUpdate() failed: %w", err)
 		}
 	}
 
@@ -353,23 +352,23 @@ func createSheetsService(authdir string) (*sheets.Service, error) {
 	credentialsPath := filepath.Join(authdir, "credentials.json")
 	b, err := ioutil.ReadFile(credentialsPath)
 	if err != nil {
-		return nil, cause.Wrap(err, "Unable to read client secret file '%v'\n"+
+		return nil, fmt.Errorf("Unable to read client secret file '%v'\n"+
 			"Obtain this file from: https://console.developers.google.com/apis/credentials", credentialsPath)
 	}
 
 	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	if err != nil {
-		return nil, cause.Wrap(err, "Unable to parse client secret file to config")
+		return nil, fmt.Errorf("failed to parse client secret file to config: %w", err)
 	}
 
 	client, err := getClient(authdir, config)
 	if err != nil {
-		return nil, cause.Wrap(err, "Unable obtain client")
+		return nil, fmt.Errorf("failed to obtain client: %w", err)
 	}
 
 	srv, err := sheets.New(client)
 	if err != nil {
-		return nil, cause.Wrap(err, "Unable to retrieve Sheets client")
+		return nil, fmt.Errorf("failed to to retrieve Sheets client: %w", err)
 	}
 	return srv, nil
 }
@@ -384,10 +383,10 @@ func getClient(authdir string, config *oauth2.Config) (*http.Client, error) {
 	if err != nil {
 		tok, err = getTokenFromWeb(config)
 		if err != nil {
-			return nil, cause.Wrap(err, "Unable to get token from web")
+			return nil, fmt.Errorf("failed to get token from web: %w", err)
 		}
 		if err := saveToken(tokFile, tok); err != nil {
-			log.Println("Warning: failed to write token: %v", err)
+			log.Printf("Warning: failed to write token: %v", err)
 		}
 	}
 	return config.Client(context.Background(), tok), nil
@@ -401,12 +400,12 @@ func getTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
 
 	var authCode string
 	if _, err := fmt.Scan(&authCode); err != nil {
-		return nil, cause.Wrap(err, "Unable to read authorization code")
+		return nil, fmt.Errorf("failed to read authorization code: %w", err)
 	}
 
 	tok, err := config.Exchange(context.TODO(), authCode)
 	if err != nil {
-		return nil, cause.Wrap(err, "Unable to retrieve token from web")
+		return nil, fmt.Errorf("failed to retrieve token from web: %w", err)
 	}
 	return tok, nil
 }
@@ -428,7 +427,7 @@ func saveToken(path string, token *oauth2.Token) error {
 	fmt.Printf("Saving credential file to: %s\n", path)
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		return cause.Wrap(err, "Unable to cache oauth token")
+		return fmt.Errorf("failed to cache oauth token: %w", err)
 	}
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)

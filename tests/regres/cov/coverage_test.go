@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	cov "."
+	"swiftshader.googlesource.com/SwiftShader/tests/regres/cov"
 )
 
 var (
