@@ -83,20 +83,21 @@ var (
 	numParallelTests = runtime.NumCPU()
 	llvmVersion      = llvm.Version{Major: 10}
 
-	cacheDir      = flag.String("cache", "cache", "path to the output cache directory")
-	gerritEmail   = flag.String("email", "$SS_REGRES_EMAIL", "gerrit email address for posting regres results")
-	gerritUser    = flag.String("user", "$SS_REGRES_USER", "gerrit username for posting regres results")
-	gerritPass    = flag.String("pass", "$SS_REGRES_PASS", "gerrit password for posting regres results")
-	githubUser    = flag.String("gh-user", "$SS_GITHUB_USER", "github user for posting coverage results")
-	githubPass    = flag.String("gh-pass", "$SS_GITHUB_PASS", "github password for posting coverage results")
-	keepCheckouts = flag.Bool("keep", false, "don't delete checkout directories after use")
-	dryRun        = flag.Bool("dry", false, "don't post regres reports to gerrit")
-	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
-	dailyNow      = flag.Bool("dailynow", false, "Start by running the daily pass")
-	dailyOnly     = flag.Bool("dailyonly", false, "Run only the daily pass")
-	dailyChange   = flag.String("dailychange", "", "Change hash to use for daily pass, HEAD if not provided")
-	priority      = flag.Int("priority", 0, "Prioritize a single change with the given number")
-	limit         = flag.Int("limit", 0, "only run a maximum of this number of tests")
+	cacheDir        = flag.String("cache", "cache", "path to the output cache directory")
+	gerritEmail     = flag.String("email", "$SS_REGRES_EMAIL", "gerrit email address for posting regres results")
+	gerritUser      = flag.String("user", "$SS_REGRES_USER", "gerrit username for posting regres results")
+	gerritPass      = flag.String("pass", "$SS_REGRES_PASS", "gerrit password for posting regres results")
+	githubUser      = flag.String("gh-user", "$SS_GITHUB_USER", "github user for posting coverage results")
+	githubPass      = flag.String("gh-pass", "$SS_GITHUB_PASS", "github password for posting coverage results")
+	keepCheckouts   = flag.Bool("keep", false, "don't delete checkout directories after use")
+	dryRun          = flag.Bool("dry", false, "don't post regres reports to gerrit")
+	maxTestsPerProc = flag.Int("max-tests-per-proc", 1, "maximum number of tests running in a single process")
+	maxProcMemory   = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
+	dailyNow        = flag.Bool("dailynow", false, "Start by running the daily pass")
+	dailyOnly       = flag.Bool("dailyonly", false, "Run only the daily pass")
+	dailyChange     = flag.String("dailychange", "", "Change hash to use for daily pass, HEAD if not provided")
+	priority        = flag.Int("priority", 0, "Prioritize a single change with the given number")
+	limit           = flag.Int("limit", 0, "only run a maximum of this number of tests")
 )
 
 func main() {
@@ -1362,6 +1363,7 @@ func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error)
 			t.checkoutDir: "<SwiftShader>",
 		},
 		NumParallelTests: numParallelTests,
+		MaxTestsPerProc:  *maxTestsPerProc,
 		TestTimeout:      testTimeout,
 		CoverageEnv:      t.coverageEnv,
 	}

@@ -53,6 +53,8 @@ var (
 	assertRE = regexp.MustCompile(`[^\n]*ASSERT\([^\)]*\)[^\n]*`)
 	// Regular expression to parse a test that failed due to ABORT()
 	abortRE = regexp.MustCompile(`[^\n]*ABORT:[^\n]*`)
+	// Regular expression to parse individual test names and output
+	caseOutputRE = regexp.MustCompile("Test case '([^']*)'..")
 )
 
 // Config contains the inputs required for running dEQP on a group of test lists.
@@ -66,6 +68,7 @@ type Config struct {
 	Env              []string
 	LogReplacements  map[string]string
 	NumParallelTests int
+	MaxTestsPerProc  int
 	CoverageEnv      *cov.Env
 	TestTimeout      time.Duration
 	ValidationLayer  bool
@@ -312,13 +315,22 @@ func (c *Config) TestRoutine(exe string, tests <-chan string, results chan<- Tes
 		logPath = filepath.Join(c.TempDir, fmt.Sprintf("%v.log", goroutineIndex))
 	}
 
+	testNames := []string{}
 	for name := range tests {
-		results <- c.PerformTest(exe, env, coverageFile, logPath, name, supportsCoverage)
+		testNames = append(testNames, name)
+		if len(testNames) >= c.MaxTestsPerProc {
+			c.PerformTests(exe, env, coverageFile, logPath, testNames, supportsCoverage, results)
+			// Clear list of test names
+			testNames = testNames[:0]
+		}
+	}
+	if len(testNames) > 0 {
+		c.PerformTests(exe, env, coverageFile, logPath, testNames, supportsCoverage, results)
 	}
 }
 
-func (c *Config) PerformTest(exe string, env []string, coverageFile string, logPath string, name string, supportsCoverage bool) TestResult {
-	// log.Printf("Running test '%s'\n", name)
+func (c *Config) PerformTests(exe string, env []string, coverageFile string, logPath string, testNames []string, supportsCoverage bool, results chan<- TestResult) {
+	// log.Printf("Running test(s) '%s'\n", testNames)
 
 	start := time.Now()
 	// Set validation layer according to flag.
@@ -328,9 +340,11 @@ func (c *Config) PerformTest(exe string, env []string, coverageFile string, logP
 	}
 
 	// The list of test names will be passed to stdin, since the deqp-stdin-caselist option is used
-	testNames := name + "\n"
+	stdin := strings.Join(testNames, "\n") + "\n"
 
-	outRaw, err := shell.Exec(c.TestTimeout, exe, filepath.Dir(exe), env, testNames,
+	numTests := len(testNames)
+	timeout := c.TestTimeout * time.Duration(numTests)
+	outRaw, err := shell.Exec(timeout, exe, filepath.Dir(exe), env, stdin,
 		"--deqp-validation="+validation,
 		"--deqp-surface-type=pbuffer",
 		"--deqp-shadercache=disable",
@@ -352,11 +366,41 @@ func (c *Config) PerformTest(exe string, env []string, coverageFile string, logP
 	if c.CoverageEnv != nil && supportsCoverage {
 		coverage, err = c.CoverageEnv.Import(coverageFile)
 		if err != nil {
-			log.Printf("Warning: Failed to process test coverage for test '%v'. %v", name, err)
+			log.Printf("Warning: Failed to process test coverage for test '%v'. %v", testNames, err)
 		}
 		os.Remove(coverageFile)
 	}
 
+	if numTests > 1 {
+		// Separate output per test case
+		caseOutputs := caseOutputRE.Split(out, -1)
+
+		// If the output isn't as expected, a crash may have happened, so re-run tests separately
+		if len(caseOutputs) != (numTests + 1) {
+			// Re-run tests one by one
+			for _, testName := range testNames {
+				singleTest := []string{testName}
+				c.PerformTests(exe, env, coverageFile, logPath, singleTest, supportsCoverage, results)
+			}
+		} else {
+			caseOutputs = caseOutputs[1:] // Ignore text up to first "Test case '...'"
+			caseNameMatches := caseOutputRE.FindAllStringSubmatch(out, -1)
+			caseNames := make([]string, len(caseNameMatches))
+			for i, m := range caseNameMatches {
+				caseNames[i] = m[1]
+			}
+
+			averageDuration := duration / time.Duration(numTests)
+			for i, caseOutput := range caseOutputs {
+				results <- c.AnalyzeOutput(caseNames[i], caseOutput, averageDuration, coverage)
+			}
+		}
+	} else {
+		results <- c.AnalyzeOutput(testNames[0], out, duration, coverage)
+	}
+}
+
+func (c *Config) AnalyzeOutput(name string, out string, duration time.Duration, coverage *cov.Coverage) TestResult {
 	for _, test := range []struct {
 		re *regexp.Regexp
 		s  testlist.Status
@@ -379,6 +423,7 @@ func (c *Config) PerformTest(exe string, env []string, coverageFile string, logP
 	}
 
 	// Don't treat non-zero error codes as crashes.
+	var err error
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
 		if exitErr.ExitCode() != 255 {
