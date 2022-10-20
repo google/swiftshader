@@ -3,7 +3,6 @@
     "branch": "",
     "sha": "7aaf3aef809de09834ff355f38917d8a16830ec8",
     "patches": [
-        "tests/regres/deqp-patches/deqp-x11.patch",
-        "tests/regres/deqp-patches/deqp-oob-read-fix.patch"
+        "tests/regres/deqp-patches/deqp-x11.patch"
     ]
 }
