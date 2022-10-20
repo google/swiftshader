@@ -18,7 +18,7 @@ namespace sw {
 
 half::half(float fp32)
 {
-	unsigned int fp32i = *(unsigned int *)&fp32;
+	unsigned int fp32i = bit_cast<unsigned int>(fp32);
 	unsigned int sign = (fp32i & 0x80000000) >> 16;
 	unsigned int abs = fp32i & 0x7FFFFFFF;
 
@@ -62,7 +62,7 @@ half::operator float() const
 		{
 			fp32i = s << 31;
 
-			return (float &)fp32i;
+			return bit_cast<float>(fp32i);
 		}
 		else
 		{
@@ -82,7 +82,7 @@ half::operator float() const
 
 	fp32i = (s << 31) | (e << 23) | m;
 
-	return (float &)fp32i;
+	return bit_cast<float>(fp32i);
 }
 
 half &half::operator=(float f)

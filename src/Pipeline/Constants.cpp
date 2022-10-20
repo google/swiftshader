@@ -306,7 +306,7 @@ Constants::Constants()
 
 	for(int i = 0; i <= 0xFFFF; i++)
 	{
-		half2float[i] = (float)reinterpret_cast<half &>(i);
+		half2float[i] = static_cast<float>(bit_cast<half>(i));
 	}
 }
 

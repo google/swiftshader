@@ -194,7 +194,7 @@ public:
 		const unsigned int float32MinNormfloat11 = 0x38800000;
 		const unsigned int float32MinDenormfloat11 = 0x35000080;
 
-		const unsigned int float32Bits = *reinterpret_cast<unsigned int *>(&fp32);
+		const unsigned int float32Bits = bit_cast<unsigned int>(fp32);
 		const bool float32Sign = (float32Bits & float32SignMask) == float32SignMask;
 
 		unsigned int float32Val = float32Bits & float32ValueMask;
@@ -273,7 +273,7 @@ public:
 		const unsigned int float32MinNormfloat10 = 0x38800000;
 		const unsigned int float32MinDenormfloat10 = 0x35800040;
 
-		const unsigned int float32Bits = *reinterpret_cast<unsigned int *>(&fp32);
+		const unsigned int float32Bits = bit_cast<unsigned int>(fp32);
 		const bool float32Sign = (float32Bits & float32SignMask) == float32SignMask;
 
 		unsigned int float32Val = float32Bits & float32ValueMask;
