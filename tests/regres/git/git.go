@@ -165,7 +165,7 @@ func Apply(dir, patch string) error {
 
 // FetchRefHash returns the git hash of the given ref.
 func FetchRefHash(ref, url string) (Hash, error) {
-	out, err := shell.Exec(gitTimeout, exe, "", nil, "ls-remote", url, ref)
+	out, err := shell.Exec(gitTimeout, exe, "", nil, "", "ls-remote", url, ref)
 	if err != nil {
 		return Hash{}, err
 	}
@@ -190,7 +190,7 @@ func LogFrom(path, at string, count int) ([]ChangeList, error) {
 	if at == "" {
 		at = "HEAD"
 	}
-	out, err := shell.Exec(gitTimeout, exe, "", nil, "log", at, "--pretty=format:"+prettyFormat, fmt.Sprintf("-%d", count), path)
+	out, err := shell.Exec(gitTimeout, exe, "", nil, "", "log", at, "--pretty=format:"+prettyFormat, fmt.Sprintf("-%d", count), path)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func LogFrom(path, at string, count int) ([]ChangeList, error) {
 
 // Parent returns the parent ChangeList for cl.
 func Parent(cl ChangeList) (ChangeList, error) {
-	out, err := shell.Exec(gitTimeout, exe, "", nil, "log", "--pretty=format:"+prettyFormat, fmt.Sprintf("%v^", cl.Hash))
+	out, err := shell.Exec(gitTimeout, exe, "", nil, "", "log", "--pretty=format:"+prettyFormat, fmt.Sprintf("%v^", cl.Hash))
 	if err != nil {
 		return ChangeList{}, err
 	}
@@ -224,7 +224,7 @@ func HeadCL(path string) (ChangeList, error) {
 
 // Show content of the file at path for the given commit/tag/branch.
 func Show(path, at string) ([]byte, error) {
-	return shell.Exec(gitTimeout, exe, "", nil, "show", at+":"+path)
+	return shell.Exec(gitTimeout, exe, "", nil, "", "show", at+":"+path)
 }
 
 const prettyFormat = "ǁ%Hǀ%cIǀ%an <%ae>ǀ%sǀ%b"
