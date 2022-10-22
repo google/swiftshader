@@ -1688,6 +1688,155 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceProtectedMemoryFe
 }
 #undef CheckFeature
 
+static bool checkFormatUsage(VkImageUsageFlags usage, VkFormatFeatureFlags features)
+{
+	// Check for usage conflict with features
+	if((usage & VK_IMAGE_USAGE_SAMPLED_BIT) && !(features & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
+	{
+		return false;
+	}
+
+	if((usage & VK_IMAGE_USAGE_STORAGE_BIT) && !(features & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT))
+	{
+		return false;
+	}
+
+	if((usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT))
+	{
+		return false;
+	}
+
+	if((usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT))
+	{
+		return false;
+	}
+
+	if((usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) && !(features & (VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)))
+	{
+		return false;
+	}
+
+	if((usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_SRC_BIT))
+	{
+		return false;
+	}
+
+	if((usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_DST_BIT))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool vk::PhysicalDevice::isFormatSupported(vk::Format format, VkImageType type, VkImageTiling tiling,
+                                               VkImageUsageFlags usage, VkImageUsageFlags stencilUsage, VkImageCreateFlags flags)
+{
+	VkFormatProperties properties = {};
+	vk::PhysicalDevice::GetFormatProperties(format, &properties);
+
+	if(flags & VK_IMAGE_CREATE_EXTENDED_USAGE_BIT)
+	{
+		for(vk::Format f : format.getCompatibleFormats())
+		{
+			VkFormatProperties extendedProperties = {};
+			vk::PhysicalDevice::GetFormatProperties(f, &extendedProperties);
+			properties.linearTilingFeatures |= extendedProperties.linearTilingFeatures;
+			properties.optimalTilingFeatures |= extendedProperties.optimalTilingFeatures;
+			properties.bufferFeatures |= extendedProperties.bufferFeatures;
+		}
+	}
+
+	VkFormatFeatureFlags features;
+	switch(tiling)
+	{
+	case VK_IMAGE_TILING_LINEAR:
+		features = properties.linearTilingFeatures;
+		break;
+
+	case VK_IMAGE_TILING_OPTIMAL:
+		features = properties.optimalTilingFeatures;
+		break;
+
+	default:
+		UNSUPPORTED("VkImageTiling %d", int(tiling));
+		features = 0;
+	}
+
+	if(features == 0)
+	{
+		return false;
+	}
+
+	// Reject any usage or separate stencil usage that is not compatible with the specified format.
+	if(!checkFormatUsage(usage, features))
+	{
+		return false;
+	}
+	// If stencilUsage is 0 then no separate usage was provided and it takes on the same value as usage,
+	// which has already been checked. So only check non-zero stencilUsage.
+	if(stencilUsage != 0 && !checkFormatUsage(stencilUsage, features))
+	{
+		return false;
+	}
+
+	auto allRecognizedUsageBits = VK_IMAGE_USAGE_SAMPLED_BIT |
+	                              VK_IMAGE_USAGE_STORAGE_BIT |
+	                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+	                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
+	                              VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+	                              VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+	                              VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+	                              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+	ASSERT(!(usage & ~(allRecognizedUsageBits)));
+
+	if(usage & VK_IMAGE_USAGE_SAMPLED_BIT)
+	{
+		if(tiling == VK_IMAGE_TILING_LINEAR)
+		{
+			// TODO(b/171299814): Compressed formats and cube maps are not supported for sampling using VK_IMAGE_TILING_LINEAR; otherwise, sampling
+			// in linear tiling is always supported as long as it can be sampled when using VK_IMAGE_TILING_OPTIMAL.
+			if(!(properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) ||
+			   vk::Format(format).isCompressed() ||
+			   (flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT))
+			{
+				return false;
+			}
+		}
+		else if(!(features & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
+		{
+			return false;
+		}
+	}
+
+	// "Images created with tiling equal to VK_IMAGE_TILING_LINEAR have further restrictions on their limits and capabilities
+	//  compared to images created with tiling equal to VK_IMAGE_TILING_OPTIMAL."
+	if(tiling == VK_IMAGE_TILING_LINEAR)
+	{
+		if(type != VK_IMAGE_TYPE_2D)
+		{
+			return false;
+		}
+
+		if(vk::Format(format).isDepth() || vk::Format(format).isStencil())
+		{
+			return false;
+		}
+	}
+
+	// "Images created with a format from one of those listed in Formats requiring sampler Y'CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
+	//  have further restrictions on their limits and capabilities compared to images created with other formats."
+	if(vk::Format(format).isYcbcrFormat())
+	{
+		if(type != VK_IMAGE_TYPE_2D)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFormatProperties)
 {
 	VkFormatProperties3 formatProperties3 = {};
