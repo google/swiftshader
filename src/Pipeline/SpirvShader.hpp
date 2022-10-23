@@ -866,9 +866,6 @@ public:
 	// Creates an Object for the instruction's result in 'defs'.
 	void DefineResult(const InsnIterator &insn);
 
-	// Output storage buffers and images should not be affected by helper invocations
-	static bool StoresInHelperInvocation(spv::StorageClass storageClass);
-
 	using InterfaceVisitor = std::function<void(Decorations const, AttribType)>;
 
 	void VisitInterface(Object::ID id, const InterfaceVisitor &v) const;
@@ -977,6 +974,7 @@ public:
 	// Returns 0 when invalid.
 	static VkShaderStageFlagBits executionModelToStage(spv::ExecutionModel model);
 
+	static bool StoresInHelperInvocationsHaveNoEffect(spv::StorageClass storageClass);
 	static bool IsExplicitLayout(spv::StorageClass storageClass);
 	static bool IsTerminator(spv::Op opcode);
 };
