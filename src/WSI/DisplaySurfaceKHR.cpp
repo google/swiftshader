@@ -276,13 +276,13 @@ size_t DisplaySurfaceKHR::ComputeRequiredAllocationSize(const VkDisplaySurfaceCr
 
 VkResult DisplaySurfaceKHR::getSurfaceCapabilities(const void *pSurfaceInfoPNext, VkSurfaceCapabilitiesKHR *pSurfaceCapabilities, void *pSurfaceCapabilitiesPNext) const
 {
-	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
-
 	VkExtent2D extent = { width, height };
 
 	pSurfaceCapabilities->currentExtent = extent;
 	pSurfaceCapabilities->minImageExtent = extent;
 	pSurfaceCapabilities->maxImageExtent = extent;
+
+	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 	return VK_SUCCESS;
 }
 

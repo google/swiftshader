@@ -149,9 +149,6 @@ VkResult MetalSurface::getSurfaceCapabilities(const void *pSurfaceInfoPNext,
                                               void *pSurfaceCapabilitiesPNext) const
     API_AVAILABLE(macosx(10.11))
 {
-    setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities,
-                                 pSurfaceCapabilitiesPNext);
-
     // The value of drawableSize in CAMetalLayer is set the first time a drawable is queried but after that it is the
     // (Metal) application's responsibility to resize the drawable when the window is resized. The best time for Swiftshader
     // to resize the drawable is when querying the capabilities of the swapchain as that's done when the Vulkan application
@@ -160,7 +157,10 @@ VkResult MetalSurface::getSurfaceCapabilities(const void *pSurfaceInfoPNext,
     pSurfaceCapabilities->currentExtent = extent;
     pSurfaceCapabilities->minImageExtent = extent;
     pSurfaceCapabilities->maxImageExtent = extent;
-	return VK_SUCCESS;
+
+    setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities,
+                                 pSurfaceCapabilitiesPNext);
+    return VK_SUCCESS;
 }
 
 VkResult MetalSurface::present(PresentImage* image) API_AVAILABLE(macosx(10.11))

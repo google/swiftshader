@@ -47,7 +47,11 @@ public:
 	VkResult present(uint32_t index);
 	const PresentImage &getImage(uint32_t imageIndex) { return images[imageIndex]; }
 
+	VkResult releaseImages(uint32_t imageIndexCount, const uint32_t *pImageIndices);
+
 private:
+	void releaseImage(uint32_t index);
+
 	SurfaceKHR *surface = nullptr;
 	PresentImage *images = nullptr;
 	uint32_t imageCount = 0;

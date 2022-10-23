@@ -395,6 +395,12 @@ static void getPhysicalDeviceGlobalPriorityQueryFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceSwapchainMaintenance1FeaturesKHR(T *features)
+{
+	features->swapchainMaintenance1 = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_TRUE;
@@ -633,6 +639,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT:
 			getPhysicalDeviceGraphicsPipelineLibraryFeatures(reinterpret_cast<struct VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT:
+			getPhysicalDeviceSwapchainMaintenance1FeaturesKHR(reinterpret_cast<struct VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:  // TODO(b/176893525): This may not be legal. dEQP tests that this value is ignored.
 			break;
@@ -1654,6 +1663,13 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineL
 	auto supported = getSupportedFeatures(requested);
 
 	return CheckFeature(requested, supported, graphicsPipelineLibrary);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, swapchainMaintenance1);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceDescriptorIndexingFeatures *requested) const
