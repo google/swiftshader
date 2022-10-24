@@ -13128,6 +13128,10 @@ dEQP-VK.glsl.demote.function_static_loop_uniform
 dEQP-VK.glsl.demote.function_static_loop_dynamic
 dEQP-VK.glsl.demote.function_static_loop_texture
 dEQP-VK.glsl.demote.function_static_loop_deriv
+dEQP-VK.glsl.crash_test.divbyzero_vert
+dEQP-VK.glsl.crash_test.divbyzero_tesc
+dEQP-VK.glsl.crash_test.divbyzero_tese
+dEQP-VK.glsl.crash_test.divbyzero_geom
 dEQP-VK.glsl.crash_test.divbyzero_frag
 dEQP-VK.glsl.crash_test.divbyzero_comp
 dEQP-VK.glsl.conversions.scalar_to_scalar.float_to_float_vertex
