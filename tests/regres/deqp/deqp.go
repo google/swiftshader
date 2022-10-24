@@ -344,7 +344,7 @@ func (c *Config) PerformTests(exe string, env []string, coverageFile string, log
 
 	numTests := len(testNames)
 	timeout := c.TestTimeout * time.Duration(numTests)
-	outRaw, err := shell.Exec(timeout, exe, filepath.Dir(exe), env, stdin,
+	outRaw, deqpErr := shell.Exec(timeout, exe, filepath.Dir(exe), env, stdin,
 		"--deqp-validation="+validation,
 		"--deqp-surface-type=pbuffer",
 		"--deqp-shadercache=disable",
@@ -364,9 +364,10 @@ func (c *Config) PerformTests(exe string, env []string, coverageFile string, log
 
 	var coverage *cov.Coverage
 	if c.CoverageEnv != nil && supportsCoverage {
-		coverage, err = c.CoverageEnv.Import(coverageFile)
-		if err != nil {
-			log.Printf("Warning: Failed to process test coverage for test '%v'. %v", testNames, err)
+		var covErr error
+		coverage, covErr = c.CoverageEnv.Import(coverageFile)
+		if covErr != nil {
+			log.Printf("Warning: Failed to process test coverage for test '%v'. %v", testNames, covErr)
 		}
 		os.Remove(coverageFile)
 	}
@@ -392,15 +393,15 @@ func (c *Config) PerformTests(exe string, env []string, coverageFile string, log
 
 			averageDuration := duration / time.Duration(numTests)
 			for i, caseOutput := range caseOutputs {
-				results <- c.AnalyzeOutput(caseNames[i], caseOutput, averageDuration, coverage)
+				results <- c.AnalyzeOutput(caseNames[i], caseOutput, averageDuration, coverage, deqpErr)
 			}
 		}
 	} else {
-		results <- c.AnalyzeOutput(testNames[0], out, duration, coverage)
+		results <- c.AnalyzeOutput(testNames[0], out, duration, coverage, deqpErr)
 	}
 }
 
-func (c *Config) AnalyzeOutput(name string, out string, duration time.Duration, coverage *cov.Coverage) TestResult {
+func (c *Config) AnalyzeOutput(name string, out string, duration time.Duration, coverage *cov.Coverage, err error) TestResult {
 	for _, test := range []struct {
 		re *regexp.Regexp
 		s  testlist.Status
@@ -423,7 +424,6 @@ func (c *Config) AnalyzeOutput(name string, out string, duration time.Duration, 
 	}
 
 	// Don't treat non-zero error codes as crashes.
-	var err error
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
 		if exitErr.ExitCode() != 255 {
