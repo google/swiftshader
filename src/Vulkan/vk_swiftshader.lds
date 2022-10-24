@@ -148,8 +148,8 @@ global:
 	vkGetPhysicalDeviceSurfaceFormatsKHR;
 
 	# VK_KHR_get_surface_capabilities2
-	#vkGetPhysicalDeviceSurfaceCapabilities2KHR;
-	#vkGetPhysicalDeviceSurfaceFormats2KHR;
+	vkGetPhysicalDeviceSurfaceCapabilities2KHR;
+	vkGetPhysicalDeviceSurfaceFormats2KHR;
 
 	# VK_KHR_surface
 	vkGetPhysicalDeviceSurfacePresentModesKHR;

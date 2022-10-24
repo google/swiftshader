@@ -37,7 +37,7 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkXcbSurfaceCreateInfoKHR *pCreateInfo);
 
-	VkResult getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
+	VkResult getSurfaceCapabilities(const void *pSurfaceInfoPNext, VkSurfaceCapabilitiesKHR *pSurfaceCapabilities, void *pSurfaceCapabilitiesPNext) const override;
 
 	virtual void *allocateImageMemory(PresentImage *image, const VkMemoryAllocateInfo &allocateInfo) override;
 	virtual void releaseImageMemory(PresentImage *image) override;

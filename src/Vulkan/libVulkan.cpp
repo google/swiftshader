@@ -286,6 +286,7 @@ static const ExtensionProperties instanceExtensionProperties[] = {
 	{ { VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME, VK_EXT_HEADLESS_SURFACE_SPEC_VERSION } },
 #ifndef __ANDROID__
 	{ { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_SPEC_VERSION } },
+	{ { VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, VK_KHR_GET_SURFACE_CAPABILITIES_2_SPEC_VERSION } },
 #endif
 #ifdef VK_USE_PLATFORM_XCB_KHR
 	{ { VK_KHR_XCB_SURFACE_EXTENSION_NAME, VK_KHR_XCB_SURFACE_SPEC_VERSION }, [] { return vk::XcbSurfaceKHR::isSupported(); } },
@@ -4606,7 +4607,15 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysi
 	TRACE("(VkPhysicalDevice physicalDevice = %p, VkSurfaceKHR surface = %p, VkSurfaceCapabilitiesKHR* pSurfaceCapabilities = %p)",
 	      physicalDevice, static_cast<void *>(surface), pSurfaceCapabilities);
 
-	return vk::Cast(surface)->getSurfaceCapabilities(pSurfaceCapabilities);
+	return vk::Cast(surface)->getSurfaceCapabilities(nullptr, pSurfaceCapabilities, nullptr);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceCapabilities2KHR(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR *pSurfaceInfo, VkSurfaceCapabilities2KHR *pSurfaceCapabilities)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, const VkPhysicalDeviceSurfaceInfo2KHR *pSurfaceInfo = %p, VkSurfaceCapabilities2KHR *pSurfaceCapabilities = %p)",
+	      physicalDevice, pSurfaceInfo, pSurfaceCapabilities);
+
+	return vk::Cast(pSurfaceInfo->surface)->getSurfaceCapabilities(pSurfaceInfo->pNext, &pSurfaceCapabilities->surfaceCapabilities, pSurfaceCapabilities->pNext);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t *pSurfaceFormatCount, VkSurfaceFormatKHR *pSurfaceFormats)
@@ -4616,11 +4625,41 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDe
 
 	if(!pSurfaceFormats)
 	{
-		*pSurfaceFormatCount = vk::Cast(surface)->getSurfaceFormatsCount();
+		*pSurfaceFormatCount = vk::Cast(surface)->getSurfaceFormatsCount(nullptr);
 		return VK_SUCCESS;
 	}
 
-	return vk::Cast(surface)->getSurfaceFormats(pSurfaceFormatCount, pSurfaceFormats);
+	std::vector<VkSurfaceFormat2KHR> formats(*pSurfaceFormatCount);
+
+	VkResult result = vk::Cast(surface)->getSurfaceFormats(nullptr, pSurfaceFormatCount, formats.data());
+
+	if(result == VK_SUCCESS || result == VK_INCOMPLETE)
+	{
+		// The value returned in pSurfaceFormatCount is either capped at the original value,
+		// or is smaller because there aren't that many formats.
+		ASSERT(*pSurfaceFormatCount <= formats.size());
+
+		for(size_t i = 0; i < *pSurfaceFormatCount; ++i)
+		{
+			pSurfaceFormats[i] = formats[i].surfaceFormat;
+		}
+	}
+
+	return result;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceFormats2KHR(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR *pSurfaceInfo, uint32_t *pSurfaceFormatCount, VkSurfaceFormat2KHR *pSurfaceFormats)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, VkPhysicalDeviceSurfaceInfo2KHR *pSurfaceInfo = %p. uint32_t* pSurfaceFormatCount = %p, VkSurfaceFormat2KHR* pSurfaceFormats = %p)",
+	      physicalDevice, pSurfaceInfo, pSurfaceFormatCount, pSurfaceFormats);
+
+	if(!pSurfaceFormats)
+	{
+		*pSurfaceFormatCount = vk::Cast(pSurfaceInfo->surface)->getSurfaceFormatsCount(pSurfaceInfo->pNext);
+		return VK_SUCCESS;
+	}
+
+	return vk::Cast(pSurfaceInfo->surface)->getSurfaceFormats(pSurfaceInfo->pNext, pSurfaceFormatCount, pSurfaceFormats);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t *pPresentModeCount, VkPresentModeKHR *pPresentModes)

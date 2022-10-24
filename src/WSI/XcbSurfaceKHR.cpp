@@ -87,14 +87,14 @@ size_t XcbSurfaceKHR::ComputeRequiredAllocationSize(const VkXcbSurfaceCreateInfo
 	return 0;
 }
 
-VkResult XcbSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
+VkResult XcbSurfaceKHR::getSurfaceCapabilities(const void *pSurfaceInfoPNext, VkSurfaceCapabilitiesKHR *pSurfaceCapabilities, void *pSurfaceCapabilitiesPNext) const
 {
 	if(surfaceLost)
 	{
 		return VK_ERROR_SURFACE_LOST_KHR;
 	}
 
-	setCommonSurfaceCapabilities(pSurfaceCapabilities);
+	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 
 	VkExtent2D extent;
 	int depth;

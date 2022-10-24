@@ -113,6 +113,9 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfaceFormatsKHR),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfacePresentModesKHR),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDevicePresentRectanglesKHR),
+	// VK_KHR_get_surface_capabilities2
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfaceCapabilities2KHR),
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfaceFormats2KHR),
 #endif
 #ifdef VK_USE_PLATFORM_XCB_KHR
 	// VK_KHR_Xcb_surface

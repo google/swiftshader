@@ -274,9 +274,9 @@ size_t DisplaySurfaceKHR::ComputeRequiredAllocationSize(const VkDisplaySurfaceCr
 	return 0;
 }
 
-VkResult DisplaySurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
+VkResult DisplaySurfaceKHR::getSurfaceCapabilities(const void *pSurfaceInfoPNext, VkSurfaceCapabilitiesKHR *pSurfaceCapabilities, void *pSurfaceCapabilitiesPNext) const
 {
-	setCommonSurfaceCapabilities(pSurfaceCapabilities);
+	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 
 	VkExtent2D extent = { width, height };
 
