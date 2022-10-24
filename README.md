@@ -5,9 +5,9 @@
 Introduction
 ------------
 
-SwiftShader is a high-performance CPU-based implementation of the Vulkan graphics API<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
+SwiftShader[^1] is a high-performance CPU-based implementation[^2] of the Vulkan[^3] 1.3 graphics API. Its goal is to provide hardware independence for advanced 3D graphics.
 
-> NOTE: The [ANGLE](http://angleproject.org/) project can be used to achieve a layered implementation of OpenGL ES (aka. "SwANGLE").
+> NOTE: The [ANGLE](http://angleproject.org/) project can be used to achieve a layered implementation[^4] of OpenGL ES 3.1 (aka. "SwANGLE").
 
 Building
 --------
@@ -118,8 +118,10 @@ The legal authors for copyright purposes are listed in [AUTHORS.txt](AUTHORS.txt
 
 [CONTRIBUTORS.txt](CONTRIBUTORS.txt) contains a list of names of individuals who have contributed to SwiftShader. If you're not on the list, but you've signed the [Google CLA](https://cla.developers.google.com/clas) and have contributed more than a formatting change, feel free to request to be added.
 
-Disclaimer
-----------
+Notes and Disclaimers
+---------------------
 
-1. Trademarks are the property of their respective owners.
-2. This is not an official Google product.
+[^1]: This is not an official Google product.  
+[^2]: Vulkan 1.3 conformance: https://www.khronos.org/conformance/adopters/conformant-products#submission_717  
+[^3]: Trademarks are the property of their respective owners.  
+[^4]: OpenGL ES 3.1 conformance: https://www.khronos.org/conformance/adopters/conformant-products/opengles#submission_906  
