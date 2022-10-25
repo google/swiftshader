@@ -3,6 +3,7 @@
     "branch": "",
     "sha": "bfc5b6f54270968eba4a1fdbf12d49b9d0aac02c",
     "patches": [
-        "tests/regres/deqp-patches/deqp-x11.patch"
+        "tests/regres/deqp-patches/deqp-x11.patch",
+        "tests/regres/deqp-patches/deqp-pipeline-depth-stencil.patch"
     ]
 }

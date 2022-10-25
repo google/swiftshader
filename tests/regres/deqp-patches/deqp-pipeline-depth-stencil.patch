@@ -1,0 +1,120 @@
+ .../vulkan/pipeline/vktPipelineDepthTests.cpp      | 32 +++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 4 deletions(-)
+
+diff --git a/external/vulkancts/modules/vulkan/pipeline/vktPipelineDepthTests.cpp b/external/vulkancts/modules/vulkan/pipeline/vktPipelineDepthTests.cpp
+index d6a0da0d7..ca9fd845d 100644
+--- a/external/vulkancts/modules/vulkan/pipeline/vktPipelineDepthTests.cpp
++++ b/external/vulkancts/modules/vulkan/pipeline/vktPipelineDepthTests.cpp
+@@ -661,12 +661,37 @@ DepthTestInstance::DepthTestInstance (Context&							context,
+ 			de::dataOrNull(dynamicStates),							//	const VkDynamicState*				pDynamicStates;
+ 		};
+ 
++		const vk::VkPipelineColorBlendAttachmentState blendState
++		{
++			VK_FALSE,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_OP_ADD,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_OP_ADD,
++			VK_COLOR_COMPONENT_R_BIT |
++			VK_COLOR_COMPONENT_G_BIT |
++			VK_COLOR_COMPONENT_B_BIT |
++			VK_COLOR_COMPONENT_A_BIT,
++		};
++		const VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo
++		{
++			VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,		// VkStructureType								sType
++			DE_NULL,														// const void*									pNext
++			0u,																// VkPipelineColorBlendStateCreateFlags			flags
++			VK_FALSE,														// VkBool32										logicOpEnable
++			VK_LOGIC_OP_CLEAR,												// VkLogicOp									logicOp
++			1u,																// deUint32										attachmentCount
++			&blendState,													// const VkPipelineColorBlendAttachmentState*	pAttachments
++			{ 0.0f, 0.0f, 0.0f, 0.0f }										// float										blendConstants[4]
++		};
++
+ 		for (int quadNdx = 0; quadNdx < DepthTest::QUAD_COUNT; quadNdx++)
+ 		{
+ 			depthStencilStateParams.depthCompareOp	= depthCompareOps[quadNdx];
+ 
+ 			m_graphicsPipelines[quadNdx].setDefaultMultisampleState()
+-										.setDefaultColorBlendState()
+ 										.setDepthClipControl(depthClipControlWrapper)
+ 										.setDynamicState(&dynamicStateCreateInfo)
+ 										.setupVertexInputStete(&vertexInputStateParams)
+@@ -682,14 +707,13 @@ DepthTestInstance::DepthTestInstance (Context&							context,
+ 																	0u,
+ 																	*m_fragmentShaderModule,
+ 																	&depthStencilStateParams)
+-										.setupFragmentOutputState(*m_renderPass)
++										.setupFragmentOutputState(*m_renderPass, 0u, &colorBlendStateCreateInfo)
+ 										.setMonolithicPipelineLayout(*m_pipelineLayout)
+ 										.buildPipeline();
+ 
+ 			if (useAltGraphicsPipelines)
+ 			{
+ 				m_altGraphicsPipelines[quadNdx].setDefaultMultisampleState()
+-											   .setDefaultColorBlendState()
+ 											   .setDepthClipControl(depthClipControl01Wrapper)
+ 											   .setDynamicState(&dynamicStateCreateInfo)
+ 											   .setupVertexInputStete(&vertexInputStateParams)
+@@ -705,7 +729,7 @@ DepthTestInstance::DepthTestInstance (Context&							context,
+ 																				0u,
+ 																				*m_fragmentShaderModule,
+ 																				&depthStencilStateParams)
+-											   .setupFragmentOutputState(*m_renderPass)
++											   .setupFragmentOutputState(*m_renderPass, 0u, &colorBlendStateCreateInfo)
+ 											   .setMonolithicPipelineLayout(*m_pipelineLayout)
+ 											   .buildPipeline();
+ 			}
+ .../vulkan/pipeline/vktPipelineStencilTests.cpp     | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/external/vulkancts/modules/vulkan/pipeline/vktPipelineStencilTests.cpp b/external/vulkancts/modules/vulkan/pipeline/vktPipelineStencilTests.cpp
+index 519289274..f584086d6 100644
+--- a/external/vulkancts/modules/vulkan/pipeline/vktPipelineStencilTests.cpp
++++ b/external/vulkancts/modules/vulkan/pipeline/vktPipelineStencilTests.cpp
+@@ -596,6 +596,21 @@ StencilTestInstance::StencilTestInstance (Context&					context,
+ 			1.0f,															//	float									lineWidth;
+ 		};
+ 
++		const vk::VkPipelineColorBlendAttachmentState blendState
++		{
++			VK_FALSE,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_OP_ADD,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_FACTOR_ONE,
++			VK_BLEND_OP_ADD,
++			VK_COLOR_COMPONENT_R_BIT |
++			VK_COLOR_COMPONENT_G_BIT |
++			VK_COLOR_COMPONENT_B_BIT |
++			VK_COLOR_COMPONENT_A_BIT,
++
++		};
+ 		const vk::VkPipelineColorBlendStateCreateInfo colorBlendStateParams
+ 		{
+ 			vk::VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,	// VkStructureType								sType
+@@ -603,8 +618,8 @@ StencilTestInstance::StencilTestInstance (Context&					context,
+ 			0u,																// VkPipelineColorBlendStateCreateFlags			flags
+ 			VK_FALSE,														// VkBool32										logicOpEnable
+ 			vk::VK_LOGIC_OP_CLEAR,											// VkLogicOp									logicOp
+-			0u,																// deUint32										attachmentCount
+-			DE_NULL,														// const VkPipelineColorBlendAttachmentState*	pAttachments
++			1u,																// deUint32										attachmentCount
++			&blendState,													// const VkPipelineColorBlendAttachmentState*	pAttachments
+ 			{ 1.0f, 1.0f, 1.0f, 1.0f }										// float										blendConstants[4]
+ 		};
+ 
+@@ -634,7 +649,7 @@ StencilTestInstance::StencilTestInstance (Context&					context,
+ 																		  *m_vertexShaderModule,
+ 																		  &rasterizationStateParams)
+ 										.setupFragmentShaderState(*m_pipelineLayout, *m_renderPass, 0u, *m_fragmentShaderModule, &depthStencilStateParams)
+-										.setupFragmentOutputState(*m_renderPass, 0, (m_colorAttachmentEnable ? DE_NULL : &colorBlendStateParams))
++										.setupFragmentOutputState(*m_renderPass, 0, &colorBlendStateParams)
+ 										.setMonolithicPipelineLayout(*m_pipelineLayout)
+ 										.buildPipeline();
+ 		}
