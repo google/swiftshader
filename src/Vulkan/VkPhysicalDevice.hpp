@@ -58,6 +58,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceDescriptorIndexingFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDevicePipelineRobustnessFeaturesEXT *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceProtectedMemoryFeatures *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceBufferDeviceAddressFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;

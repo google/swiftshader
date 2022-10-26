@@ -521,7 +521,7 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES:
 			getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(reinterpret_cast<VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures *>(curExtension));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES:
 			getPhysicalDevice8BitStorageFeaturesKHR(reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
@@ -530,7 +530,7 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES:
 			getPhysicalDeviceImagelessFramebufferFeatures(reinterpret_cast<VkPhysicalDeviceImagelessFramebufferFeatures *>(curExtension));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES:
 			getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(reinterpret_cast<VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
@@ -1686,6 +1686,15 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceProtectedMemoryFe
 
 	return CheckFeature(requested, supported, protectedMemory);
 }
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceBufferDeviceAddressFeatures *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, bufferDeviceAddress) &&
+	       CheckFeature(requested, supported, bufferDeviceAddressCaptureReplay) &&
+	       CheckFeature(requested, supported, bufferDeviceAddressMultiDevice);
+}
 #undef CheckFeature
 
 static bool checkFormatUsage(VkImageUsageFlags usage, VkFormatFeatureFlags features)
@@ -1730,7 +1739,7 @@ static bool checkFormatUsage(VkImageUsageFlags usage, VkFormatFeatureFlags featu
 }
 
 bool vk::PhysicalDevice::isFormatSupported(vk::Format format, VkImageType type, VkImageTiling tiling,
-                                               VkImageUsageFlags usage, VkImageUsageFlags stencilUsage, VkImageCreateFlags flags)
+                                           VkImageUsageFlags usage, VkImageUsageFlags stencilUsage, VkImageCreateFlags flags)
 {
 	VkFormatProperties properties = {};
 	vk::PhysicalDevice::GetFormatProperties(format, &properties);

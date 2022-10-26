@@ -805,7 +805,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				(void)(dynamicRenderingFeatures->dynamicRendering);
 			}
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES_KHR:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES:
 			{
 				const VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR *shaderDrawParametersFeatures = reinterpret_cast<const VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR *>(extensionCreateInfo);
 
@@ -847,7 +847,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
 			ASSERT(!hasDeviceExtension(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES_KHR:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES:
 			{
 				const VkPhysicalDeviceImagelessFramebufferFeaturesKHR *imagelessFramebufferFeatures = reinterpret_cast<const VkPhysicalDeviceImagelessFramebufferFeaturesKHR *>(extensionCreateInfo);
 				// Always provide Imageless Framebuffers
@@ -1079,9 +1079,20 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				}
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES:
+			{
+				const auto *bufferDeviceAddressFeatures = reinterpret_cast<const VkPhysicalDeviceBufferDeviceAddressFeatures *>(extensionCreateInfo);
+				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(bufferDeviceAddressFeatures);
+				if(!hasFeatures)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
 		// These structs are supported, but no behavior changes based on their feature flags
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
