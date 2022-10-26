@@ -1279,7 +1279,7 @@ target_compile_definitions(llvm
 
 # Add required libraries for LLVM
 if(LINUX OR APPLE)
-    target_link_libraries(llvm dl z)
+    target_link_libraries(llvm dl)
 endif()
 
 if(SWIFTSHADER_EMIT_COVERAGE)
