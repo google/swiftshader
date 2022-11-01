@@ -20,21 +20,30 @@ luci.cq_group(
         refs = ["refs/heads/master"],
     ),
     acls = [
+        # Committers gonna commit.
         acl.entry(
             acl.CQ_COMMITTER,
             groups = "project-swiftshader-committers",
         ),
+        # Ability to launch CQ dry runs manually.
         acl.entry(
             acl.CQ_DRY_RUNNER,
+            groups = "project-swiftshader-tryjob-access",
+        ),
+        # Ability to automatically trigger new patchset runs on CV.
+        acl.entry(
+            roles = acl.CQ_NEW_PATCHSET_RUN_TRIGGERER,
             groups = "project-swiftshader-tryjob-access",
         ),
     ],
     verifiers = [
         luci.cq_tryjob_verifier(
             builder = "chromium:try/linux-swangle-try-tot-swiftshader-x64",
+            mode_allowlist = [cq.MODE_DRY_RUN, cq.MODE_FULL_RUN, cq.MODE_NEW_PATCHSET_RUN],
         ),
         luci.cq_tryjob_verifier(
             builder = "chromium:try/win-swangle-try-tot-swiftshader-x86",
+            mode_allowlist = [cq.MODE_DRY_RUN, cq.MODE_FULL_RUN, cq.MODE_NEW_PATCHSET_RUN],
         ),
     ],
 )
