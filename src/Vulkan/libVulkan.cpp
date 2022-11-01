@@ -3546,11 +3546,14 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements2(VkDevice device, 
 		extInfo = extInfo->pNext;
 	}
 
-	const auto *extensionRequirements = reinterpret_cast<const VkBaseInStructure *>(pSparseMemoryRequirements->pNext);
-	while(extensionRequirements)
+	if(pSparseMemoryRequirements)  // Valid to be NULL
 	{
-		UNSUPPORTED("pSparseMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
-		extensionRequirements = extensionRequirements->pNext;
+		const auto *extensionRequirements = reinterpret_cast<const VkBaseInStructure *>(pSparseMemoryRequirements->pNext);
+		while(extensionRequirements)
+		{
+			UNSUPPORTED("pSparseMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
+			extensionRequirements = extensionRequirements->pNext;
+		}
 	}
 
 	// The 'sparseBinding' feature is not supported, so images can not be created with the VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT flag.
