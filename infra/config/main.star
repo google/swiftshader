@@ -45,6 +45,10 @@ luci.cq_group(
             builder = "chromium:try/win-swangle-try-tot-swiftshader-x86",
             mode_allowlist = [cq.MODE_DRY_RUN, cq.MODE_FULL_RUN, cq.MODE_NEW_PATCHSET_RUN],
         ),
+        luci.cq_tryjob_verifier(
+            builder = "chromium:try/win-swangle-try-tot-swiftshader-x64",
+            mode_allowlist = [cq.MODE_DRY_RUN, cq.MODE_FULL_RUN, cq.MODE_NEW_PATCHSET_RUN],
+        ),
     ],
 )
 
