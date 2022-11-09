@@ -14,7 +14,7 @@
 
 #include "Util.hpp"
 #include "SPIRV/GlslangToSpv.h"
-#include "StandAlone/ResourceLimits.h"
+#include "glslang/Public/ResourceLimits.h"
 
 #include <memory>
 
@@ -153,7 +153,7 @@ std::vector<uint32_t> compileGLSLtoSPIRV(const char *glslSource, EShLanguage gls
 
 	const int defaultVersion = 100;
 	EShMessages messages = static_cast<EShMessages>(EShMessages::EShMsgDefault | EShMessages::EShMsgSpvRules | EShMessages::EShMsgVulkanRules);
-	bool parseResult = glslangShader->parse(&glslang::DefaultTBuiltInResource, defaultVersion, false, messages);
+	bool parseResult = glslangShader->parse(GetDefaultResources(), defaultVersion, false, messages);
 
 	if(!parseResult)
 	{
