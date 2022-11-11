@@ -70,7 +70,6 @@ swiftshader_source_set("Device") {
 
   defines = [
      "SWIFTSHADER_ENABLE_ASTC",  # TODO(b/150130101)
-     "SWIFTSHADER_LEGACY_PRECISION=true",  # TODO(b/226657516)
   ]
 
   deps = [

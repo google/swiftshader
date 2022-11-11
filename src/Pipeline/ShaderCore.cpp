@@ -20,11 +20,6 @@
 
 #include <limits.h>
 
-// TODO(chromium:1299047)
-#ifndef SWIFTSHADER_LEGACY_PRECISION
-#	define SWIFTSHADER_LEGACY_PRECISION false
-#endif
-
 namespace sw {
 
 Vector4s::Vector4s()
@@ -316,34 +311,12 @@ RValue<SIMD::Float> Atan2(RValue<SIMD::Float> y, RValue<SIMD::Float> x, bool rel
 	return As<SIMD::Float>((precision_loss & As<SIMD::Int>(-atan2_theta)) | (~precision_loss & As<SIMD::Int>(theta)));  // FIXME: Vector select
 }
 
-// TODO(chromium:1299047)
-static RValue<SIMD::Float> Exp2_legacy(RValue<SIMD::Float> x0)
-{
-	SIMD::Int i = RoundInt(x0 - 0.5f);
-	SIMD::Float ii = As<SIMD::Float>((i + SIMD::Int(127)) << 23);
-
-	SIMD::Float f = x0 - SIMD::Float(i);
-	SIMD::Float ff = As<SIMD::Float>(SIMD::Int(0x3AF61905));
-	ff = ff * f + As<SIMD::Float>(SIMD::Int(0x3C134806));
-	ff = ff * f + As<SIMD::Float>(SIMD::Int(0x3D64AA23));
-	ff = ff * f + As<SIMD::Float>(SIMD::Int(0x3E75EAD4));
-	ff = ff * f + As<SIMD::Float>(SIMD::Int(0x3F31727B));
-	ff = ff * f + 1.0f;
-
-	return ii * ff;
-}
-
 RValue<SIMD::Float> Exp2(RValue<SIMD::Float> x, bool relaxedPrecision)
 {
 	// Clamp to prevent overflow past the representation of infinity.
 	SIMD::Float x0 = x;
 	x0 = Min(x0, 128.0f);
 	x0 = Max(x0, As<SIMD::Float>(SIMD::Int(0xC2FDFFFF)));  // -126.999992
-
-	if(SWIFTSHADER_LEGACY_PRECISION)  // TODO(chromium:1299047)
-	{
-		return Exp2_legacy(x0);
-	}
 
 	SIMD::Float xi = Floor(x0);
 	SIMD::Float f = x0 - xi;
@@ -405,11 +378,6 @@ RValue<SIMD::Float> Log2_legacy(RValue<SIMD::Float> x)
 
 RValue<SIMD::Float> Log2(RValue<SIMD::Float> x, bool relaxedPrecision)
 {
-	if(SWIFTSHADER_LEGACY_PRECISION)  // TODO(chromium:1299047)
-	{
-		return Log2_legacy(x);
-	}
-
 	if(!relaxedPrecision)  // highp
 	{
 		// Reinterpretation as an integer provides a piecewise linear
@@ -713,11 +681,6 @@ RValue<Float4> reciprocalSquareRoot(RValue<Float4> x, bool absolute, bool pp)
 // TODO(chromium:1299047): Eliminate when Chromium tests accept both fused and unfused multiply-add.
 RValue<SIMD::Float> mulAdd(RValue<SIMD::Float> x, RValue<SIMD::Float> y, RValue<SIMD::Float> z)
 {
-	if(SWIFTSHADER_LEGACY_PRECISION)
-	{
-		return x * y + z;
-	}
-
 	return MulAdd(x, y, z);
 }
 

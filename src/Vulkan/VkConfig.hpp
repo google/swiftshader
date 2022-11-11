@@ -20,10 +20,6 @@
 #include "Vulkan/VulkanPlatform.hpp"
 #include "spirv-tools/libspirv.h"
 
-#ifndef SWIFTSHADER_LEGACY_PRECISION
-#	define SWIFTSHADER_LEGACY_PRECISION false
-#endif
-
 namespace vk {
 
 // Note: Constant array initialization requires a string literal.
@@ -94,7 +90,7 @@ constexpr float MAX_POINT_SIZE = 1023.0;
 
 constexpr int MAX_SAMPLER_ALLOCATION_COUNT = 4000;
 
-constexpr int SUBPIXEL_PRECISION_BITS = SWIFTSHADER_LEGACY_PRECISION ? 4 : 8;
+constexpr int SUBPIXEL_PRECISION_BITS = 8;
 constexpr float SUBPIXEL_PRECISION_FACTOR = static_cast<float>(1 << SUBPIXEL_PRECISION_BITS);
 constexpr int SUBPIXEL_PRECISION_MASK = 0xFFFFFFFF >> (32 - SUBPIXEL_PRECISION_BITS);
 
