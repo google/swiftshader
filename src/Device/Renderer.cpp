@@ -310,7 +310,6 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		data->Y0xF = Y0 * subPixF - subPixF / 2;
 		data->halfPixelX = 0.5f / W;
 		data->halfPixelY = 0.5f / H;
-		data->viewportHeight = abs(viewport.height);
 		data->depthRange = Z;
 		data->depthNear = N;
 		data->constantDepthBias = preRasterizationState.getConstantDepthBias();

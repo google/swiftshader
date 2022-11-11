@@ -80,7 +80,6 @@ struct DrawData
 	float Y0xF;
 	float halfPixelX;
 	float halfPixelY;
-	float viewportHeight;
 	float depthRange;
 	float depthNear;
 	float minimumResolvableDepthDifference;
