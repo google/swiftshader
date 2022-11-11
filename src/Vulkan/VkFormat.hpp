@@ -43,6 +43,7 @@ public:
 	VkFormat getClearFormat() const;
 	bool isStencil() const;
 	bool isDepth() const;
+	bool isBGRformat() const;
 	bool isSRGBformat() const;
 	bool isFloatFormat() const;
 	bool isYcbcrFormat() const;

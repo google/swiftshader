@@ -889,7 +889,8 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 
 	Int pitchB = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 
-	switch(state.colorFormat[index])
+	vk::Format format = state.colorFormat[index];
+	switch(format)
 	{
 	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 		buffer += 2 * x;
@@ -1169,7 +1170,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		}
 		break;
 	default:
-		UNSUPPORTED("VkFormat %d", int(state.colorFormat[index]));
+		UNSUPPORTED("VkFormat %d", int(format));
 	}
 
 	if(isSRGB(index))
@@ -1185,7 +1186,8 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		linearToSRGB16_12_16(current);
 	}
 
-	switch(state.colorFormat[index])
+	vk::Format format = state.colorFormat[index];
+	switch(format)
 	{
 	case VK_FORMAT_B8G8R8A8_UNORM:
 	case VK_FORMAT_B8G8R8A8_SRGB:
@@ -1235,8 +1237,13 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	}
 
 	int writeMask = state.colorWriteActive(index);
+	if(format.isBGRformat())
+	{
+		// For BGR formats, flip R and B channels in the channels mask
+		writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
+	}
 
-	switch(state.colorFormat[index])
+	switch(format)
 	{
 	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 		{
@@ -1438,7 +1445,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		}
 		break;
 	default:
-		UNSUPPORTED("VkFormat: %d", int(state.colorFormat[index]));
+		UNSUPPORTED("VkFormat: %d", int(format));
 	}
 
 	Short4 c01 = current.z;
@@ -1463,7 +1470,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	Pointer<Byte> buffer = cBuffer;
 	Int pitchB = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 
-	switch(state.colorFormat[index])
+	switch(format)
 	{
 	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
@@ -1474,22 +1481,18 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			Int value = *Pointer<Int>(buffer);
 
 			Int channelMask;
-			switch(state.colorFormat[index])
+			switch(format)
 			{
 			case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4rgbaQ[writeMask][0]));
-				break;
 			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4bgraQ[writeMask][0]));
-				break;
-			case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
 				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4argbQ[writeMask][0]));
 				break;
+			case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
 			case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
-				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4abgrQ[writeMask][0]));
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4rgbaQ[writeMask][0]));
 				break;
 			default:
-				UNREACHABLE("Format: %s", vk::Stringify(state.colorFormat[index]).c_str());
+				UNREACHABLE("Format: %s", vk::Stringify(format).c_str());
 			}
 
 			Int c01 = Extract(As<Int2>(current.x), 0);
@@ -1623,8 +1626,6 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_B8G8R8A8_UNORM:
 	case VK_FORMAT_B8G8R8A8_SRGB:
 		{
-			writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
-
 			buffer += x * 4;
 			Short4 value = *Pointer<Short4>(buffer);
 			Short4 channelMask = *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q[writeMask]));
@@ -1715,8 +1716,6 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		}
 		break;
 	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-		writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
-		// [[fallthrough]]
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		{
 			buffer += 4 * x;
@@ -1741,7 +1740,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		}
 		break;
 	default:
-		UNSUPPORTED("VkFormat: %d", int(state.colorFormat[index]));
+		UNSUPPORTED("VkFormat: %d", int(format));
 	}
 }
 
@@ -2674,6 +2673,11 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	}
 
 	int writeMask = state.colorWriteActive(index);
+	if(format.isBGRformat())
+	{
+		// For BGR formats, flip R and B channels in the channels mask
+		writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
+	}
 
 	Int xMask;  // Combination of all masks
 
@@ -3135,8 +3139,6 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_B8G8R8A8_UNORM:
 	case VK_FORMAT_B8G8R8A8_SRGB:
-		writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
-		// [[fallthrough]]
 	case VK_FORMAT_R8G8B8A8_SINT:
 	case VK_FORMAT_R8G8B8A8_UINT:
 	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
@@ -3258,38 +3260,38 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 
 			Int channelMask;
 			Short4 current;
-			switch(state.colorFormat[index])
+			switch(format)
 			{
 			case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4rgbaQ[writeMask][0]));
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4argbQ[writeMask][0]));
 				current = (UShort4(As<Int4>(color.x)) & UShort4(0xF)) << 12 |
 				          (UShort4(As<Int4>(color.y)) & UShort4(0xF)) << 8 |
 				          (UShort4(As<Int4>(color.z)) & UShort4(0xF)) << 4 |
 				          (UShort4(As<Int4>(color.w)) & UShort4(0xF));
 				break;
 			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4bgraQ[writeMask][0]));
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4argbQ[writeMask][0]));
 				current = (UShort4(As<Int4>(color.z)) & UShort4(0xF)) << 12 |
 				          (UShort4(As<Int4>(color.y)) & UShort4(0xF)) << 8 |
 				          (UShort4(As<Int4>(color.x)) & UShort4(0xF)) << 4 |
 				          (UShort4(As<Int4>(color.w)) & UShort4(0xF));
 				break;
 			case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
-				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4argbQ[writeMask][0]));
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4rgbaQ[writeMask][0]));
 				current = (UShort4(As<Int4>(color.w)) & UShort4(0xF)) << 12 |
 				          (UShort4(As<Int4>(color.x)) & UShort4(0xF)) << 8 |
 				          (UShort4(As<Int4>(color.y)) & UShort4(0xF)) << 4 |
 				          (UShort4(As<Int4>(color.z)) & UShort4(0xF));
 				break;
 			case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
-				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4abgrQ[writeMask][0]));
+				channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask4rgbaQ[writeMask][0]));
 				current = (UShort4(As<Int4>(color.w)) & UShort4(0xF)) << 12 |
 				          (UShort4(As<Int4>(color.z)) & UShort4(0xF)) << 8 |
 				          (UShort4(As<Int4>(color.y)) & UShort4(0xF)) << 4 |
 				          (UShort4(As<Int4>(color.x)) & UShort4(0xF));
 				break;
 			default:
-				UNREACHABLE("Format: %s", vk::Stringify(state.colorFormat[index]).c_str());
+				UNREACHABLE("Format: %s", vk::Stringify(format).c_str());
 			}
 
 			Int c01 = Extract(As<Int2>(current), 0);
@@ -3437,8 +3439,6 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_B5G6R5_UNORM_PACK16:
 		{
-			writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
-
 			buffer += 2 * x;
 			Int value = *Pointer<Int>(buffer);
 
