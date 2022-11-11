@@ -561,10 +561,12 @@ void SetupRoutine::edge(Pointer<Byte> &primitive, Pointer<Byte> &data, const Int
 		constexpr int subPixB = vk::SUBPIXEL_PRECISION_BITS;
 		constexpr int subPixM = vk::SUBPIXEL_PRECISION_MASK;
 
-		Int y1 = Max((Y1 + subPixM) >> subPixB, *Pointer<Int>(data + OFFSET(DrawData, scissorY0)));
-		Int y2 = Min((Y2 + subPixM) >> subPixB, *Pointer<Int>(data + OFFSET(DrawData, scissorY1)));
+		Int y1 = (Y1 + subPixM) >> subPixB;
+		Int y2 = (Y2 + subPixM) >> subPixB;
+		Int yMin = Max(y1, *Pointer<Int>(data + OFFSET(DrawData, scissorY0)));
+		Int yMax = Min(y2, *Pointer<Int>(data + OFFSET(DrawData, scissorY1)));
 
-		If(y1 < y2)
+		If(yMin < yMax)
 		{
 			Int xMin = *Pointer<Int>(data + OFFSET(DrawData, scissorX0));
 			Int xMax = *Pointer<Int>(data + OFFSET(DrawData, scissorX1));
@@ -598,7 +600,10 @@ void SetupRoutine::edge(Pointer<Byte> &primitive, Pointer<Byte> &data, const Int
 
 			Do
 			{
-				*Pointer<Short>(edge + y * sizeof(Primitive::Span)) = Short(Clamp(x, xMin, xMax));
+				If(y >= yMin)
+				{
+					*Pointer<Short>(edge + y * sizeof(Primitive::Span)) = Short(Clamp(x, xMin, xMax));
+				}
 
 				x += Q;
 				d += R;
@@ -610,7 +615,7 @@ void SetupRoutine::edge(Pointer<Byte> &primitive, Pointer<Byte> &data, const Int
 
 				y++;
 			}
-			Until(y >= y2);
+			Until(y >= yMax);
 		}
 	}
 }
