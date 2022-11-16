@@ -28,9 +28,6 @@ function status {
 
 . /bin/using.sh # Declare the bash `using` function for configuring toolchains.
 
-status "Fetching submodules"
-git submodule update --init
-
 status "Setting up environment"
 using gcc-9 # Always update gcc so we get a newer standard library.
 
