@@ -92,7 +92,8 @@ Scheduler* Scheduler::get() {
 }
 
 void Scheduler::setBound(Scheduler* scheduler) {
-    bound = scheduler;
+  MSAN_UNPOISON(&bound, sizeof(Scheduler*));
+  bound = scheduler;
 }
 
 void Scheduler::bind() {

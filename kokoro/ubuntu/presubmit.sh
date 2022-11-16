@@ -19,6 +19,9 @@ set -e # Fail on any error.
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$( cd "${SCRIPT_DIR}/../.." >/dev/null 2>&1 && pwd )"
 
+# Fetch submodules outside of Docker, to avoid a 'detected dubious ownership in repository' git error
+git -C "${ROOT_DIR}" submodule update --init
+
 # --privileged is required for some sanitizer builds, as they seem to require PTRACE privileges
 docker run --rm -i \
   --privileged \
