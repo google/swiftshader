@@ -2500,12 +2500,22 @@ SIMD::Float4 PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, c
 
 void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4f &color, const Int &sMask, const Int &zMask, const Int &cMask)
 {
+	if(isSRGB(index))
+	{
+		color.x = linearToSRGB(color.x);
+		color.y = linearToSRGB(color.y);
+		color.z = linearToSRGB(color.z);
+	}
+
 	vk::Format format = state.colorFormat[index];
 	switch(format)
 	{
 	case VK_FORMAT_B8G8R8A8_UNORM:
+	case VK_FORMAT_B8G8R8A8_SRGB:
 	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_R8G8B8A8_SRGB:
 	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		color.w = Min(Max(color.w, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
 		color.w = As<Float4>(RoundInt(color.w * 0xFF));
 		color.z = Min(Max(color.z, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
@@ -2594,10 +2604,13 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_R8G8B8A8_SRGB:
 	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		transpose4x4(color.x, color.y, color.z, color.w);
 		break;
 	case VK_FORMAT_B8G8R8A8_UNORM:
+	case VK_FORMAT_B8G8R8A8_SRGB:
 		transpose4x4zyxw(color.z, color.y, color.x, color.w);
 		break;
 	default:
@@ -3065,6 +3078,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		}
 		break;
 	case VK_FORMAT_B8G8R8A8_UNORM:
+	case VK_FORMAT_B8G8R8A8_SRGB:
 		writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
 		// [[fallthrough]]
 	case VK_FORMAT_R8G8B8A8_SINT:
@@ -3072,14 +3086,16 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_R8G8B8A8_SRGB:
 	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		if((writeMask & 0x0000000F) != 0x0)
 		{
 			UInt2 value, packedCol, mergedMask;
 
 			buffer += 4 * x;
 
-			bool isSigned = (format == VK_FORMAT_R8G8B8A8_SINT) || (format == VK_FORMAT_A8B8G8R8_SINT_PACK32);
+			bool isSigned = !format.isUnsigned();
 
 			if(isSigned)
 			{
