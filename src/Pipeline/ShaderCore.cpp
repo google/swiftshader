@@ -777,6 +777,19 @@ void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
 	row3 = Float4(tmp2.zw, tmp3.zw);
 }
 
+void transpose4x4zyxw(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
+{
+	Float4 tmp0 = UnpackLow(row0, row1);
+	Float4 tmp1 = UnpackLow(row2, row3);
+	Float4 tmp2 = UnpackHigh(row0, row1);
+	Float4 tmp3 = UnpackHigh(row2, row3);
+
+	row2 = Float4(tmp0.xy, tmp1.xy);
+	row1 = Float4(tmp0.zw, tmp1.zw);
+	row0 = Float4(tmp2.xy, tmp3.xy);
+	row3 = Float4(tmp2.zw, tmp3.zw);
+}
+
 void transpose4x3(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
 {
 	Float4 tmp0 = UnpackLow(row0, row1);

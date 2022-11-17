@@ -173,6 +173,7 @@ template<> inline RValue<Float4> Sqrt<Mediump>(RValue<Float4> x) { return Sqrt(x
 void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
+void transpose4x4zyxw(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 void transpose4x3(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 void transpose4x2(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 void transpose4x1(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
