@@ -2503,6 +2503,22 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	vk::Format format = state.colorFormat[index];
 	switch(format)
 	{
+	case VK_FORMAT_B8G8R8A8_UNORM:
+	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		color.w = Min(Max(color.w, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.w = As<Float4>(RoundInt(color.w * 0xFF));
+		color.z = Min(Max(color.z, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.z = As<Float4>(RoundInt(color.z * 0xFF));
+		// [[fallthrough]]
+	case VK_FORMAT_R8G8_UNORM:
+		color.y = Min(Max(color.y, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.y = As<Float4>(RoundInt(color.y * 0xFF));
+		//[[fallthrough]]
+	case VK_FORMAT_R8_UNORM:
+		color.x = Min(Max(color.x, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.x = As<Float4>(RoundInt(color.x * 0xFF));
+		break;
 	case VK_FORMAT_R16G16B16A16_UNORM:
 		color.w = Min(Max(color.w, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
 		color.w = As<Float4>(RoundInt(color.w * 0xFFFF));
@@ -2546,6 +2562,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R16_UINT:
 	case VK_FORMAT_R8_SINT:
 	case VK_FORMAT_R8_UINT:
+	case VK_FORMAT_R8_UNORM:
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 	case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 		break;
@@ -2558,6 +2575,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R16G16_UINT:
 	case VK_FORMAT_R8G8_SINT:
 	case VK_FORMAT_R8G8_UINT:
+	case VK_FORMAT_R8G8_UNORM:
 		color.z = color.x;
 		color.x = UnpackLow(color.x, color.y);
 		color.z = UnpackHigh(color.z, color.y);
@@ -2575,7 +2593,12 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R8G8B8A8_UINT:
 	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 		transpose4x4(color.x, color.y, color.z, color.w);
+		break;
+	case VK_FORMAT_B8G8R8A8_UNORM:
+		transpose4x4zyxw(color.z, color.y, color.x, color.w);
 		break;
 	default:
 		UNSUPPORTED("VkFormat: %d", int(format));
@@ -2697,6 +2720,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_R8_SINT:
 	case VK_FORMAT_R8_UINT:
+	case VK_FORMAT_R8_UNORM:
 		if(writeMask & 0x00000001)
 		{
 			buffer += x;
@@ -2831,6 +2855,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_R8G8_SINT:
 	case VK_FORMAT_R8G8_UINT:
+	case VK_FORMAT_R8G8_UNORM:
 		if((writeMask & 0x00000003) != 0x0)
 		{
 			buffer += 2 * x;
@@ -3039,10 +3064,15 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			*Pointer<UInt4>(buffer) = (As<UInt4>(packedCol) & mergedMask) | (As<UInt4>(value) & ~mergedMask);
 		}
 		break;
+	case VK_FORMAT_B8G8R8A8_UNORM:
+		writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
+		// [[fallthrough]]
 	case VK_FORMAT_R8G8B8A8_SINT:
 	case VK_FORMAT_R8G8B8A8_UINT:
 	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 		if((writeMask & 0x0000000F) != 0x0)
 		{
 			UInt2 value, packedCol, mergedMask;
