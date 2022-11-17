@@ -2542,6 +2542,27 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		color.x = Min(Max(color.x, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
 		color.x = As<Float4>(RoundInt(color.x * 0xF));
 		break;
+	case VK_FORMAT_B5G6R5_UNORM_PACK16:
+	case VK_FORMAT_R5G6B5_UNORM_PACK16:
+		color.z = Min(Max(color.z, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.z = As<Float4>(RoundInt(color.z * 0x1F));
+		color.y = Min(Max(color.y, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.y = As<Float4>(RoundInt(color.y * 0x3F));
+		color.x = Min(Max(color.x, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.x = As<Float4>(RoundInt(color.x * 0x1F));
+		break;
+	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+	case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+		color.w = Min(Max(color.w, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.w = As<Float4>(RoundInt(color.w));
+		color.z = Min(Max(color.z, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.z = As<Float4>(RoundInt(color.z * 0x1F));
+		color.y = Min(Max(color.y, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.y = As<Float4>(RoundInt(color.y * 0x1F));
+		color.x = Min(Max(color.x, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
+		color.x = As<Float4>(RoundInt(color.x * 0x1F));
+		break;
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
 		color.w = Min(Max(color.w, 0.0f), 1.0f);  // TODO(b/204560089): Omit clamp if redundant
@@ -2605,6 +2626,11 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
 	case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
 	case VK_FORMAT_A4B4G4R4_UNORM_PACK16:
+	case VK_FORMAT_B5G6R5_UNORM_PACK16:
+	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+	case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+	case VK_FORMAT_R5G6B5_UNORM_PACK16:
 		break;
 	case VK_FORMAT_R16G16_SFLOAT:
 	case VK_FORMAT_R32G32_SFLOAT:
@@ -3280,6 +3306,161 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			Int c23 = Extract(As<Int2>(current), 1);
 			Int mask23 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][2]) + xMask * 8);
 			if(writeMask != 0x0000000F)
+			{
+				mask23 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c23 & mask23) | (value & ~mask23);
+		}
+		break;
+	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+		{
+			buffer += 2 * x;
+			Int value = *Pointer<Int>(buffer);
+
+			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants, maskr5g5b5a1Q[writeMask][0]));
+			Short4 current = (UShort4(As<Int4>(color.x)) & UShort4(0x1F)) << 11 |
+			                 (UShort4(As<Int4>(color.y)) & UShort4(0x1F)) << 6 |
+			                 (UShort4(As<Int4>(color.z)) & UShort4(0x1F)) << 1 |
+			                 (UShort4(As<Int4>(color.w)) & UShort4(0x1));
+
+			Int c01 = Extract(As<Int2>(current), 0);
+			Int mask01 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][0]) + xMask * 8);
+			if(writeMask != 0x0000000F)
+			{
+				mask01 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c01 & mask01) | (value & ~mask01);
+
+			buffer += pitchB;
+			value = *Pointer<Int>(buffer);
+
+			Int c23 = Extract(As<Int2>(current), 1);
+			Int mask23 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][2]) + xMask * 8);
+			if(writeMask != 0x0000000F)
+			{
+				mask23 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c23 & mask23) | (value & ~mask23);
+		}
+		break;
+	case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+		{
+			buffer += 2 * x;
+			Int value = *Pointer<Int>(buffer);
+
+			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants, maskb5g5r5a1Q[writeMask][0]));
+			Short4 current = (UShort4(As<Int4>(color.z)) & UShort4(0x1F)) << 11 |
+			                 (UShort4(As<Int4>(color.y)) & UShort4(0x1F)) << 6 |
+			                 (UShort4(As<Int4>(color.x)) & UShort4(0x1F)) << 1 |
+			                 (UShort4(As<Int4>(color.w)) & UShort4(0x1));
+
+			Int c01 = Extract(As<Int2>(current), 0);
+			Int mask01 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][0]) + xMask * 8);
+			if(writeMask != 0x0000000F)
+			{
+				mask01 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c01 & mask01) | (value & ~mask01);
+
+			buffer += pitchB;
+			value = *Pointer<Int>(buffer);
+
+			Int c23 = Extract(As<Int2>(current), 1);
+			Int mask23 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][2]) + xMask * 8);
+			if(writeMask != 0x0000000F)
+			{
+				mask23 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c23 & mask23) | (value & ~mask23);
+		}
+		break;
+	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+		{
+			buffer += 2 * x;
+			Int value = *Pointer<Int>(buffer);
+
+			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask5551Q[writeMask][0]));
+			Short4 current = (UShort4(As<Int4>(color.w)) & UShort4(0x1)) << 15 |
+			                 (UShort4(As<Int4>(color.x)) & UShort4(0x1F)) << 10 |
+			                 (UShort4(As<Int4>(color.y)) & UShort4(0x1F)) << 5 |
+			                 (UShort4(As<Int4>(color.z)) & UShort4(0x1F));
+
+			Int c01 = Extract(As<Int2>(current), 0);
+			Int mask01 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][0]) + xMask * 8);
+			if(writeMask != 0x0000000F)
+			{
+				mask01 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c01 & mask01) | (value & ~mask01);
+
+			buffer += pitchB;
+			value = *Pointer<Int>(buffer);
+
+			Int c23 = Extract(As<Int2>(current), 1);
+			Int mask23 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][2]) + xMask * 8);
+			if(writeMask != 0x0000000F)
+			{
+				mask23 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c23 & mask23) | (value & ~mask23);
+		}
+		break;
+	case VK_FORMAT_R5G6B5_UNORM_PACK16:
+		{
+			buffer += 2 * x;
+			Int value = *Pointer<Int>(buffer);
+
+			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask565Q[writeMask & 0x7][0]));
+			Short4 current = (UShort4(As<Int4>(color.z)) & UShort4(0x1F)) |
+			                 (UShort4(As<Int4>(color.y)) & UShort4(0x3F)) << 5 |
+			                 (UShort4(As<Int4>(color.x)) & UShort4(0x1F)) << 11;
+
+			Int c01 = Extract(As<Int2>(current), 0);
+			Int mask01 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][0]) + xMask * 8);
+			if((writeMask & 0x00000007) != 0x00000007)
+			{
+				mask01 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c01 & mask01) | (value & ~mask01);
+
+			buffer += pitchB;
+			value = *Pointer<Int>(buffer);
+
+			Int c23 = Extract(As<Int2>(current), 1);
+			Int mask23 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][2]) + xMask * 8);
+			if((writeMask & 0x00000007) != 0x00000007)
+			{
+				mask23 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c23 & mask23) | (value & ~mask23);
+		}
+		break;
+	case VK_FORMAT_B5G6R5_UNORM_PACK16:
+		{
+			writeMask = (writeMask & 0x0000000A) | (writeMask & 0x00000001) << 2 | (writeMask & 0x00000004) >> 2;
+
+			buffer += 2 * x;
+			Int value = *Pointer<Int>(buffer);
+
+			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants, mask565Q[writeMask & 0x7][0]));
+			Short4 current = (UShort4(As<Int4>(color.x)) & UShort4(0x1F)) |
+			                 (UShort4(As<Int4>(color.y)) & UShort4(0x3F)) << 5 |
+			                 (UShort4(As<Int4>(color.z)) & UShort4(0x1F)) << 11;
+
+			Int c01 = Extract(As<Int2>(current), 0);
+			Int mask01 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][0]) + xMask * 8);
+			if((writeMask & 0x00000007) != 0x00000007)
+			{
+				mask01 &= channelMask;
+			}
+			*Pointer<Int>(buffer) = (c01 & mask01) | (value & ~mask01);
+
+			buffer += pitchB;
+			value = *Pointer<Int>(buffer);
+
+			Int c23 = Extract(As<Int2>(current), 1);
+			Int mask23 = *Pointer<Int>(constants + OFFSET(Constants, maskW4Q[0][2]) + xMask * 8);
+			if((writeMask & 0x00000007) != 0x00000007)
 			{
 				mask23 &= channelMask;
 			}
