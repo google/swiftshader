@@ -39,7 +39,7 @@ using VulkanBufferTest = PassTest<::testing::Test>;
 
 TEST(InstructionTest, CreateTrivial) {
   Instruction empty;
-  EXPECT_EQ(SpvOpNop, empty.opcode());
+  EXPECT_EQ(spv::Op::OpNop, empty.opcode());
   EXPECT_EQ(0u, empty.type_id());
   EXPECT_EQ(0u, empty.result_id());
   EXPECT_EQ(0u, empty.NumOperands());
@@ -51,8 +51,8 @@ TEST(InstructionTest, CreateTrivial) {
 
 TEST(InstructionTest, CreateWithOpcodeAndNoOperands) {
   IRContext context(SPV_ENV_UNIVERSAL_1_2, nullptr);
-  Instruction inst(&context, SpvOpReturn);
-  EXPECT_EQ(SpvOpReturn, inst.opcode());
+  Instruction inst(&context, spv::Op::OpReturn);
+  EXPECT_EQ(spv::Op::OpReturn, inst.opcode());
   EXPECT_EQ(0u, inst.type_id());
   EXPECT_EQ(0u, inst.result_id());
   EXPECT_EQ(0u, inst.NumOperands());
@@ -81,8 +81,8 @@ TEST(InstructionTest, OperandAsLiteralUint64_64bits) {
 }
 
 // The words for an OpTypeInt for 32-bit signed integer resulting in Id 44.
-uint32_t kSampleInstructionWords[] = {(4 << 16) | uint32_t(SpvOpTypeInt), 44,
-                                      32, 1};
+uint32_t kSampleInstructionWords[] = {(4 << 16) | uint32_t(spv::Op::OpTypeInt),
+                                      44, 32, 1};
 // The operands that would be parsed from kSampleInstructionWords
 spv_parsed_operand_t kSampleParsedOperands[] = {
     {1, 1, SPV_OPERAND_TYPE_RESULT_ID, SPV_NUMBER_NONE, 0},
@@ -91,18 +91,19 @@ spv_parsed_operand_t kSampleParsedOperands[] = {
 };
 
 // A valid parse of kSampleParsedOperands.
-spv_parsed_instruction_t kSampleParsedInstruction = {kSampleInstructionWords,
-                                                     uint16_t(4),
-                                                     uint16_t(SpvOpTypeInt),
-                                                     SPV_EXT_INST_TYPE_NONE,
-                                                     0,   // type id
-                                                     44,  // result id
-                                                     kSampleParsedOperands,
-                                                     3};
+spv_parsed_instruction_t kSampleParsedInstruction = {
+    kSampleInstructionWords,
+    uint16_t(4),
+    uint16_t(spv::Op::OpTypeInt),
+    SPV_EXT_INST_TYPE_NONE,
+    0,   // type id
+    44,  // result id
+    kSampleParsedOperands,
+    3};
 
 // The words for an OpAccessChain instruction.
 uint32_t kSampleAccessChainInstructionWords[] = {
-    (7 << 16) | uint32_t(SpvOpAccessChain), 100, 101, 102, 103, 104, 105};
+    (7 << 16) | uint32_t(spv::Op::OpAccessChain), 100, 101, 102, 103, 104, 105};
 
 // The operands that would be parsed from kSampleAccessChainInstructionWords.
 spv_parsed_operand_t kSampleAccessChainOperands[] = {
@@ -118,7 +119,7 @@ spv_parsed_operand_t kSampleAccessChainOperands[] = {
 spv_parsed_instruction_t kSampleAccessChainInstruction = {
     kSampleAccessChainInstructionWords,
     uint16_t(7),
-    uint16_t(SpvOpAccessChain),
+    uint16_t(spv::Op::OpAccessChain),
     SPV_EXT_INST_TYPE_NONE,
     100,  // type id
     101,  // result id
@@ -127,7 +128,7 @@ spv_parsed_instruction_t kSampleAccessChainInstruction = {
 
 // The words for an OpControlBarrier instruction.
 uint32_t kSampleControlBarrierInstructionWords[] = {
-    (4 << 16) | uint32_t(SpvOpControlBarrier), 100, 101, 102};
+    (4 << 16) | uint32_t(spv::Op::OpControlBarrier), 100, 101, 102};
 
 // The operands that would be parsed from kSampleControlBarrierInstructionWords.
 spv_parsed_operand_t kSampleControlBarrierOperands[] = {
@@ -141,7 +142,7 @@ spv_parsed_operand_t kSampleControlBarrierOperands[] = {
 spv_parsed_instruction_t kSampleControlBarrierInstruction = {
     kSampleControlBarrierInstructionWords,
     uint16_t(4),
-    uint16_t(SpvOpControlBarrier),
+    uint16_t(spv::Op::OpControlBarrier),
     SPV_EXT_INST_TYPE_NONE,
     0,  // type id
     0,  // result id
@@ -151,7 +152,7 @@ spv_parsed_instruction_t kSampleControlBarrierInstruction = {
 TEST(InstructionTest, CreateWithOpcodeAndOperands) {
   IRContext context(SPV_ENV_UNIVERSAL_1_2, nullptr);
   Instruction inst(&context, kSampleParsedInstruction);
-  EXPECT_EQ(SpvOpTypeInt, inst.opcode());
+  EXPECT_EQ(spv::Op::OpTypeInt, inst.opcode());
   EXPECT_EQ(0u, inst.type_id());
   EXPECT_EQ(44u, inst.result_id());
   EXPECT_EQ(3u, inst.NumOperands());

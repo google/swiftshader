@@ -85,7 +85,8 @@ TEST_F(ElimDeadInputComponentsTest, ElimOneConstantIndex) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          false);
 }
 
 TEST_F(ElimDeadInputComponentsTest, ElimOneConstantIndexInBounds) {
@@ -135,7 +136,8 @@ TEST_F(ElimDeadInputComponentsTest, ElimOneConstantIndexInBounds) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          false);
 }
 
 TEST_F(ElimDeadInputComponentsTest, ElimTwoConstantIndices) {
@@ -202,7 +204,8 @@ TEST_F(ElimDeadInputComponentsTest, ElimTwoConstantIndices) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          false);
 }
 
 TEST_F(ElimDeadInputComponentsTest, NoElimMaxConstantIndex) {
@@ -268,7 +271,8 @@ TEST_F(ElimDeadInputComponentsTest, NoElimMaxConstantIndex) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          false);
 }
 
 TEST_F(ElimDeadInputComponentsTest, NoElimNonConstantIndex) {
@@ -350,7 +354,8 @@ TEST_F(ElimDeadInputComponentsTest, NoElimNonConstantIndex) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          false);
 }
 
 TEST_F(ElimDeadInputComponentsTest, NoElimNonIndexedAccessChain) {
@@ -396,7 +401,289 @@ TEST_F(ElimDeadInputComponentsTest, NoElimNonIndexedAccessChain) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          false);
+}
+
+TEST_F(ElimDeadInputComponentsTest, ElimStructMember) {
+  // Should eliminate uv
+  //
+  // #version 450
+  //
+  // in Vertex {
+  //   vec4 Cd;
+  //   vec2 uv;
+  // } iVert;
+  //
+  // out vec4 fragColor;
+  //
+  // void main()
+  // {
+  //   vec4 color = vec4(iVert.Cd);
+  //   fragColor = color;
+  // }
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %iVert %fragColor
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+               OpName %main "main"
+               OpName %Vertex "Vertex"
+               OpMemberName %Vertex 0 "Cd"
+               OpMemberName %Vertex 1 "uv"
+               OpName %iVert "iVert"
+               OpName %fragColor "fragColor"
+               OpDecorate %Vertex Block
+               OpDecorate %iVert Location 0
+               OpDecorate %fragColor Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+    %v2float = OpTypeVector %float 2
+     %Vertex = OpTypeStruct %v4float %v2float
+; CHECK: %Vertex = OpTypeStruct %v4float %v2float
+; CHECK: [[sty:%\w+]] = OpTypeStruct %v4float
+%_ptr_Input_Vertex = OpTypePointer Input %Vertex
+; CHECK: [[pty:%\w+]] = OpTypePointer Input [[sty]]
+      %iVert = OpVariable %_ptr_Input_Vertex Input
+; CHECK: %iVert = OpVariable [[pty]] Input
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+  %fragColor = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+         %17 = OpAccessChain %_ptr_Input_v4float %iVert %int_0
+         %18 = OpLoad %v4float %17
+               OpStore %fragColor %18
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_3);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          false);
+}
+
+TEST_F(ElimDeadInputComponentsTest, ElimOutputStructMember) {
+  // Should eliminate uv from Vertex and all but gl_Position from gl_PerVertex
+  //
+  // #version 450
+  //
+  // out Vertex {
+  //   vec4 Cd;
+  //   vec2 uv;
+  // } oVert;
+  //
+  // in vec3 P;
+  //
+  // void main()
+  // {
+  //   vec4 worldSpacePos = vec4(P, 1);
+  //   oVert.Cd = vec4(1, 0.5, 0, 1);
+  //   gl_Position = worldSpacePos;
+  // }
+
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %main "main" %P %oVert %_
+               OpSource GLSL 450
+               OpName %main "main"
+               OpName %P "P"
+               OpName %Vertex "Vertex"
+               OpMemberName %Vertex 0 "Cd"
+               OpMemberName %Vertex 1 "uv"
+               OpName %oVert "oVert"
+               OpName %gl_PerVertex "gl_PerVertex"
+               OpMemberName %gl_PerVertex 0 "gl_Position"
+               OpMemberName %gl_PerVertex 1 "gl_PointSize"
+               OpMemberName %gl_PerVertex 2 "gl_ClipDistance"
+               OpMemberName %gl_PerVertex 3 "gl_CullDistance"
+               OpName %_ ""
+               OpDecorate %P Location 0
+               OpDecorate %Vertex Block
+               OpDecorate %oVert Location 0
+               OpMemberDecorate %gl_PerVertex 0 BuiltIn Position
+               OpMemberDecorate %gl_PerVertex 1 BuiltIn PointSize
+               OpMemberDecorate %gl_PerVertex 2 BuiltIn ClipDistance
+               OpMemberDecorate %gl_PerVertex 3 BuiltIn CullDistance
+               OpDecorate %gl_PerVertex Block
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+    %v3float = OpTypeVector %float 3
+%_ptr_Input_v3float = OpTypePointer Input %v3float
+          %P = OpVariable %_ptr_Input_v3float Input
+    %float_1 = OpConstant %float 1
+    %v2float = OpTypeVector %float 2
+     %Vertex = OpTypeStruct %v4float %v2float
+%_ptr_Output_Vertex = OpTypePointer Output %Vertex
+      %oVert = OpVariable %_ptr_Output_Vertex Output
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+  %float_0_5 = OpConstant %float 0.5
+    %float_0 = OpConstant %float 0
+         %27 = OpConstantComposite %v4float %float_1 %float_0_5 %float_0 %float_1
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %uint = OpTypeInt 32 0
+     %uint_1 = OpConstant %uint 1
+%_arr_float_uint_1 = OpTypeArray %float %uint_1
+%gl_PerVertex = OpTypeStruct %v4float %float %_arr_float_uint_1 %_arr_float_uint_1
+%_ptr_Output_gl_PerVertex = OpTypePointer Output %gl_PerVertex
+          %_ = OpVariable %_ptr_Output_gl_PerVertex Output
+; CHECK: %Vertex = OpTypeStruct %v4float %v2float
+; CHECK: %gl_PerVertex = OpTypeStruct %v4float %float %_arr_float_uint_1 %_arr_float_uint_1
+; CHECK: %_ptr_Output_gl_PerVertex = OpTypePointer Output %gl_PerVertex
+; CHECK: [[sty:%\w+]] = OpTypeStruct %v4float
+; CHECK: [[pty:%\w+]] = OpTypePointer Output [[sty]]
+; CHECK: %oVert = OpVariable [[pty]] Output
+; CHECK: [[sty2:%\w+]] = OpTypeStruct %v4float
+; CHECK: [[pty2:%\w+]] = OpTypePointer Output [[sty2]]
+; CHECK: %_ = OpVariable [[pty2]] Output
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+         %13 = OpLoad %v3float %P
+         %15 = OpCompositeExtract %float %13 0
+         %16 = OpCompositeExtract %float %13 1
+         %17 = OpCompositeExtract %float %13 2
+         %18 = OpCompositeConstruct %v4float %15 %16 %17 %float_1
+         %29 = OpAccessChain %_ptr_Output_v4float %oVert %int_0
+               OpStore %29 %27
+         %37 = OpAccessChain %_ptr_Output_v4float %_ %int_0
+               OpStore %37 %18
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_3);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, true,
+                                                          false);
+}
+
+TEST_F(ElimDeadInputComponentsTest, ElimOutputArrayMembers) {
+  // Should reduce to uv[2]
+  //
+  // #version 450
+  //
+  // layout(location = 0) out vec2 uv[8];
+  //
+  // void main()
+  // {
+  //     uv[1] = vec2(1, 0.5);
+  // }
+
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %uv
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+               OpName %main "main"
+               OpName %uv "uv"
+               OpDecorate %uv Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v2float = OpTypeVector %float 2
+       %uint = OpTypeInt 32 0
+     %uint_8 = OpConstant %uint 8
+%_arr_v2float_uint_8 = OpTypeArray %v2float %uint_8
+%_ptr_Output__arr_v2float_uint_8 = OpTypePointer Output %_arr_v2float_uint_8
+         %uv = OpVariable %_ptr_Output__arr_v2float_uint_8 Output
+;CHECK-NOT:         %uv = OpVariable %_ptr_Output__arr_v2float_uint_8 Output
+;CHECK:             %uv = OpVariable %_ptr_Output__arr_v2float_uint_2 Output
+        %int = OpTypeInt 32 1
+      %int_1 = OpConstant %int 1
+    %float_1 = OpConstant %float 1
+  %float_0_5 = OpConstant %float 0.5
+         %17 = OpConstantComposite %v2float %float_1 %float_0_5
+%_ptr_Output_v2float = OpTypePointer Output %v2float
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+         %19 = OpAccessChain %_ptr_Output_v2float %uv %int_1
+               OpStore %19 %17
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_3);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, true,
+                                                          false);
+}
+
+TEST_F(ElimDeadInputComponentsTest, VertexOnly) {
+  // Should NOT eliminate uv
+  //
+  // #version 450
+  //
+  // in Vertex {
+  //   vec4 Cd;
+  //   vec2 uv;
+  // } iVert;
+  //
+  // out vec4 fragColor;
+  //
+  // void main()
+  // {
+  //   vec4 color = vec4(iVert.Cd);
+  //   fragColor = color;
+  // }
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %iVert %fragColor
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+               OpName %main "main"
+               OpName %Vertex "Vertex"
+               OpMemberName %Vertex 0 "Cd"
+               OpMemberName %Vertex 1 "uv"
+               OpName %iVert "iVert"
+               OpName %fragColor "fragColor"
+               OpDecorate %Vertex Block
+               OpDecorate %iVert Location 0
+               OpDecorate %fragColor Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+    %v2float = OpTypeVector %float 2
+     %Vertex = OpTypeStruct %v4float %v2float
+; CHECK: %Vertex = OpTypeStruct %v4float %v2float
+%_ptr_Input_Vertex = OpTypePointer Input %Vertex
+; CHECK: %_ptr_Input_Vertex = OpTypePointer Input %Vertex
+      %iVert = OpVariable %_ptr_Input_Vertex Input
+; CHECK: %iVert = OpVariable %_ptr_Input_Vertex Input
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+  %fragColor = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+         %17 = OpAccessChain %_ptr_Input_v4float %iVert %int_0
+         %18 = OpLoad %v4float %17
+               OpStore %fragColor %18
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_3);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
+                                                          true);
 }
 
 }  // namespace

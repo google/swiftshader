@@ -7677,6 +7677,106 @@ TEST_F(AggressiveDCETest, FunctionBecomesUnreachableAfterDCE) {
   SinglePassRunAndMatch<AggressiveDCEPass>(text, true);
 }
 
+TEST_F(AggressiveDCETest, KeepTopLevelDebugInfo) {
+  // Don't eliminate DebugCompilationUnit, DebugSourceContinued, and
+  // DebugEntryPoint
+  const std::string text = R"(
+               OpCapability Shader
+               OpExtension "SPV_KHR_non_semantic_info"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %MainPs "MainPs" %out_var_SV_Target0
+               OpExecutionMode %MainPs OriginUpperLeft
+          %4 = OpString "foo2.frag"
+          %5 = OpString "
+struct PS_OUTPUT
+{
+    float4 vColor : SV_Target0 ;
+} ;
+
+"
+          %6 = OpString "
+PS_OUTPUT MainPs ( )
+{
+    PS_OUTPUT ps_output ;
+    ps_output . vColor = float4( 1.0, 0.0, 0.0, 0.0 );
+    return ps_output ;
+}
+
+"
+          %7 = OpString "float"
+          %8 = OpString "vColor"
+          %9 = OpString "PS_OUTPUT"
+         %10 = OpString "MainPs"
+         %11 = OpString ""
+         %12 = OpString "ps_output"
+         %13 = OpString "97a939fb"
+         %14 = OpString " foo2.frag -E MainPs -T ps_6_1 -spirv -fspv-target-env=vulkan1.2 -fspv-debug=vulkan-with-source -fcgl -Fo foo2.frag.nopt.spv -Qembed_debug"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %MainPs "MainPs"
+               OpDecorate %out_var_SV_Target0 Location 0
+      %float = OpTypeFloat 32
+    %float_1 = OpConstant %float 1
+    %float_0 = OpConstant %float 0
+    %v4float = OpTypeVector %float 4
+         %23 = OpConstantComposite %v4float %float_1 %float_0 %float_0 %float_0
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+     %uint_3 = OpConstant %uint 3
+     %uint_0 = OpConstant %uint 0
+   %uint_128 = OpConstant %uint 128
+    %uint_12 = OpConstant %uint 12
+     %uint_2 = OpConstant %uint 2
+     %uint_8 = OpConstant %uint 8
+     %uint_7 = OpConstant %uint 7
+     %uint_9 = OpConstant %uint 9
+    %uint_15 = OpConstant %uint 15
+         %42 = OpTypeFunction %void
+    %uint_10 = OpConstant %uint 10
+    %uint_53 = OpConstant %uint 53
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+         %49 = OpExtInst %void %1 DebugExpression
+         %50 = OpExtInst %void %1 DebugSource %4 %5
+         %51 = OpExtInst %void %1 DebugSourceContinued %6
+; CHECK:     %51 = OpExtInst %void %1 DebugSourceContinued %6
+         %52 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %50 %uint_5
+; CHECK:     %52 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %50 %uint_5
+         %53 = OpExtInst %void %1 DebugTypeBasic %7 %uint_32 %uint_3 %uint_0
+         %54 = OpExtInst %void %1 DebugTypeVector %53 %uint_4
+         %55 = OpExtInst %void %1 DebugTypeMember %8 %54 %50 %uint_4 %uint_12 %uint_0 %uint_128 %uint_3
+         %56 = OpExtInst %void %1 DebugTypeComposite %9 %uint_1 %50 %uint_2 %uint_8 %52 %9 %uint_128 %uint_3 %55
+         %57 = OpExtInst %void %1 DebugTypeFunction %uint_3 %56
+         %58 = OpExtInst %void %1 DebugFunction %10 %57 %50 %uint_7 %uint_1 %52 %11 %uint_3 %uint_8
+         %59 = OpExtInst %void %1 DebugLexicalBlock %50 %uint_8 %uint_1 %58
+         %60 = OpExtInst %void %1 DebugLocalVariable %12 %56 %50 %uint_9 %uint_15 %59 %uint_4
+         %61 = OpExtInst %void %1 DebugEntryPoint %58 %52 %13 %14
+; CHECK:     %61 = OpExtInst %void %1 DebugEntryPoint %58 %52 %13 %14
+     %MainPs = OpFunction %void None %42
+         %62 = OpLabel
+         %63 = OpExtInst %void %1 DebugFunctionDefinition %58 %MainPs
+        %112 = OpExtInst %void %1 DebugScope %59
+        %111 = OpExtInst %void %1 DebugLine %50 %uint_10 %uint_10 %uint_5 %uint_53
+        %110 = OpExtInst %void %1 DebugValue %60 %23 %49 %int_0
+        %113 = OpExtInst %void %1 DebugNoLine
+        %114 = OpExtInst %void %1 DebugNoScope
+               OpStore %out_var_SV_Target0 %23
+         %66 = OpExtInst %void %1 DebugLine %50 %uint_12 %uint_12 %uint_1 %uint_1
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_2);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<AggressiveDCEPass>(text, true);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

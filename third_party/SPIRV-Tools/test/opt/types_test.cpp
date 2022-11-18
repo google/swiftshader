@@ -34,9 +34,9 @@ class SameTypeTest : public ::testing::Test {
     u32_t_ = MakeUnique<Integer>(32, false);
     f64_t_ = MakeUnique<Float>(64);
     v3u32_t_ = MakeUnique<Vector>(u32_t_.get(), 3);
-    image_t_ =
-        MakeUnique<Image>(f64_t_.get(), SpvDim2D, 1, 1, 0, 0, SpvImageFormatR16,
-                          SpvAccessQualifierReadWrite);
+    image_t_ = MakeUnique<Image>(f64_t_.get(), spv::Dim::Dim2D, 1, 1, 0, 0,
+                                 spv::ImageFormat::R16,
+                                 spv::AccessQualifier::ReadWrite);
   }
 
   // Element types to be used for constructing other types for testing.
@@ -72,9 +72,9 @@ TestMultipleInstancesOfTheSameType(Integer, 32, true)
 TestMultipleInstancesOfTheSameType(Float, 64)
 TestMultipleInstancesOfTheSameType(Vector, u32_t_.get(), 3)
 TestMultipleInstancesOfTheSameType(Matrix, v3u32_t_.get(), 4)
-TestMultipleInstancesOfTheSameType(Image, f64_t_.get(), SpvDimCube, 0, 0, 1, 1,
-                                   SpvImageFormatRgb10A2,
-                                   SpvAccessQualifierWriteOnly)
+TestMultipleInstancesOfTheSameType(Image, f64_t_.get(), spv::Dim::Cube, 0, 0, 1, 1,
+                                   spv::ImageFormat::Rgb10A2,
+                                   spv::AccessQualifier::WriteOnly)
 TestMultipleInstancesOfTheSameType(Sampler)
 TestMultipleInstancesOfTheSameType(SampledImage, image_t_.get())
 // There are three classes of arrays, based on the kinds of length information
@@ -98,15 +98,15 @@ TestMultipleInstancesOfTheSameType(RuntimeArray, u32_t_.get())
 TestMultipleInstancesOfTheSameType(Struct, std::vector<const Type*>{
                                                u32_t_.get(), f64_t_.get()})
 TestMultipleInstancesOfTheSameType(Opaque, "testing rocks")
-TestMultipleInstancesOfTheSameType(Pointer, u32_t_.get(), SpvStorageClassInput)
+TestMultipleInstancesOfTheSameType(Pointer, u32_t_.get(), spv::StorageClass::Input)
 TestMultipleInstancesOfTheSameType(Function, u32_t_.get(),
                                    {f64_t_.get(), f64_t_.get()})
 TestMultipleInstancesOfTheSameType(Event)
 TestMultipleInstancesOfTheSameType(DeviceEvent)
 TestMultipleInstancesOfTheSameType(ReserveId)
 TestMultipleInstancesOfTheSameType(Queue)
-TestMultipleInstancesOfTheSameType(Pipe, SpvAccessQualifierReadWrite)
-TestMultipleInstancesOfTheSameType(ForwardPointer, 10, SpvStorageClassUniform)
+TestMultipleInstancesOfTheSameType(Pipe, spv::AccessQualifier::ReadWrite)
+TestMultipleInstancesOfTheSameType(ForwardPointer, 10, spv::StorageClass::Uniform)
 TestMultipleInstancesOfTheSameType(PipeStorage)
 TestMultipleInstancesOfTheSameType(NamedBarrier)
 TestMultipleInstancesOfTheSameType(AccelerationStructureNV)
@@ -119,8 +119,8 @@ std::vector<std::unique_ptr<Type>> GenerateAllTypes() {
   std::vector<std::unique_ptr<Type>> types;
 
   // Forward Pointer
-  types.emplace_back(new ForwardPointer(10000, SpvStorageClassInput));
-  types.emplace_back(new ForwardPointer(20000, SpvStorageClassInput));
+  types.emplace_back(new ForwardPointer(10000, spv::StorageClass::Input));
+  types.emplace_back(new ForwardPointer(20000, spv::StorageClass::Input));
 
   // Void, Bool
   types.emplace_back(new Void());
@@ -155,15 +155,19 @@ std::vector<std::unique_ptr<Type>> GenerateAllTypes() {
   types.emplace_back(new Matrix(v3f32, 4));
 
   // Images
-  types.emplace_back(new Image(s32, SpvDim2D, 0, 0, 0, 0, SpvImageFormatRg8,
-                               SpvAccessQualifierReadOnly));
+  types.emplace_back(new Image(s32, spv::Dim::Dim2D, 0, 0, 0, 0,
+                               spv::ImageFormat::Rg8,
+                               spv::AccessQualifier::ReadOnly));
   auto* image1 = types.back().get();
-  types.emplace_back(new Image(s32, SpvDim2D, 0, 1, 0, 0, SpvImageFormatRg8,
-                               SpvAccessQualifierReadOnly));
-  types.emplace_back(new Image(s32, SpvDim3D, 0, 1, 0, 0, SpvImageFormatRg8,
-                               SpvAccessQualifierReadOnly));
-  types.emplace_back(new Image(voidt, SpvDim3D, 0, 1, 0, 1, SpvImageFormatRg8,
-                               SpvAccessQualifierReadWrite));
+  types.emplace_back(new Image(s32, spv::Dim::Dim2D, 0, 1, 0, 0,
+                               spv::ImageFormat::Rg8,
+                               spv::AccessQualifier::ReadOnly));
+  types.emplace_back(new Image(s32, spv::Dim::Dim3D, 0, 1, 0, 0,
+                               spv::ImageFormat::Rg8,
+                               spv::AccessQualifier::ReadOnly));
+  types.emplace_back(new Image(voidt, spv::Dim::Dim3D, 0, 1, 0, 1,
+                               spv::ImageFormat::Rg8,
+                               spv::AccessQualifier::ReadWrite));
   auto* image2 = types.back().get();
 
   // Sampler
@@ -218,10 +222,10 @@ std::vector<std::unique_ptr<Type>> GenerateAllTypes() {
   types.emplace_back(new Opaque("world"));
 
   // Pointer
-  types.emplace_back(new Pointer(f32, SpvStorageClassInput));
-  types.emplace_back(new Pointer(sts32f32, SpvStorageClassFunction));
-  types.emplace_back(new Pointer(a42f32, SpvStorageClassFunction));
-  types.emplace_back(new Pointer(voidt, SpvStorageClassFunction));
+  types.emplace_back(new Pointer(f32, spv::StorageClass::Input));
+  types.emplace_back(new Pointer(sts32f32, spv::StorageClass::Function));
+  types.emplace_back(new Pointer(a42f32, spv::StorageClass::Function));
+  types.emplace_back(new Pointer(voidt, spv::StorageClass::Function));
 
   // Function
   types.emplace_back(new Function(voidt, {}));
@@ -236,11 +240,11 @@ std::vector<std::unique_ptr<Type>> GenerateAllTypes() {
   types.emplace_back(new Queue());
 
   // Pipe, Forward Pointer, PipeStorage, NamedBarrier
-  types.emplace_back(new Pipe(SpvAccessQualifierReadWrite));
-  types.emplace_back(new Pipe(SpvAccessQualifierReadOnly));
-  types.emplace_back(new ForwardPointer(1, SpvStorageClassInput));
-  types.emplace_back(new ForwardPointer(2, SpvStorageClassInput));
-  types.emplace_back(new ForwardPointer(2, SpvStorageClassUniform));
+  types.emplace_back(new Pipe(spv::AccessQualifier::ReadWrite));
+  types.emplace_back(new Pipe(spv::AccessQualifier::ReadOnly));
+  types.emplace_back(new ForwardPointer(1, spv::StorageClass::Input));
+  types.emplace_back(new ForwardPointer(2, spv::StorageClass::Input));
+  types.emplace_back(new ForwardPointer(2, spv::StorageClass::Uniform));
   types.emplace_back(new PipeStorage());
   types.emplace_back(new NamedBarrier());
 

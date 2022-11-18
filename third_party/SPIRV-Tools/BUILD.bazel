@@ -137,7 +137,7 @@ cc_library(
     copts = COMMON_COPTS,
     includes = ["source"],
     deps = [
-        "@spirv_headers//:spirv_c_headers",
+        "@spirv_headers//:spirv_cpp11_headers",
     ],
 )
 
@@ -162,7 +162,7 @@ cc_library(
     deps = [
         ":generated_headers",
         ":spirv_tools_headers",
-        "@spirv_headers//:spirv_c_headers",
+        "@spirv_headers//:spirv_cpp11_headers",
         "@spirv_headers//:spirv_common_headers",
     ],
 )
