@@ -1316,6 +1316,38 @@ OpFunctionEnd
   SinglePassRunAndCheck<LocalAccessChainConvertPass>(assembly, assembly, false,
                                                      true);
 }
+
+TEST_F(LocalAccessChainConvertTest, NegativeIndex) {
+  // The access chain has a negative index and should not be converted because
+  // the extract instruction cannot hold a negative number.
+  const std::string assembly =
+      R"(OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %2 "main"
+OpExecutionMode %2 OriginUpperLeft
+%void = OpTypeVoid
+%4 = OpTypeFunction %void
+%int = OpTypeInt 32 1
+%uint = OpTypeInt 32 0
+%uint_3808428041 = OpConstant %uint 3808428041
+%_arr_int_uint_3808428041 = OpTypeArray %int %uint_3808428041
+%_ptr_Function__arr_int_uint_3808428041 = OpTypePointer Function %_arr_int_uint_3808428041
+%_ptr_Function_int = OpTypePointer Function %int
+%int_n1272971256 = OpConstant %int -1272971256
+%2 = OpFunction %void None %4
+%12 = OpLabel
+%13 = OpVariable %_ptr_Function__arr_int_uint_3808428041 Function
+%14 = OpAccessChain %_ptr_Function_int %13 %int_n1272971256
+%15 = OpLoad %int %14
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<LocalAccessChainConvertPass>(assembly, assembly, false,
+                                                     true);
+}
+
 // TODO(greg-lunarg): Add tests to verify handling of these cases:
 //
 //    Assorted vector and matrix types

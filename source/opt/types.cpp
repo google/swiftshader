@@ -24,7 +24,6 @@
 
 #include "source/util/hash_combine.h"
 #include "source/util/make_unique.h"
-#include "spirv/unified1/spirv.h"
 
 namespace spvtools {
 namespace opt {
@@ -65,7 +64,7 @@ bool CompareTwoVectors(const U32VecVec a, const U32VecVec b) {
   return true;
 }
 
-}  // anonymous namespace
+}  // namespace
 
 std::string Type::GetDecorationStr() const {
   std::ostringstream oss;
@@ -357,8 +356,9 @@ size_t Matrix::ComputeExtraStateHash(size_t hash, SeenTypes* seen) const {
   return element_type_->ComputeHashValue(hash, seen);
 }
 
-Image::Image(Type* type, SpvDim dimen, uint32_t d, bool array, bool multisample,
-             uint32_t sampling, SpvImageFormat f, SpvAccessQualifier qualifier)
+Image::Image(Type* type, spv::Dim dimen, uint32_t d, bool array,
+             bool multisample, uint32_t sampling, spv::ImageFormat f,
+             spv::AccessQualifier qualifier)
     : Type(kImage),
       sampled_type_(type),
       dim_(dimen),
@@ -383,9 +383,9 @@ bool Image::IsSameImpl(const Type* that, IsSameCache* seen) const {
 
 std::string Image::str() const {
   std::ostringstream oss;
-  oss << "image(" << sampled_type_->str() << ", " << dim_ << ", " << depth_
-      << ", " << arrayed_ << ", " << ms_ << ", " << sampled_ << ", " << format_
-      << ", " << access_qualifier_ << ")";
+  oss << "image(" << sampled_type_->str() << ", " << uint32_t(dim_) << ", "
+      << depth_ << ", " << arrayed_ << ", " << ms_ << ", " << sampled_ << ", "
+      << uint32_t(format_) << ", " << uint32_t(access_qualifier_) << ")";
   return oss.str();
 }
 
@@ -557,7 +557,7 @@ size_t Opaque::ComputeExtraStateHash(size_t hash, SeenTypes*) const {
   return hash_combine(hash, name_);
 }
 
-Pointer::Pointer(const Type* type, SpvStorageClass sc)
+Pointer::Pointer(const Type* type, spv::StorageClass sc)
     : Type(kPointer), pointee_type_(type), storage_class_(sc) {}
 
 bool Pointer::IsSameImpl(const Type* that, IsSameCache* seen) const {
@@ -636,7 +636,7 @@ bool Pipe::IsSameImpl(const Type* that, IsSameCache*) const {
 
 std::string Pipe::str() const {
   std::ostringstream oss;
-  oss << "pipe(" << access_qualifier_ << ")";
+  oss << "pipe(" << uint32_t(access_qualifier_) << ")";
   return oss.str();
 }
 

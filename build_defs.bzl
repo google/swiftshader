@@ -66,7 +66,8 @@ def generate_core_tables(version = None):
             "--extinst-debuginfo-grammar=$(location {1}) " +
             "--extinst-cldebuginfo100-grammar=$(location {2}) " +
             "--core-insts-output=$(location {3}) " +
-            "--operand-kinds-output=$(location {4})"
+            "--operand-kinds-output=$(location {4}) " +
+            "--output-language=c++"
         ).format(*fmtargs),
         cmd_bat = (
             "$(location :generate_grammar_tables) " +
@@ -74,7 +75,8 @@ def generate_core_tables(version = None):
             "--extinst-debuginfo-grammar=$(location {1}) " +
             "--extinst-cldebuginfo100-grammar=$(location {2}) " +
             "--core-insts-output=$(location {3}) " +
-            "--operand-kinds-output=$(location {4})"
+            "--operand-kinds-output=$(location {4}) " +
+            "--output-language=c++"
         ).format(*fmtargs),
         exec_tools = [":generate_grammar_tables"],
         visibility = ["//visibility:private"],
@@ -103,7 +105,8 @@ def generate_enum_string_mapping(version = None):
             "--extinst-debuginfo-grammar=$(location {1}) " +
             "--extinst-cldebuginfo100-grammar=$(location {2}) " +
             "--extension-enum-output=$(location {3}) " +
-            "--enum-string-mapping-output=$(location {4})"
+            "--enum-string-mapping-output=$(location {4}) " +
+            "--output-language=c++"
         ).format(*fmtargs),
         cmd_bat = (
             "$(location :generate_grammar_tables) " +
@@ -111,7 +114,8 @@ def generate_enum_string_mapping(version = None):
             "--extinst-debuginfo-grammar=$(location {1}) " +
             "--extinst-cldebuginfo100-grammar=$(location {2}) " +
             "--extension-enum-output=$(location {3}) " +
-            "--enum-string-mapping-output=$(location {4})"
+            "--enum-string-mapping-output=$(location {4}) " +
+            "--output-language=c++"
         ).format(*fmtargs),
         exec_tools = [":generate_grammar_tables"],
         visibility = ["//visibility:private"],
@@ -158,12 +162,14 @@ def generate_glsl_tables(version = None):
         cmd = (
             "$(location :generate_grammar_tables) " +
             "--extinst-glsl-grammar=$(location {0}) " +
-            "--glsl-insts-output=$(location {1})"
+            "--glsl-insts-output=$(location {1}) " +
+            "--output-language=c++"
         ).format(*fmtargs),
         cmd_bat = (
             "$(location :generate_grammar_tables) " +
             "--extinst-glsl-grammar=$(location {0}) " +
-            "--glsl-insts-output=$(location {1})"
+            "--glsl-insts-output=$(location {1}) " +
+            "--output-language=c++"
         ).format(*fmtargs),
         exec_tools = [":generate_grammar_tables"],
         visibility = ["//visibility:private"],

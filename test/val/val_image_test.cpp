@@ -149,6 +149,7 @@ OpDecorate %input_flat_u32 Location 0
 %u32vec4 = OpTypeVector %u32 4
 %s32vec4 = OpTypeVector %s32 4
 %f32vec4 = OpTypeVector %f32 4
+%boolvec4 = OpTypeVector %bool 4
 
 %f32_0 = OpConstant %f32 0
 %f32_1 = OpConstant %f32 1
@@ -174,6 +175,8 @@ OpDecorate %input_flat_u32 Location 0
 
 %u64_0 = OpConstant %u64 0
 %u64_1 = OpConstant %u64 1
+
+%bool_t = OpConstantTrue %bool
 
 %u32vec2arr4 = OpTypeArray %u32vec2 %u32_4
 %u32vec2arr3 = OpTypeArray %u32vec2 %u32_3
@@ -216,6 +219,8 @@ OpDecorate %input_flat_u32 Location 0
 %f32vec3_hhh = OpConstantComposite %f32vec3 %f32_0_5 %f32_0_5 %f32_0_5
 
 %f32vec4_0000 = OpConstantComposite %f32vec4 %f32_0 %f32_0 %f32_0 %f32_0
+
+%boolvec4_tttt = OpConstantComposite %boolvec4 %bool_t %bool_t %bool_t %bool_t
 
 %const_offsets = OpConstantComposite %u32vec2arr4 %u32vec2_01 %u32vec2_12 %u32vec2_01 %u32vec2_12
 %const_offsets3x2 = OpConstantComposite %u32vec2arr3 %u32vec2_01 %u32vec2_12 %u32vec2_01
@@ -1120,8 +1125,9 @@ TEST_F(ValidateImage, ImageTexelPointerImageNotResultTypePointer) {
 
   CompileSuccessfully(GenerateShaderCode(body).c_str());
   ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
-  EXPECT_THAT(getDiagnosticString(), HasSubstr("Operand 145[%145] cannot be a "
-                                               "type"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Operand '148[%148]' cannot be a "
+                        "type"));
 }
 
 TEST_F(ValidateImage, ImageTexelPointerImageNotImage) {
@@ -3746,6 +3752,17 @@ OpImageWrite %img %u32_1 %u32vec4_0123
                         "but given only 1"));
 }
 
+TEST_F(ValidateImage, WriteTexelScalarSuccess) {
+  const std::string body = R"(
+%img = OpLoad %type_image_u32_2d_0002 %uniform_image_u32_2d_0002
+OpImageWrite %img %u32vec2_01 %u32_2
+)";
+
+  const std::string extra = "\nOpCapability StorageImageWriteWithoutFormat\n";
+  CompileSuccessfully(GenerateShaderCode(body, extra).c_str());
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
 TEST_F(ValidateImage, WriteTexelWrongType) {
   const std::string body = R"(
 %img = OpLoad %type_image_u32_2d_0002 %uniform_image_u32_2d_0002
@@ -3759,17 +3776,17 @@ OpImageWrite %img %u32vec2_01 %img
               HasSubstr("Expected Texel to be int or float vector or scalar"));
 }
 
-TEST_F(ValidateImage, DISABLED_WriteTexelNotVector4) {
+TEST_F(ValidateImage, WriteTexelNonNumericalType) {
   const std::string body = R"(
 %img = OpLoad %type_image_u32_2d_0002 %uniform_image_u32_2d_0002
-OpImageWrite %img %u32vec2_01 %u32vec3_012
+OpImageWrite %img %u32vec2_01 %boolvec4_tttt
 )";
 
   const std::string extra = "\nOpCapability StorageImageWriteWithoutFormat\n";
   CompileSuccessfully(GenerateShaderCode(body, extra).c_str());
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("Expected Texel to have 4 components"));
+              HasSubstr("Expected Texel to be int or float vector or scalar"));
 }
 
 TEST_F(ValidateImage, WriteTexelWrongComponentType) {

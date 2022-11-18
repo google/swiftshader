@@ -306,16 +306,16 @@ const Constant* ConstantManager::GetConstantFromInst(const Instruction* inst) {
   switch (inst->opcode()) {
     // OpConstant{True|False} have the value embedded in the opcode. So they
     // are not handled by the for-loop above. Here we add the value explicitly.
-    case SpvOp::SpvOpConstantTrue:
+    case spv::Op::OpConstantTrue:
       literal_words_or_ids.push_back(true);
       break;
-    case SpvOp::SpvOpConstantFalse:
+    case spv::Op::OpConstantFalse:
       literal_words_or_ids.push_back(false);
       break;
-    case SpvOp::SpvOpConstantNull:
-    case SpvOp::SpvOpConstant:
-    case SpvOp::SpvOpConstantComposite:
-    case SpvOp::SpvOpSpecConstantComposite:
+    case spv::Op::OpConstantNull:
+    case spv::Op::OpConstant:
+    case spv::Op::OpConstantComposite:
+    case spv::Op::OpSpecConstantComposite:
       break;
     default:
       return nullptr;
@@ -329,22 +329,22 @@ std::unique_ptr<Instruction> ConstantManager::CreateInstruction(
   uint32_t type =
       (type_id == 0) ? context()->get_type_mgr()->GetId(c->type()) : type_id;
   if (c->AsNullConstant()) {
-    return MakeUnique<Instruction>(context(), SpvOp::SpvOpConstantNull, type,
-                                   id, std::initializer_list<Operand>{});
+    return MakeUnique<Instruction>(context(), spv::Op::OpConstantNull, type, id,
+                                   std::initializer_list<Operand>{});
   } else if (const BoolConstant* bc = c->AsBoolConstant()) {
     return MakeUnique<Instruction>(
         context(),
-        bc->value() ? SpvOp::SpvOpConstantTrue : SpvOp::SpvOpConstantFalse,
-        type, id, std::initializer_list<Operand>{});
+        bc->value() ? spv::Op::OpConstantTrue : spv::Op::OpConstantFalse, type,
+        id, std::initializer_list<Operand>{});
   } else if (const IntConstant* ic = c->AsIntConstant()) {
     return MakeUnique<Instruction>(
-        context(), SpvOp::SpvOpConstant, type, id,
+        context(), spv::Op::OpConstant, type, id,
         std::initializer_list<Operand>{
             Operand(spv_operand_type_t::SPV_OPERAND_TYPE_TYPED_LITERAL_NUMBER,
                     ic->words())});
   } else if (const FloatConstant* fc = c->AsFloatConstant()) {
     return MakeUnique<Instruction>(
-        context(), SpvOp::SpvOpConstant, type, id,
+        context(), spv::Op::OpConstant, type, id,
         std::initializer_list<Operand>{
             Operand(spv_operand_type_t::SPV_OPERAND_TYPE_TYPED_LITERAL_NUMBER,
                     fc->words())});
@@ -362,9 +362,9 @@ std::unique_ptr<Instruction> ConstantManager::CreateCompositeInstruction(
   uint32_t component_index = 0;
   for (const Constant* component_const : cc->GetComponents()) {
     uint32_t component_type_id = 0;
-    if (type_inst && type_inst->opcode() == SpvOpTypeStruct) {
+    if (type_inst && type_inst->opcode() == spv::Op::OpTypeStruct) {
       component_type_id = type_inst->GetSingleWordInOperand(component_index);
-    } else if (type_inst && type_inst->opcode() == SpvOpTypeArray) {
+    } else if (type_inst && type_inst->opcode() == spv::Op::OpTypeArray) {
       component_type_id = type_inst->GetSingleWordInOperand(0);
     }
     uint32_t id = FindDeclaredConstant(component_const, component_type_id);
@@ -381,7 +381,7 @@ std::unique_ptr<Instruction> ConstantManager::CreateCompositeInstruction(
   }
   uint32_t type =
       (type_id == 0) ? context()->get_type_mgr()->GetId(cc->type()) : type_id;
-  return MakeUnique<Instruction>(context(), SpvOp::SpvOpConstantComposite, type,
+  return MakeUnique<Instruction>(context(), spv::Op::OpConstantComposite, type,
                                  result_id, std::move(operands));
 }
 
