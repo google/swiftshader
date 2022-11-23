@@ -534,10 +534,10 @@ bool Spirv::StoresInHelperInvocationsHaveNoEffect(spv::StorageClass storageClass
 	// "Stores and atomics performed by helper invocations must not have any effect on memory..."
 	default:
 		return true;
-	// "...except for the Function and Private storage classes".
+	// "...except for the Function, Private and Output storage classes".
 	case spv::StorageClassFunction:
 	case spv::StorageClassPrivate:
-	case spv::StorageClassOutput:  // TODO(b/253701784): We assume Output should be treated as Private.
+	case spv::StorageClassOutput:
 		return false;
 	}
 }
