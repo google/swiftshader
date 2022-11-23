@@ -957,7 +957,11 @@ public:
 				}
 			}
 
-			inputs.advanceInstanceAttributes(hasDynamicVertexStride);
+			if(instanceCount > 1)
+			{
+				UNOPTIMIZED("Optimize instancing to use a single draw call.");  // TODO(b/137740918)
+				inputs.advanceInstanceAttributes(hasDynamicVertexStride);
+			}
 		}
 	}
 };

@@ -350,7 +350,6 @@ void Inputs::setVertexInputBinding(const VertexInputBinding bindings[])
 	}
 }
 
-// TODO(b/137740918): Optimize instancing to use a single draw call.
 void Inputs::advanceInstanceAttributes(bool dynamicInstanceStride)
 {
 	for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)

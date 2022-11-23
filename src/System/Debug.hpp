@@ -159,4 +159,14 @@ void log_trap(const char *format, ...) CHECK_PRINTF_ARGS;
 		} while(0)
 #endif
 
+// A macro to indicate unoptimized code paths.
+#define UNOPTIMIZED(message, ...)                                                            \
+	do                                                                                       \
+	{                                                                                        \
+		if(false)                                                                            \
+		{                                                                                    \
+			sw::warn("%s:%d UNOPTIMIZED: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
+		}                                                                                    \
+	} while(0)
+
 #endif  // Debug_hpp
