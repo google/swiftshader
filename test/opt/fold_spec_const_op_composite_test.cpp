@@ -374,6 +374,33 @@ TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertMatrix) {
   SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
 }
 
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertNull) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+%v2float = OpTypeVector %float 2
+%mat2v2float = OpTypeMatrix %v2float 2
+%null = OpConstantNull %mat2v2float
+    %float_1 = OpConstant %float 1
+  %v2float_1 = OpConstantComposite %v2float %float_1 %float_1
+   %mat2v2_1 = OpConstantComposite %mat2v2float %v2float_1 %v2float_1
+ ; CHECK: %13 = OpConstantNull %mat2v2float
+         %14 = OpSpecConstantOp %mat2v2float CompositeInsert %mat2v2_1 %null 0 0
+          %1 = OpFunction %void None %3
+         %16 = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
 // All types and some common constants that are potentially required in
 // FoldSpecConstantOpAndCompositeTest.
 std::vector<std::string> CommonTypesAndConstants() {

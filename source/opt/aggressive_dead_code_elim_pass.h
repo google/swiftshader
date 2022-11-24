@@ -44,8 +44,10 @@ class AggressiveDCEPass : public MemPass {
   using GetBlocksFunction =
       std::function<std::vector<BasicBlock*>*(const BasicBlock*)>;
 
-  AggressiveDCEPass(bool preserve_interface = false)
-      : preserve_interface_(preserve_interface) {}
+  AggressiveDCEPass(bool preserve_interface = false,
+                    bool remove_outputs = false)
+      : preserve_interface_(preserve_interface),
+        remove_outputs_(remove_outputs) {}
 
   const char* name() const override { return "eliminate-dead-code-aggressive"; }
   Status Process() override;
@@ -62,6 +64,11 @@ class AggressiveDCEPass : public MemPass {
   // GPU-Assisted Validation instrumentation where a change in the interface
   // is not allowed.
   bool preserve_interface_;
+
+  // Output variables can be removed from the interface if this is true.
+  // This is safe if the caller knows that the corresponding input variable
+  // in the following shader has been removed. It is false by default.
+  bool remove_outputs_;
 
   // Return true if |varId| is a variable of |storageClass|. |varId| must either
   // be 0 or the result of an instruction.
