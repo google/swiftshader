@@ -579,8 +579,10 @@ void AggressiveDCEPass::InitializeModuleScopeLiveInstructions() {
         auto* var = get_def_use_mgr()->GetDef(entry.GetSingleWordInOperand(i));
         auto storage_class = var->GetSingleWordInOperand(0u);
         // Vulkan support outputs without an associated input, but not inputs
-        // without an associated output.
-        if (spv::StorageClass(storage_class) == spv::StorageClass::Output) {
+        // without an associated output. Don't remove outputs unless explicitly
+        // allowed.
+        if (!remove_outputs_ &&
+            spv::StorageClass(storage_class) == spv::StorageClass::Output) {
           AddToWorklist(var);
         }
       }

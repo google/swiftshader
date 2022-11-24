@@ -140,6 +140,12 @@ ConstantFoldingRule FoldInsertWithConstants() {
     // Work down hierarchy and add all the indexes, not including the final
     // index.
     for (uint32_t i = 2; i < inst->NumInOperands(); ++i) {
+      if (composite->AsNullConstant()) {
+        // Return Null for the return type.
+        analysis::TypeManager* type_mgr = context->get_type_mgr();
+        return const_mgr->GetConstant(type_mgr->GetType(inst->type_id()), {});
+      }
+
       if (i != inst->NumInOperands() - 1) {
         chain.push_back(composite);
       }

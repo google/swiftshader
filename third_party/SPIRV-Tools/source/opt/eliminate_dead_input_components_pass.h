@@ -52,13 +52,15 @@ class EliminateDeadInputComponentsPass : public Pass {
   // Find the max constant used to index the variable declared by |var|
   // through OpAccessChain or OpInBoundsAccessChain. If any non-constant
   // indices or non-Op*AccessChain use of |var|, return |original_max|.
-  unsigned FindMaxIndex(Instruction& var, unsigned original_max);
+  unsigned FindMaxIndex(const Instruction& var, const unsigned original_max,
+                        const bool skip_first_index = false);
 
   // Change the length of the array |inst| to |length|
   void ChangeArrayLength(Instruction& inst, unsigned length);
 
-  // Change the length of the struct |struct_var| to |length|
-  void ChangeStructLength(Instruction& struct_var, unsigned length);
+  // Change the length of the struct in |io_var| to |length|. |io_var|
+  // is either the struct or a per-vertex-array of the struct.
+  void ChangeIOVarStructLength(Instruction& io_var, unsigned length);
 
   // Process output variables instead
   bool output_instead_;
