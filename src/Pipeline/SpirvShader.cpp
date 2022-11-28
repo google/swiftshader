@@ -2319,10 +2319,7 @@ void SpirvEmitter::EmitAccessChain(InsnIterator insn)
 		}
 	}
 
-	if(type.storageClass == spv::StorageClassPushConstant ||
-	   type.storageClass == spv::StorageClassUniform ||
-	   type.storageClass == spv::StorageClassStorageBuffer ||
-	   type.storageClass == spv::StorageClassPhysicalStorageBuffer)
+	if(Spirv::IsExplicitLayout(type.storageClass))
 	{
 		auto ptr = WalkExplicitLayoutAccessChain(baseId, elementId, Span(insn, indexId, insn.wordCount() - indexId), nonUniform);
 		createPointer(resultId, ptr);
