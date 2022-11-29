@@ -39,6 +39,9 @@ public:
 
 private:
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
+	// This debug messenger (when available) is owned by the instance and created via passing a
+	// chained struct to vkCreateInstance. This should be destroyed with the instance.
 	DebugUtilsMessenger *messenger = nullptr;
 };
 
