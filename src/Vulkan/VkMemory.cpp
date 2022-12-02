@@ -15,12 +15,15 @@
 #include "VkMemory.hpp"
 
 #include "VkConfig.hpp"
+#include "System/Debug.hpp"
 #include "System/Memory.hpp"
 
 namespace vk {
 
 void *allocateDeviceMemory(size_t bytes, size_t alignment)
 {
+	ASSERT(bytes <= vk::MAX_MEMORY_ALLOCATION_SIZE);
+
 #if defined(SWIFTSHADER_ZERO_INITIALIZE_DEVICE_MEMORY)
 	return sw::allocateZeroOrPoison(bytes, alignment);
 #else
@@ -35,6 +38,8 @@ void freeDeviceMemory(void *ptr)
 
 void *allocateHostMemory(size_t bytes, size_t alignment, const VkAllocationCallbacks *pAllocator, VkSystemAllocationScope allocationScope)
 {
+	ASSERT(bytes <= vk::MAX_MEMORY_ALLOCATION_SIZE);
+
 	if(pAllocator)
 	{
 		return pAllocator->pfnAllocation(pAllocator->pUserData, bytes, alignment, allocationScope);
