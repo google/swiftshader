@@ -203,6 +203,9 @@ spv_result_t RayQueryPass(ValidationState_t& _, const Instruction* inst);
 /// Validates correctness of ray tracing instructions.
 spv_result_t RayTracingPass(ValidationState_t& _, const Instruction* inst);
 
+/// Validates correctness of shader execution reorder instructions.
+spv_result_t RayReorderNVPass(ValidationState_t& _, const Instruction* inst);
+
 /// Validates correctness of mesh shading instructions.
 spv_result_t MeshShadingPass(ValidationState_t& _, const Instruction* inst);
 

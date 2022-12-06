@@ -340,6 +340,41 @@ TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertVector) {
   SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
 }
 
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest,
+       CompositeInsertVectorIntoMatrix) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v2float = OpTypeVector %float 2
+ %mat2v2float = OpTypeMatrix %v2float 2
+    %float_0 = OpConstant %float 0
+    %float_1 = OpConstant %float 1
+    %float_2 = OpConstant %float 2
+ %v2float_01 = OpConstantComposite %v2float %float_0 %float_1
+ %v2float_12 = OpConstantComposite %v2float %float_1 %float_2
+
+; CHECK: %10 = OpConstantComposite %v2float %float_0 %float_1
+; CHECK: %11 = OpConstantComposite %v2float %float_1 %float_2
+; CHECK: %12 = OpConstantComposite %mat2v2float %11 %11
+%mat2v2float_1212 = OpConstantComposite %mat2v2float %v2float_12 %v2float_12
+
+; CHECK: %15 = OpConstantComposite %mat2v2float %10 %11
+     %spec_0 = OpSpecConstantOp %mat2v2float CompositeInsert %v2float_01 %mat2v2float_1212 0
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
 TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertMatrix) {
   const std::string test =
       R"(
@@ -374,7 +409,7 @@ TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertMatrix) {
   SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
 }
 
-TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertNull) {
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertFloatNull) {
   const std::string test =
       R"(
                OpCapability Shader
@@ -384,16 +419,254 @@ TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertNull) {
        %void = OpTypeVoid
           %3 = OpTypeFunction %void
       %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+    %float_1 = OpConstant %float 1
+
+; CHECK: %7 = OpConstantNull %float
+; CHECK: %8 = OpConstantComposite %v3float %7 %7 %7
+; CHECK: %12 = OpConstantComposite %v3float %7 %7 %float_1
+       %null = OpConstantNull %float
+     %spec_0 = OpConstantComposite %v3float %null %null %null
+     %spec_1 = OpSpecConstantOp %v3float CompositeInsert %float_1 %spec_0 2
+
+; CHECK: %float_1_0 = OpConstant %float 1
+     %spec_2 = OpSpecConstantOp %float CompositeExtract %spec_1 2
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest,
+       CompositeInsertFloatSetNull) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+    %float_1 = OpConstant %float 1
+
+; CHECK: %7 = OpConstantNull %float
+; CHECK: %8 = OpConstantComposite %v3float %7 %7 %float_1
+; CHECK: %12 = OpConstantComposite %v3float %7 %7 %7
+       %null = OpConstantNull %float
+     %spec_0 = OpConstantComposite %v3float %null %null %float_1
+     %spec_1 = OpSpecConstantOp %v3float CompositeInsert %null %spec_0 2
+
+; CHECK: %13 = OpConstantNull %float
+     %spec_2 = OpSpecConstantOp %float CompositeExtract %spec_1 2
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertVectorNull) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+    %float_1 = OpConstant %float 1
+       %null = OpConstantNull %v3float
+
+; CHECK: %11 = OpConstantNull %float
+; CHECK: %12 = OpConstantComposite %v3float %11 %11 %float_1
+     %spec_0 = OpSpecConstantOp %v3float CompositeInsert %float_1 %null 2
+
+
+; CHECK: %float_1_0 = OpConstant %float 1
+     %spec_1 = OpSpecConstantOp %float CompositeExtract %spec_0 2
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest,
+       CompositeInsertNullVectorIntoMatrix) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v2float = OpTypeVector %float 2
+ %mat2v2float = OpTypeMatrix %v2float 2
+       %null = OpConstantNull %mat2v2float
+    %float_1 = OpConstant %float 1
+    %float_2 = OpConstant %float 2
+ %v2float_12 = OpConstantComposite %v2float %float_1 %float_2
+
+; CHECK: %13 = OpConstantNull %v2float
+; CHECK: %14 = OpConstantComposite %mat2v2float %10 %13
+     %spec_0 = OpSpecConstantOp %mat2v2float CompositeInsert %v2float_12 %null 0
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest,
+       CompositeInsertVectorKeepNull) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+    %float_0 = OpConstant %float 0
+ %null_float = OpConstantNull %float
+   %null_vec = OpConstantNull %v3float
+
+; CHECK: %15 = OpConstantComposite %v3float %7 %7 %float_0
+     %spec_0 = OpSpecConstantOp %v3float CompositeInsert %float_0 %null_vec 2
+
+; CHECK: %float_0_0 = OpConstant %float 0
+     %spec_1 = OpSpecConstantOp %float CompositeExtract %spec_0 2
+
+; CHECK: %17 = OpConstantComposite %v3float %7 %7 %7
+     %spec_2 = OpSpecConstantOp %v3float CompositeInsert %null_float %null_vec 2
+
+; CHECK: %18 = OpConstantNull %float
+     %spec_3 = OpSpecConstantOp %float CompositeExtract %spec_2 2
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+        %add = OpFAdd %float %spec_3 %spec_3
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest,
+       CompositeInsertVectorChainNull) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+    %float_1 = OpConstant %float 1
+       %null = OpConstantNull %v3float
+
+; CHECK: %15 = OpConstantNull %float
+; CHECK: %16 = OpConstantComposite %v3float %15 %15 %float_1
+; CHECK: %17 = OpConstantComposite %v3float %15 %float_1 %float_1
+; CHECK: %18 = OpConstantComposite %v3float %float_1 %float_1 %float_1
+     %spec_0 = OpSpecConstantOp %v3float CompositeInsert %float_1 %null 2
+     %spec_1 = OpSpecConstantOp %v3float CompositeInsert %float_1 %spec_0 1
+     %spec_2 = OpSpecConstantOp %v3float CompositeInsert %float_1 %spec_1 0
+
+; CHECK: %float_1_0 = OpConstant %float 1
+; CHECK: %float_1_1 = OpConstant %float 1
+; CHECK: %float_1_2 = OpConstant %float 1
+     %spec_3 = OpSpecConstantOp %float CompositeExtract %spec_2 0
+     %spec_4 = OpSpecConstantOp %float CompositeExtract %spec_2 1
+     %spec_5 = OpSpecConstantOp %float CompositeExtract %spec_2 2
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest,
+       CompositeInsertVectorChainReset) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %1 "main"
+               OpExecutionMode %1 LocalSize 1 1 1
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+    %float_1 = OpConstant %float 1
+       %null = OpConstantNull %float
+; CHECK: %8 = OpConstantComposite %v3float %7 %7 %float_1
+     %spec_0 = OpConstantComposite %v3float %null %null %float_1
+
+            ; set to null
+; CHECK: %13 = OpConstantComposite %v3float %7 %7 %7
+     %spec_1 = OpSpecConstantOp %v3float CompositeInsert %null %spec_0 2
+
+            ; set to back to original value
+; CHECK: %14 = OpConstantComposite %v3float %7 %7 %float_1
+     %spec_2 = OpSpecConstantOp %v3float CompositeInsert %float_1 %spec_1 2
+
+; CHECK: %float_1_0 = OpConstant %float 1
+     %spec_3 = OpSpecConstantOp %float CompositeExtract %spec_2 2
+          %1 = OpFunction %void None %3
+      %label = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<FoldSpecConstantOpAndCompositePass>(test, false);
+}
+
+TEST_F(FoldSpecConstantOpAndCompositePassBasicTest, CompositeInsertMatrixNull) {
+  const std::string test =
+      R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 1 1 1
+       %void = OpTypeVoid
+       %func = OpTypeFunction %void
+      %float = OpTypeFloat 32
+        %int = OpTypeInt 32 0
 %v2float = OpTypeVector %float 2
 %mat2v2float = OpTypeMatrix %v2float 2
 %null = OpConstantNull %mat2v2float
     %float_1 = OpConstant %float 1
-  %v2float_1 = OpConstantComposite %v2float %float_1 %float_1
-   %mat2v2_1 = OpConstantComposite %mat2v2float %v2float_1 %v2float_1
- ; CHECK: %13 = OpConstantNull %mat2v2float
-         %14 = OpSpecConstantOp %mat2v2float CompositeInsert %mat2v2_1 %null 0 0
-          %1 = OpFunction %void None %3
-         %16 = OpLabel
+ ; CHECK: %13 = OpConstantNull %v2float
+ ; CHECK: %14 = OpConstantNull %float
+ ; CHECK: %15 = OpConstantComposite %v2float %float_1 %14
+ ; CHECK: %16 = OpConstantComposite %mat2v2float %13 %15
+       %spec = OpSpecConstantOp %mat2v2float CompositeInsert %float_1 %null 1 0
+; extra type def to make sure new type def are not just thrown at end
+      %v2int = OpTypeVector %int 2
+       %main = OpFunction %void None %func
+      %label = OpLabel
                OpReturn
                OpFunctionEnd
 )";

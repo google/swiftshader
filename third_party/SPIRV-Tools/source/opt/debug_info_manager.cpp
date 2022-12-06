@@ -235,7 +235,8 @@ uint32_t DebugInfoManager::CreateDebugInlinedAt(const Instruction* line,
           !context()->AreAnalysesValid(IRContext::Analysis::kAnalysisConstants))
         line_number = AddNewConstInGlobals(context(), line_number);
       else
-        line_number = context()->get_constant_mgr()->GetUIntConst(line_number);
+        line_number =
+            context()->get_constant_mgr()->GetUIntConstId(line_number);
     }
   }
 
@@ -344,7 +345,7 @@ Instruction* DebugInfoManager::GetDebugOperationWithDeref() {
              {static_cast<uint32_t>(OpenCLDebugInfo100Deref)}},
         }));
   } else {
-    uint32_t deref_id = context()->get_constant_mgr()->GetUIntConst(
+    uint32_t deref_id = context()->get_constant_mgr()->GetUIntConstId(
         NonSemanticShaderDebugInfo100Deref);
 
     deref_operation = std::unique_ptr<Instruction>(

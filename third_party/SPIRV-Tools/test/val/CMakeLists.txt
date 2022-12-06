@@ -93,6 +93,7 @@ add_spvtools_unittest(TARGET val_rstuvw
   SRCS
        val_ray_query_test.cpp
        val_ray_tracing_test.cpp
+       val_ray_tracing_reorder_test.cpp
        val_small_type_uses_test.cpp
        val_ssa_test.cpp
        val_state_test.cpp

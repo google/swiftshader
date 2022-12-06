@@ -172,6 +172,7 @@ std::vector<std::unique_ptr<Type>> GenerateAllTypes() {
   types.emplace_back(new AccelerationStructureNV());
   types.emplace_back(new CooperativeMatrixNV(f32, 24, 24, 24));
   types.emplace_back(new RayQueryKHR());
+  types.emplace_back(new HitObjectNV());
 
   return types;
 }
@@ -1085,6 +1086,7 @@ TEST(TypeManager, GetTypeInstructionAllTypes) {
 ; CHECK: OpTypeAccelerationStructureKHR
 ; CHECK: OpTypeCooperativeMatrixNV [[f32]] [[uint24]] [[uint24]] [[uint24]]
 ; CHECK: OpTypeRayQueryKHR
+; CHECK: OpTypeHitObjectNV
 OpCapability Shader
 OpCapability Int64
 OpCapability Linkage
