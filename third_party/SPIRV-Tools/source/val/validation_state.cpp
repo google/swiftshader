@@ -790,6 +790,22 @@ void ValidationState_t::RegisterStorageClassConsumer(
               }
               return true;
             });
+  } else if (storage_class == spv::StorageClass::HitObjectAttributeNV) {
+    function(consumer->function()->id())
+        ->RegisterExecutionModelLimitation([](spv::ExecutionModel model,
+                                              std::string* message) {
+          if (model != spv::ExecutionModel::RayGenerationKHR &&
+              model != spv::ExecutionModel::ClosestHitKHR &&
+              model != spv::ExecutionModel::MissKHR) {
+            if (message) {
+              *message =
+                  "HitObjectAttributeNV Storage Class is limited to "
+                  "RayGenerationKHR, ClosestHitKHR or MissKHR execution model";
+            }
+            return false;
+          }
+          return true;
+        });
   }
 }
 
@@ -1555,6 +1571,7 @@ bool ValidationState_t::IsValidStorageClass(
       case spv::StorageClass::IncomingCallableDataKHR:
       case spv::StorageClass::ShaderRecordBufferKHR:
       case spv::StorageClass::TaskPayloadWorkgroupEXT:
+      case spv::StorageClass::HitObjectAttributeNV:
         return true;
       default:
         return false;
@@ -2060,20 +2077,14 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-RayPayloadKHR-04698);
     case 4699:
       return VUID_WRAP(VUID-StandaloneSpirv-IncomingRayPayloadKHR-04699);
-    case 4700:
-      return VUID_WRAP(VUID-StandaloneSpirv-IncomingRayPayloadKHR-04700);
     case 4701:
       return VUID_WRAP(VUID-StandaloneSpirv-HitAttributeKHR-04701);
-    case 4702:
-      return VUID_WRAP(VUID-StandaloneSpirv-HitAttributeKHR-04702);
     case 4703:
       return VUID_WRAP(VUID-StandaloneSpirv-HitAttributeKHR-04703);
     case 4704:
       return VUID_WRAP(VUID-StandaloneSpirv-CallableDataKHR-04704);
     case 4705:
       return VUID_WRAP(VUID-StandaloneSpirv-IncomingCallableDataKHR-04705);
-    case 4706:
-      return VUID_WRAP(VUID-StandaloneSpirv-IncomingCallableDataKHR-04706);
     case 7119:
       return VUID_WRAP(VUID-StandaloneSpirv-ShaderRecordBufferKHR-07119);
     case 4708:
@@ -2132,8 +2143,6 @@ std::string ValidationState_t::VkErrorID(uint32_t id,
       return VUID_WRAP(VUID-StandaloneSpirv-OpTypeSampledImage-06671);
     case 6672:
       return VUID_WRAP(VUID-StandaloneSpirv-Location-06672);
-    case 6673:
-      return VUID_WRAP(VUID-StandaloneSpirv-OpVariable-06673);
     case 6674:
       return VUID_WRAP(VUID-StandaloneSpirv-OpEntryPoint-06674);
     case 6675:

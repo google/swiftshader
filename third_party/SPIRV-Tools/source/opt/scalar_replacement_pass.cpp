@@ -191,7 +191,7 @@ bool ScalarReplacementPass::ReplaceWholeDebugDeclare(
     if (added_dbg_value == nullptr) return false;
     added_dbg_value->AddOperand(
         {SPV_OPERAND_TYPE_ID,
-         {context()->get_constant_mgr()->GetSIntConst(idx)}});
+         {context()->get_constant_mgr()->GetSIntConstId(idx)}});
     added_dbg_value->SetOperand(kDebugValueOperandExpressionIndex,
                                 {deref_expr->result_id()});
     if (context()->AreAnalysesValid(IRContext::Analysis::kAnalysisDefUse)) {
@@ -217,7 +217,7 @@ bool ScalarReplacementPass::ReplaceWholeDebugValue(
     // Append 'Indexes' operand.
     new_dbg_value->AddOperand(
         {SPV_OPERAND_TYPE_ID,
-         {context()->get_constant_mgr()->GetSIntConst(idx)}});
+         {context()->get_constant_mgr()->GetSIntConstId(idx)}});
     // Insert the new DebugValue to the basic block.
     auto* added_instr = dbg_value->InsertBefore(std::move(new_dbg_value));
     get_def_use_mgr()->AnalyzeInstDefUse(added_instr);

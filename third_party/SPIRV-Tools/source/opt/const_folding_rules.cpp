@@ -136,32 +136,38 @@ ConstantFoldingRule FoldInsertWithConstants() {
     std::vector<const analysis::Constant*> chain;
     std::vector<const analysis::Constant*> components;
     const analysis::Type* type = nullptr;
+    const uint32_t final_index = (inst->NumInOperands() - 1);
 
-    // Work down hierarchy and add all the indexes, not including the final
-    // index.
+    // Work down hierarchy of all indexes
     for (uint32_t i = 2; i < inst->NumInOperands(); ++i) {
-      if (composite->AsNullConstant()) {
-        // Return Null for the return type.
-        analysis::TypeManager* type_mgr = context->get_type_mgr();
-        return const_mgr->GetConstant(type_mgr->GetType(inst->type_id()), {});
-      }
+      type = composite->type();
 
-      if (i != inst->NumInOperands() - 1) {
-        chain.push_back(composite);
+      if (composite->AsNullConstant()) {
+        // Make new composite so it can be inserted in the index with the
+        // non-null value
+        const auto new_composite = const_mgr->GetNullCompositeConstant(type);
+        // Keep track of any indexes along the way to last index
+        if (i != final_index) {
+          chain.push_back(new_composite);
+        }
+        components = new_composite->AsCompositeConstant()->GetComponents();
+      } else {
+        // Keep track of any indexes along the way to last index
+        if (i != final_index) {
+          chain.push_back(composite);
+        }
+        components = composite->AsCompositeConstant()->GetComponents();
       }
       const uint32_t index = inst->GetSingleWordInOperand(i);
-      components = composite->AsCompositeConstant()->GetComponents();
-      type = composite->AsCompositeConstant()->type();
       composite = components[index];
     }
 
     // Final index in hierarchy is inserted with new object.
-    const uint32_t final_index =
-        inst->GetSingleWordInOperand(inst->NumInOperands() - 1);
+    const uint32_t final_operand = inst->GetSingleWordInOperand(final_index);
     std::vector<uint32_t> ids;
     for (size_t i = 0; i < components.size(); i++) {
       const analysis::Constant* constant =
-          (i == final_index) ? object : components[i];
+          (i == final_operand) ? object : components[i];
       Instruction* member_inst = const_mgr->GetDefiningInstruction(constant);
       ids.push_back(member_inst->result_id());
     }
@@ -171,19 +177,16 @@ ConstantFoldingRule FoldInsertWithConstants() {
     for (size_t i = chain.size(); i > 0; i--) {
       // Need to insert any previous instruction into the module first.
       // Can't just insert in types_values_begin() because it will move above
-      // where the types are declared
-      for (Module::inst_iterator inst_iter = context->types_values_begin();
-           inst_iter != context->types_values_end(); ++inst_iter) {
-        Instruction* x = &*inst_iter;
-        if (inst->result_id() == x->result_id()) {
-          const_mgr->BuildInstructionAndAddToModule(new_constant, &inst_iter);
-          break;
-        }
-      }
+      // where the types are declared.
+      // Can't compare with location of inst because not all new added
+      // instructions are added to types_values_
+      auto iter = context->types_values_end();
+      Module::inst_iterator* pos = &iter;
+      const_mgr->BuildInstructionAndAddToModule(new_constant, pos);
 
       composite = chain[i - 1];
       components = composite->AsCompositeConstant()->GetComponents();
-      type = composite->AsCompositeConstant()->type();
+      type = composite->type();
       ids.clear();
       for (size_t k = 0; k < components.size(); k++) {
         const uint32_t index =

@@ -23,9 +23,9 @@ namespace spvtools {
 namespace opt {
 namespace {
 
-using ElimDeadInputComponentsTest = PassTest<::testing::Test>;
+using ElimDeadIOComponentsTest = PassTest<::testing::Test>;
 
-TEST_F(ElimDeadInputComponentsTest, ElimOneConstantIndex) {
+TEST_F(ElimDeadIOComponentsTest, ElimOneConstantIndex) {
   // Should reduce to uv[2]
   //
   // #version 450
@@ -85,11 +85,11 @@ TEST_F(ElimDeadInputComponentsTest, ElimOneConstantIndex) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, ElimOneConstantIndexInBounds) {
+TEST_F(ElimDeadIOComponentsTest, ElimOneConstantIndexInBounds) {
   // Same as ElimOneConstantIndex but with OpInBoundsAccessChain
   const std::string text = R"(
                OpCapability Shader
@@ -136,11 +136,11 @@ TEST_F(ElimDeadInputComponentsTest, ElimOneConstantIndexInBounds) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, ElimTwoConstantIndices) {
+TEST_F(ElimDeadIOComponentsTest, ElimTwoConstantIndices) {
   // Should reduce to uv[4]
   //
   // #version 450
@@ -204,11 +204,11 @@ TEST_F(ElimDeadInputComponentsTest, ElimTwoConstantIndices) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, NoElimMaxConstantIndex) {
+TEST_F(ElimDeadIOComponentsTest, NoElimMaxConstantIndex) {
   // Should not reduce uv[8] because of max index of 7
   //
   // #version 450
@@ -271,11 +271,11 @@ TEST_F(ElimDeadInputComponentsTest, NoElimMaxConstantIndex) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, NoElimNonConstantIndex) {
+TEST_F(ElimDeadIOComponentsTest, NoElimNonConstantIndex) {
   // Should not reduce uv[8] because of non-constant index of ui
   //
   // #version 450
@@ -354,11 +354,11 @@ TEST_F(ElimDeadInputComponentsTest, NoElimNonConstantIndex) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, NoElimNonIndexedAccessChain) {
+TEST_F(ElimDeadIOComponentsTest, NoElimNonIndexedAccessChain) {
   // Should not change due to non-indexed access chain
   const std::string text = R"(
                OpCapability Shader
@@ -401,11 +401,11 @@ TEST_F(ElimDeadInputComponentsTest, NoElimNonIndexedAccessChain) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, ElimStructMember) {
+TEST_F(ElimDeadIOComponentsTest, ElimStructMember) {
   // Should eliminate uv
   //
   // #version 450
@@ -466,11 +466,11 @@ TEST_F(ElimDeadInputComponentsTest, ElimStructMember) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, ElimOutputStructMember) {
+TEST_F(ElimDeadIOComponentsTest, ElimOutputStructMember) {
   // Should eliminate uv from Vertex and all but gl_Position from gl_PerVertex
   //
   // #version 450
@@ -565,11 +565,11 @@ TEST_F(ElimDeadInputComponentsTest, ElimOutputStructMember) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, true,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Output, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, ElimOutputArrayMembers) {
+TEST_F(ElimDeadIOComponentsTest, ElimOutputArrayMembers) {
   // Should reduce to uv[2]
   //
   // #version 450
@@ -618,11 +618,11 @@ TEST_F(ElimDeadInputComponentsTest, ElimOutputArrayMembers) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, true,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Output, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, VertexOnly) {
+TEST_F(ElimDeadIOComponentsTest, VertexOnly) {
   // Should NOT eliminate uv
   //
   // #version 450
@@ -682,11 +682,11 @@ TEST_F(ElimDeadInputComponentsTest, VertexOnly) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          true);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, true);
 }
 
-TEST_F(ElimDeadInputComponentsTest, TescInput) {
+TEST_F(ElimDeadIOComponentsTest, TescInput) {
   // Eliminate PointSize, ClipDistance, CullDistance from gl_in[]
   //
   // #version 450
@@ -771,11 +771,11 @@ TEST_F(ElimDeadInputComponentsTest, TescInput) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, TescOutput) {
+TEST_F(ElimDeadIOComponentsTest, TescOutput) {
   // Eliminate PointSize, ClipDistance, CullDistance from gl_out[]
   //
   // #version 450
@@ -859,11 +859,11 @@ TEST_F(ElimDeadInputComponentsTest, TescOutput) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, true,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Output, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, TeseInput) {
+TEST_F(ElimDeadIOComponentsTest, TeseInput) {
   // Eliminate PointSize, ClipDistance, CullDistance from gl_in[]
   //
   // #version 450
@@ -946,11 +946,11 @@ TEST_F(ElimDeadInputComponentsTest, TeseInput) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, TeseOutput) {
+TEST_F(ElimDeadIOComponentsTest, TeseOutput) {
   // Eliminate PointSize, ClipDistance, CullDistance from gl_out
   //
   // #version 450
@@ -1030,11 +1030,11 @@ TEST_F(ElimDeadInputComponentsTest, TeseOutput) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, true,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Output, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, GeomInput) {
+TEST_F(ElimDeadIOComponentsTest, GeomInput) {
   // Eliminate PointSize, ClipDistance, CullDistance from gl_in[]
   //
   // #version 450
@@ -1138,11 +1138,11 @@ TEST_F(ElimDeadInputComponentsTest, GeomInput) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, false,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Input, false);
 }
 
-TEST_F(ElimDeadInputComponentsTest, GeomOutput) {
+TEST_F(ElimDeadIOComponentsTest, GeomOutput) {
   // Eliminate PointSize, ClipDistance, CullDistance from gl_out
   //
   // #version 450
@@ -1245,8 +1245,8 @@ TEST_F(ElimDeadInputComponentsTest, GeomOutput) {
 
   SetTargetEnv(SPV_ENV_VULKAN_1_3);
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
-  SinglePassRunAndMatch<EliminateDeadInputComponentsPass>(text, true, true,
-                                                          false);
+  SinglePassRunAndMatch<EliminateDeadIOComponentsPass>(
+      text, true, spv::StorageClass::Output, false);
 }
 
 }  // namespace
