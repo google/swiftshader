@@ -131,6 +131,7 @@ std::unique_ptr<Type> Type::Clone() const {
     DeclareKindCase(AccelerationStructureNV);
     DeclareKindCase(CooperativeMatrixNV);
     DeclareKindCase(RayQueryKHR);
+    DeclareKindCase(HitObjectNV);
 #undef DeclareKindCase
     default:
       assert(false && "Unhandled type");
@@ -177,6 +178,7 @@ bool Type::operator==(const Type& other) const {
     DeclareKindCase(AccelerationStructureNV);
     DeclareKindCase(CooperativeMatrixNV);
     DeclareKindCase(RayQueryKHR);
+    DeclareKindCase(HitObjectNV);
 #undef DeclareKindCase
     default:
       assert(false && "Unhandled type");
@@ -231,6 +233,7 @@ size_t Type::ComputeHashValue(size_t hash, SeenTypes* seen) const {
     DeclareKindCase(AccelerationStructureNV);
     DeclareKindCase(CooperativeMatrixNV);
     DeclareKindCase(RayQueryKHR);
+    DeclareKindCase(HitObjectNV);
 #undef DeclareKindCase
     default:
       assert(false && "Unhandled type");

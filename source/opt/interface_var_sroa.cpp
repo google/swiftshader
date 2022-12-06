@@ -489,7 +489,7 @@ Instruction* InterfaceVariableScalarReplacement::CreateAccessChainWithIndex(
     Instruction* insert_before) {
   uint32_t ptr_type_id =
       GetPointerType(component_type_id, GetStorageClass(var));
-  uint32_t index_id = context()->get_constant_mgr()->GetUIntConst(index);
+  uint32_t index_id = context()->get_constant_mgr()->GetUIntConstId(index);
   std::unique_ptr<Instruction> new_access_chain(new Instruction(
       context(), spv::Op::OpAccessChain, ptr_type_id, TakeNextId(),
       std::initializer_list<Operand>{
@@ -781,7 +781,7 @@ uint32_t InterfaceVariableScalarReplacement::GetArrayType(
     uint32_t elem_type_id, uint32_t array_length) {
   analysis::Type* elem_type = context()->get_type_mgr()->GetType(elem_type_id);
   uint32_t array_length_id =
-      context()->get_constant_mgr()->GetUIntConst(array_length);
+      context()->get_constant_mgr()->GetUIntConstId(array_length);
   analysis::Array array_type(
       elem_type,
       analysis::Array::LengthInfo{array_length_id, {0, array_length}});

@@ -331,7 +331,7 @@ BasicBlock* ReplaceDescArrayAccessUsingVarIndex::CreateNewBlock() const {
 void ReplaceDescArrayAccessUsingVarIndex::UseConstIndexForAccessChain(
     Instruction* access_chain, uint32_t const_element_idx) const {
   uint32_t const_element_idx_id =
-      context()->get_constant_mgr()->GetUIntConst(const_element_idx);
+      context()->get_constant_mgr()->GetUIntConstId(const_element_idx);
   access_chain->SetInOperand(kOpAccessChainInOperandIndexes,
                              {const_element_idx_id});
 }

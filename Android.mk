@@ -71,6 +71,7 @@ SPVTOOLS_SRC_FILES := \
 		source/val/validate_primitives.cpp \
 		source/val/validate_ray_query.cpp \
 		source/val/validate_ray_tracing.cpp \
+		source/val/validate_ray_tracing_reorder.cpp \
 		source/val/validate_scopes.cpp \
 		source/val/validate_small_type_uses.cpp \
 		source/val/validate_type.cpp
@@ -110,7 +111,7 @@ SPVTOOLS_OPT_SRC_FILES := \
 		source/opt/eliminate_dead_constant_pass.cpp \
 		source/opt/eliminate_dead_functions_pass.cpp \
 		source/opt/eliminate_dead_functions_util.cpp \
-		source/opt/eliminate_dead_input_components_pass.cpp \
+		source/opt/eliminate_dead_io_components_pass.cpp \
 		source/opt/eliminate_dead_members_pass.cpp \
 		source/opt/eliminate_dead_output_stores_pass.cpp \
 		source/opt/feature_manager.cpp \
