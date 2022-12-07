@@ -17,6 +17,8 @@
 
 #include "ID.hpp"
 
+#include <string>
+
 namespace vk {
 namespace dbg {
 
