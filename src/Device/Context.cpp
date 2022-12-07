@@ -202,9 +202,9 @@ vk::DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateI
 
 namespace vk {
 
-int IndexBuffer::bytesPerIndex() const
+uint32_t IndexBuffer::bytesPerIndex() const
 {
-	return indexType == VK_INDEX_TYPE_UINT16 ? 2 : 4;
+	return indexType == VK_INDEX_TYPE_UINT16 ? 2u : 4u;
 }
 
 void IndexBuffer::setIndexBufferBinding(const VertexInputBinding &indexBufferBinding, VkIndexType type)
@@ -217,6 +217,18 @@ void IndexBuffer::getIndexBuffers(VkPrimitiveTopology topology, uint32_t count, 
 {
 	if(indexed)
 	{
+		const VkDeviceSize bufferSize = binding.buffer->getSize();
+		if(binding.offset >= bufferSize)
+		{
+			return;  // Nothing to draw
+		}
+
+		const VkDeviceSize maxIndices = (bufferSize - binding.offset) / bytesPerIndex();
+		if(first > maxIndices)
+		{
+			return;  // Nothing to draw
+		}
+
 		void *indexBuffer = binding.buffer->getOffsetPointer(binding.offset + first * bytesPerIndex());
 		if(hasPrimitiveRestartEnable)
 		{

@@ -47,7 +47,7 @@ struct IndexBuffer
 	void getIndexBuffers(VkPrimitiveTopology topology, uint32_t count, uint32_t first, bool indexed, bool hasPrimitiveRestartEnable, std::vector<std::pair<uint32_t, void *>> *indexBuffers) const;
 
 private:
-	int bytesPerIndex() const;
+	uint32_t bytesPerIndex() const;
 
 	VertexInputBinding binding;
 	VkIndexType indexType;
