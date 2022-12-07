@@ -375,8 +375,19 @@ func (c *Config) PerformTests(exe string, env []string, coverageFile string, log
 		// Separate output per test case
 		caseOutputs := caseOutputRE.Split(out, -1)
 
-		// If the output isn't as expected, a crash may have happened, so re-run tests separately
-		if len(caseOutputs) != (numTests + 1) {
+		// If the output isn't as expected, a crash may have happened
+		isCrash := (len(caseOutputs) != (numTests + 1))
+
+		// Verify the exit code to see if a crash has happened
+		var exitErr *exec.ExitError
+		if errors.As(deqpErr, &exitErr) {
+			if exitErr.ExitCode() == 255 {
+				isCrash = true
+			}
+		}
+
+		// If a crash has happened, re-run tests separately
+		if isCrash {
 			// Re-run tests one by one
 			for _, testName := range testNames {
 				singleTest := []string{testName}
