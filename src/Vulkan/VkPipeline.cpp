@@ -585,6 +585,24 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 	auto &stage = pCreateInfo->stage;
 	const ShaderModule *module = vk::Cast(stage.module);
 
+	// VK_EXT_graphics_pipeline_library allows VkShaderModuleCreateInfo to be chained to
+	// VkPipelineShaderStageCreateInfo, which is used if stageInfo.module is
+	// VK_NULL_HANDLE.
+	VkShaderModule tempModule = {};
+	if(stage.module == VK_NULL_HANDLE)
+	{
+		const auto *moduleCreateInfo = vk::GetExtendedStruct<VkShaderModuleCreateInfo>(stage.pNext,
+		                                                                               VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+		ASSERT(moduleCreateInfo);
+		VkResult createResult = vk::ShaderModule::Create(nullptr, moduleCreateInfo, &tempModule);
+		if(createResult != VK_SUCCESS)
+		{
+			return createResult;
+		}
+
+		module = vk::Cast(tempModule);
+	}
+
 	ASSERT(shader.get() == nullptr);
 	ASSERT(program.get() == nullptr);
 
