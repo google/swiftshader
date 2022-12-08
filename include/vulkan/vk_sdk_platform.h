@@ -23,13 +23,15 @@
 #define VK_SDK_PLATFORM_H
 
 #if defined(_WIN32)
-#define NOMINMAX
-#ifndef __cplusplus
-#undef inline
-#define inline __inline
-#endif // __cplusplus
+#	ifndef NOMINMAX
+#		define NOMINMAX
+#	endif
+#	ifndef __cplusplus
+#		undef inline
+#		define inline __inline
+#	endif  // __cplusplus
 
-#if (defined(_MSC_VER) && _MSC_VER < 1900 /*vs2015*/)
+#	if(defined(_MSC_VER) && _MSC_VER < 1900 /*vs2015*/)
 // C99:
 // Microsoft didn't implement C99 in Visual Studio; but started adding it with
 // VS2013.  However, VS2013 still didn't have snprintf().  The following is a
