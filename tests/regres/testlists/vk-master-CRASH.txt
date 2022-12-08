@@ -1,4 +1,2 @@
-dEQP-VK.pipeline.pipeline_library.graphics_library.misc.non_graphics.shader_module_info_comp
+dEQP-VK.robustness.buffer_access.vertex.scalar_copy.r32_sfloat.oob_storage_write.range_1_byte
 dEQP-VK.robustness.buffer_access.vertex.vec4_copy.out_of_alloc.oob_storage_write
-dEQP-VK.robustness.index_access.draw_indexed_1
-dEQP-VK.robustness.index_access.draw_indexed_indirect_1
