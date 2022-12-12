@@ -922,7 +922,7 @@ void JITBuilder::runPasses()
 
 	if(optimizationLevel > 0)
 	{
-		fpm.addPass(llvm::SROAPass());
+		fpm.addPass(llvm::SROAPass(llvm::SROAOptions::PreserveCFG));
 		fpm.addPass(llvm::InstCombinePass());
 	}
 
