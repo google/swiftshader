@@ -195,6 +195,7 @@ enum ExecutionMode {
     ExecutionModeNoGlobalOffsetINTEL = 5895,
     ExecutionModeNumSIMDWorkitemsINTEL = 5896,
     ExecutionModeSchedulerTargetFmaxMhzINTEL = 5903,
+    ExecutionModeStreamingInterfaceINTEL = 6154,
     ExecutionModeNamedBarrierCountINTEL = 6417,
     ExecutionModeMax = 0x7fffffff,
 };

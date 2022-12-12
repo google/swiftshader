@@ -182,6 +182,7 @@ spv = {
         'NoGlobalOffsetINTEL' : 5895,
         'NumSIMDWorkitemsINTEL' : 5896,
         'SchedulerTargetFmaxMhzINTEL' : 5903,
+        'StreamingInterfaceINTEL' : 6154,
         'NamedBarrierCountINTEL' : 6417,
     },
 
