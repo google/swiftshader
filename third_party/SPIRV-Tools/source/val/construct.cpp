@@ -167,7 +167,9 @@ bool Construct::IsStructuredExit(ValidationState_t& _, BasicBlock* dest) const {
         if ((use.first->opcode() == spv::Op::OpLoopMerge ||
              use.first->opcode() == spv::Op::OpSelectionMerge) &&
             use.second == 1 &&
-            use.first->block()->structurally_dominates(*block)) {
+            use.first->block()->structurally_dominates(*block) &&
+            // A header likely declared itself as its merge.
+            use.first->block() != block) {
           return use.first->block();
         }
       }

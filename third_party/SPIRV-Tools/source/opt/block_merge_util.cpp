@@ -171,6 +171,11 @@ void MergeWithSuccessor(IRContext* context, Function* func,
   // sbi must follow bi in func's ordering.
   assert(sbi != func->end());
 
+  if (sbi->tail()->opcode() == spv::Op::OpSwitch &&
+      sbi->MergeBlockIdIfAny() != 0) {
+    context->InvalidateAnalyses(IRContext::Analysis::kAnalysisStructuredCFG);
+  }
+
   // Update the inst-to-block mapping for the instructions in sbi.
   for (auto& inst : *sbi) {
     context->set_instr_block(&inst, &*bi);
