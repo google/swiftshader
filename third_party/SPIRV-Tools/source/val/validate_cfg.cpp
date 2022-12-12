@@ -752,6 +752,7 @@ spv_result_t StructuredControlFlowChecks(
                                      _.getIdName(merge->id()),
                                      "does not structurally dominate");
     }
+
     // If it's really a merge block for a selection or loop, then it must be
     // *strictly* structrually dominated by the header.
     if (construct.ExitBlockIsMergeBlock() && (header == merge)) {

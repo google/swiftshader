@@ -1287,6 +1287,39 @@ OpFunctionEnd
   EXPECT_EQ(opt::Pass::Status::SuccessWithoutChange, std::get<1>(result));
 }
 
+TEST_F(BlockMergeTest, RebuildStructuredCFG) {
+  const std::string text = R"(
+; CHECK: = OpFunction
+; CHECK-NEXT: [[entry:%\w+]] = OpLabel
+; CHECK-NEXT: OpSelectionMerge [[merge:%\w+]] None
+; CHECK-NEXT: OpSwitch {{%\w+}} [[merge]] 0 [[other:%\w+]]
+; CHECK [[other]] = OpLabel
+; CHECK: OpBranch [[merge]]
+; CHECK [[merge]] = OpLabel
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main"
+OpExecutionMode %main LocalSize 1 1 1
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%int_1 = OpConstant %int 1
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpBranch %switch
+%switch = OpLabel
+OpSelectionMerge %merge None
+OpSwitch %int_1 %merge 0 %other
+%other = OpLabel
+OpBranch %merge
+%merge = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<BlockMergePass>(text, true);
+}
+
 // TODO(greg-lunarg): Add tests to verify handling of these cases:
 //
 //    More complex control flow
