@@ -4630,6 +4630,50 @@ OpFunctionEnd
                         "blocks but the standard requires exactly one"));
 }
 
+TEST_F(ValidateCFG, BadSwitch) {
+  const std::string text = R"(
+               OpCapability StorageImageExtendedFormats
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "blah" %58
+               OpExecutionMode %2 OriginUpperLeft
+               OpName %BAD "BAD"
+         %11 = OpTypeVoid
+         %12 = OpTypeFunction %11
+         %19 = OpTypeInt 32 1
+         %21 = OpConstant %19 555758549
+          %2 = OpFunction %11 None %12
+          %4 = OpLabel
+               OpBranch %33
+         %33 = OpLabel
+               OpLoopMerge %34 %35 None
+               OpBranch %55
+        %BAD = OpLabel
+               OpSelectionMerge %53 None
+               OpSwitch %21 %34 196153896 %53 20856160 %34 33570306 %34 593494531 %52
+         %55 = OpLabel
+               OpLoopMerge %52 %58 DontUnroll
+               OpBranch %35
+         %58 = OpLabel
+               OpSelectionMerge %58 None
+               OpSwitch %21 %52 178168 %55 608223677 %34 604111047 %34 -553516825 %34 -106432813 %BAD 6946864 %55 1257373689 %55 973090296 %35 -113180668 %55 537002232 %BAD 13762553 %BAD 1030172152 %35 -553516825 %55 -262137 %35 -1091822332 %BAD 131320 %52 131321 %35 131320 %52 131321 %35 -1091822332 %BAD
+         %53 = OpLabel
+               OpBranch %35
+         %52 = OpLabel
+               OpBranch %34
+         %35 = OpLabel
+               OpBranch %33
+         %34 = OpLabel
+               OpKill
+               OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_ERROR_INVALID_CFG, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("exits the selection headed by <ID> '3[%BAD]', but not "
+                        "via a structured exit"));
+}
+
 }  // namespace
 }  // namespace val
 }  // namespace spvtools
