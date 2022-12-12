@@ -8,6 +8,8 @@ TESTS_DIR=${ROOT_DIR}/tests
 CLANG_FORMAT=${CLANG_FORMAT:-clang-format}
 GOFMT=${GOFMT:-gofmt}
 
+git config --global --add safe.directory '*'
+
 if test -t 1; then
   ncolors=$(tput colors)
   if test -n "$ncolors" && test $ncolors -ge 8; then
