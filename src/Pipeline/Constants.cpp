@@ -275,6 +275,12 @@ Constants::Constants()
 		sRGBtoLinearFF_FF00[i] = (unsigned short)(sRGBtoLinear((float)i / 0xFF) * 0xFF00 + 0.5f);
 	}
 
+	for(int i = 0; i < 0x1000; i++)
+	{
+		linearToSRGB12_16[i] = (unsigned short)(clamp(linearToSRGB((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
+		sRGBtoLinear12_16[i] = (unsigned short)(clamp(sRGBtoLinear((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
+	}
+
 	for(int q = 0; q < 4; q++)
 	{
 		for(int c = 0; c < 16; c++)
