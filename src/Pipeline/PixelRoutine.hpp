@@ -56,10 +56,8 @@ protected:
 
 	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4f &color, const Int &sMask, const Int &zMask, const Int &cMask);
 	SIMD::Float4 alphaBlend(int index, const Pointer<Byte> &cBuffer, const SIMD::Float4 &sourceColor, const Int &x);
-	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &current, const Int &sMask, const Int &zMask, const Int &cMask);
 
 	bool isSRGB(int index) const;
-	void linearToSRGB12_16(Vector4s &c);
 
 private:
 	bool hasStencilReplaceRef() const;
@@ -100,10 +98,6 @@ private:
 	void writeStencil(Pointer<Byte> &sBuffer, const Int &x, const Int sMask[4], const Int zMask[4], const Int cMask[4], const SampleSet &samples);
 	void writeDepth(Pointer<Byte> &zBuffer, const Int &x, const Int zMask[4], const SampleSet &samples);
 	void occlusionSampleCount(const Int zMask[4], const Int sMask[4], const SampleSet &samples);
-
-	void sRGBtoLinear16_12_16(Vector4s &c);
-	void linearToSRGB16_12_16(Vector4s &c);
-	Float4 sRGBtoLinear(const Float4 &x);
 
 	SIMD::Float readDepth32F(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
 	SIMD::Float readDepth16(const Pointer<Byte> &zBuffer, int q, const Int &x) const;
