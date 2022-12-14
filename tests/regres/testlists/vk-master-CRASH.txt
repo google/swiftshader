@@ -1,2 +1,2 @@
-dEQP-VK.robustness.buffer_access.fragment.vec4_copy.r32_sfloat.oob_storage_write.range_1_byte
-dEQP-VK.robustness.buffer_access.vertex.vec4_copy.out_of_alloc.oob_storage_write
+dEQP-VK.robustness.buffer_access.fragment.scalar_copy.r32_uint.oob_storage_write.range_4_bytes
+dEQP-VK.robustness.buffer_access.vertex.vec4_copy.r32_sfloat.oob_storage_write.range_1_byte
