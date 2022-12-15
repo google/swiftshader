@@ -13,6 +13,6 @@
 # limitations under the License.
 
 ozone_platform_wayland = true
-use_system_libwayland = true
+
 # SwiftShader has no wayland third-party dir
 wayland_gn_dir = ""
