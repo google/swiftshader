@@ -46,5 +46,6 @@ vk-default/tessellation.txt
 vk-default/texture.txt
 vk-default/transform-feedback.txt
 vk-default/ubo.txt
+vk-default/video.txt
 vk-default/wsi.txt
 vk-default/ycbcr.txt
