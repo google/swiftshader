@@ -621,7 +621,11 @@ Value *Nucleus::allocateStackVariable(Type *type, int arraySize)
 		declaration = new llvm::AllocaInst(T(type), 0, (llvm::Value *)nullptr, align);
 	}
 
+#if LLVM_VERSION_MAJOR >= 16
+	declaration->insertInto(&entryBlock, entryBlock.begin());
+#else
 	entryBlock.getInstList().push_front(declaration);
+#endif
 
 	if(getPragmaState(InitializeLocalVariables))
 	{
