@@ -30,6 +30,8 @@ LibXcbExports::LibXcbExports(void *libxcb, void *libshm)
 	getFuncAddress(libxcb, "xcb_copy_area", &xcb_copy_area);
 	getFuncAddress(libxcb, "xcb_free_pixmap", &xcb_free_pixmap);
 	getFuncAddress(libxcb, "xcb_get_extension_data", &xcb_get_extension_data);
+	getFuncAddress(libxcb, "xcb_connection_has_error", &xcb_connection_has_error);
+	getFuncAddress(libxcb, "xcb_get_maximum_request_length", &xcb_get_maximum_request_length);
 
 	getFuncAddress(libshm, "xcb_shm_query_version", &xcb_shm_query_version);
 	getFuncAddress(libshm, "xcb_shm_query_version_reply", &xcb_shm_query_version_reply);

@@ -188,20 +188,26 @@ VkResult XcbSurfaceKHR::present(PresentImage *image)
 		int bytesPerPixel = static_cast<int>(image->getImage()->getFormat(VK_IMAGE_ASPECT_COLOR_BIT).bytes());
 		int width = stride / bytesPerPixel;
 		auto buffer = reinterpret_cast<uint8_t *>(image->getImageMemory()->getOffsetPointer(0));
-		size_t bufferSize = extent.height * stride;
-		libXCB->xcb_put_image(
-		    connection,
-		    XCB_IMAGE_FORMAT_Z_PIXMAP,
-		    window,
-		    gc,
-		    width,
-		    extent.height,
-		    0, 0,  // dst x, y
-		    0,     // left_pad
-		    depth,
-		    bufferSize,  // data_len
-		    buffer       // data
-		);
+		size_t max_request_size = static_cast<size_t>(libXCB->xcb_get_maximum_request_length(connection)) * 4;
+		size_t max_strides = (max_request_size - sizeof(xcb_put_image_request_t)) / stride;
+		for(size_t y = 0; y < extent.height; y += max_strides)
+		{
+			size_t num_strides = std::min(max_strides, extent.height - y);
+			libXCB->xcb_put_image(
+			    connection,
+			    XCB_IMAGE_FORMAT_Z_PIXMAP,
+			    window,
+			    gc,
+			    width,
+			    num_strides,
+			    0, y,                  // dst x, y
+			    0,                     // left_pad
+			    depth,
+			    num_strides * stride,  // data_len
+			    buffer + y * stride    // data
+			);
+		}
+		assert(libXCB->xcb_connection_has_error(connection) == 0);
 	}
 	else
 	{

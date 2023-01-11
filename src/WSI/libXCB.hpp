@@ -33,6 +33,8 @@ struct LibXcbExports
 	xcb_void_cookie_t (*xcb_copy_area)(xcb_connection_t *conn, xcb_drawable_t src_drawable, xcb_drawable_t dst_drawable, xcb_gcontext_t gc, int16_t src_x, int16_t src_y, int16_t dst_x, int16_t dst_y, uint16_t width, uint16_t height);
 	xcb_void_cookie_t (*xcb_free_pixmap)(xcb_connection_t *conn, xcb_pixmap_t pixmap);
 	xcb_query_extension_reply_t *(*xcb_get_extension_data)(xcb_connection_t *c, xcb_extension_t *extension) = nullptr;
+	int	(*xcb_connection_has_error)(xcb_connection_t *c);
+	uint32_t (*xcb_get_maximum_request_length)(xcb_connection_t *c);
 
 	xcb_shm_query_version_cookie_t (*xcb_shm_query_version)(xcb_connection_t *c);
 	xcb_shm_query_version_reply_t *(*xcb_shm_query_version_reply)(xcb_connection_t *c, xcb_shm_query_version_cookie_t cookie, xcb_generic_error_t **e);
