@@ -280,7 +280,7 @@ VkResult Device::waitForSemaphores(const VkSemaphoreWaitInfo *pWaitInfo, uint64_
 			TimelineSemaphore *semaphore = DynamicCast<TimelineSemaphore>(pWaitInfo->pSemaphores[i]);
 			uint64_t waitValue = pWaitInfo->pValues[i];
 
-			if(semaphore->getCounterValue() == waitValue)
+			if(semaphore->getCounterValue() >= waitValue)
 			{
 				return VK_SUCCESS;
 			}

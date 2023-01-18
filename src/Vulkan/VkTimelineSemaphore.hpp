@@ -154,7 +154,7 @@ VkResult TimelineSemaphore::Shared::wait(uint64_t value,
                                          const std::chrono::time_point<Clock, Duration> timeout)
 {
 	marl::lock lock(mutex);
-	if(!cv.wait_until(lock, timeout, [&]() { return counter == value; }))
+	if(!cv.wait_until(lock, timeout, [&]() { return counter >= value; }))
 	{
 		return VK_TIMEOUT;
 	}
