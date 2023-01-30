@@ -633,10 +633,10 @@ spv_result_t checkLayout(uint32_t struct_id, const char* storage_class_str,
       }
     }
     nextValidOffset = offset + size;
-    if (!scalar_block_layout && blockRules &&
+    if (!scalar_block_layout &&
         (spv::Op::OpTypeArray == opcode || spv::Op::OpTypeStruct == opcode)) {
-      // Uniform block rules don't permit anything in the padding of a struct
-      // or array.
+      // Non-scalar block layout rules don't permit anything in the padding of
+      // a struct or array.
       nextValidOffset = align(nextValidOffset, alignment);
     }
   }

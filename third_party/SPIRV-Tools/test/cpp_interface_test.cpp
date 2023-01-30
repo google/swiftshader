@@ -322,6 +322,36 @@ TEST(CppInterface, OptimizeSameAddressForOriginalOptimizedBinary) {
   EXPECT_EQ(Header(), optimized_text);
 }
 
+TEST(SpirvHeadersCpp, BitwiseOrMemoryAccessMask) {
+  EXPECT_EQ(spv::MemoryAccessMask(6), spv::MemoryAccessMask::Aligned |
+                                          spv::MemoryAccessMask::Nontemporal);
+}
+
+TEST(SpirvHeadersCpp, BitwiseAndMemoryAccessMask) {
+  EXPECT_EQ(spv::MemoryAccessMask::Aligned,
+            spv::MemoryAccessMask::Aligned & spv::MemoryAccessMask(6));
+  EXPECT_EQ(spv::MemoryAccessMask::Nontemporal,
+            spv::MemoryAccessMask::Nontemporal & spv::MemoryAccessMask(6));
+  EXPECT_EQ(spv::MemoryAccessMask(0), spv::MemoryAccessMask::Nontemporal &
+                                          spv::MemoryAccessMask::Aligned);
+}
+
+TEST(SpirvHeadersCpp, BitwiseXorMemoryAccessMask) {
+  EXPECT_EQ(spv::MemoryAccessMask::Nontemporal,
+            spv::MemoryAccessMask::Aligned ^ spv::MemoryAccessMask(6));
+  EXPECT_EQ(spv::MemoryAccessMask::Aligned,
+            spv::MemoryAccessMask::Nontemporal ^ spv::MemoryAccessMask(6));
+  EXPECT_EQ(spv::MemoryAccessMask(6), spv::MemoryAccessMask::Nontemporal ^
+                                          spv::MemoryAccessMask::Aligned);
+  EXPECT_EQ(spv::MemoryAccessMask(0), spv::MemoryAccessMask::Nontemporal ^
+                                          spv::MemoryAccessMask::Nontemporal);
+}
+
+TEST(SpirvHeadersCpp, BitwiseNegateMemoryAccessMask) {
+  EXPECT_EQ(spv::MemoryAccessMask(~(uint32_t(4))),
+            ~spv::MemoryAccessMask::Nontemporal);
+}
+
 // TODO(antiagainst): tests for SetMessageConsumer().
 
 }  // namespace

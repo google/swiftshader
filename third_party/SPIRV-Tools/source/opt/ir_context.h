@@ -378,6 +378,11 @@ class IRContext {
   // having more than one name. This method returns the first one it finds.
   inline Instruction* GetMemberName(uint32_t struct_type_id, uint32_t index);
 
+  // Copy names from |old_id| to |new_id|. Only copy member name if index is
+  // less than |max_member_index|.
+  inline void CloneNames(const uint32_t old_id, const uint32_t new_id,
+                         const uint32_t max_member_index = UINT32_MAX);
+
   // Sets the message consumer to the given |consumer|. |consumer| which will be
   // invoked every time there is a message to be communicated to the outside.
   void SetMessageConsumer(MessageConsumer c) { consumer_ = std::move(c); }
@@ -1206,6 +1211,25 @@ Instruction* IRContext::GetMemberName(uint32_t struct_type_id, uint32_t index) {
     }
   }
   return nullptr;
+}
+
+void IRContext::CloneNames(const uint32_t old_id, const uint32_t new_id,
+                           const uint32_t max_member_index) {
+  std::vector<std::unique_ptr<Instruction>> names_to_add;
+  auto names = GetNames(old_id);
+  for (auto n : names) {
+    Instruction* old_name_inst = n.second;
+    if (old_name_inst->opcode() == spv::Op::OpMemberName) {
+      auto midx = old_name_inst->GetSingleWordInOperand(1);
+      if (midx >= max_member_index) continue;
+    }
+    std::unique_ptr<Instruction> new_name_inst(old_name_inst->Clone(this));
+    new_name_inst->SetInOperand(0, {new_id});
+    names_to_add.push_back(std::move(new_name_inst));
+  }
+  // We can't add the new names when we are iterating over name range above.
+  // We can add all the new names now.
+  for (auto& new_name : names_to_add) AddDebug2Inst(std::move(new_name));
 }
 
 }  // namespace opt

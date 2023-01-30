@@ -1398,7 +1398,7 @@ spv_result_t ValidateAccessChain(ValidationState_t& _,
       }
       default: {
         // Give an error. reached non-composite type while indexes still remain.
-        return _.diag(SPV_ERROR_INVALID_ID, cur_word_instr)
+        return _.diag(SPV_ERROR_INVALID_ID, inst)
                << instr_name
                << " reached non-composite type while indexes "
                   "still remain to be traversed.";

@@ -30,11 +30,7 @@ if (DEFINED SPIRV-Headers_SOURCE_DIR)
   # This allows flexible position of the SPIRV-Headers repo.
   set(SPIRV_HEADER_DIR ${SPIRV-Headers_SOURCE_DIR})
 else()
-  if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Headers)
-    set(SPIRV_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Headers)
-  else()
-    set(SPIRV_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/spirv-headers)
-  endif()
+  set(SPIRV_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/spirv-headers)
 endif()
 
 if (IS_DIRECTORY ${SPIRV_HEADER_DIR})

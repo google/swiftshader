@@ -1,14 +1,16 @@
 name: Wasm Build
 
-on: [ push, pull_request ]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
       - name: Build web
-        run: docker-compose up
+        run: docker-compose -f source/wasm/docker-compose.yml --project-directory . up
       - name: Run tests
         run: node test/wasm/test.js

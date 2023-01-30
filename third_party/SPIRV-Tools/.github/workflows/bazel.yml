@@ -1,0 +1,32 @@
+name: Build and Test with Bazel
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+
+jobs:
+  build:
+    timeout-minutes: 120
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
+      - name: Download dependencies
+        run: python3 utils/git-sync-deps
+      - name: Mount Bazel cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.bazel/cache
+          key: bazel-cache-${{ runner.os }}
+      - name: Build All
+        run: bazel --output_user_root=~/.bazel/cache build //...
+      - name: Test All
+        run: bazel --output_user_root=~/.bazel/cache test //...

@@ -1,7 +1,36 @@
 Revision history for SPIRV-Tools
 
-v2022.5-dev 2022-10-12
-   - Start v2022.5-dev
+v2023.2-dev 2023-01-17
+   - Start v2023.2-dev
+
+v2023.1 2023-01-17
+  - General
+    - Renamed "master" to "main" (issue#5051)
+    - Validate version 5 of clspv reflection (#5050)
+    - Remove testing support for VS2015 (#5027)
+    - Fix undef behaviour in hex float parsing (#5025)
+    - Require C++11 *or later* (#5020)
+  - Instrument
+    - Instrument: Fix bindless checking for BufferDeviceAddress (#5049)
+  - Optimizer
+    - Optimize allocation of spvtools::opt::Instruction::operands_ (#5024)
+    - spirv-opt: Fix OpCompositeInsert with Null Constant (#5008)
+    - spirv-opt: Handle null CompositeInsert (#4998)
+    - Add option to ADCE to remove output variables from interface. (#4994)
+    - Add support for tesc, tese and geom to EliminateDead*Components (#4990)
+    - Add pass to eliminate dead output components (#4982)
+    - spirv-opt: Add const folding for CompositeInsert (#4943)
+    - Add passes to eliminate dead output stores (#4970)
+    - Prevent eliminating case constructs in block merging (#4976)
+  - Validator
+    - Fix layout validation (#5015)
+    - Fix use of invalid analysis (#5013)
+    - Fix infinite loop in validator (#5006)
+    - Add validation support for SPV_NV_shader_invocation_reorder. (#4979)
+    - Only validate full layout in Vulkan environments (#4972)
+    - spirv-val: Label new Vulkan OpPtrAccessChain VUs (#4975)
+    - spirv-val: Add OpPtrAccessChain Base checks (#4965)
+
 
 v2022.4 2022-10-12
   - General

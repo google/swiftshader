@@ -69,6 +69,19 @@ if (NOT ${SPIRV_SKIP_EXECUTABLES})
   endif(SPIRV_BUILD_FUZZER)
 
   if(ENABLE_SPIRV_TOOLS_INSTALL)
-    install(TARGETS ${SPIRV_INSTALL_TARGETS} DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(TARGETS ${SPIRV_INSTALL_TARGETS} EXPORT SPIRV-Tools-toolsTargets)
+    export(EXPORT SPIRV-Tools-toolsTargets FILE SPIRV-Tools-toolsTargets.cmake)
+
+    spvtools_config_package_dir(SPIRV-Tools-tools PACKAGE_DIR)
+    install(EXPORT SPIRV-Tools-toolsTargets FILE SPIRV-Tools-toolsTargets.cmake
+            DESTINATION ${PACKAGE_DIR})
+
+    file(WRITE ${CMAKE_BINARY_DIR}/SPIRV-Tools-toolsConfig.cmake
+      "include(CMakeFindDependencyMacro)\n"
+      "find_dependency(${SPIRV_TOOLS})\n"
+      "include(\${CMAKE_CURRENT_LIST_DIR}/SPIRV-Tools-toolsTargets.cmake)\n"
+      )
+
+    install(FILES ${CMAKE_BINARY_DIR}/SPIRV-Tools-toolsConfig.cmake DESTINATION ${PACKAGE_DIR})
   endif(ENABLE_SPIRV_TOOLS_INSTALL)
 endif()

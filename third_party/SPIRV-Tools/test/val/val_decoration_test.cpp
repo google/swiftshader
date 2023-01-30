@@ -4523,6 +4523,48 @@ TEST_F(ValidateDecorations, StorageBufferArraySizeCalculationPackGood) {
   // #version 450
   // layout (set=0,binding=0) buffer S {
   //   uvec3 arr[2][2]; // first 3 elements are 16 bytes, last is 12
+  //   uint i;  // Can't have offset 60 = 3x16 + 12
+  // } B;
+  // void main() {}
+
+  std::string spirv = R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %1 "main"
+               OpDecorate %_arr_v3uint_uint_2 ArrayStride 16
+               OpDecorate %_arr__arr_v3uint_uint_2_uint_2 ArrayStride 32
+               OpMemberDecorate %_struct_4 0 Offset 0
+               OpMemberDecorate %_struct_4 1 Offset 64
+               OpDecorate %_struct_4 BufferBlock
+               OpDecorate %5 DescriptorSet 0
+               OpDecorate %5 Binding 0
+       %void = OpTypeVoid
+          %7 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+     %v3uint = OpTypeVector %uint 3
+     %uint_2 = OpConstant %uint 2
+%_arr_v3uint_uint_2 = OpTypeArray %v3uint %uint_2
+%_arr__arr_v3uint_uint_2_uint_2 = OpTypeArray %_arr_v3uint_uint_2 %uint_2
+  %_struct_4 = OpTypeStruct %_arr__arr_v3uint_uint_2_uint_2 %uint
+%_ptr_Uniform__struct_4 = OpTypePointer Uniform %_struct_4
+          %5 = OpVariable %_ptr_Uniform__struct_4 Uniform
+          %1 = OpFunction %void None %7
+         %12 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  CompileSuccessfully(spirv);
+  EXPECT_EQ(SPV_SUCCESS,
+            ValidateAndRetrieveValidationState(SPV_ENV_VULKAN_1_0));
+}
+
+TEST_F(ValidateDecorations, StorageBufferArraySizeCalculationPackGoodScalar) {
+  // Original GLSL
+
+  // #version 450
+  // layout (set=0,binding=0) buffer S {
+  //   uvec3 arr[2][2]; // first 3 elements are 16 bytes, last is 12
   //   uint i;  // Can have offset 60 = 3x16 + 12
   // } B;
   // void main() {}
@@ -4554,6 +4596,7 @@ TEST_F(ValidateDecorations, StorageBufferArraySizeCalculationPackGood) {
                OpFunctionEnd
   )";
 
+  options_->scalar_block_layout = true;
   CompileSuccessfully(spirv);
   EXPECT_EQ(SPV_SUCCESS,
             ValidateAndRetrieveValidationState(SPV_ENV_VULKAN_1_0));
@@ -4569,7 +4612,7 @@ TEST_F(ValidateDecorations, StorageBufferArraySizeCalculationPackBad) {
                OpDecorate %_arr_v3uint_uint_2 ArrayStride 16
                OpDecorate %_arr__arr_v3uint_uint_2_uint_2 ArrayStride 32
                OpMemberDecorate %_struct_4 0 Offset 0
-               OpMemberDecorate %_struct_4 1 Offset 56
+               OpMemberDecorate %_struct_4 1 Offset 60
                OpDecorate %_struct_4 BufferBlock
                OpDecorate %5 DescriptorSet 0
                OpDecorate %5 Binding 0
@@ -4595,8 +4638,8 @@ TEST_F(ValidateDecorations, StorageBufferArraySizeCalculationPackBad) {
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("Structure id 4 decorated as BufferBlock for variable "
                         "in Uniform storage class must follow standard storage "
-                        "buffer layout rules: member 1 at offset 56 overlaps "
-                        "previous member ending at offset 59"));
+                        "buffer layout rules: member 1 at offset 60 overlaps "
+                        "previous member ending at offset 63"));
 }
 
 TEST_F(ValidateDecorations, UniformBufferArraySizeCalculationPackGood) {

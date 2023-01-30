@@ -536,6 +536,8 @@ void InstBindlessCheckPass::GenCheckCode(
       new BasicBlock(std::move(valid_label)));
   builder.SetInsertPoint(&*new_blk_ptr);
   uint32_t new_ref_id = CloneOriginalReference(ref, &builder);
+  uint32_t null_id = 0;
+  uint32_t ref_type_id = ref->ref_inst->type_id();
   (void)builder.AddBranch(merge_blk_id);
   new_blocks->push_back(std::move(new_blk_ptr));
   // Gen invalid block
@@ -563,10 +565,23 @@ void InstBindlessCheckPass::GenCheckCode(
     GenDebugStreamWrite(uid2offset_[ref->ref_inst->unique_id()], stage_idx,
                         {error_id, u_index_id, u_length_id}, &builder);
   }
+  // Generate a ConstantNull, converting to uint64 if the type cannot be a null.
+  if (new_ref_id != 0) {
+    analysis::TypeManager* type_mgr = context()->get_type_mgr();
+    analysis::Type* ref_type = type_mgr->GetType(ref_type_id);
+    if (ref_type->AsPointer() != nullptr) {
+      context()->AddCapability(spv::Capability::Int64);
+      uint32_t null_u64_id = GetNullId(GetUint64Id());
+      Instruction* null_ptr_inst = builder.AddUnaryOp(
+          ref_type_id, spv::Op::OpConvertUToPtr, null_u64_id);
+      null_id = null_ptr_inst->result_id();
+    } else {
+      null_id = GetNullId(ref_type_id);
+    }
+  }
   // Remember last invalid block id
   uint32_t last_invalid_blk_id = new_blk_ptr->GetLabelInst()->result_id();
   // Gen zero for invalid  reference
-  uint32_t ref_type_id = ref->ref_inst->type_id();
   (void)builder.AddBranch(merge_blk_id);
   new_blocks->push_back(std::move(new_blk_ptr));
   // Gen merge block
@@ -577,8 +592,7 @@ void InstBindlessCheckPass::GenCheckCode(
   // reference.
   if (new_ref_id != 0) {
     Instruction* phi_inst = builder.AddPhi(
-        ref_type_id, {new_ref_id, valid_blk_id, GetNullId(ref_type_id),
-                      last_invalid_blk_id});
+        ref_type_id, {new_ref_id, valid_blk_id, null_id, last_invalid_blk_id});
     context()->ReplaceAllUsesWith(ref->ref_inst->result_id(),
                                   phi_inst->result_id());
   }
@@ -734,15 +748,7 @@ void InstBindlessCheckPass::GenTexBuffCheckCode(
   if (image_ty_inst->GetSingleWordInOperand(kSpvTypeImageArrayed) != 0) return;
   if (image_ty_inst->GetSingleWordInOperand(kSpvTypeImageMS) != 0) return;
   // Enable ImageQuery Capability if not yet enabled
-  if (!get_feature_mgr()->HasCapability(spv::Capability::ImageQuery)) {
-    std::unique_ptr<Instruction> cap_image_query_inst(
-        new Instruction(context(), spv::Op::OpCapability, 0, 0,
-                        std::initializer_list<Operand>{
-                            {SPV_OPERAND_TYPE_CAPABILITY,
-                             {uint32_t(spv::Capability::ImageQuery)}}}));
-    get_def_use_mgr()->AnalyzeInstDefUse(&*cap_image_query_inst);
-    context()->AddCapability(std::move(cap_image_query_inst));
-  }
+  context()->AddCapability(spv::Capability::ImageQuery);
   // Move original block's preceding instructions into first new block
   std::unique_ptr<BasicBlock> new_blk_ptr;
   MovePreludeCode(ref_inst_itr, ref_block_itr, &new_blk_ptr);

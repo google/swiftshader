@@ -20,6 +20,11 @@ set -e
 # Display commands being run.
 set -x
 
+# This is required to run any git command in the docker since owner will
+# have changed between the clone environment, and the docker container.
+# Marking the root of the repo as safe for ownership changes.
+git config --global --add safe.directory $ROOT_DIR
+
 . /bin/using.sh # Declare the bash `using` function for configuring toolchains.
 
 if [ $COMPILER = "clang" ]; then
@@ -30,14 +35,6 @@ fi
 
 cd $ROOT_DIR
 
-function clone_if_missing() {
-  url=$1
-  dir=$2
-  if [[ ! -d "$dir" ]]; then
-    git clone ${@:3} "$url" "$dir"
-  fi
-}
-
 function clean_dir() {
   dir=$1
   if [[ -d "$dir" ]]; then
@@ -46,12 +43,8 @@ function clean_dir() {
   mkdir "$dir"
 }
 
-clone_if_missing https://github.com/KhronosGroup/SPIRV-Headers external/spirv-headers --depth=1
-clone_if_missing https://github.com/google/googletest          external/googletest
-pushd external/googletest; git reset --hard 1fb1bb23bb8418dc73a5a9a82bbed31dc610fec7; popd
-clone_if_missing https://github.com/google/effcee              external/effcee        --depth=1
-clone_if_missing https://github.com/google/re2                 external/re2           --depth=1
-clone_if_missing https://github.com/protocolbuffers/protobuf   external/protobuf      --branch v3.13.0.1
+# Get source for dependencies, as specified in the DEPS file
+/usr/bin/python3 utils/git-sync-deps --treeless
 
 if [ $TOOL = "cmake" ]; then
   using cmake-3.17.2
