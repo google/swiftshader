@@ -2064,6 +2064,106 @@ OpFunctionEnd
   ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
 }
 
+TEST_F(ValidateCFG, OpSwitchTargetCannotBeOuterLoopMergeBlock) {
+  std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+
+%1 = OpTypeVoid
+%2 = OpTypeFunction %1
+%3 = OpTypeBool
+%4 = OpUndef %3
+%5 = OpTypeInt 32 0
+%6 = OpConstant %5 0
+
+%7 = OpFunction %1 None %2
+
+%8 = OpLabel
+OpBranch %9
+
+%9 = OpLabel
+OpLoopMerge %10 %11 None
+OpBranch %12
+
+%12 = OpLabel
+OpSelectionMerge %13 None
+OpSwitch %6 %13 0 %10 1 %14
+
+%14 = OpLabel
+OpBranch %13
+
+%13 = OpLabel
+OpBranch %11
+
+%11 = OpLabel
+OpBranch %9
+
+%10 = OpLabel
+OpReturn
+
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  ASSERT_EQ(SPV_ERROR_INVALID_CFG, ValidateInstructions());
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "Switch header '12[%12]' does not structurally dominate its case construct '10[%10]'\n"
+          "  %12 = OpLabel"));
+}
+
+TEST_F(ValidateCFG, OpSwitchTargetCannotBeOuterLoopContinueBlock) {
+  std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+
+%1 = OpTypeVoid
+%2 = OpTypeFunction %1
+%3 = OpTypeBool
+%4 = OpUndef %3
+%5 = OpTypeInt 32 0
+%6 = OpConstant %5 0
+
+%7 = OpFunction %1 None %2
+
+%8 = OpLabel
+OpBranch %9
+
+%9 = OpLabel
+OpLoopMerge %10 %11 None
+OpBranch %12
+
+%12 = OpLabel
+OpSelectionMerge %13 None
+OpSwitch %6 %13 0 %11 1 %14
+
+%14 = OpLabel
+OpBranch %13
+
+%13 = OpLabel
+OpBranch %11
+
+%11 = OpLabel
+OpBranch %9
+
+%10 = OpLabel
+OpReturn
+
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  ASSERT_EQ(SPV_ERROR_INVALID_CFG, ValidateInstructions());
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "Switch header '12[%12]' does not structurally dominate its case construct '11[%11]'\n"
+          "  %12 = OpLabel"));
+}
+
 TEST_F(ValidateCFG, WrongOperandList) {
   std::string text = R"(
 OpCapability Shader

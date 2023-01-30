@@ -120,6 +120,22 @@ static const std::string kStreamWrite4Compute = kStreamWrite4Begin + R"(
 )" + kStreamWrite4End;
 // clang-format on
 
+// clang-format off
+static const std::string kStreamWrite4Vert = kStreamWrite4Begin + R"(
+; CHECK: {{%\w+}} = OpIAdd %uint {{%\w+}} %uint_3
+; CHECK: {{%\w+}} = OpAccessChain %_ptr_StorageBuffer_uint [[output_buffer_var]] %uint_2 {{%\w+}}
+; CHECK: OpStore {{%\w+}} %uint_0
+; CHECK: {{%\w+}} = OpLoad %uint %gl_VertexIndex
+; CHECK: {{%\w+}} = OpIAdd %uint {{%\w+}} %uint_4
+; CHECK: {{%\w+}} = OpAccessChain %_ptr_StorageBuffer_uint [[output_buffer_var]] %uint_2 {{%\w+}}
+; CHECK: OpStore {{%\w+}} {{%\w+}}
+; CHECK: {{%\w+}} = OpLoad %uint %gl_InstanceIndex
+; CHECK: {{%\w+}} = OpIAdd %uint {{%\w+}} %uint_5
+; CHECK: {{%\w+}} = OpAccessChain %_ptr_StorageBuffer_uint [[output_buffer_var]] %uint_2 {{%\w+}}
+; CHECK: OpStore {{%\w+}} {{%\w+}}
+)" + kStreamWrite4End;
+// clang-format on
+
 static const std::string kInputDecorations = R"(
 ; CHECK: OpDecorate [[input_buffer_type:%inst_buff_addr_InputBuffer]] Block
 ; CHECK: OpMemberDecorate [[input_buffer_type]] 0 Offset 0
@@ -550,6 +566,118 @@ OpFunctionEnd
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   SinglePassRunAndMatch<InstBuffAddrCheckPass>(
       defs + decorates + globals + main_func + output_funcs, true);
+}
+
+TEST_F(InstBuffAddrTest, DeviceBufferAddressOOB) {
+  // #version 450
+  // #extension GL_EXT_buffer_reference : enable
+  //  layout(buffer_reference, buffer_reference_align = 16) buffer bufStruct;
+  // layout(set = 0, binding = 0) uniform ufoo {
+  //     bufStruct data;
+  //     int nWrites;
+  // } u_info;
+  // layout(buffer_reference, std140) buffer bufStruct {
+  //     int a[4];
+  // };
+  // void main() {
+  //     for (int i=0; i < u_info.nWrites; ++i) {
+  //         u_info.data.a[i] = 0xdeadca71;
+  //     }
+  // }
+
+  // clang-format off
+  const std::string text = R"(
+OpCapability Shader
+OpCapability PhysicalStorageBufferAddresses
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel PhysicalStorageBuffer64 GLSL450
+OpEntryPoint Vertex %main "main" %u_info
+;CHECK: OpEntryPoint Vertex %main "main" %u_info %inst_buff_addr_input_buffer %inst_buff_addr_output_buffer %gl_VertexIndex %gl_InstanceIndex
+OpSource GLSL 450
+OpSourceExtension "GL_EXT_buffer_reference"
+OpName %main "main"
+OpName %i "i"
+OpName %ufoo "ufoo"
+OpMemberName %ufoo 0 "data"
+OpMemberName %ufoo 1 "nWrites"
+OpName %bufStruct "bufStruct"
+OpMemberName %bufStruct 0 "a"
+OpName %u_info "u_info"
+OpMemberDecorate %ufoo 0 Offset 0
+OpMemberDecorate %ufoo 1 Offset 8
+OpDecorate %ufoo Block
+OpDecorate %_arr_int_uint_4 ArrayStride 16
+OpMemberDecorate %bufStruct 0 Offset 0
+OpDecorate %bufStruct Block
+OpDecorate %u_info DescriptorSet 0
+OpDecorate %u_info Binding 0)" + kInputDecorations + kOutputDecorations + R"(
+%void = OpTypeVoid
+%3 = OpTypeFunction %void
+%int = OpTypeInt 32 1
+%_ptr_Function_int = OpTypePointer Function %int
+%int_0 = OpConstant %int 0
+OpTypeForwardPointer %_ptr_PhysicalStorageBuffer_bufStruct PhysicalStorageBuffer
+%ufoo = OpTypeStruct %_ptr_PhysicalStorageBuffer_bufStruct %int
+%uint = OpTypeInt 32 0
+%uint_4 = OpConstant %uint 4
+%_arr_int_uint_4 = OpTypeArray %int %uint_4
+%bufStruct = OpTypeStruct %_arr_int_uint_4
+%_ptr_PhysicalStorageBuffer_bufStruct = OpTypePointer PhysicalStorageBuffer %bufStruct
+%_ptr_Uniform_ufoo = OpTypePointer Uniform %ufoo
+%u_info = OpVariable %_ptr_Uniform_ufoo Uniform
+%int_1 = OpConstant %int 1
+%_ptr_Uniform_int = OpTypePointer Uniform %int
+%bool = OpTypeBool
+%_ptr_Uniform__ptr_PhysicalStorageBuffer_bufStruct = OpTypePointer Uniform %_ptr_PhysicalStorageBuffer_bufStruct
+%int_n559035791 = OpConstant %int -559035791
+%_ptr_PhysicalStorageBuffer_int = OpTypePointer PhysicalStorageBuffer %int)" + kInputGlobals + kOutputGlobals + R"(
+%main = OpFunction %void None %3
+%5 = OpLabel
+%i = OpVariable %_ptr_Function_int Function
+OpStore %i %int_0
+OpBranch %10
+%10 = OpLabel
+OpLoopMerge %12 %13 None
+OpBranch %14
+%14 = OpLabel
+%15 = OpLoad %int %i
+%26 = OpAccessChain %_ptr_Uniform_int %u_info %int_1
+%27 = OpLoad %int %26
+%29 = OpSLessThan %bool %15 %27
+OpBranchConditional %29 %11 %12
+%11 = OpLabel
+%31 = OpAccessChain %_ptr_Uniform__ptr_PhysicalStorageBuffer_bufStruct %u_info %int_0
+%32 = OpLoad %_ptr_PhysicalStorageBuffer_bufStruct %31
+%33 = OpLoad %int %i
+%36 = OpAccessChain %_ptr_PhysicalStorageBuffer_int %32 %int_0 %33
+;CHECK: %41 = OpConvertPtrToU %ulong %36
+;CHECK: %76 = OpFunctionCall %bool %inst_buff_addr_search_and_test %41 %uint_4
+;CHECK: OpSelectionMerge %77 None
+;CHECK: OpBranchConditional %76 %78 %79
+;CHECK: %78 = OpLabel
+OpStore %36 %int_n559035791 Aligned 16
+;CHECK: OpBranch %77
+;CHECK: 79 = OpLabel
+;CHECK: 80 = OpUConvert %uint %41
+;CHECK: 82 = OpShiftRightLogical %ulong %41 %uint_32
+;CHECK: 83 = OpUConvert %uint %82
+;CHECK: 134 = OpFunctionCall %void %inst_buff_addr_stream_write_4 %uint_62 %uint_2 %80 %83
+;CHECK: OpBranch %77
+;CHECK: 77 = OpLabel
+OpBranch %13
+%13 = OpLabel
+%37 = OpLoad %int %i
+%38 = OpIAdd %int %37 %int_1
+OpStore %i %38
+OpBranch %10
+%12 = OpLabel
+OpReturn
+OpFunctionEnd)" + kSearchAndTest + kStreamWrite4Vert;
+  // clang-format on
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_2);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<InstBuffAddrCheckPass>(text, true, 7, 23);
 }
 
 }  // namespace

@@ -236,7 +236,12 @@ void EliminateDeadIOComponentsPass::ChangeIOVarStructLength(Instruction& io_var,
     }
     type_mgr->AttachDecoration(*dec, &new_struct_ty);
   }
-  analysis::Type* reg_new_var_ty = type_mgr->GetRegisteredType(&new_struct_ty);
+  // Clone name instructions for new struct type
+  analysis::Type* reg_new_str_ty = type_mgr->GetRegisteredType(&new_struct_ty);
+  uint32_t new_struct_ty_id = type_mgr->GetTypeInstruction(reg_new_str_ty);
+  context()->CloneNames(old_struct_ty_id, new_struct_ty_id, length);
+  // Attach new type to var
+  analysis::Type* reg_new_var_ty = reg_new_str_ty;
   if (arr_type) {
     analysis::Array new_arr_ty(reg_new_var_ty, arr_type->length_info());
     reg_new_var_ty = type_mgr->GetRegisteredType(&new_arr_ty);

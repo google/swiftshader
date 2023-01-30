@@ -24,6 +24,11 @@ CC=clang
 CXX=clang++
 SRC=$PWD/github/SPIRV-Tools
 
+# This is required to run any git command in the docker since owner will
+# have changed between the clone environment, and the docker container.
+# Marking the root of the repo as safe for ownership changes.
+git config --global --add safe.directory $SRC
+
 cd $SRC
 git clone --depth=1 https://github.com/KhronosGroup/SPIRV-Headers external/spirv-headers
 git clone https://github.com/google/googletest          external/googletest

@@ -34,10 +34,8 @@ wget -q https://github.com/bazelbuild/bazel/releases/download/5.0.0/bazel-5.0.0-
 unzip -q bazel-5.0.0-windows-x86_64.zip
 
 :: Set up MSVC
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
-set BAZEL_VS=C:\Program Files (x86)\Microsoft Visual Studio 14.0
-set BAZEL_VC=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC
-set BAZEL_PYTHON=c:\tools\python2\python.exe
+call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+set BAZEL_VC=C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC
 
 :: #########################################
 :: Start building.

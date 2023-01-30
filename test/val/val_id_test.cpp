@@ -203,11 +203,12 @@ std::string ValidateIdWithMessage::make_message(const char* msg) {
     // Parse 'num[%name]'
     size_t open_quote = message.find('\'', next);
 
-    // Copy up to the first quote
-    result.write(msg + next, open_quote - next);
     if (open_quote == std::string::npos) {
       break;
     }
+
+    // Copy up to the first quote
+    result.write(msg + next, open_quote - next);
     // Handle apostrophes
     if (!isdigit(message[open_quote + 1])) {
       result << '\'';
