@@ -10,7 +10,7 @@ if [ ! -z "$REASON" ]; then
   REASON="\n$REASON\n"
 fi
 
-git subtree pull --prefix third_party/SPIRV-Headers https://github.com/KhronosGroup/SPIRV-Headers master --squash -m "Update SPIR-V Headers"
+git subtree pull --prefix third_party/SPIRV-Headers https://github.com/KhronosGroup/SPIRV-Headers main --squash -m "Update SPIR-V Headers"
 
 ALL_CHANGES=`git log -n 1 HEAD^2 | egrep '^(\s{4}[0-9a-f]{9}\s*.*)$'`
 HEAD_CHANGE=`echo "$ALL_CHANGES" | egrep '[0-9a-f]{9}' -o -m 1`
