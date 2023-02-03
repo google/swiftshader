@@ -197,6 +197,9 @@ VkResult Queue::present(const VkPresentInfoKHR *presentInfo)
 	// to get rid of it. b/132458423
 	waitIdle();
 
+	// Note: VkSwapchainPresentModeInfoEXT can be used to override the present mode, but present
+	// mode is currently ignored by SwiftShader.
+
 	for(uint32_t i = 0; i < presentInfo->waitSemaphoreCount; i++)
 	{
 		auto *semaphore = vk::DynamicCast<BinarySemaphore>(presentInfo->pWaitSemaphores[i]);

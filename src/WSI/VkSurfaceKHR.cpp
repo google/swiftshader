@@ -224,15 +224,21 @@ void SurfaceKHR::setCommonSurfaceCapabilities(const void *pSurfaceInfoPNext, VkS
 				const auto *presentMode = vk::GetExtendedStruct<VkSurfacePresentModeEXT>(pSurfaceInfoPNext, VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_EXT);
 				ASSERT(presentMode != nullptr);
 
-				// No support for switching between present modes; i.e. each mode is only compatible with itself.
+				// Present mode is ignored, so FIFO and MAILBOX are compatible.
 				if(presentModeCompatibility->pPresentModes == nullptr)
 				{
-					presentModeCompatibility->presentModeCount = 1;
+					presentModeCompatibility->presentModeCount = 2;
 				}
-				else if(presentModeCompatibility->presentModeCount >= 1)
+				else if(presentModeCompatibility->presentModeCount == 1)
 				{
 					presentModeCompatibility->pPresentModes[0] = presentMode->presentMode;
 					presentModeCompatibility->presentModeCount = 1;
+				}
+				else if(presentModeCompatibility->presentModeCount > 1)
+				{
+					presentModeCompatibility->pPresentModes[0] = presentModes[0];
+					presentModeCompatibility->pPresentModes[1] = presentModes[1];
+					presentModeCompatibility->presentModeCount = 2;
 				}
 				break;
 			}
