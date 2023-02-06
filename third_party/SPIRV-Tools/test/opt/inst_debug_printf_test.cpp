@@ -111,7 +111,7 @@ OpDecorate %4 Location 0
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %4 = OpVariable %_ptr_Output_v4float Output
 ; CHECK: %uint = OpTypeInt 32 0
-; CHECK: %38 = OpTypeFunction %void %uint %uint %uint %uint %uint %uint
+; CHECK: [[func_type:%\w+]] = OpTypeFunction %void %uint %uint %uint %uint %uint %uint
 ; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
 )" + kOutputGlobals + R"(
 ; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
@@ -149,7 +149,7 @@ OpFunctionEnd
 )";
 
   const std::string output_func = R"(
-; CHECK: %inst_printf_stream_write_6 = OpFunction %void None %38
+; CHECK: %inst_printf_stream_write_6 = OpFunction %void None [[func_type]]
 ; CHECK: [[param_1:%\w+]] = OpFunctionParameter %uint
 ; CHECK: [[param_2:%\w+]] = OpFunctionParameter %uint
 ; CHECK: [[param_3:%\w+]] = OpFunctionParameter %uint

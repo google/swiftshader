@@ -272,7 +272,7 @@ OpTypeForwardPointer %_ptr_PhysicalStorageBuffer_bufStruct PhysicalStorageBuffer
 ; CHECK: %_runtimearr_ulong = OpTypeRuntimeArray %ulong
 )" + kInputGlobals + R"(
 ; CHECK: %_ptr_StorageBuffer_ulong = OpTypePointer StorageBuffer %ulong
-; CHECK: %70 = OpTypeFunction %void %uint %uint %uint %uint
+; CHECK: {{%\w+}} = OpTypeFunction %void %uint %uint %uint %uint
 ; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
 )" + kOutputGlobals + R"(
 ; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
@@ -524,7 +524,7 @@ OpTypeForwardPointer %_ptr_PhysicalStorageBuffer_TestBuffer PhysicalStorageBuffe
 %ulong_18446744073172680704 = OpConstant %ulong 18446744073172680704
 ; CHECK: %47 = OpTypeFunction %bool %ulong %uint
 )" + kInputGlobals + R"(
-; CHECK: %90 = OpTypeFunction %void %uint %uint %uint %uint
+; CHECK: {{%\w+}} = OpTypeFunction %void %uint %uint %uint %uint
 )" + kOutputGlobals + R"(
 ; CHECK: %143 = OpConstantNull %Test_0
 )";

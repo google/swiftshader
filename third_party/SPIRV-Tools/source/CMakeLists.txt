@@ -195,14 +195,11 @@ set(SPIRV_TOOLS_BUILD_VERSION_INC
   ${spirv-tools_BINARY_DIR}/build-version.inc)
 set(SPIRV_TOOLS_BUILD_VERSION_INC_GENERATOR
   ${spirv-tools_SOURCE_DIR}/utils/update_build_version.py)
-set(SPIRV_TOOLS_CHANGES_FILE
-  ${spirv-tools_SOURCE_DIR}/CHANGES)
 add_custom_command(OUTPUT ${SPIRV_TOOLS_BUILD_VERSION_INC}
    COMMAND ${PYTHON_EXECUTABLE}
            ${SPIRV_TOOLS_BUILD_VERSION_INC_GENERATOR}
-           ${SPIRV_TOOLS_CHANGES_FILE} ${SPIRV_TOOLS_BUILD_VERSION_INC}
+           ${spirv-tools_SOURCE_DIR} ${SPIRV_TOOLS_BUILD_VERSION_INC}
    DEPENDS ${SPIRV_TOOLS_BUILD_VERSION_INC_GENERATOR}
-           ${SPIRV_TOOLS_CHANGES_FILE}
    COMMENT "Update build-version.inc in the SPIRV-Tools build directory (if necessary).")
 # Convenience target for standalone generation of the build-version.inc file.
 # This is not required for any dependence chain.
