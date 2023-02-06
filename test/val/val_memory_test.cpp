@@ -2475,6 +2475,7 @@ OpCapability Shader
 OpMemoryModel Logical GLSL450
 OpEntryPoint Fragment %func "func"
 OpExecutionMode %func OriginUpperLeft
+OpDecorate %struct_t Block
 %uint_t = OpTypeInt 32 0
 %array_t = OpTypeRuntimeArray %uint_t
 %struct_t = OpTypeStruct %array_t
@@ -2498,7 +2499,7 @@ OpFunctionEnd
           "For Vulkan, OpTypeStruct variables containing OpTypeRuntimeArray "
           "must have storage class of StorageBuffer, PhysicalStorageBuffer, or "
           "Uniform.\n  %6 = "
-          "OpVariable %_ptr_Workgroup__struct_4 Workgroup\n"));
+          "OpVariable %_ptr_Workgroup__struct_2 Workgroup\n"));
 }
 
 TEST_F(ValidateMemory, VulkanRTAInsideStorageBufferStructWithoutBlockBad) {
@@ -2507,6 +2508,7 @@ OpCapability Shader
 OpMemoryModel Logical GLSL450
 OpEntryPoint Fragment %func "func"
 OpExecutionMode %func OriginUpperLeft
+OpDecorate %struct_t BufferBlock
 %uint_t = OpTypeInt 32 0
 %array_t = OpTypeRuntimeArray %uint_t
 %struct_t = OpTypeStruct %array_t
@@ -2529,7 +2531,7 @@ OpFunctionEnd
                         "OpTypeRuntimeArray must be decorated with Block if it "
                         "has storage class StorageBuffer or "
                         "PhysicalStorageBuffer.\n  %6 = OpVariable "
-                        "%_ptr_StorageBuffer__struct_4 StorageBuffer\n"));
+                        "%_ptr_StorageBuffer__struct_2 StorageBuffer\n"));
 }
 
 TEST_F(ValidateMemory, VulkanRTAInsideUniformStructGood) {
@@ -2564,6 +2566,7 @@ OpCapability Shader
 OpMemoryModel Logical GLSL450
 OpEntryPoint Fragment %func "func"
 OpExecutionMode %func OriginUpperLeft
+OpDecorate %struct_t Block
 %uint_t = OpTypeInt 32 0
 %array_t = OpTypeRuntimeArray %uint_t
 %struct_t = OpTypeStruct %array_t
@@ -2585,7 +2588,7 @@ OpFunctionEnd
               HasSubstr("For Vulkan, an OpTypeStruct variable containing an "
                         "OpTypeRuntimeArray must be decorated with BufferBlock "
                         "if it has storage class Uniform.\n  %6 = OpVariable "
-                        "%_ptr_Uniform__struct_4 Uniform\n"));
+                        "%_ptr_Uniform__struct_2 Uniform\n"));
 }
 
 TEST_F(ValidateMemory, VulkanRTAInsideRTABad) {

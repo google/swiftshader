@@ -7363,7 +7363,16 @@ INSTANTIATE_TEST_SUITE_P(CompositeExtractOrInsertMatchingTest, MatchingInstructi
             "%5 = OpCompositeConstruct %v2int %3 %4\n" +
             "OpReturn\n" +
             "OpFunctionEnd",
-        5, true)
+        5, true),
+    // Test case 16: Don't fold when type cannot be deduced to a constant.
+    InstructionFoldingCase<bool>(
+        Header() +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%4 = OpCompositeInsert %struct_v2int_int_int %int_1 %struct_v2int_int_int_null 2\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        4, false)
 ));
 
 INSTANTIATE_TEST_SUITE_P(DotProductMatchingTest, MatchingInstructionFoldingTest,

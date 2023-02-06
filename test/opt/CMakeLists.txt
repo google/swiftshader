@@ -21,6 +21,7 @@ add_spvtools_unittest(TARGET opt
        analyze_live_input_test.cpp
        assembly_builder_test.cpp
        block_merge_test.cpp
+       c_interface_test.cpp
        ccp_test.cpp
        cfg_cleanup_test.cpp
        cfg_test.cpp

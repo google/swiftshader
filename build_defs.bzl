@@ -4,13 +4,10 @@ COMMON_COPTS = [
     "-DSPIRV_CHECK_CONTEXT",
     "-DSPIRV_COLOR_TERMINAL",
 ] + select({
-    # On Windows, assume MSVC.
-    # C++14 is the default in VisualStudio 2017.
     "@platforms//os:windows": [],
     "//conditions:default": [
         "-DSPIRV_LINUX",
         "-DSPIRV_TIMER_ENABLED",
-        "-std=c++11",
         "-fvisibility=hidden",
         "-fno-exceptions",
         "-fno-rtti",

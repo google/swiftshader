@@ -5281,6 +5281,37 @@ OpFunctionEnd
           "rules: member 1 at offset 1 is not aligned to 4"));
 }
 
+TEST_F(ValidateDecorations, VulkanStructWithoutDecorationWithRuntimeArray) {
+  std::string str = R"(
+              OpCapability Shader
+              OpMemoryModel Logical GLSL450
+              OpEntryPoint Fragment %func "func"
+              OpExecutionMode %func OriginUpperLeft
+              OpDecorate %array_t ArrayStride 4
+              OpMemberDecorate %struct_t 0 Offset 0
+              OpMemberDecorate %struct_t 1 Offset 4
+     %uint_t = OpTypeInt 32 0
+   %array_t = OpTypeRuntimeArray %uint_t
+  %struct_t = OpTypeStruct %uint_t %array_t
+%struct_ptr = OpTypePointer StorageBuffer %struct_t
+         %2 = OpVariable %struct_ptr StorageBuffer
+      %void = OpTypeVoid
+    %func_t = OpTypeFunction %void
+      %func = OpFunction %void None %func_t
+         %1 = OpLabel
+              OpReturn
+              OpFunctionEnd
+)";
+
+  CompileSuccessfully(str.c_str(), SPV_ENV_VULKAN_1_1);
+  ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_1));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-OpTypeRuntimeArray-04680"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Vulkan, OpTypeStruct containing an OpTypeRuntimeArray "
+                        "must be decorated with Block or BufferBlock."));
+}
+
 TEST_F(ValidateDecorations, EmptyStructAtNonZeroOffsetGood) {
   const std::string spirv = R"(
 OpCapability Shader
