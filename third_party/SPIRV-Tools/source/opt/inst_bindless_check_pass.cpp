@@ -497,8 +497,8 @@ uint32_t InstBindlessCheckPass::GenLastByteIdx(RefAnalysis* ref,
     if (sum_id == 0)
       sum_id = curr_offset_id;
     else {
-      Instruction* sum_inst = builder->AddBinaryOp(GetUintId(), spv::Op::OpIAdd,
-                                                   sum_id, curr_offset_id);
+      Instruction* sum_inst =
+          builder->AddIAdd(GetUintId(), sum_id, curr_offset_id);
       sum_id = sum_inst->result_id();
     }
     ++ac_in_idx;
@@ -507,8 +507,7 @@ uint32_t InstBindlessCheckPass::GenLastByteIdx(RefAnalysis* ref,
   uint32_t bsize = ByteSize(curr_ty_id, matrix_stride, col_major, in_matrix);
   uint32_t last = bsize - 1;
   uint32_t last_id = builder->GetUintConstantId(last);
-  Instruction* sum_inst =
-      builder->AddBinaryOp(GetUintId(), spv::Op::OpIAdd, sum_id, last_id);
+  Instruction* sum_inst = builder->AddIAdd(GetUintId(), sum_id, last_id);
   return sum_inst->result_id();
 }
 

@@ -1040,10 +1040,6 @@ OpDecorate %_entryPointOutput_vColor Location 0
 %i_vTextureCoords = OpVariable %_ptr_Input_v2int Input
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %_entryPointOutput_vColor = OpVariable %_ptr_Output_v4float Output
-; CHECK: uint_0 = OpConstant %uint 0
-; CHECK: bool = OpTypeBool
-; CHECK: %41 = OpTypeFunction %void %uint %uint %uint %uint
-; CHECK: _runtimearr_uint = OpTypeRuntimeArray %uint
 )" + kOutputGlobals + R"(
 ; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
 ; CHECK: %_ptr_Input_v4float = OpTypePointer Input %v4float
@@ -2385,14 +2381,7 @@ OpDecorate %b Location 1
 %_ptr_Input_float = OpTypePointer Input %float
 %b = OpVariable %_ptr_Input_float Input
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %uint = OpTypeInt 32 0
-; CHECK: %26 = OpTypeFunction %uint %uint %uint
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-; CHECK: %48 = OpTypeFunction %void %uint %uint %uint %uint
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: %gl_FragCoord = OpVariable %_ptr_Input_v4float Input
 ; CHECK: %v4uint = OpTypeVector %uint 4
 ; CHECK: %102 = OpTypeFunction %uint %uint %uint %uint %uint
@@ -2508,10 +2497,7 @@ OpDecorate %22 NonUniform
 %nu_ii = OpVariable %_ptr_Input_int Input
 %int_0 = OpConstant %int 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %bool = OpTypeBool
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
 )" + kOutputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
 ; CHECK: %v4float = OpTypeVector %float 4
 ; CHECK: %_ptr_Input_v4float = OpTypePointer Input %v4float
 ; CHECK: %gl_FragCoord = OpVariable %_ptr_Input_v4float Input
@@ -2637,11 +2623,7 @@ OpDecorate %images NonWritable
 %v4float = OpTypeVector %float 4
 %uint_0 = OpConstant %uint 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: %v3uint = OpTypeVector %uint 3
 ; CHECK: %_ptr_Input_v3uint = OpTypePointer Input %v3uint
 ; CHECK: %gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
@@ -2797,12 +2779,7 @@ OpDecorate %images NonWritable
 %v4float = OpTypeVector %float 4
 %uint_0 = OpConstant %uint 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %34 = OpTypeFunction %uint %uint %uint
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: [[null_v4float:%\w+]] = OpConstantNull %v4float
 ; CHECK: [[null_uint:%\w+]] = OpConstantNull %uint
 )";
@@ -2954,12 +2931,7 @@ OpDecorate %images NonWritable
 %v4float = OpTypeVector %float 4
 %uint_0 = OpConstant %uint 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %34 = OpTypeFunction %uint %uint %uint
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: [[launch_id]] = OpVariable %_ptr_Input_v3uint Input
 ; CHECK: [[null_v4float:%\w+]] = OpConstantNull %v4float
 ; CHECK: [[null_uint:%\w+]] = OpConstantNull %uint
@@ -3112,12 +3084,7 @@ OpDecorate %images NonWritable
 %v4float = OpTypeVector %float 4
 %uint_0 = OpConstant %uint 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %34 = OpTypeFunction %uint %uint %uint
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: [[launch_id]] = OpVariable %_ptr_Input_v3uint Input
 ; CHECK: [[null_v4float:%\w+]] = OpConstantNull %v4float
 ; CHECK: [[null_uint:%\w+]] = OpConstantNull %uint
@@ -3270,12 +3237,7 @@ OpDecorate %images NonWritable
 %v4float = OpTypeVector %float 4
 %uint_0 = OpConstant %uint 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %34 = OpTypeFunction %uint %uint %uint
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: [[launch_id]] = OpVariable %_ptr_Input_v3uint Input
 ; CHECK: [[null_v4float:%\w+]] = OpConstantNull %v4float
 ; CHECK: [[null_uint:%\w+]] = OpConstantNull %uint
@@ -3428,12 +3390,7 @@ OpDecorate %images NonWritable
 %v4float = OpTypeVector %float 4
 %uint_0 = OpConstant %uint 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %34 = OpTypeFunction %uint %uint %uint
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: [[launch_id]] = OpVariable %_ptr_Input_v3uint Input
 ; CHECK: [[null_v4float:%\w+]] = OpConstantNull %v4float
 ; CHECK: [[null_uint:%\w+]] = OpConstantNull %uint
@@ -3586,12 +3543,7 @@ OpDecorate %images NonWritable
 %v4float = OpTypeVector %float 4
 %uint_0 = OpConstant %uint 0
 %_ptr_Uniform_float = OpTypePointer Uniform %float
-; CHECK: %34 = OpTypeFunction %uint %uint %uint
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-; CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-; CHECK: %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ; CHECK: [[null_v4float:%\w+]] = OpConstantNull %v4float
 ; CHECK: [[null_uint:%\w+]] = OpConstantNull %uint
 )";
@@ -3777,8 +3729,6 @@ OpDecorate %outColor Location 0
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %outColor = OpVariable %_ptr_Output_v4float Output
 %float_0 = OpConstant %float 0
-; CHECK: %bool = OpTypeBool
-; CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
 )" + kOutputGlobals + R"(
 ; CHECK: [[null_v4float:%\w+]] = OpConstantNull %v4float
 )" + kInputGlobals + R"(
@@ -3963,11 +3913,7 @@ TEST_F(InstBindlessTest, MultipleUniformNonAggregateRefsNoDescInit) {
 %i_vTextureCoords = OpVariable %_ptr_Input_v2float Input
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %_entryPointOutput_vColor = OpVariable %_ptr_Output_v4float Output
- ;CHECK:         %122 = OpTypeFunction %uint %uint %uint %uint
- ;CHECK: %_runtimearr_uint = OpTypeRuntimeArray %uint
- )" + kInputGlobals + R"(
- ;CHECK: %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
- )" + kOutputGlobals + R"(
+ )" + kInputGlobals + kOutputGlobals + R"(
  ;CHECK:%_ptr_Input_v4float = OpTypePointer Input %v4float
  ;CHECK:%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
  ;CHECK:     %v4uint = OpTypeVector %uint 4
@@ -4154,12 +4100,7 @@ TEST_F(InstBindlessTest, UniformArrayRefNoDescInit) {
 %i_vTextureCoords = OpVariable %_ptr_Input_v2float Input
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %_entryPointOutput_vColor = OpVariable %_ptr_Output_v4float Output
-;CHECK:        %105 = OpTypeFunction %uint %uint %uint %uint
-;CHECK:%_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-;CHECK:%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-;CHECK:       %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ;CHECK:%_ptr_Input_v4float = OpTypePointer Input %v4float
 ;CHECK:%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
 ;CHECK:     %v4uint = OpTypeVector %uint 4
@@ -4296,12 +4237,7 @@ TEST_F(InstBindlessTest, UniformArrayRefWithDescInit) {
 %i_vTextureCoords = OpVariable %_ptr_Input_v2float Input
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %_entryPointOutput_vColor = OpVariable %_ptr_Output_v4float Output
-;CHECK:        %104 = OpTypeFunction %uint %uint %uint %uint %uint
-;CHECK:%_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-;CHECK:%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-;CHECK:       %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ;CHECK:%_ptr_Input_v4float = OpTypePointer Input %v4float
 ;CHECK:%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
 ;CHECK:     %v4uint = OpTypeVector %uint 4
@@ -4436,10 +4372,7 @@ TEST_F(InstBindlessTest, Descriptor16BitIdxRef) {
 %i_vTextureCoords = OpVariable %_ptr_Input_v2float Input
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %_entryPointOutput_vColor = OpVariable %_ptr_Output_v4float Output
-;CHECK:       %bool = OpTypeBool
-;CHECK:%_runtimearr_uint = OpTypeRuntimeArray %uint
 )" + kOutputGlobals + R"(
-;CHECK:%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
 ;CHECK:%_ptr_Input_v4float = OpTypePointer Input %v4float
 ;CHECK:%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
 ;CHECK:        [[null_v4float:%\w+]] = OpConstantNull %v4float
@@ -4620,12 +4553,7 @@ TEST_F(InstBindlessTest, UniformArray16bitIdxRef) {
 %i_vTextureCoords = OpVariable %_ptr_Input_v2float Input
 %_ptr_Output_v4float = OpTypePointer Output %v4float
 %_entryPointOutput_vColor = OpVariable %_ptr_Output_v4float Output
-;CHECK:         %61 = OpTypeFunction %uint %uint %uint %uint
-;CHECK:%_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-;CHECK:%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-;CHECK:       %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ;CHECK:%_ptr_Input_v4float = OpTypePointer Input %v4float
 ;CHECK:%gl_FragCoord = OpVariable %_ptr_Input_v4float Input
 ;CHECK:        [[null_v2float:%\w+]] = OpConstantNull %v2float
@@ -4750,12 +4678,7 @@ TEST_F(InstBindlessTest, UniformMatrixRefRowMajor) {
     %v4float = OpTypeVector %float 4
 %_ptr_Input_v4float = OpTypePointer Input %v4float
  %a_position = OpVariable %_ptr_Input_v4float Input
-;CHECK:         %37 = OpTypeFunction %uint %uint %uint %uint
-;CHECK:%_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-;CHECK:%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-;CHECK:       %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ;CHECK:%_ptr_Input_uint = OpTypePointer Input %uint
 ;CHECK:%gl_VertexIndex = OpVariable %_ptr_Input_uint Input
 ;CHECK:%gl_InstanceIndex = OpVariable %_ptr_Input_uint Input
@@ -4873,12 +4796,7 @@ TEST_F(InstBindlessTest, UniformMatrixRefColumnMajor) {
     %v4float = OpTypeVector %float 4
 %_ptr_Input_v4float = OpTypePointer Input %v4float
  %a_position = OpVariable %_ptr_Input_v4float Input
-;CHECK:         %37 = OpTypeFunction %uint %uint %uint %uint
-;CHECK:%_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-;CHECK:%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-;CHECK:       %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ;CHECK:%_ptr_Input_uint = OpTypePointer Input %uint
 ;CHECK:%gl_VertexIndex = OpVariable %_ptr_Input_uint Input
 ;CHECK:%gl_InstanceIndex = OpVariable %_ptr_Input_uint Input
@@ -5003,12 +4921,7 @@ TEST_F(InstBindlessTest, UniformMatrixVecRefRowMajor) {
     %v4float = OpTypeVector %float 4
 %_ptr_Input_v4float = OpTypePointer Input %v4float
  %a_position = OpVariable %_ptr_Input_v4float Input
-;CHECK:         %46 = OpTypeFunction %uint %uint %uint %uint
-;CHECK:%_runtimearr_uint = OpTypeRuntimeArray %uint
-)" + kInputGlobals + R"(
-;CHECK:%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
-;CHECK:       %bool = OpTypeBool
-)" + kOutputGlobals + R"(
+)" + kInputGlobals + kOutputGlobals + R"(
 ;CHECK:%_ptr_Input_uint = OpTypePointer Input %uint
 ;CHECK:%gl_VertexIndex = OpVariable %_ptr_Input_uint Input
 ;CHECK:%gl_InstanceIndex = OpVariable %_ptr_Input_uint Input
@@ -5202,7 +5115,7 @@ TEST_F(InstBindlessTest, ImageBufferOOBWrite) {
                      %x = OpVariable %_ptr_Output_v4float Output
 ;CHECK:           %uint = OpTypeInt 32 0
 ;CHECK:           %bool = OpTypeBool
-;CHECK:             %34 = OpTypeFunction %void %uint %uint %uint %uint %uint
+;CHECK:        {{%\w+}} = OpTypeFunction %void %uint %uint %uint %uint %uint
 ;CHECK:    %_runtimearr_uint = OpTypeRuntimeArray %uint
 )" + kOutputGlobals + R"(
 ;CHECK:    %_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
