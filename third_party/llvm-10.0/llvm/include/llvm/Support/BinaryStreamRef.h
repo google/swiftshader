@@ -121,7 +121,7 @@ public:
 
   bool valid() const { return BorrowedImpl != nullptr; }
 
-  bool operator==(const RefType &Other) const {
+  bool operator==(const BinaryStreamRefBase &Other) const {
     if (BorrowedImpl != Other.BorrowedImpl)
       return false;
     if (ViewOffset != Other.ViewOffset)

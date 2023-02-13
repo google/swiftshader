@@ -1034,16 +1034,16 @@ enum {
 };
 
 // Symbol bindings.
-enum {
-  STB_LOCAL = 0,  // Local symbol, not visible outside obj file containing def
-  STB_GLOBAL = 1, // Global symbol, visible to all object files being combined
-  STB_WEAK = 2,   // Weak symbol, like global but lower-precedence
-  STB_GNU_UNIQUE = 10,
-  STB_LOOS = 10,   // Lowest operating system-specific binding type
-  STB_HIOS = 12,   // Highest operating system-specific binding type
-  STB_LOPROC = 13, // Lowest processor-specific binding type
-  STB_HIPROC = 15  // Highest processor-specific binding type
-};
+constexpr int STB_LOCAL = 0;   // Local symbol, not visible outside obj file
+                               // containing def
+constexpr int STB_GLOBAL = 1;  // Global symbol, visible to all object files
+                               // being combined
+constexpr int STB_WEAK = 2;    // Weak symbol, like global but lower-precedence
+constexpr int STB_GNU_UNIQUE = 10;
+constexpr int STB_LOOS = 10;   // Lowest operating system-specific binding type
+constexpr int STB_HIOS = 12;   // Highest operating system-specific binding type
+constexpr int STB_LOPROC = 13; // Lowest processor-specific binding type
+constexpr int STB_HIPROC = 15; // Highest processor-specific binding type
 
 // Symbol types.
 enum {

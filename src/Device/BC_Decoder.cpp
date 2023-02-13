@@ -1098,7 +1098,7 @@ struct Bitfield
 	int offset;
 	int count;
 	constexpr Bitfield Then(const int bits) { return { offset + count, bits }; }
-	constexpr bool operator==(const Bitfield &rhs)
+	constexpr bool operator==(const Bitfield &rhs) const
 	{
 		return offset == rhs.offset && count == rhs.count;
 	}

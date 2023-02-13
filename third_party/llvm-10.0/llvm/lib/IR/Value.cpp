@@ -111,7 +111,7 @@ void Value::deleteValue() {
 #include "llvm/IR/Value.def"
 
 #define HANDLE_INST(N, OPC, CLASS)                                             \
-  case Value::InstructionVal + Instruction::OPC:                               \
+  case int{Value::InstructionVal} + Instruction::OPC:                          \
     delete static_cast<CLASS *>(this);                                         \
     break;
 #define HANDLE_USER_INST(N, OPC, CLASS)

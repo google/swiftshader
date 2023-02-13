@@ -105,9 +105,9 @@ public:
           iterator_category;
   typedef typename std::iterator_traits<RootIt>::difference_type
           difference_type;
-  typedef typename std::result_of<
-            UnaryFunc(decltype(*std::declval<RootIt>()))>
-          ::type value_type;
+  typedef typename std::invoke_result_t<UnaryFunc,
+                                        decltype(*std::declval<RootIt>())>
+          value_type;
 
   typedef void pointer;
   //typedef typename UnaryFunc::result_type *pointer;

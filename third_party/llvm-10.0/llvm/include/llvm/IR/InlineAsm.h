@@ -203,68 +203,70 @@ public:
   //   Else:
   //     Bit 30-16 - The register class ID to use for the operand.
 
-  enum : uint32_t {
-    // Fixed operands on an INLINEASM SDNode.
-    Op_InputChain = 0,
-    Op_AsmString = 1,
-    Op_MDNode = 2,
-    Op_ExtraInfo = 3,    // HasSideEffects, IsAlignStack, AsmDialect.
-    Op_FirstOperand = 4,
+  // Fixed operands on an INLINEASM SDNode.
+  static constexpr uint32_t Op_InputChain = 0;
+  static constexpr uint32_t Op_AsmString = 1;
+  static constexpr uint32_t Op_MDNode = 2;
+  static constexpr uint32_t Op_ExtraInfo = 3;  // HasSideEffects, IsAlignStack,
+                                               // AsmDialect.
+  static constexpr uint32_t Op_FirstOperand = 4;
 
-    // Fixed operands on an INLINEASM MachineInstr.
-    MIOp_AsmString = 0,
-    MIOp_ExtraInfo = 1,    // HasSideEffects, IsAlignStack, AsmDialect.
-    MIOp_FirstOperand = 2,
+  // Fixed operands on an INLINEASM MachineInstr.
+  static constexpr uint32_t MIOp_AsmString = 0;
+  static constexpr uint32_t MIOp_ExtraInfo = 1;  // HasSideEffects,
+                                                 // IsAlignStack, AsmDialect.
+  static constexpr uint32_t MIOp_FirstOperand = 2;
 
-    // Interpretation of the MIOp_ExtraInfo bit field.
-    Extra_HasSideEffects = 1,
-    Extra_IsAlignStack = 2,
-    Extra_AsmDialect = 4,
-    Extra_MayLoad = 8,
-    Extra_MayStore = 16,
-    Extra_IsConvergent = 32,
+  // Interpretation of the MIOp_ExtraInfo bit field.
+  static constexpr uint32_t Extra_HasSideEffects = 1;
+  static constexpr uint32_t Extra_IsAlignStack = 2;
+  static constexpr uint32_t Extra_AsmDialect = 4;
+  static constexpr uint32_t Extra_MayLoad = 8;
+  static constexpr uint32_t Extra_MayStore = 16;
+  static constexpr uint32_t Extra_IsConvergent = 32;
 
-    // Inline asm operands map to multiple SDNode / MachineInstr operands.
-    // The first operand is an immediate describing the asm operand, the low
-    // bits is the kind:
-    Kind_RegUse = 1,             // Input register, "r".
-    Kind_RegDef = 2,             // Output register, "=r".
-    Kind_RegDefEarlyClobber = 3, // Early-clobber output register, "=&r".
-    Kind_Clobber = 4,            // Clobbered register, "~r".
-    Kind_Imm = 5,                // Immediate.
-    Kind_Mem = 6,                // Memory operand, "m".
+  // Inline asm operands map to multiple SDNode / MachineInstr operands.
+  // The first operand is an immediate describing the asm operand, the low
+  // bits is the kind:
+  static constexpr uint32_t Kind_RegUse = 1;   // Input register, "r".
+  static constexpr uint32_t Kind_RegDef = 2;   // Output register, "=r".
+  static constexpr uint32_t Kind_RegDefEarlyClobber = 3;
+                                               // Early-clobber output register,
+                                               // "=&r".
+  static constexpr uint32_t Kind_Clobber = 4;  // Clobbered register, "~r".
+  static constexpr uint32_t Kind_Imm = 5;      // Immediate.
+  static constexpr uint32_t Kind_Mem = 6;      // Memory operand, "m".
 
-    // Memory constraint codes.
-    // These could be tablegenerated but there's little need to do that since
-    // there's plenty of space in the encoding to support the union of all
-    // constraint codes for all targets.
-    Constraint_Unknown = 0,
-    Constraint_es,
-    Constraint_i,
-    Constraint_m,
-    Constraint_o,
-    Constraint_v,
-    Constraint_A,
-    Constraint_Q,
-    Constraint_R,
-    Constraint_S,
-    Constraint_T,
-    Constraint_Um,
-    Constraint_Un,
-    Constraint_Uq,
-    Constraint_Us,
-    Constraint_Ut,
-    Constraint_Uv,
-    Constraint_Uy,
-    Constraint_X,
-    Constraint_Z,
-    Constraint_ZC,
-    Constraint_Zy,
-    Constraints_Max = Constraint_Zy,
-    Constraints_ShiftAmount = 16,
+  // Memory constraint codes.
+  // These could be tablegenerated but there's little need to do that since
+  // there's plenty of space in the encoding to support the union of all
+  // constraint codes for all targets.
+  static constexpr uint32_t Constraint_Unknown = 0;
+  static constexpr uint32_t Constraint_es = 1;
+  static constexpr uint32_t Constraint_i = 2;
+  static constexpr uint32_t Constraint_m = 3;
+  static constexpr uint32_t Constraint_o = 4;
+  static constexpr uint32_t Constraint_v = 5;
+  static constexpr uint32_t Constraint_A = 6;
+  static constexpr uint32_t Constraint_Q = 7;
+  static constexpr uint32_t Constraint_R = 8;
+  static constexpr uint32_t Constraint_S = 9;
+  static constexpr uint32_t Constraint_T = 10;
+  static constexpr uint32_t Constraint_Um = 11;
+  static constexpr uint32_t Constraint_Un = 12;
+  static constexpr uint32_t Constraint_Uq = 13;
+  static constexpr uint32_t Constraint_Us = 14;
+  static constexpr uint32_t Constraint_Ut = 15;
+  static constexpr uint32_t Constraint_Uv = 16;
+  static constexpr uint32_t Constraint_Uy = 17;
+  static constexpr uint32_t Constraint_X = 18;
+  static constexpr uint32_t Constraint_Z= 19;
+  static constexpr uint32_t Constraint_ZC = 20;
+  static constexpr uint32_t Constraint_Zy = 21;
+  static constexpr uint32_t Constraints_Max = Constraint_Zy;
+  static constexpr uint32_t Constraints_ShiftAmount = 16;
 
-    Flag_MatchingOperand = 0x80000000
-  };
+  static constexpr uint32_t Flag_MatchingOperand = 0x80000000;
 
   static unsigned getFlagWord(unsigned Kind, unsigned NumOps) {
     assert(((NumOps << 3) & ~0xffff) == 0 && "Too many inline asm operands!");

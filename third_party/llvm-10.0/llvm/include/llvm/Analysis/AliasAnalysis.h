@@ -213,69 +213,70 @@ enum FunctionModRefLocation {
 /// Loads from constant globals are not considered memory accesses for this
 /// interface. Also, functions may freely modify stack space local to their
 /// invocation without having to report it through these interfaces.
-enum FunctionModRefBehavior {
-  /// This function does not perform any non-local loads or stores to memory.
-  ///
-  /// This property corresponds to the GCC 'const' attribute.
-  /// This property corresponds to the LLVM IR 'readnone' attribute.
-  /// This property corresponds to the IntrNoMem LLVM intrinsic flag.
-  FMRB_DoesNotAccessMemory =
-      FMRL_Nowhere | static_cast<int>(ModRefInfo::NoModRef),
+using FunctionModRefBehavior = int;
+/// This function does not perform any non-local loads or stores to memory.
+///
+/// This property corresponds to the GCC 'const' attribute.
+/// This property corresponds to the LLVM IR 'readnone' attribute.
+/// This property corresponds to the IntrNoMem LLVM intrinsic flag.
+constexpr FunctionModRefBehavior FMRB_DoesNotAccessMemory =
+    FMRL_Nowhere | static_cast<int>(ModRefInfo::NoModRef);
 
-  /// The only memory references in this function (if it has any) are
-  /// non-volatile loads from objects pointed to by its pointer-typed
-  /// arguments, with arbitrary offsets.
-  ///
-  /// This property corresponds to the IntrReadArgMem LLVM intrinsic flag.
-  FMRB_OnlyReadsArgumentPointees =
-      FMRL_ArgumentPointees | static_cast<int>(ModRefInfo::Ref),
+/// The only memory references in this function (if it has any) are
+/// non-volatile loads from objects pointed to by its pointer-typed
+/// arguments, with arbitrary offsets.
+///
+/// This property corresponds to the IntrReadArgMem LLVM intrinsic flag.
+constexpr FunctionModRefBehavior FMRB_OnlyReadsArgumentPointees =
+    FMRL_ArgumentPointees | static_cast<int>(ModRefInfo::Ref);
 
-  /// The only memory references in this function (if it has any) are
-  /// non-volatile loads and stores from objects pointed to by its
-  /// pointer-typed arguments, with arbitrary offsets.
-  ///
-  /// This property corresponds to the IntrArgMemOnly LLVM intrinsic flag.
-  FMRB_OnlyAccessesArgumentPointees =
-      FMRL_ArgumentPointees | static_cast<int>(ModRefInfo::ModRef),
+/// The only memory references in this function (if it has any) are
+/// non-volatile loads and stores from objects pointed to by its
+/// pointer-typed arguments, with arbitrary offsets.
+///
+/// This property corresponds to the IntrArgMemOnly LLVM intrinsic flag.
+constexpr FunctionModRefBehavior FMRB_OnlyAccessesArgumentPointees =
+    FMRL_ArgumentPointees | static_cast<int>(ModRefInfo::ModRef);
 
-  /// The only memory references in this function (if it has any) are
-  /// references of memory that is otherwise inaccessible via LLVM IR.
-  ///
-  /// This property corresponds to the LLVM IR inaccessiblememonly attribute.
-  FMRB_OnlyAccessesInaccessibleMem =
-      FMRL_InaccessibleMem | static_cast<int>(ModRefInfo::ModRef),
+/// The only memory references in this function (if it has any) are
+/// references of memory that is otherwise inaccessible via LLVM IR.
+///
+/// This property corresponds to the LLVM IR inaccessiblememonly attribute.
+constexpr FunctionModRefBehavior FMRB_OnlyAccessesInaccessibleMem =
+    FMRL_InaccessibleMem | static_cast<int>(ModRefInfo::ModRef);
 
-  /// The function may perform non-volatile loads and stores of objects
-  /// pointed to by its pointer-typed arguments, with arbitrary offsets, and
-  /// it may also perform loads and stores of memory that is otherwise
-  /// inaccessible via LLVM IR.
-  ///
-  /// This property corresponds to the LLVM IR
-  /// inaccessiblemem_or_argmemonly attribute.
-  FMRB_OnlyAccessesInaccessibleOrArgMem = FMRL_InaccessibleMem |
-                                          FMRL_ArgumentPointees |
-                                          static_cast<int>(ModRefInfo::ModRef),
+/// The function may perform non-volatile loads and stores of objects
+/// pointed to by its pointer-typed arguments, with arbitrary offsets, and
+/// it may also perform loads and stores of memory that is otherwise
+/// inaccessible via LLVM IR.
+///
+/// This property corresponds to the LLVM IR
+/// inaccessiblemem_or_argmemonly attribute.
+constexpr FunctionModRefBehavior FMRB_OnlyAccessesInaccessibleOrArgMem =
+    FMRL_InaccessibleMem | FMRL_ArgumentPointees |
+    static_cast<int>(ModRefInfo::ModRef);
 
-  /// This function does not perform any non-local stores or volatile loads,
-  /// but may read from any memory location.
-  ///
-  /// This property corresponds to the GCC 'pure' attribute.
-  /// This property corresponds to the LLVM IR 'readonly' attribute.
-  /// This property corresponds to the IntrReadMem LLVM intrinsic flag.
-  FMRB_OnlyReadsMemory = FMRL_Anywhere | static_cast<int>(ModRefInfo::Ref),
+/// This function does not perform any non-local stores or volatile loads,
+/// but may read from any memory location.
+///
+/// This property corresponds to the GCC 'pure' attribute.
+/// This property corresponds to the LLVM IR 'readonly' attribute.
+/// This property corresponds to the IntrReadMem LLVM intrinsic flag.
+constexpr FunctionModRefBehavior FMRB_OnlyReadsMemory =
+    FMRL_Anywhere | static_cast<int>(ModRefInfo::Ref);
 
-  // This function does not read from memory anywhere, but may write to any
-  // memory location.
-  //
-  // This property corresponds to the LLVM IR 'writeonly' attribute.
-  // This property corresponds to the IntrWriteMem LLVM intrinsic flag.
-  FMRB_DoesNotReadMemory = FMRL_Anywhere | static_cast<int>(ModRefInfo::Mod),
+// This function does not read from memory anywhere, but may write to any
+// memory location.
+//
+// This property corresponds to the LLVM IR 'writeonly' attribute.
+// This property corresponds to the IntrWriteMem LLVM intrinsic flag.
+constexpr FunctionModRefBehavior FMRB_DoesNotReadMemory =
+    FMRL_Anywhere | static_cast<int>(ModRefInfo::Mod);
 
-  /// This indicates that the function could not be classified into one of the
-  /// behaviors above.
-  FMRB_UnknownModRefBehavior =
-      FMRL_Anywhere | static_cast<int>(ModRefInfo::ModRef)
-};
+/// This indicates that the function could not be classified into one of the
+/// behaviors above.
+constexpr FunctionModRefBehavior FMRB_UnknownModRefBehavior =
+    FMRL_Anywhere | static_cast<int>(ModRefInfo::ModRef);
 
 // Wrapper method strips bits significant only in FunctionModRefBehavior,
 // to obtain a valid ModRefInfo. The benefit of using the wrapper is that if
