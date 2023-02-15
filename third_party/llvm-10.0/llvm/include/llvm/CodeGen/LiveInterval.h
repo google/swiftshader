@@ -729,10 +729,10 @@ namespace llvm {
         ++*this;
         return res;
       }
-      bool operator!=(const SingleLinkedListIterator<T> &Other) {
+      bool operator!=(const SingleLinkedListIterator<T> &Other) const {
         return P != Other.operator->();
       }
-      bool operator==(const SingleLinkedListIterator<T> &Other) {
+      bool operator==(const SingleLinkedListIterator<T> &Other) const {
         return P == Other.operator->();
       }
       T &operator*() const {
