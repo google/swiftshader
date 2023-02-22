@@ -2206,13 +2206,13 @@ struct DerefState : AbstractState {
   }
 
   /// Equality for DerefState.
-  bool operator==(const DerefState &R) {
+  bool operator==(const DerefState &R) const {
     return this->DerefBytesState == R.DerefBytesState &&
            this->GlobalState == R.GlobalState;
   }
 
   /// Inequality for DerefState.
-  bool operator!=(const DerefState &R) { return !(*this == R); }
+  bool operator!=(const DerefState &R) const { return !(*this == R); }
 
   /// See IntegerStateBase::operator^=
   DerefState operator^=(const DerefState &R) {
