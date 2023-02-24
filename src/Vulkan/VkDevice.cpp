@@ -273,35 +273,13 @@ VkResult Device::waitForSemaphores(const VkSemaphoreWaitInfo *pWaitInfo, uint64_
 
 	if(pWaitInfo->flags & VK_SEMAPHORE_WAIT_ANY_BIT)
 	{
-		TimelineSemaphore any = TimelineSemaphore();
-
-		for(uint32_t i = 0; i < pWaitInfo->semaphoreCount; i++)
-		{
-			TimelineSemaphore *semaphore = DynamicCast<TimelineSemaphore>(pWaitInfo->pSemaphores[i]);
-			uint64_t waitValue = pWaitInfo->pValues[i];
-
-			if(semaphore->getCounterValue() >= waitValue)
-			{
-				return VK_SUCCESS;
-			}
-
-			semaphore->addDependent(any, waitValue);
-		}
-
+		TimelineSemaphore::WaitForAny any(pWaitInfo);
 		if(infiniteTimeout)
 		{
-			any.wait(1ull);
+			any.wait();
 			return VK_SUCCESS;
 		}
-		else
-		{
-			if(any.wait(1, end_ns) == VK_SUCCESS)
-			{
-				return VK_SUCCESS;
-			}
-		}
-
-		return VK_TIMEOUT;
+		return any.wait(end_ns);
 	}
 	else
 	{
