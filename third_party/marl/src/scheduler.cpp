@@ -84,15 +84,13 @@ namespace marl {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler
 ////////////////////////////////////////////////////////////////////////////////
-thread_local Scheduler* Scheduler::bound = nullptr;
+MARL_INSTANTIATE_THREAD_LOCAL(Scheduler*, Scheduler::bound, nullptr);
 
 Scheduler* Scheduler::get() {
-  MSAN_UNPOISON(&bound, sizeof(Scheduler*));
   return bound;
 }
 
 void Scheduler::setBound(Scheduler* scheduler) {
-  MSAN_UNPOISON(&bound, sizeof(Scheduler*));
   bound = scheduler;
 }
 
@@ -354,7 +352,9 @@ bool Scheduler::WaitingFibers::Timeout::operator<(const Timeout& o) const {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::Worker
 ////////////////////////////////////////////////////////////////////////////////
-thread_local Scheduler::Worker* Scheduler::Worker::current = nullptr;
+MARL_INSTANTIATE_THREAD_LOCAL(Scheduler::Worker*,
+                              Scheduler::Worker::current,
+                              nullptr);
 
 Scheduler::Worker::Worker(Scheduler* scheduler, Mode mode, uint32_t id)
     : id(id),
