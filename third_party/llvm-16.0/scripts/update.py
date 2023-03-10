@@ -26,15 +26,15 @@ import sys
 import tempfile
 from os import path
 
-# LLVM_BRANCH must match the value of the same variable in third_party/update-llvm-10.sh
-LLVM_BRANCH = "release/10.x"
+# LLVM_BRANCH must match the value of the same variable in third_party/update-llvm-16.sh
+LLVM_BRANCH = "release/16.x"
 
-# LLVM_COMMIT must be set to the commit hash that we last updated to when running third_party/update-llvm-10.sh.
-# Run 'git show -s origin/llvm10-clean' and look for 'llvm-10-update: <hash>' to retrieve it.
-LLVM_COMMIT = "d32170dbd5b0d54436537b6b75beaf44324e0c28"
+# LLVM_COMMIT must be set to the commit hash that we last updated to when running third_party/update-llvm-16.sh.
+# Run 'git show -s origin/llvm16-clean' and look for 'llvm-16-update: <hash>' to retrieve it.
+LLVM_COMMIT = "fce3e75e01babe38576b1519dab5f752955525f9"
 
 SCRIPT_DIR = path.dirname(path.realpath(sys.argv[0]))
-LLVM_STAGING_DIR = path.abspath(path.join(tempfile.gettempdir(), "llvm-10"))
+LLVM_STAGING_DIR = path.abspath(path.join(tempfile.gettempdir(), "llvm-16"))
 LLVM_DIR = path.abspath(path.join(LLVM_STAGING_DIR, "llvm"))
 LLVM_OBJS = path.join(LLVM_STAGING_DIR, "build")
 LLVM_CONFIGS = path.abspath(path.join(SCRIPT_DIR, '..', 'configs'))
@@ -117,6 +117,8 @@ LLVM_CMAKE_OPTIONS = [
     '-DLLVM_ENABLE_LIBEDIT=OFF',
     '-DLLVM_ENABLE_LIBPFM=OFF',
     '-DLLVM_ENABLE_ZLIB=OFF',
+    '-DLLVM_INCLUDE_BENCHMARKS=OFF',
+    '-DLLVM_INCLUDE_TESTS=OFF',
     '-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON'
 ]
 
@@ -193,9 +195,11 @@ def clone_llvm():
                 'git remote add origin https://github.com/llvm/llvm-project.git', 2)
             run_command('git config core.sparsecheckout true', 2)
             run_command('echo /llvm > .git/info/sparse-checkout', 2)
+            run_command('echo /cmake >> .git/info/sparse-checkout', 2)
 
     with pushd(LLVM_STAGING_DIR):
         run_command('echo /llvm > .git/info/sparse-checkout', 2)
+        run_command('echo /cmake >> .git/info/sparse-checkout', 2)
         run_command('git fetch origin {}'.format(LLVM_BRANCH), 2)
         run_command('git checkout {}'.format(LLVM_COMMIT), 2)
     return
@@ -244,7 +248,10 @@ def copy_common_generated_files(dst_base):
     subdirs = [
         path.join('include', 'llvm', 'IR'),
         path.join('include', 'llvm', 'Support'),
+        path.join('include', 'llvm', 'TargetParser'),
+        path.join('include', 'llvm', 'Frontend'),
         path.join('lib', 'IR'),
+        path.join('lib', 'ExecutionEngine'),
         path.join('lib', 'Transforms', 'InstCombine'),
     ] + [path.join('lib', 'Target', arch) for arch, defs in LLVM_TARGETS]
     for subdir in subdirs:

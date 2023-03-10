@@ -5,20 +5,20 @@
 # SwiftShader only requires the llvm project from this repo, and does not wish
 # to pull in everything else.
 # This script performs the following:
-# * The llvm10-clean branch is fetched and checked out.
+# * The llvm16-clean branch is fetched and checked out.
 # * A sparse checkout of the llvm project is made to a temporary directory.
-# * The third_party/llvm-10.0/llvm is replaced with the latest LLVM version.
+# * The third_party/llvm-16.0/llvm is replaced with the latest LLVM version.
 # * This is committed and pushed.
-# * The original branch is checked out again, and a merge from llvm10-clean to
+# * The original branch is checked out again, and a merge from llvm16-clean to
 #   the original branch is made.
 
 THIRD_PARTY_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd )"
-STAGING_DIR="/tmp/llvm-10-update"
-CLEAN_BRANCH="llvm10-clean"
+STAGING_DIR="/tmp/llvm-16-update"
+CLEAN_BRANCH="llvm16-clean"
 SOURCE_DIR="${STAGING_DIR}/llvm"
-TARGET_DIR="${THIRD_PARTY_DIR}/llvm-10.0/llvm"
-LLVM_REPO_BRANCH="release/10.x"
-BUG_NUMBER="b/152339534"
+TARGET_DIR="${THIRD_PARTY_DIR}/llvm-16.0/llvm"
+LLVM_REPO_BRANCH="release/16.x"
+BUG_NUMBER="b/272710814"
 
 SWIFTSHADER_HEAD=`git rev-parse HEAD`
 
@@ -46,10 +46,10 @@ popd
 
 if [[ -d "$TARGET_DIR" ]]; then
   # Look for the last update change.
-  LAST_TARGET_UPDATE=`git log --grep="^llvm-10-update: [0-9a-f]\{9\}$" -n 1 --pretty=format:'%h' ${TARGET_DIR}`
+  LAST_TARGET_UPDATE=`git log --grep="^llvm-16-update: [0-9a-f]\{9\}$" -n 1 --pretty=format:'%h' ${TARGET_DIR}`
   if [[ ! -z "$LAST_TARGET_UPDATE" ]]; then
     # Get the LLVM commit hash from the update change.
-    LAST_SOURCE_UPDATE=`git log $LAST_TARGET_UPDATE -n 1 | grep -oP "llvm-10-update: \K([0-9a-f]{9})"`
+    LAST_SOURCE_UPDATE=`git log $LAST_TARGET_UPDATE -n 1 | grep -oP "llvm-16-update: \K([0-9a-f]{9})"`
     if [ $LLVM_HEAD == $LAST_SOURCE_UPDATE ]; then
       echo "No new LLVM changes to apply"
       exit 0
@@ -63,9 +63,9 @@ if [[ -d "$TARGET_DIR" ]]; then
   fi
 fi
 
-COMMIT_MSG=`echo -e "Update LLVM 10 to ${LLVM_HEAD}\n\n${LLVM_CHANGE_LOG}Commands:\n  third_party/update-llvm-10.sh\n\nllvm-10-update: ${LLVM_HEAD}\nBug: ${BUG_NUMBER}"`
+COMMIT_MSG=`echo -e "Update LLVM 16 to ${LLVM_HEAD}\n\n${LLVM_CHANGE_LOG}Commands:\n  third_party/update-llvm-16.sh\n\nllvm-16-update: ${LLVM_HEAD}\nBug: ${BUG_NUMBER}"`
 
-# Switch to the llvm-10-clean branch.
+# Switch to the llvm-16-clean branch.
 git fetch "https://swiftshader.googlesource.com/SwiftShader" $CLEAN_BRANCH
 git checkout FETCH_HEAD
 
@@ -79,7 +79,7 @@ git add "$TARGET_DIR"
 git commit -m "$COMMIT_MSG"
 MERGE_SOURCE=`git log HEAD -n 1 --pretty=format:'%h'`
 
-# Push llvm-10-clean branch.
+# Push llvm-16-clean branch.
 git push "https://swiftshader.googlesource.com/SwiftShader" $CLEAN_BRANCH
 
 # Switch to the branch in use when calling the script.
