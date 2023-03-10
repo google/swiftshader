@@ -54,7 +54,7 @@ All changes must be reviewed and approved in the [Gerrit](https://www.gerritcode
 https://swiftshader-review.googlesource.com. You must sign in to this site with a Google Account before changes can be uploaded.
 
 Next, authenticate your account here:
-https://swiftshader-review.googlesource.com/new-password (use the same e-mail address as the one configured as the [Git commit author](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup#_your_identity)).
+https://swiftshader.googlesource.com/new-password (use the same e-mail address as the one configured as the [Git commit author](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup#_your_identity)).
 
 All changes require a [Change-ID](https://gerrit-review.googlesource.com/Documentation/user-changeid.html) tag in the commit message. A [commit hook](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) may be used to add this tag automatically, and can be found at:
 https://gerrit-review.googlesource.com/tools/hooks/commit-msg. You can execute `git clone https://swiftshader.googlesource.com/SwiftShader` and manually place the commit hook in `SwiftShader/.git/hooks/`, or to clone the repository and install the commit hook in one go:
