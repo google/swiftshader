@@ -1196,6 +1196,8 @@ private:
 
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
+			ASSERT(i < componentCount);
+
 			if(intermediate)
 			{
 				return intermediate->Float(i);
@@ -1209,6 +1211,8 @@ private:
 
 		RValue<SIMD::Int> Int(uint32_t i) const
 		{
+			ASSERT(i < componentCount);
+
 			if(intermediate)
 			{
 				return intermediate->Int(i);
@@ -1219,6 +1223,8 @@ private:
 
 		RValue<SIMD::UInt> UInt(uint32_t i) const
 		{
+			ASSERT(i < componentCount);
+
 			if(intermediate)
 			{
 				return intermediate->UInt(i);
