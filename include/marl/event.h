@@ -128,8 +128,8 @@ class Event {
   const std::shared_ptr<Shared> shared;
 };
 
-Event::Shared::Shared(Allocator* allocator, Mode mode, bool initialState)
-    : cv(allocator), mode(mode), signalled(initialState) {}
+Event::Shared::Shared(Allocator* allocator, Mode mode_, bool initialState)
+    : cv(allocator), mode(mode_), signalled(initialState) {}
 
 void Event::Shared::signal() {
   marl::lock lock(mutex);
