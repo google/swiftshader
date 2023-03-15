@@ -154,8 +154,8 @@ class Allocator {
 // Allocator::Deleter
 ///////////////////////////////////////////////////////////////////////////////
 Allocator::Deleter::Deleter() : allocator(nullptr) {}
-Allocator::Deleter::Deleter(Allocator* allocator, size_t count)
-    : allocator(allocator), count(count) {}
+Allocator::Deleter::Deleter(Allocator* allocator_, size_t count_)
+    : allocator(allocator_), count(count_) {}
 
 template <typename T>
 void Allocator::Deleter::operator()(T* object) {
@@ -289,8 +289,8 @@ size_t TrackedAllocator::Stats::bytesAllocated() const {
   return out;
 }
 
-TrackedAllocator::TrackedAllocator(Allocator* allocator)
-    : allocator(allocator) {}
+TrackedAllocator::TrackedAllocator(Allocator* allocator_)
+    : allocator(allocator_) {}
 
 TrackedAllocator::Stats TrackedAllocator::stats() {
   std::unique_lock<std::mutex> lock(mutex);
@@ -388,7 +388,7 @@ struct StlAllocator {
 };
 
 template <typename T>
-StlAllocator<T>::StlAllocator(Allocator* allocator) : allocator(allocator) {}
+StlAllocator<T>::StlAllocator(Allocator* allocator_) : allocator(allocator_) {}
 
 template <typename T>
 template <typename U>

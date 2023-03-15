@@ -145,15 +145,15 @@ class vector {
 
 template <typename T, int BASE_CAPACITY>
 vector<T, BASE_CAPACITY>::vector(
-    Allocator* allocator /* = Allocator::Default */)
-    : allocator(allocator) {}
+    Allocator* allocator_ /* = Allocator::Default */)
+    : allocator(allocator_) {}
 
 template <typename T, int BASE_CAPACITY>
 template <int BASE_CAPACITY_2>
 vector<T, BASE_CAPACITY>::vector(
     const vector<T, BASE_CAPACITY_2>& other,
-    Allocator* allocator /* = Allocator::Default */)
-    : allocator(allocator) {
+    Allocator* allocator_ /* = Allocator::Default */)
+    : allocator(allocator_) {
   *this = other;
 }
 
@@ -161,8 +161,8 @@ template <typename T, int BASE_CAPACITY>
 template <int BASE_CAPACITY_2>
 vector<T, BASE_CAPACITY>::vector(
     vector<T, BASE_CAPACITY_2>&& other,
-    Allocator* allocator /* = Allocator::Default */)
-    : allocator(allocator) {
+    Allocator* allocator_ /* = Allocator::Default */)
+    : allocator(allocator_) {
   *this = std::move(other);
 }
 
@@ -417,7 +417,7 @@ class list {
 };
 
 template <typename T>
-list<T>::iterator::iterator(Entry* entry) : entry(entry) {}
+list<T>::iterator::iterator(Entry* entry_) : entry(entry_) {}
 
 template <typename T>
 T* list<T>::iterator::operator->() {
@@ -446,8 +446,8 @@ bool list<T>::iterator::operator!=(const iterator& rhs) const {
 }
 
 template <typename T>
-list<T>::list(Allocator* allocator /* = Allocator::Default */)
-    : allocator(allocator) {}
+list<T>::list(Allocator* allocator_ /* = Allocator::Default */)
+    : allocator(allocator_) {}
 
 template <typename T>
 list<T>::~list() {

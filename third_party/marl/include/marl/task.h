@@ -64,10 +64,10 @@ class Task {
 Task::Task() {}
 Task::Task(const Task& o) : function(o.function), flags(o.flags) {}
 Task::Task(Task&& o) : function(std::move(o.function)), flags(o.flags) {}
-Task::Task(const Function& function, Flags flags /* = Flags::None */)
-    : function(function), flags(flags) {}
-Task::Task(Function&& function, Flags flags /* = Flags::None */)
-    : function(std::move(function)), flags(flags) {}
+Task::Task(const Function& function_, Flags flags_ /* = Flags::None */)
+    : function(function_), flags(flags_) {}
+Task::Task(Function&& function_, Flags flags_ /* = Flags::None */)
+    : function(std::move(function_)), flags(flags_) {}
 Task& Task::operator=(const Task& o) {
   function = o.function;
   flags = o.flags;

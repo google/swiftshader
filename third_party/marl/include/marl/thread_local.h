@@ -42,18 +42,21 @@ class ThreadLocal {
   }
 
  private:
+  ThreadLocal(const ThreadLocal&) = delete;
+  ThreadLocal& operator=(const ThreadLocal&) = delete;
+
   pthread_key_t key;
 };
 
 #define MARL_DECLARE_THREAD_LOCAL(TYPE, NAME) static ThreadLocal<TYPE> NAME
 #define MARL_INSTANTIATE_THREAD_LOCAL(TYPE, NAME, VALUE) \
-  ThreadLocal<TYPE> NAME = VALUE
+  ThreadLocal<TYPE> NAME { VALUE }
 
 #else
 
 #define MARL_DECLARE_THREAD_LOCAL(TYPE, NAME) static thread_local TYPE NAME
 #define MARL_INSTANTIATE_THREAD_LOCAL(TYPE, NAME, VALUE) \
-  thread_local TYPE NAME = VALUE
+  thread_local TYPE NAME { VALUE }
 
 #endif
 
