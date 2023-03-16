@@ -1906,8 +1906,8 @@ void SpirvEmitter::EmitInstruction(InsnIterator insn)
 		    vk::SPIRV_VERSION,
 		    insn.data(),
 		    insn.wordCount(),
-		    insns.data(),
-		    insns.size(),
+		    shader.insns.data(),
+		    shader.insns.size(),
 		    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
 		SPIRV_SHADER_DBG("{0}", text);
 	}
