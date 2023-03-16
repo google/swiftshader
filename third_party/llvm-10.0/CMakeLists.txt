@@ -1242,6 +1242,11 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
             "-Wno-init-list-lifetime"  # assignment from temporary initializer_list does not extend the lifetime of the underlying array
         )
     endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
+        list(APPEND LLVM_COMPILE_OPTIONS
+            "-Wno-missing-template-keyword"
+        )
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     list(APPEND LLVM_COMPILE_OPTIONS
         "/wd4141" # 'inline': used more than once
