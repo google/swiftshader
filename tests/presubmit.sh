@@ -40,20 +40,6 @@ function check() {
   echo "${green}OK${normal}"
 }
 
-# Validate commit message
-function run_bug_in_commit_msg() {
-  git log -1 --pretty=%B | grep -E '^(Bug|Issue|Fixes):(\s?)(((b\/)|(\w+:))([0-9]+)|[^0-9]+)$|(^Regres:)|(^PiperOrigin-RevId:)'
-
-  if [ $? -ne 0 ]
-  then
-    echo "${red}Git commit message must have a Bug: line"
-    echo "followed by a bug ID in the form b/# for Buganizer bugs or"
-    echo "project:# for Monorail bugs (e.g. 'Bug: chromium:123' or 'Bug: fuchsia:123')."
-    echo "Omit any digits when no ID is required (e.g. 'Bug: fix build').${normal}"
-    return 1
-  fi
-}
-
 function run_copyright_headers() {
   tmpfile=`mktemp`
   for suffix in "cpp" "hpp" "go" "h"; do
@@ -92,9 +78,6 @@ function run_scan_sources() {
 
 # Ensure we are clean to start out with.
 check "git workspace must be clean" true
-
-# Check for 'Bug: ' line in commit
-check bug-in-commi-msg run_bug_in_commit_msg
 
 # Check copyright headers
 check copyright-headers run_copyright_headers
