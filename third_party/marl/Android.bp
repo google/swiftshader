@@ -60,6 +60,7 @@ cc_library_static {
         arm64: { srcs: ["src/osfiber_aarch64.c", "src/osfiber_asm_aarch64.S"], },
         x86: { srcs: ["src/osfiber_x86.c", "src/osfiber_asm_x86.S"], },
         x86_64: { srcs: ["src/osfiber_x64.c", "src/osfiber_asm_x64.S"], },
+        riscv64: { srcs: ["src/osfiber_rv64.c", "src/osfiber_asm_rv64.S"], },
     },
     cflags: [
         "-Wno-unused-parameter",
