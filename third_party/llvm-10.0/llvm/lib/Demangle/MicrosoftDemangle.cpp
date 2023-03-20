@@ -24,6 +24,7 @@
 #include <array>
 #include <cctype>
 #include <cstdio>
+#include <exception>
 #include <tuple>
 
 using namespace llvm;
