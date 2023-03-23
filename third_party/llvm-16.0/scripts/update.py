@@ -56,6 +56,7 @@ LLVM_TRIPLES = {
         ('__i386__', 'i686-linux-android'),
         ('__arm__', 'armv7-linux-androideabi'),
         ('__aarch64__', 'aarch64-linux-android'),
+        ('__riscv', 'riscv64-linux-android'),
     ],
     'linux': [
         ('__x86_64__', 'x86_64-unknown-linux-gnu'),
