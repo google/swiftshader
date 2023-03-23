@@ -878,7 +878,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/MC/MCAsmInfoGOFF.cpp
     ${LLVM_DIR}/lib/MC/MCAsmInfoWasm.cpp
     ${LLVM_DIR}/lib/MC/MCAsmInfoXCOFF.cpp
-    ${LLVM_DIR}/lib/MC/MCAsmMacro.cpp
     ${LLVM_DIR}/lib/MC/MCAsmStreamer.cpp
     ${LLVM_DIR}/lib/MC/MCAssembler.cpp
     ${LLVM_DIR}/lib/MC/MCCodeEmitter.cpp
@@ -1142,7 +1141,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/KnownBits.cpp
     ${LLVM_DIR}/lib/Support/LEB128.cpp
     ${LLVM_DIR}/lib/Support/LineIterator.cpp
-    ${LLVM_DIR}/lib/Support/Locale.cpp
     ${LLVM_DIR}/lib/Support/LockFileManager.cpp
     ${LLVM_DIR}/lib/Support/LowLevelType.cpp
     ${LLVM_DIR}/lib/Support/MD5.cpp
@@ -1208,7 +1206,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/YAMLParser.cpp
     ${LLVM_DIR}/lib/Support/YAMLTraits.cpp
     ${LLVM_DIR}/lib/Support/Z3Solver.cpp
-    ${LLVM_DIR}/lib/Support/circular_raw_ostream.cpp
     ${LLVM_DIR}/lib/Support/raw_os_ostream.cpp
     ${LLVM_DIR}/lib/Support/raw_ostream.cpp
     ${LLVM_DIR}/lib/Support/regcomp.c
