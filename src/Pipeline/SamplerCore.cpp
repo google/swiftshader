@@ -485,6 +485,8 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
 	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
+	applyOffset(u, v, w, offset, mipmap);
+
 	Short4 uuuu = address(u, state.addressingModeU, mipmap);
 	Short4 vvvv = address(v, state.addressingModeV, mipmap);
 	Short4 wwww = address(w, state.addressingModeW, mipmap);
@@ -492,7 +494,7 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 
 	if(state.textureFilter == FILTER_POINT)
 	{
-		c = sampleTexel(uuuu, vvvv, wwww, layerIndex, offset, sample, mipmap, buffer);
+		c = sampleTexel(uuuu, vvvv, wwww, layerIndex, sample, mipmap, buffer);
 	}
 	else
 	{
@@ -501,10 +503,10 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 		Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap, uHalf), state.addressingModeU == ADDRESSING_WRAP, +1, lod);
 		Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap, vHalf), state.addressingModeV == ADDRESSING_WRAP, +1, lod);
 
-		Vector4s c00 = sampleTexel(uuuu0, vvvv0, wwww, layerIndex, offset, sample, mipmap, buffer);
-		Vector4s c10 = sampleTexel(uuuu1, vvvv0, wwww, layerIndex, offset, sample, mipmap, buffer);
-		Vector4s c01 = sampleTexel(uuuu0, vvvv1, wwww, layerIndex, offset, sample, mipmap, buffer);
-		Vector4s c11 = sampleTexel(uuuu1, vvvv1, wwww, layerIndex, offset, sample, mipmap, buffer);
+		Vector4s c00 = sampleTexel(uuuu0, vvvv0, wwww, layerIndex, sample, mipmap, buffer);
+		Vector4s c10 = sampleTexel(uuuu1, vvvv0, wwww, layerIndex, sample, mipmap, buffer);
+		Vector4s c01 = sampleTexel(uuuu0, vvvv1, wwww, layerIndex, sample, mipmap, buffer);
+		Vector4s c11 = sampleTexel(uuuu1, vvvv1, wwww, layerIndex, sample, mipmap, buffer);
 
 		if(!gather)  // Blend
 		{
@@ -686,13 +688,15 @@ Vector4s SamplerCore::sample3D(Pointer<Byte> &texture, Float4 &u_, Float4 &v_, F
 	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
 	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
+	applyOffset(u_, v_, w_, offset, mipmap);
+
 	Short4 uuuu = address(u_, state.addressingModeU, mipmap);
 	Short4 vvvv = address(v_, state.addressingModeV, mipmap);
 	Short4 wwww = address(w_, state.addressingModeW, mipmap);
 
 	if(state.textureFilter == FILTER_POINT)
 	{
-		c_ = sampleTexel(uuuu, vvvv, wwww, 0, offset, sample, mipmap, buffer);
+		c_ = sampleTexel(uuuu, vvvv, wwww, 0, sample, mipmap, buffer);
 	}
 	else
 	{
@@ -764,7 +768,7 @@ Vector4s SamplerCore::sample3D(Pointer<Byte> &texture, Float4 &u_, Float4 &v_, F
 			{
 				for(int k = 0; k < 2; k++)
 				{
-					c[i][j][k] = sampleTexel(u[i][j][k], v[i][j][k], s[i][j][k], 0, offset, sample, mipmap, buffer);
+					c[i][j][k] = sampleTexel(u[i][j][k], v[i][j][k], s[i][j][k], 0, sample, mipmap, buffer);
 
 					if(componentCount >= 1)
 					{
@@ -929,11 +933,13 @@ Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
 	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
+	applyOffset(u, v, w, offset, mipmap);
+
 	Int4 x0, x1, y0, y1;
 	Float4 fu, fv;
 	Int4 filter = computeFilterOffset(lod);
-	address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU);
-	address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV);
+	address(u, x0, x1, fu, mipmap, filter, OFFSET(Mipmap, width), state.addressingModeU);
+	address(v, y0, y1, fv, mipmap, filter, OFFSET(Mipmap, height), state.addressingModeV);
 
 	Int4 pitchP = As<Int4>(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, pitchP), 16));
 	y0 *= pitchP;
@@ -1021,12 +1027,14 @@ Vector4f SamplerCore::sampleFloat3D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	Pointer<Byte> mipmap = selectMipmap(texture, lod, secondLOD);
 	Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap, buffer));
 
+	applyOffset(u, v, w, offset, mipmap);
+
 	Int4 x0, x1, y0, y1, z0, z1;
 	Float4 fu, fv, fw;
 	Int4 filter = computeFilterOffset(lod);
-	address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU);
-	address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV);
-	address(w, z0, z1, fw, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW);
+	address(u, x0, x1, fu, mipmap, filter, OFFSET(Mipmap, width), state.addressingModeU);
+	address(v, y0, y1, fv, mipmap, filter, OFFSET(Mipmap, height), state.addressingModeV);
+	address(w, z0, z1, fw, mipmap, filter, OFFSET(Mipmap, depth), state.addressingModeW);
 
 	Int4 pitchP = As<Int4>(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, pitchP), 16));
 	Int4 sliceP = As<Int4>(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, sliceP), 16));
@@ -1317,50 +1325,51 @@ Int4 SamplerCore::cubeFace(Float4 &U, Float4 &V, Float4 &x, Float4 &y, Float4 &z
 	return face;
 }
 
-Short4 SamplerCore::applyOffset(Short4 &uvw, Int4 &offset, const Int4 &whd, AddressingMode mode)
+void SamplerCore::applyOffset(Float4 &u, Float4 &v, Float4 &w, Vector4i &offset, Pointer<Byte> mipmap)
 {
-	Int4 tmp = Int4(As<UShort4>(uvw));
-	tmp = tmp + offset;
-
-	switch(mode)
-	{
-	case AddressingMode::ADDRESSING_WRAP:
-		tmp = (tmp + whd * Int4(-MIN_TEXEL_OFFSET)) % whd;
-		break;
-	case AddressingMode::ADDRESSING_CLAMP:
-	case AddressingMode::ADDRESSING_MIRROR:
-	case AddressingMode::ADDRESSING_MIRRORONCE:
-	case AddressingMode::ADDRESSING_BORDER:  // TODO(b/29069044): Implement and test ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE, ADDRESSING_BORDER
-		tmp = Min(Max(tmp, Int4(0)), whd - Int4(1));
-		break;
-	case AddressingMode::ADDRESSING_SEAMLESS:
-		ASSERT(false);  // Cube sampling doesn't support offset.
-	default:
-		ASSERT(false);
-	}
-
-	return As<Short4>(UShort4(tmp));
-}
-
-void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, const Short4 &layerIndex, Vector4i &offset, const Int4 &sample, const Pointer<Byte> &mipmap)
-{
-	uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, width))));
-
 	if(function.offset)
 	{
-		uuuu = applyOffset(uuuu, offset.x, *Pointer<UInt4>(mipmap + OFFSET(Mipmap, width)), state.addressingModeU);
+		if(function == Fetch)
+		{
+			// Unnormalized coordinates
+			u = As<Float4>(As<Int4>(u) + offset.x);
+			if(state.is2D() || state.is3D() || state.isCube())
+			{
+				v = As<Float4>(As<Int4>(v) + offset.y);
+				if(state.is3D())
+				{
+					w = As<Float4>(As<Int4>(w) + offset.z);
+				}
+			}
+		}
+		else
+		{
+			// Normalized coordinates
+			UInt4 width = *Pointer<UInt4>(mipmap + OFFSET(Mipmap, width));
+			u += Float4(offset.x) / Float4(width);
+			if(state.is2D() || state.is3D() || state.isCube())
+			{
+				UInt4 height = *Pointer<UInt4>(mipmap + OFFSET(Mipmap, height));
+				v += Float4(offset.y) / Float4(height);
+				if(state.is3D())
+				{
+					UInt4 depth = *Pointer<UInt4>(mipmap + OFFSET(Mipmap, depth));
+					w += Float4(offset.z) / Float4(depth);
+				}
+			}
+		}
 	}
+}
+
+void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, const Short4 &layerIndex, const Int4 &sample, const Pointer<Byte> &mipmap)
+{
+	uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, width))));
 
 	UInt4 indices = Int4(uuuu);
 
 	if(state.is2D() || state.is3D() || state.isCube())
 	{
 		vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<UInt4>(mipmap + OFFSET(Mipmap, height))));
-
-		if(function.offset)
-		{
-			vvvv = applyOffset(vvvv, offset.y, *Pointer<UInt4>(mipmap + OFFSET(Mipmap, height)), state.addressingModeV);
-		}
 
 		Short4 uv0uv1 = As<Short4>(UnpackLow(uuuu, vvvv));
 		Short4 uv2uv3 = As<Short4>(UnpackHigh(uuuu, vvvv));
@@ -1373,11 +1382,6 @@ void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4
 	if(state.is3D())
 	{
 		wwww = MulHigh(As<UShort4>(wwww), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, depth))));
-
-		if(function.offset)
-		{
-			wwww = applyOffset(wwww, offset.z, *Pointer<Int4>(mipmap + OFFSET(Mipmap, depth)), state.addressingModeW);
-		}
 
 		indices += As<UInt4>(Int4(As<UShort4>(wwww))) * *Pointer<UInt4>(mipmap + OFFSET(Mipmap, sliceP));
 	}
@@ -1747,12 +1751,12 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 	return c;
 }
 
-Vector4s SamplerCore::sampleTexel(Short4 &uuuu, Short4 &vvvv, Short4 &wwww, const Short4 &layerIndex, Vector4i &offset, const Int4 &sample, Pointer<Byte> &mipmap, Pointer<Byte> buffer)
+Vector4s SamplerCore::sampleTexel(Short4 &uuuu, Short4 &vvvv, Short4 &wwww, const Short4 &layerIndex, const Int4 &sample, Pointer<Byte> &mipmap, Pointer<Byte> buffer)
 {
 	Vector4s c;
 
 	UInt index[4];
-	computeIndices(index, uuuu, vvvv, wwww, layerIndex, offset, sample, mipmap);
+	computeIndices(index, uuuu, vvvv, wwww, layerIndex, sample, mipmap);
 
 	if(isYcbcrFormat())
 	{
@@ -1796,7 +1800,7 @@ Vector4s SamplerCore::sampleTexel(Short4 &uuuu, Short4 &vvvv, Short4 &wwww, cons
 		// Chroma (either 8-bit or 10-bit in bottom bits).
 		UShort4 Cb, Cr;
 		{
-			computeIndices(index, uuuu, vvvv, wwww, layerIndex, offset, sample, mipmap + sizeof(Mipmap));
+			computeIndices(index, uuuu, vvvv, wwww, layerIndex, sample, mipmap + sizeof(Mipmap));
 			UShort4 U, V;
 
 			switch(state.textureFormat)
@@ -2339,7 +2343,7 @@ static Int4 mod(Int4 n, Int4 d)
 	return (positive & x) | (~positive & (x + d));
 }
 
-void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Int4 &offset, Int4 &filter, int whd, AddressingMode addressingMode)
+void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Int4 &filter, int whd, AddressingMode addressingMode)
 {
 	if(addressingMode == ADDRESSING_UNUSED)
 	{
@@ -2352,7 +2356,7 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 
 	if(function == Fetch)  // Unnormalized coordinates
 	{
-		Int4 xyz = function.offset ? As<Int4>(uvw) + offset : As<Int4>(uvw);
+		Int4 xyz = As<Int4>(uvw);
 		xyz0 = Min(Max(xyz, Int4(0)), maxXYZ);
 
 		// VK_EXT_image_robustness requires checking for out-of-bounds accesses.
@@ -2400,12 +2404,6 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 			coord -= Float4(0.5f);
 			Float4 floor = Floor(coord);
 			xyz0 = Int4(floor);
-
-			if(function.offset)
-			{
-				xyz0 += offset;
-			}
-
 			xyz1 = xyz0 + Int4(1);
 
 			xyz0 = (maxXYZ)-mirror(mod(xyz0, Int4(2) * dim) - dim);
@@ -2415,42 +2413,39 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 		}
 		else
 		{
-			if(!function.offset)
+			switch(addressingMode)
 			{
-				switch(addressingMode)
+			case ADDRESSING_CLAMP:
+			case ADDRESSING_SEAMLESS:
+				// While cube face coordinates are nominally already in the [0.0, 1.0] range
+				// due to the projection, and numerical imprecision is tolerated due to the
+				// border of pixels for seamless filtering, the projection doesn't cause
+				// range normalization for Inf and NaN values. So we always clamp.
 				{
-				case ADDRESSING_CLAMP:
-				case ADDRESSING_SEAMLESS:
-					// While cube face coordinates are nominally already in the [0.0, 1.0] range
-					// due to the projection, and numerical imprecision is tolerated due to the
-					// border of pixels for seamless filtering, the projection doesn't cause
-					// range normalization for Inf and NaN values. So we always clamp.
-					{
-						Float4 one = As<Float4>(Int4(oneBits));
-						coord = Min(Max(coord, Float4(0.0f)), one);
-					}
-					break;
-				case ADDRESSING_MIRROR:
-					{
-						Float4 one = As<Float4>(Int4(oneBits));
-						coord = coord * Float4(0.5f);
-						coord = Float4(2.0f) * Abs(coord - Round(coord));
-						coord = Min(coord, one);
-					}
-					break;
-				case ADDRESSING_MIRRORONCE:
-					{
-						Float4 one = As<Float4>(Int4(oneBits));
-						coord = Min(Abs(coord), one);
-					}
-					break;
-				case ADDRESSING_BORDER:
-					// Don't map to a valid range here.
-					break;
-				default:  // Wrap
-					coord = Frac(coord);
-					break;
+					Float4 one = As<Float4>(Int4(oneBits));
+					coord = Min(Max(coord, Float4(0.0f)), one);
 				}
+				break;
+			case ADDRESSING_MIRROR:
+				{
+					Float4 one = As<Float4>(Int4(oneBits));
+					coord = coord * Float4(0.5f);
+					coord = Float4(2.0f) * Abs(coord - Round(coord));
+					coord = Min(coord, one);
+				}
+				break;
+			case ADDRESSING_MIRRORONCE:
+				{
+					Float4 one = As<Float4>(Int4(oneBits));
+					coord = Min(Abs(coord), one);
+				}
+				break;
+			case ADDRESSING_BORDER:
+				// Don't map to a valid range here.
+				break;
+			default:  // Wrap
+				coord = Frac(coord);
+				break;
 			}
 
 			coord = coord * Float4(dim);
@@ -2458,7 +2453,7 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 
 		if(state.textureFilter == FILTER_POINT)
 		{
-			if(addressingMode == ADDRESSING_BORDER || function.offset)
+			if(addressingMode == ADDRESSING_BORDER)
 			{
 				xyz0 = Int4(Floor(coord));
 			}
@@ -2484,11 +2479,6 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 			f = coord - floor;
 		}
 
-		if(function.offset)
-		{
-			xyz0 += offset;
-		}
-
 		if(addressingMode == ADDRESSING_SEAMLESS)  // Adjust for border.
 		{
 			xyz0 += Int4(1);
@@ -2503,26 +2493,6 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 			Int4 border1 = CmpLT(xyz1, Int4(0)) | CmpNLT(xyz1, dim);
 			xyz0 |= border0;
 			xyz1 |= border1;
-		}
-		else if(function.offset)
-		{
-			switch(addressingMode)
-			{
-			case ADDRESSING_SEAMLESS:
-				UNREACHABLE("addressingMode %d", int(addressingMode));  // Cube sampling doesn't support offset.
-			case ADDRESSING_MIRROR:
-			case ADDRESSING_MIRRORONCE:
-				// TODO(b/29069044): Implement ADDRESSING_MIRROR and ADDRESSING_MIRRORONCE.
-				// Fall through to Clamp.
-			case ADDRESSING_CLAMP:
-				xyz0 = Min(Max(xyz0, Int4(0)), maxXYZ);
-				xyz1 = Min(Max(xyz1, Int4(0)), maxXYZ);
-				break;
-			default:  // Wrap
-				xyz0 = mod(xyz0, dim);
-				xyz1 = mod(xyz1, dim);
-				break;
-			}
 		}
 		else if(state.textureFilter != FILTER_POINT)
 		{
