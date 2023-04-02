@@ -18,6 +18,7 @@
 #include "System/Debug.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <unordered_set>
 #include <vector>
