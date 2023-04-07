@@ -19,13 +19,16 @@ import os
 import sys
 from string import Template
 
-## Generates `CMakeLists.txt` and `Android.bp`
+## Generates `CMakeLists.txt`, `Android.bp`, and `BUILD.gn`
 
 CMAKE_TEMPLATE_PATH = "template_CMakeLists.txt"
 DESTINATION_CMAKELISTS_PATH = "../CMakeLists.txt"
 
 ANDROID_BP_TEMPLATE_PATH = "template_Android.bp"
 DESTINATION_ANDROID_BP_PATH = "../Android.bp"
+
+BUILD_GN_TEMPLATE_PATH = "template_BUILD.gn"
+DESTINATION_BUILD_GN_PATH = "../BUILD.gn"
 
 # This custom template class changes the delimiter from '$' to
 # '%$%'.
@@ -400,4 +403,78 @@ with open(ANDROID_BP_TEMPLATE_PATH, 'r') as f:
     android_bp_template = CustomTemplate(f.read())
     result = android_bp_template.substitute(android_bp_template_data)
     cmake_output = open(DESTINATION_ANDROID_BP_PATH, "w")
+    cmake_output.write(result)
+
+# Generate BUILD.gn
+
+# Remove 3 files that are special cases.
+# They are dealt with in the template file.
+files_llvm_build_gn = exclude_files_with_prefixes(files_llvm, ['/lib/MC/MCWasmObjectTargetWriter.cpp', '/lib/MC/MCXCOFFObjectTargetWriter.cpp'])
+files_ARM_build_gn = exclude_files_with_prefixes(files_ARM, ['/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp'])
+
+# GN doesn't allow for duplicate source file names, even if they are
+# in different subdirectories. Because of this, `files_llvm_build_gn` is
+# partitionned into multiple targets.
+def get_filename(path):
+        return path.split("/")[-1]
+# Takes a list of paths and returns multiple lists of paths.
+# Every list will contain a unique set of filenames.
+def partition_paths(filepaths):
+    partitions = []
+    for path in filepaths:
+        filename = get_filename(path)
+        inserted = False
+        for partition in partitions:
+            if not filename in partition:
+                partition[filename] = path
+                inserted = True
+                break
+        if not inserted:
+            new_partition = {filename : path}
+            partitions.append(new_partition)
+    return [[p for f, p in partition.items()] for partition in partitions]
+# Returns a string containing a GN source set containing the filepaths
+def create_source_set(source_set_name, filepaths):
+    s = 'swiftshader_llvm_source_set("%s") {\n' % source_set_name
+    s += '  sources = [\n'
+    for filepath in filepaths:
+        s += '    "llvm%s",\n' % filepath
+    s += '  ]\n'
+    s += '}\n'
+    return s
+def source_set_name(i):
+    return 'swiftshader_llvm_source_set_%i' % i
+
+# Generate the GN source set code
+files_llvm_partitions = partition_paths(files_llvm_build_gn)
+source_set_code = ""
+i = 0
+for partition in files_llvm_partitions:
+    source_set_code += create_source_set(source_set_name(i), partition)
+    i = i+1
+
+# Generate the GN deps code
+deps_code = ''
+i = 0
+for partition in files_llvm_partitions:
+    deps_code += '    ":%s",\n' % source_set_name(i)
+    i = i+1
+
+def format_file_list_for_build_gn(files):
+    return '\n'.join(["    \"llvm" + s + "\"," for s in files])
+build_gn_template_data = {
+    'generated_file_comment' : "# " + generated_file_comment,
+    'llvm_source_sets' : source_set_code,
+    'llvm_deps' : deps_code,
+    'files_x86' : format_file_list_for_build_gn(files_x86),
+    'files_AArch64' : format_file_list_for_build_gn(files_AArch64),
+    'files_ARM' : format_file_list_for_build_gn(files_ARM_build_gn),
+    'files_Mips' : format_file_list_for_build_gn(files_Mips),
+    'files_PowerPC' : format_file_list_for_build_gn(files_PowerPC),
+    'files_RISCV' : format_file_list_for_build_gn(files_RISCV),
+}
+with open(BUILD_GN_TEMPLATE_PATH, 'r') as f:
+    build_gn_template = CustomTemplate(f.read())
+    result = build_gn_template.substitute(build_gn_template_data)
+    cmake_output = open(DESTINATION_BUILD_GN_PATH, "w")
     cmake_output.write(result)

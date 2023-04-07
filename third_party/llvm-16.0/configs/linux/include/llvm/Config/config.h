@@ -138,7 +138,7 @@
 #define HAVE_MALLINFO 1
 
 /* Define to 1 if you have the `mallinfo2' function. */
-#define HAVE_MALLINFO2 1
+/* #undef HAVE_MALLINFO2 */
 
 /* Define to 1 if you have the <malloc/malloc.h> header file. */
 /* #undef HAVE_MALLOC_MALLOC_H */
