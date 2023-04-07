@@ -94,12 +94,6 @@ cc_library_static {
 
     defaults: [ "libLLVM16_swiftshader_defaults" ],
 
-    srcs: [
-        "llvm/lib/MC/MCAsmMacro.cpp",
-        "llvm/lib/Support/Locale.cpp",
-        "llvm/lib/Support/circular_raw_ostream.cpp",
-    ],
-
     cflags: [
         "-UNDEBUG",
     ],
