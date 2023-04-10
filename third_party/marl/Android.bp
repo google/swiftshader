@@ -35,6 +35,7 @@ license {
 
 cc_library_static {
     name: "swiftshader_marl",
+    host_supported: true,
     vendor_available: true,
     srcs: [
         "src/debug.cpp",

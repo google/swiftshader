@@ -36,6 +36,8 @@ license {
 cc_library_static {
     name: "swiftshader_astc",
 
+    host_supported:true,
+
     vendor_available: true,
 
     cflags: [
