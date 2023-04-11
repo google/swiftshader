@@ -1242,6 +1242,10 @@ elseif(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
     )
 elseif(ARCH STREQUAL "aarch64")
     list(APPEND LLVM_LIST
+        ${LLVM_DIR}/lib/Analysis/RegionPrinter.cpp
+        ${LLVM_DIR}/lib/CodeGen/MultiHazardRecognizer.cpp
+        ${LLVM_DIR}/lib/MC/ConstantPools.cpp
+        ${LLVM_DIR}/lib/MC/MCInstrInfo.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64A53Fix835769.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64A57FPLoadBalancing.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64AdvSIMDScalarPass.cpp
@@ -1316,9 +1320,14 @@ elseif(ARCH STREQUAL "aarch64")
         ${LLVM_DIR}/lib/Target/AArch64/TargetInfo/AArch64TargetInfo.cpp
         ${LLVM_DIR}/lib/Target/AArch64/Utils/AArch64BaseInfo.cpp
         ${LLVM_DIR}/lib/Target/AArch64/Utils/AArch64SMEAttributes.cpp
+        ${LLVM_DIR}/lib/Transforms/IPO/BarrierNoopPass.cpp
     )
 elseif(ARCH STREQUAL "arm")
     list(APPEND LLVM_LIST
+        ${LLVM_DIR}/lib/Analysis/RegionPrinter.cpp
+        ${LLVM_DIR}/lib/CodeGen/MultiHazardRecognizer.cpp
+        ${LLVM_DIR}/lib/MC/ConstantPools.cpp
+        ${LLVM_DIR}/lib/MC/MCInstrInfo.cpp
         ${LLVM_DIR}/lib/Target/ARM/A15SDOptimizer.cpp
         ${LLVM_DIR}/lib/Target/ARM/ARMAsmPrinter.cpp
         ${LLVM_DIR}/lib/Target/ARM/ARMBaseInstrInfo.cpp
@@ -1385,6 +1394,7 @@ elseif(ARCH STREQUAL "arm")
         ${LLVM_DIR}/lib/Target/ARM/Thumb2SizeReduction.cpp
         ${LLVM_DIR}/lib/Target/ARM/ThumbRegisterInfo.cpp
         ${LLVM_DIR}/lib/Target/ARM/Utils/ARMBaseInfo.cpp
+        ${LLVM_DIR}/lib/Transforms/IPO/BarrierNoopPass.cpp
     )
 elseif(ARCH STREQUAL "ppc64le")
     list(APPEND LLVM_LIST

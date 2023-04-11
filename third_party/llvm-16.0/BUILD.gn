@@ -1272,6 +1272,10 @@ swiftshader_llvm_source_set("swiftshader_llvm_source_set_1") {
 
 swiftshader_llvm_source_set("swiftshader_llvm_aarch64") {
   sources = [
+    "llvm/lib/Analysis/RegionPrinter.cpp",
+    "llvm/lib/CodeGen/MultiHazardRecognizer.cpp",
+    "llvm/lib/MC/ConstantPools.cpp",
+    "llvm/lib/MC/MCInstrInfo.cpp",
     "llvm/lib/Target/AArch64/AArch64A53Fix835769.cpp",
     "llvm/lib/Target/AArch64/AArch64A57FPLoadBalancing.cpp",
     "llvm/lib/Target/AArch64/AArch64AdvSIMDScalarPass.cpp",
@@ -1346,11 +1350,16 @@ swiftshader_llvm_source_set("swiftshader_llvm_aarch64") {
     "llvm/lib/Target/AArch64/TargetInfo/AArch64TargetInfo.cpp",
     "llvm/lib/Target/AArch64/Utils/AArch64BaseInfo.cpp",
     "llvm/lib/Target/AArch64/Utils/AArch64SMEAttributes.cpp",
+    "llvm/lib/Transforms/IPO/BarrierNoopPass.cpp",
   ]
 }
 
 swiftshader_llvm_source_set("swiftshader_llvm_arm") {
   sources = [
+    "llvm/lib/Analysis/RegionPrinter.cpp",
+    "llvm/lib/CodeGen/MultiHazardRecognizer.cpp",
+    "llvm/lib/MC/ConstantPools.cpp",
+    "llvm/lib/MC/MCInstrInfo.cpp",
     "llvm/lib/Target/ARM/A15SDOptimizer.cpp",
     "llvm/lib/Target/ARM/ARMAsmPrinter.cpp",
     "llvm/lib/Target/ARM/ARMBaseInstrInfo.cpp",
@@ -1416,6 +1425,7 @@ swiftshader_llvm_source_set("swiftshader_llvm_arm") {
     "llvm/lib/Target/ARM/Thumb2SizeReduction.cpp",
     "llvm/lib/Target/ARM/ThumbRegisterInfo.cpp",
     "llvm/lib/Target/ARM/Utils/ARMBaseInfo.cpp",
+    "llvm/lib/Transforms/IPO/BarrierNoopPass.cpp",
   ]
 
   # When is_ubsan_vptr is true, this file is added to swiftshader_llvm instead.

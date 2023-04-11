@@ -359,11 +359,23 @@ files_to_add_back_for_llvm = [
 files_llvm = exclude_files_with_prefixes(all_files, prefixes_of_files_not_needed_by_llvm)
 files_llvm.extend(files_to_add_back_for_llvm)
 
+files_to_add_back_for_llvm_arm = [
+    "/lib/Analysis/RegionPrinter.cpp",
+    "/lib/CodeGen/MultiHazardRecognizer.cpp",
+    "/lib/MC/ConstantPools.cpp",
+    "/lib/MC/MCInstrInfo.cpp",
+    "/lib/Transforms/IPO/BarrierNoopPass.cpp",
+]
+
 # Architecture specific files
 files_x86 = keep_files_with_prefix(all_files, "/lib/Target/X86/")
 files_Mips = keep_files_with_prefix(all_files, "/lib/Target/Mips/")
 files_AArch64 = keep_files_with_prefix(all_files, "/lib/Target/AArch64/")
+files_AArch64.extend(files_to_add_back_for_llvm_arm)
+files_AArch64.sort()
 files_ARM = keep_files_with_prefix(all_files, "/lib/Target/ARM/")
+files_ARM.extend(files_to_add_back_for_llvm_arm)
+files_ARM.sort()
 files_PowerPC = keep_files_with_prefix(all_files, "/lib/Target/PowerPC/")
 files_RISCV = keep_files_with_prefix(all_files, "/lib/Target/RISCV/")
 
