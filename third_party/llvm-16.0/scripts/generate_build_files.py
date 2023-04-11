@@ -389,15 +389,16 @@ with open(CMAKE_TEMPLATE_PATH, 'r') as f:
     cmake_output.write(result)
 
 # Generate Android.bp
-def format_file_list_for_android_bp(files):
-    return '\n'.join(["        \"llvm" + s + "\"," for s in files])
+def format_file_list_for_android_bp(files, indent):
+    spaces = '    ' * indent
+    return '\n'.join([spaces + "\"llvm" + s + "\"," for s in files])
 android_bp_template_data = {
     'generated_file_comment' : "// " + generated_file_comment,
-    'files_llvm' : format_file_list_for_android_bp(files_llvm),
-    'files_x86' : format_file_list_for_android_bp(files_x86),
-    'files_AArch64' : format_file_list_for_android_bp(files_AArch64),
-    'files_ARM' : format_file_list_for_android_bp(files_ARM),
-    'files_RISCV' : format_file_list_for_android_bp(files_RISCV),
+    'files_llvm' : format_file_list_for_android_bp(files_llvm, indent=2),
+    'files_x86' : format_file_list_for_android_bp(files_x86, indent=4),
+    'files_AArch64' : format_file_list_for_android_bp(files_AArch64, indent=4),
+    'files_ARM' : format_file_list_for_android_bp(files_ARM, indent=4),
+    'files_RISCV' : format_file_list_for_android_bp(files_RISCV, indent=4),
 }
 with open(ANDROID_BP_TEMPLATE_PATH, 'r') as f:
     android_bp_template = CustomTemplate(f.read())
