@@ -72,6 +72,8 @@ cc_defaults {
         "-DBLAKE3_NO_SSE41",
         "-DBLAKE3_NO_SSE2",
         "-DBLAKE3_USE_NEON=0",
+        // Avoid collision with LLVM's "llvm::jitlink::i386" namespace.
+        "-Ui386",
     ],
 
     sanitize: {
