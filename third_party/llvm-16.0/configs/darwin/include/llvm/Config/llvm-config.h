@@ -216,7 +216,7 @@
 #define LLVM_ENABLE_ZLIB 0
 
 /* Define if zstd compression is available */
-#define LLVM_ENABLE_ZSTD 1
+#define LLVM_ENABLE_ZSTD 0
 
 /* Define if LLVM is using tflite instead of libtensorflow */
 /* #undef LLVM_HAVE_TFLITE */
