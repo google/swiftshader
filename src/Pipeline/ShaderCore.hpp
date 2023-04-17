@@ -318,6 +318,22 @@ struct PrintValue::Ty<sw::Vector4s>
 		return PrintValue::vals(v.x, v.y, v.z, v.w);
 	}
 };
+template<>
+struct PrintValue::Ty<sw::Vector4i>
+{
+	static std::string fmt(const sw::Vector4i &v)
+	{
+		return "[x: " + PrintValue::fmt(v.x) +
+		       ", y: " + PrintValue::fmt(v.y) +
+		       ", z: " + PrintValue::fmt(v.z) +
+		       ", w: " + PrintValue::fmt(v.w) + "]";
+	}
+
+	static std::vector<rr::Value *> val(const sw::Vector4i &v)
+	{
+		return PrintValue::vals(v.x, v.y, v.z, v.w);
+	}
+};
 }  // namespace rr
 #endif  // ENABLE_RR_PRINT
 

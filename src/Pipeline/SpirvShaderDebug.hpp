@@ -17,7 +17,7 @@
 
 #include "SpirvShader.hpp"
 
-// Enable this to print verbose debug messages as each SPIR-V instructon is
+// Enable this to print verbose debug messages as each SPIR-V instruction is
 // executed. Very handy for performing text diffs when the thread count is
 // reduced to 1 and execution is deterministic.
 #define SPIRV_SHADER_ENABLE_DBG 0

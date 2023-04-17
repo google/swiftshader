@@ -5,6 +5,7 @@
             "defines": [
                 "ENABLE_VK_DEBUGGER=1",
                 "ENABLE_RR_DEBUG_INFO=1",
+                "ENABLE_RR_PRINT=1",
                 "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
@@ -28,6 +29,7 @@
             "defines": [
                 "ENABLE_VK_DEBUGGER=1",
                 "ENABLE_RR_DEBUG_INFO=1",
+                "ENABLE_RR_PRINT=1",
                 "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
@@ -51,6 +53,7 @@
             "defines": [
                 "ENABLE_VK_DEBUGGER=1",
                 "ENABLE_RR_DEBUG_INFO=1",
+                "ENABLE_RR_PRINT=1",
                 "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
