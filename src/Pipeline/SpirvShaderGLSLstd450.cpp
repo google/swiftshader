@@ -866,7 +866,7 @@ void SpirvEmitter::EmitExtGLSLstd450(Spirv::InsnIterator insn)
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto v = val.UInt(i);
-				dst.move(i, Cttz(v, true) | CmpEQ(v, SIMD::UInt(0)));
+				dst.move(i, Cttz(v, false) | CmpEQ(v, SIMD::UInt(0)));
 			}
 		}
 		break;

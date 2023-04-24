@@ -306,7 +306,7 @@ void SpirvEmitter::EmitGroupNonUniform(InsnIterator insn)
 			ASSERT(type.componentCount == 1);
 			ASSERT(shader.getObjectType(valueId).componentCount == 4);
 			Operand value(shader, *this, valueId);
-			dst.move(0, Cttz(value.UInt(0) & SIMD::UInt(15), true));
+			dst.move(0, Cttz(value.UInt(0) & SIMD::UInt(15), false));
 		}
 		break;
 
