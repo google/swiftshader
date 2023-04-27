@@ -68,6 +68,9 @@ cc_library_static {
     name: "libswiftshadervk_llvm_debug",
     vendor: true,
     defaults: [ "libswiftshadervk_llvm_defaults" ],
+    cflags: [
+        "-UNDEBUG",
+    ],
 }
 
 genrule {
@@ -212,7 +215,7 @@ cc_library_shared {
     name: "vulkan.pastel",
 
     static_libs: [
-        "libswiftshadervk_llvm_debug",
+        "libswiftshadervk_llvm",
         "libLLVM10_swiftshader",
     ],
 

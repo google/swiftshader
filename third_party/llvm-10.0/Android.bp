@@ -1072,6 +1072,8 @@ cc_library_static {
     defaults: [ "libLLVM10_swiftshader_defaults" ],
 
     srcs: [
+        "llvm/lib/Analysis/RegionPrinter.cpp",
+        "llvm/lib/Analysis/VFABIDemangling.cpp",
         "llvm/lib/MC/MCAsmMacro.cpp",
         "llvm/lib/Support/Locale.cpp",
         "llvm/lib/Support/circular_raw_ostream.cpp",
