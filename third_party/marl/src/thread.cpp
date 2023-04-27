@@ -150,7 +150,7 @@ Thread::Affinity Thread::Affinity::all(
       }
     }
   }
-#elif defined(__linux__) && !defined(__ANDROID__)
+#elif defined(__linux__) && !defined(__ANDROID__) && !defined(__BIONIC__)
   auto thread = pthread_self();
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
@@ -379,7 +379,7 @@ class Thread::Impl {
       return;
     }
 
-#if defined(__linux__) && !defined(__ANDROID__)
+#if defined(__linux__) && !defined(__ANDROID__) && !defined(__BIONIC__)
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     for (size_t i = 0; i < count; i++) {
