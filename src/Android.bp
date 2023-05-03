@@ -267,6 +267,9 @@ cc_defaults {
             ],
             cflags: [
                 "-DSWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD",
+                // Allocations which may be mapped into a KVM based virtual
+                // machine must be page aligned.
+                "-DSWIFTSHADER_DEVICE_MEMORY_ALLOCATION_ALIGNMENT=4096",
             ],
         },
     },
