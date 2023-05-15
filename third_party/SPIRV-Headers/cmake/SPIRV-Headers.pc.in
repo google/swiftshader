@@ -1,5 +1,4 @@
-prefix=@CMAKE_INSTALL_PREFIX@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+includedir=@SPIRV_HEADERS_PKGCONFIG_INCLUDE_DIR@
 
 Name: SPIRV-Headers
 Description: Header files from the SPIR-V registry
