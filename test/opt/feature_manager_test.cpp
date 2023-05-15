@@ -14,9 +14,7 @@
 
 #include <algorithm>
 #include <memory>
-#include <string>
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "source/opt/build_module.h"
 #include "source/opt/ir_context.h"

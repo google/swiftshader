@@ -1198,5 +1198,54 @@ INSTANTIATE_TEST_SUITE_P(
                                  {1, 2, 3, 4, 5, 6})},
             })));
 
+// SPV_EXT_shader_tile_image
+
+INSTANTIATE_TEST_SUITE_P(
+    SPV_EXT_shader_tile_image, ExtensionRoundTripTest,
+    Combine(
+        Values(SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_5, SPV_ENV_VULKAN_1_0,
+               SPV_ENV_VULKAN_1_1, SPV_ENV_VULKAN_1_2, SPV_ENV_VULKAN_1_3),
+        ValuesIn(std::vector<AssemblyCase>{
+            {"OpExtension \"SPV_EXT_shader_tile_image\"\n",
+             MakeInstruction(spv::Op::OpExtension,
+                             MakeVector("SPV_EXT_shader_tile_image"))},
+            {"OpCapability TileImageColorReadAccessEXT\n",
+             MakeInstruction(
+                 spv::Op::OpCapability,
+                 {(uint32_t)spv::Capability::TileImageColorReadAccessEXT})},
+            {"OpCapability TileImageDepthReadAccessEXT\n",
+             MakeInstruction(
+                 spv::Op::OpCapability,
+                 {(uint32_t)spv::Capability::TileImageDepthReadAccessEXT})},
+            {"OpCapability TileImageStencilReadAccessEXT\n",
+             MakeInstruction(
+                 spv::Op::OpCapability,
+                 {(uint32_t)spv::Capability::TileImageStencilReadAccessEXT})},
+            {"OpExecutionMode %1 NonCoherentColorAttachmentReadEXT\n",
+             MakeInstruction(spv::Op::OpExecutionMode,
+                             {1, (uint32_t)spv::ExecutionMode::
+                                     NonCoherentColorAttachmentReadEXT})},
+            {"OpExecutionMode %1 NonCoherentDepthAttachmentReadEXT\n",
+             MakeInstruction(spv::Op::OpExecutionMode,
+                             {1, (uint32_t)spv::ExecutionMode::
+                                     NonCoherentDepthAttachmentReadEXT})},
+            {"OpExecutionMode %1 NonCoherentStencilAttachmentReadEXT\n",
+             MakeInstruction(spv::Op::OpExecutionMode,
+                             {1, (uint32_t)spv::ExecutionMode::
+                                     NonCoherentStencilAttachmentReadEXT})},
+            {"%2 = OpColorAttachmentReadEXT %1 %3\n",
+             MakeInstruction(spv::Op::OpColorAttachmentReadEXT, {1, 2, 3})},
+            {"%2 = OpColorAttachmentReadEXT %1 %3 %4\n",
+             MakeInstruction(spv::Op::OpColorAttachmentReadEXT, {1, 2, 3, 4})},
+            {"%2 = OpDepthAttachmentReadEXT %1\n",
+             MakeInstruction(spv::Op::OpDepthAttachmentReadEXT, {1, 2})},
+            {"%2 = OpDepthAttachmentReadEXT %1 %3\n",
+             MakeInstruction(spv::Op::OpDepthAttachmentReadEXT, {1, 2, 3})},
+            {"%2 = OpStencilAttachmentReadEXT %1\n",
+             MakeInstruction(spv::Op::OpStencilAttachmentReadEXT, {1, 2})},
+            {"%2 = OpStencilAttachmentReadEXT %1 %3\n",
+             MakeInstruction(spv::Op::OpStencilAttachmentReadEXT, {1, 2, 3})},
+        })));
+
 }  // namespace
 }  // namespace spvtools

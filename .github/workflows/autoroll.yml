@@ -1,4 +1,6 @@
 name: Update dependencies
+permissions:
+  contents: read
 
 on:
   schedule:
@@ -7,6 +9,9 @@ on:
 
 jobs:
   update-dependencies:
+    permissions:
+      contents: write
+      pull-requests: write
     name: Update dependencies
     runs-on: ubuntu-latest
 
@@ -38,7 +43,6 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
         id: update_dependencies
-     
       - name: Push changes and create PR
         if: steps.update_dependencies.outputs.changed == 'true'
         run: |

@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <string>
 #include <utility>
 
 #include "OpenCLDebugInfo100.h"
@@ -1148,6 +1147,91 @@ OpFunctionEnd)";
   EXPECT_EQ(dbg_decl->GetSingleWordOperand(kDebugDeclareOperandVariableIndex),
             20);
 }
+
+struct TargetEnvCompareTestData {
+  spv_target_env later_env, earlier_env;
+};
+
+using TargetEnvCompareTest = ::testing::TestWithParam<TargetEnvCompareTestData>;
+
+TEST_P(TargetEnvCompareTest, Case) {
+  // If new environments are added, then we must update the list of tests.
+  ASSERT_EQ(SPV_ENV_VULKAN_1_3 + 1, SPV_ENV_MAX);
+
+  const auto& tc = GetParam();
+
+  std::unique_ptr<Module> module(new Module());
+  IRContext localContext(tc.later_env, std::move(module),
+                         spvtools::MessageConsumer());
+  EXPECT_TRUE(localContext.IsTargetEnvAtLeast(tc.earlier_env));
+
+  if (tc.earlier_env != tc.later_env) {
+    std::unique_ptr<Module> module(new Module());
+    IRContext localContext(tc.earlier_env, std::move(module),
+                           spvtools::MessageConsumer());
+    EXPECT_FALSE(localContext.IsTargetEnvAtLeast(tc.later_env));
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    TestCase, TargetEnvCompareTest,
+    ::testing::Values(
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_1, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_2, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_3, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_4, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_1, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_2, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_3, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_4, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_2, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_3, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_4, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_3, SPV_ENV_UNIVERSAL_1_3},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_4, SPV_ENV_UNIVERSAL_1_3},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_UNIVERSAL_1_3},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_UNIVERSAL_1_3},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_4, SPV_ENV_UNIVERSAL_1_4},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_UNIVERSAL_1_4},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_UNIVERSAL_1_4},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_UNIVERSAL_1_5},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_UNIVERSAL_1_5},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_UNIVERSAL_1_6},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_0, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_1, SPV_ENV_VULKAN_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_2, SPV_ENV_VULKAN_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_3, SPV_ENV_VULKAN_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_4, SPV_ENV_VULKAN_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_VULKAN_1_0},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_VULKAN_1_0},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_1, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_1, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_1, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_1, SPV_ENV_UNIVERSAL_1_3},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_4, SPV_ENV_VULKAN_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_5, SPV_ENV_VULKAN_1_1},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_VULKAN_1_1},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_2, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_2, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_2, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_2, SPV_ENV_UNIVERSAL_1_3},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_2, SPV_ENV_UNIVERSAL_1_4},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_2, SPV_ENV_UNIVERSAL_1_5},
+        TargetEnvCompareTestData{SPV_ENV_UNIVERSAL_1_6, SPV_ENV_VULKAN_1_2},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_3, SPV_ENV_UNIVERSAL_1_0},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_3, SPV_ENV_UNIVERSAL_1_1},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_3, SPV_ENV_UNIVERSAL_1_2},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_3, SPV_ENV_UNIVERSAL_1_3},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_3, SPV_ENV_UNIVERSAL_1_4},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_3, SPV_ENV_UNIVERSAL_1_5},
+        TargetEnvCompareTestData{SPV_ENV_VULKAN_1_3, SPV_ENV_UNIVERSAL_1_6}));
 
 }  // namespace
 }  // namespace opt

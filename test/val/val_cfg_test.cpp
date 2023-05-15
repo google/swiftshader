@@ -16,14 +16,12 @@
 
 #include <array>
 #include <functional>
-#include <iterator>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
-#include "source/diagnostic.h"
 #include "source/spirv_target_env.h"
 #include "source/val/validate.h"
 #include "test/test_fixture.h"
@@ -3537,6 +3535,37 @@ OpBranchConditional %undef %then %else
 %then = OpLabel
 OpReturn
 %else = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_ERROR_INVALID_CFG, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(), HasSubstr("Selection must be structured"));
+}
+
+TEST_F(ValidateCFG, LoopConditionalBranchWithoutExitBad) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%bool = OpTypeBool
+%undef = OpUndef %bool
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpBranch %loop
+%loop = OpLabel
+OpLoopMerge %exit %continue None
+OpBranchConditional %undef %then %else
+%then = OpLabel
+OpBranch %continue
+%else = OpLabel
+OpBranch %exit
+%continue = OpLabel
+OpBranch %loop
+%exit = OpLabel
 OpReturn
 OpFunctionEnd
 )";

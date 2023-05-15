@@ -1,4 +1,6 @@
 name: Wasm Build
+permissions:
+  contents: read
 
 on: [push, pull_request]
 

@@ -21,10 +21,8 @@
 #include <stack>
 
 #include "source/cfa.h"
-#include "source/latest_version_glsl_std_450_header.h"
 #include "source/opt/eliminate_dead_functions_util.h"
 #include "source/opt/ir_builder.h"
-#include "source/opt/iterator.h"
 #include "source/opt/reflect.h"
 #include "source/spirv_constant.h"
 #include "source/util/string_utils.h"
@@ -158,7 +156,8 @@ bool AggressiveDCEPass::AllExtensionsSupported() const {
            "Expecting an import of an extension's instruction set.");
     const std::string extension_name = inst.GetInOperand(0).AsString();
     if (spvtools::utils::starts_with(extension_name, "NonSemantic.") &&
-        extension_name != "NonSemantic.Shader.DebugInfo.100") {
+        (extension_name != "NonSemantic.Shader.DebugInfo.100") &&
+        (extension_name != "NonSemantic.DebugPrintf")) {
       return false;
     }
   }

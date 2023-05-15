@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "source/opt/type_manager.h"
+
 #include <memory>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -22,7 +23,6 @@
 #include "gtest/gtest.h"
 #include "source/opt/build_module.h"
 #include "source/opt/instruction.h"
-#include "source/opt/type_manager.h"
 #include "spirv-tools/libspirv.hpp"
 
 namespace spvtools {

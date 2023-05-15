@@ -41,9 +41,9 @@ gsutil cp gs://bazel/5.0.0/release/bazel-5.0.0-darwin-x86_64 .
 chmod +x bazel-5.0.0-darwin-x86_64
 
 echo $(date): Build everything...
-./bazel-5.0.0-darwin-x86_64 build :all
+./bazel-5.0.0-darwin-x86_64 build --cxxopt=-std=c++17 :all
 echo $(date): Build completed.
 
 echo $(date): Starting bazel test...
-./bazel-5.0.0-darwin-x86_64 test :all
+./bazel-5.0.0-darwin-x86_64 test --cxxopt=-std=c++17 :all
 echo $(date): Bazel test completed.

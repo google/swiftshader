@@ -43,8 +43,10 @@ function clean_dir() {
   mkdir "$dir"
 }
 
-# Get source for dependencies, as specified in the DEPS file
-/usr/bin/python3 utils/git-sync-deps --treeless
+if [ $TOOL != "cmake-smoketest" ]; then
+  # Get source for dependencies, as specified in the DEPS file
+  /usr/bin/python3 utils/git-sync-deps --treeless
+fi
 
 if [ $TOOL = "cmake" ]; then
   using cmake-3.17.2
@@ -191,10 +193,10 @@ elif [ $TOOL = "bazel" ]; then
   using bazel-5.0.0
 
   echo $(date): Build everything...
-  bazel build :all
+  bazel build --cxxopt=-std=c++17 :all
   echo $(date): Build completed.
 
   echo $(date): Starting bazel test...
-  bazel test :all
+  bazel test --cxxopt=-std=c++17 :all
   echo $(date): Bazel test completed.
 fi

@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2016 The Khronos Group Inc.
+# Copyright (c) 2015-2023 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -64,6 +64,8 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Fuchsia")
   add_definitions(-DSPIRV_FUCHSIA)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "GNU")
   add_definitions(-DSPIRV_GNU)
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "QNX")
+  add_definitions(-DSPIRV_QNX)
 else()
   message(FATAL_ERROR "Your platform '${CMAKE_SYSTEM_NAME}' is not supported!")
 endif()
@@ -270,7 +272,7 @@ else()
 endif()
 
 if(ENABLE_SPIRV_TOOLS_INSTALL)
-  if(WIN32)
+  if(WIN32 AND NOT MINGW)
     macro(spvtools_config_package_dir TARGET PATH)
       set(${PATH} ${TARGET}/cmake)
     endmacro()
