@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <climits>
 #include <cstdint>
 #include <sstream>
 #include <string>
@@ -85,10 +84,9 @@ bool Type::HasSameDecorations(const Type* that) const {
   return CompareTwoVectors(decorations_, that->decorations_);
 }
 
-bool Type::IsUniqueType(bool allowVariablePointers) const {
+bool Type::IsUniqueType() const {
   switch (kind_) {
     case kPointer:
-      return !allowVariablePointers;
     case kStruct:
     case kArray:
     case kRuntimeArray:

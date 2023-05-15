@@ -14,7 +14,6 @@
 
 #include "source/opt/folding_rules.h"
 
-#include <climits>
 #include <limits>
 #include <memory>
 #include <utility>
@@ -1656,8 +1655,11 @@ std::vector<Operand> GetExtractOperandsForElementOfCompositeConstruct(
 
   analysis::Type* result_type = type_mgr->GetType(inst->type_id());
   if (result_type->AsVector() == nullptr) {
-    uint32_t id = inst->GetSingleWordInOperand(result_index);
-    return {Operand(SPV_OPERAND_TYPE_ID, {id})};
+    if (result_index < inst->NumInOperands()) {
+      uint32_t id = inst->GetSingleWordInOperand(result_index);
+      return {Operand(SPV_OPERAND_TYPE_ID, {id})};
+    }
+    return {};
   }
 
   // If the result type is a vector, then vector operands are concatenated.

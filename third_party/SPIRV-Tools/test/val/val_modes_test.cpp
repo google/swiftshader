@@ -18,7 +18,6 @@
 
 #include "gmock/gmock.h"
 #include "source/spirv_target_env.h"
-#include "test/test_fixture.h"
 #include "test/unit_spirv.h"
 #include "test/val/val_fixtures.h"
 
@@ -579,6 +578,11 @@ TEST_P(ValidateModeExecution, ExecutionMode) {
     sstr << "OpCapability Kernel\n";
     if (env == SPV_ENV_UNIVERSAL_1_3) {
       sstr << "OpCapability SubgroupDispatch\n";
+    } else if (env == SPV_ENV_UNIVERSAL_1_5) {
+      sstr << "OpCapability TileImageColorReadAccessEXT\n";
+      sstr << "OpCapability TileImageDepthReadAccessEXT\n";
+      sstr << "OpCapability TileImageStencilReadAccessEXT\n";
+      sstr << "OpExtension \"SPV_EXT_shader_tile_image\"\n";
     }
   }
   sstr << "OpMemoryModel Logical GLSL450\n";
@@ -701,6 +705,27 @@ INSTANTIATE_TEST_SUITE_P(
                    "EarlyFragmentTests", "DepthReplacing", "DepthGreater",
                    "DepthLess", "DepthUnchanged"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
+
+INSTANTIATE_TEST_SUITE_P(ValidateModeFragmentOnlyGoodSpv15,
+                         ValidateModeExecution,
+                         Combine(Values(SPV_SUCCESS), Values(""),
+                                 Values("Fragment"),
+                                 Values("NonCoherentColorAttachmentReadEXT",
+                                        "NonCoherentDepthAttachmentReadEXT",
+                                        "NonCoherentStencilAttachmentReadEXT"),
+                                 Values(SPV_ENV_UNIVERSAL_1_5)));
+
+INSTANTIATE_TEST_SUITE_P(
+    ValidateModeFragmentOnlyBadSpv15, ValidateModeExecution,
+    Combine(Values(SPV_ERROR_INVALID_DATA),
+            Values("Execution mode can only be used with the Fragment "
+                   "execution model."),
+            Values("Geometry", "TessellationControl", "TessellationEvaluation",
+                   "GLCompute", "Vertex", "Kernel"),
+            Values("NonCoherentColorAttachmentReadEXT",
+                   "NonCoherentDepthAttachmentReadEXT",
+                   "NonCoherentStencilAttachmentReadEXT"),
+            Values(SPV_ENV_UNIVERSAL_1_5)));
 
 INSTANTIATE_TEST_SUITE_P(ValidateModeKernelOnlyGoodSpv13, ValidateModeExecution,
                          Combine(Values(SPV_SUCCESS), Values(""),

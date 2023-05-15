@@ -1,0 +1,24 @@
+name: Create a release branch from release tag
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+'
+      - '!v[0-9]+.[0-9]+.rc*'
+
+jobs:
+  prepare-release-job:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare CHANGELOG for version
+        run: |
+          python utils/generate_changelog.py CHANGES "${{ github.ref_name }}" VERSION_CHANGELOG
+      - name: Create release
+        run: |
+          gh release create -t "Release ${{ github.ref_name }}" -F VERSION_CHANGELOG "${{ github.ref_name }}"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+

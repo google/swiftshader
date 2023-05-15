@@ -104,10 +104,13 @@ py_binary(
 
 genrule(
     name = "build_version_inc",
+    srcs = ["CHANGES"],
     outs = ["build-version.inc"],
-    cmd = "SOURCE_DATE_EPOCH=0 $(location :update_build_version) $(RULEDIR) $(location build-version.inc)",
-    cmd_bat = "set SOURCE_DATE_EPOCH=0  && $(location :update_build_version) $(RULEDIR) $(location build-version.inc)",
-    exec_tools = [":update_build_version"],
+    cmd = "SOURCE_DATE_EPOCH=0 $(location :update_build_version) $(location CHANGES) $(location build-version.inc)",
+    cmd_bat = "set SOURCE_DATE_EPOCH=0  && $(location :update_build_version) $(location CHANGES) $(location build-version.inc)",
+    # This is explicitly tools and not exec_tools because we run it locally (on the host platform) instead of
+    # (potentially remotely) on the execution platform.
+    tools = [":update_build_version"],
     local = True,
 )
 
@@ -283,6 +286,7 @@ cc_binary(
     deps = [
         ":spirv_tools_internal",
         ":tools_io",
+        ":tools_util",
     ],
 )
 
@@ -296,6 +300,25 @@ cc_binary(
     deps = [
         ":spirv_tools",
         ":tools_io",
+        ":tools_util",
+    ],
+)
+
+cc_binary(
+    name = "spirv-objdump",
+    srcs = [
+        "tools/objdump/objdump.cpp",
+        "tools/objdump/extract_source.cpp",
+        "tools/objdump/extract_source.h",
+    ],
+    copts = COMMON_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tools_io",
+        ":tools_util",
+        ":spirv_tools_internal",
+        ":spirv_tools_opt_internal",
+        "@spirv_headers//:spirv_cpp_headers",
     ],
 )
 
@@ -355,6 +378,7 @@ cc_binary(
         ":spirv_tools_internal",
         ":spirv_tools_link",
         ":tools_io",
+        ":tools_util",
     ],
 )
 
@@ -385,6 +409,7 @@ cc_binary(
     deps = [
         ":spirv_tools_internal",
         ":tools_io",
+        ":tools_util",
     ],
 )
 
@@ -414,7 +439,7 @@ cc_library(
     name = "base_{testcase}_test".format(testcase = f[len("test/"):-len("_test.cpp")]),
     size = "small",
     srcs = [f],
-    copts = TEST_COPTS,
+    copts = TEST_COPTS + ['-DTESTING'],
     linkstatic = 1,
     target_compatible_with = {
         "test/timer_test.cpp": incompatible_with(["@bazel_tools//src/conditions:windows"]),
@@ -422,11 +447,12 @@ cc_library(
     deps = [
         ":spirv_tools_internal",
         ":test_lib",
+        "tools_util",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
 ) for f in glob(
-    ["test/*_test.cpp"],
+    ["test/*_test.cpp", "test/tools/*_test.cpp"],
     exclude = [
         "test/cpp_interface_test.cpp",
         "test/log_test.cpp",

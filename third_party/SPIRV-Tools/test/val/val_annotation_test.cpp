@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "gmock/gmock.h"
-#include "test/test_fixture.h"
 #include "test/unit_spirv.h"
 #include "test/val/val_code_generator.h"
 #include "test/val/val_fixtures.h"

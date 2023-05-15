@@ -1,7 +1,22 @@
 Revision history for SPIRV-Tools
 
-v2023.2-dev 2023-01-17
-   - Start v2023.2-dev
+v2023.2 2023-03-10
+  - General
+    - build: move from c++11 to c++17 (#4983)
+    - tools: refactorize tools flags parsing. (#5111)
+    - Add C interface for Optimizer (#5030)
+    - libspirv.cpp: adds c++ api for spvBinaryParse (#5109)
+    - build: change the way we set cxx version for bazel. (#5114)
+  - Optimizer
+    - Fix null pointer in FoldInsertWithConstants. (#5093)
+    - Fix removal of dependent non-semantic instructions (#5122)
+    - Remove duplicate lists of constant and type opcodes (#5106)
+    - opt: fix spirv ABI on Linux again. (#5113)
+  - Validator
+    - Validate decoration of structs with RuntimeArray (#5094)
+    - Validate operand type before operating on it (#5092)
+    - spirv-val: Conditional Branch without an exit is invalid in loop header (#5069)
+    - spirv-val: Initial SPV_EXT_mesh_shader builtins (#5080)
 
 v2023.1 2023-01-17
   - General

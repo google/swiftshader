@@ -1,4 +1,6 @@
 name: Build and Test with Bazel
+permissions:
+  contents: read
 
 on:
   push:
@@ -26,7 +28,15 @@ jobs:
         with:
           path: ~/.bazel/cache
           key: bazel-cache-${{ runner.os }}
-      - name: Build All
-        run: bazel --output_user_root=~/.bazel/cache build //...
-      - name: Test All
-        run: bazel --output_user_root=~/.bazel/cache test //...
+      - name: Build All (Windows)
+        if: ${{matrix.os == 'windows-latest' }}
+        run: bazel --output_user_root=~/.bazel/cache build --cxxopt=/std:c++17 //...
+      - name: Test All (Windows)
+        if: ${{matrix.os == 'windows-latest' }}
+        run: bazel --output_user_root=~/.bazel/cache test --cxxopt=/std:c++17 //...
+      - name: Build All (Linux, MacOS)
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: bazel --output_user_root=~/.bazel/cache build --cxxopt=-std=c++17 //...
+      - name: Test All (Linux, MacOS)
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: bazel --output_user_root=~/.bazel/cache test --cxxopt=-std=c++17 //...

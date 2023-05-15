@@ -7857,6 +7857,33 @@ TEST_F(AggressiveDCETest, RemoveOutputFalse) {
   SinglePassRunAndMatch<AggressiveDCEPass>(text, true, false, false);
 }
 
+TEST_F(AggressiveDCETest, RemoveWhenUsingPrintfExtension) {
+  // Remove dead n_out output variable from module
+  const std::string text = R"(
+; CHECK: OpExtInstImport "NonSemantic.DebugPrintf"
+; CHECK-NOT: OpVariable
+               OpCapability Shader
+          %1 = OpExtInstImport "NonSemantic.DebugPrintf"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 8 8 1
+               OpSource HLSL 660
+               OpName %main "main"
+       %uint = OpTypeInt 32 0
+       %void = OpTypeVoid
+          %5 = OpTypeFunction %void
+%_ptr_Function_uint = OpTypePointer Function %uint
+       %main = OpFunction %void None %5
+          %7 = OpLabel
+          %8 = OpVariable %_ptr_Function_uint Function
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_3);
+  SinglePassRunAndMatch<AggressiveDCEPass>(text, true);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

@@ -1570,6 +1570,49 @@ TEST_F(ConvertToHalfTest, HandleNonRelaxedPhi) {
   EXPECT_EQ(Pass::Status::SuccessWithChange, std::get<1>(result));
 }
 
+TEST_F(ConvertToHalfTest, DoNotReplaceStructMember) {
+  // See https://github.com/KhronosGroup/SPIRV-Tools/issues/4814
+
+  // This test is a case with a non-relaxed phi with a relaxed operand.
+  // A convert must be inserted at the end of the block associated with
+  // the operand.
+  const std::string test =
+      R"(OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %PSMain "PSMain" %out_var_SV_TARGET %MyConstants
+OpExecutionMode %PSMain OriginUpperLeft
+OpSource HLSL 600
+OpName %type_ConstantBuffer_myStruct "type.ConstantBuffer.myStruct"
+OpMemberName %type_ConstantBuffer_myStruct 0 "f"
+OpName %MyConstants "MyConstants"
+OpName %out_var_SV_TARGET "out.var.SV_TARGET"
+OpName %PSMain "PSMain"
+OpDecorate %out_var_SV_TARGET Location 0
+OpDecorate %MyConstants DescriptorSet 1
+OpDecorate %MyConstants Binding 2
+OpMemberDecorate %type_ConstantBuffer_myStruct 0 Offset 0
+OpDecorate %type_ConstantBuffer_myStruct Block
+%float = OpTypeFloat 32
+%type_ConstantBuffer_myStruct = OpTypeStruct %float
+%_ptr_Uniform_type_ConstantBuffer_myStruct = OpTypePointer Uniform %type_ConstantBuffer_myStruct
+%_ptr_Output_float = OpTypePointer Output %float
+%void = OpTypeVoid
+%9 = OpTypeFunction %void
+%MyConstants = OpVariable %_ptr_Uniform_type_ConstantBuffer_myStruct Uniform
+%out_var_SV_TARGET = OpVariable %_ptr_Output_float Output
+%PSMain = OpFunction %void None %9
+%10 = OpLabel
+%11 = OpLoad %type_ConstantBuffer_myStruct %MyConstants
+%12 = OpCompositeExtract %float %11 0
+OpStore %out_var_SV_TARGET %12
+OpReturn
+OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndCheck<ConvertToHalfPass>(test, test, true);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools
