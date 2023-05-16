@@ -1096,10 +1096,9 @@ cc_defaults {
         "llvm/lib/Support/BLAKE3/blake3_portable.c",
     ],
 
-    target: {
-        android_arm: {
+    arch: {
+        arm: {
             srcs: [
-                "llvm/lib/Analysis/RegionPrinter.cpp",
                 "llvm/lib/CodeGen/MultiHazardRecognizer.cpp",
                 "llvm/lib/MC/ConstantPools.cpp",
                 "llvm/lib/MC/MCInstrInfo.cpp",
@@ -1172,9 +1171,8 @@ cc_defaults {
                 "llvm/lib/Transforms/IPO/BarrierNoopPass.cpp",
             ],
         },
-        android_arm64: {
+        arm64: {
             srcs: [
-                "llvm/lib/Analysis/RegionPrinter.cpp",
                 "llvm/lib/CodeGen/MultiHazardRecognizer.cpp",
                 "llvm/lib/MC/ConstantPools.cpp",
                 "llvm/lib/MC/MCInstrInfo.cpp",
@@ -1255,7 +1253,7 @@ cc_defaults {
                 "llvm/lib/Transforms/IPO/BarrierNoopPass.cpp",
             ],
         },
-        android_riscv64: {
+        riscv64: {
             srcs: [
                 "llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp",
                 "llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp",
@@ -1302,7 +1300,7 @@ cc_defaults {
                 "llvm/lib/Target/RISCV/TargetInfo/RISCVTargetInfo.cpp",
             ],
         },
-        android_x86: {
+        x86: {
             srcs: [
                 "llvm/lib/Target/X86/AsmParser/X86AsmParser.cpp",
                 "llvm/lib/Target/X86/Disassembler/X86Disassembler.cpp",
@@ -1388,7 +1386,7 @@ cc_defaults {
                 "llvm/lib/Target/X86/X86WinEHState.cpp",
             ],
         },
-        android_x86_64: {
+        x86_64: {
             srcs: [
                 "llvm/lib/Target/X86/AsmParser/X86AsmParser.cpp",
                 "llvm/lib/Target/X86/Disassembler/X86Disassembler.cpp",
@@ -1529,5 +1527,9 @@ cc_library_static {
 
     cflags: [
         "-UNDEBUG",
+    ],
+
+    srcs: [
+        "llvm/lib/Analysis/RegionPrinter.cpp",
     ],
 }

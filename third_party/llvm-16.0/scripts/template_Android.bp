@@ -23,28 +23,28 @@ cc_defaults {
 %$%files_llvm
     ],
 
-    target: {
-        android_arm: {
+    arch: {
+        arm: {
             srcs: [
 %$%files_ARM
             ],
         },
-        android_arm64: {
+        arm64: {
             srcs: [
 %$%files_AArch64
             ],
         },
-        android_riscv64: {
+        riscv64: {
             srcs: [
 %$%files_RISCV
             ],
         },
-        android_x86: {
+        x86: {
             srcs: [
 %$%files_x86
             ],
         },
-        android_x86_64: {
+        x86_64: {
             srcs: [
 %$%files_x86
             ],
@@ -104,5 +104,9 @@ cc_library_static {
 
     cflags: [
         "-UNDEBUG",
+    ],
+
+    srcs: [
+%$%files_llvm_debug
     ],
 }

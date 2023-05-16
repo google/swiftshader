@@ -1242,7 +1242,6 @@ elseif(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
     )
 elseif(ARCH STREQUAL "aarch64")
     list(APPEND LLVM_LIST
-        ${LLVM_DIR}/lib/Analysis/RegionPrinter.cpp
         ${LLVM_DIR}/lib/CodeGen/MultiHazardRecognizer.cpp
         ${LLVM_DIR}/lib/MC/ConstantPools.cpp
         ${LLVM_DIR}/lib/MC/MCInstrInfo.cpp
@@ -1324,7 +1323,6 @@ elseif(ARCH STREQUAL "aarch64")
     )
 elseif(ARCH STREQUAL "arm")
     list(APPEND LLVM_LIST
-        ${LLVM_DIR}/lib/Analysis/RegionPrinter.cpp
         ${LLVM_DIR}/lib/CodeGen/MultiHazardRecognizer.cpp
         ${LLVM_DIR}/lib/MC/ConstantPools.cpp
         ${LLVM_DIR}/lib/MC/MCInstrInfo.cpp

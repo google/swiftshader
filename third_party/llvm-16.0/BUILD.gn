@@ -1272,7 +1272,6 @@ swiftshader_llvm_source_set("swiftshader_llvm_source_set_1") {
 
 swiftshader_llvm_source_set("swiftshader_llvm_aarch64") {
   sources = [
-    "llvm/lib/Analysis/RegionPrinter.cpp",
     "llvm/lib/CodeGen/MultiHazardRecognizer.cpp",
     "llvm/lib/MC/ConstantPools.cpp",
     "llvm/lib/MC/MCInstrInfo.cpp",
@@ -1356,7 +1355,6 @@ swiftshader_llvm_source_set("swiftshader_llvm_aarch64") {
 
 swiftshader_llvm_source_set("swiftshader_llvm_arm") {
   sources = [
-    "llvm/lib/Analysis/RegionPrinter.cpp",
     "llvm/lib/CodeGen/MultiHazardRecognizer.cpp",
     "llvm/lib/MC/ConstantPools.cpp",
     "llvm/lib/MC/MCInstrInfo.cpp",

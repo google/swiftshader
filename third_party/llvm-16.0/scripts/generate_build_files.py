@@ -359,8 +359,11 @@ files_to_add_back_for_llvm = [
 files_llvm = exclude_files_with_prefixes(all_files, prefixes_of_files_not_needed_by_llvm)
 files_llvm.extend(files_to_add_back_for_llvm)
 
-files_to_add_back_for_llvm_arm = [
+files_llvm_debug = [
     "/lib/Analysis/RegionPrinter.cpp",
+]
+
+files_to_add_back_for_llvm_arm = [
     "/lib/CodeGen/MultiHazardRecognizer.cpp",
     "/lib/MC/ConstantPools.cpp",
     "/lib/MC/MCInstrInfo.cpp",
@@ -407,6 +410,7 @@ def format_file_list_for_android_bp(files, indent):
 android_bp_template_data = {
     'generated_file_comment' : "// " + generated_file_comment,
     'files_llvm' : format_file_list_for_android_bp(files_llvm, indent=2),
+    'files_llvm_debug': format_file_list_for_android_bp(files_llvm_debug, indent=2),
     'files_x86' : format_file_list_for_android_bp(files_x86, indent=4),
     'files_AArch64' : format_file_list_for_android_bp(files_AArch64, indent=4),
     'files_ARM' : format_file_list_for_android_bp(files_ARM, indent=4),
