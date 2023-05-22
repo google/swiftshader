@@ -1497,6 +1497,8 @@ elseif(ARCH STREQUAL "riscv64")
         ${LLVM_DIR}/lib/Target/RISCV/RISCVTargetObjectFile.cpp
         ${LLVM_DIR}/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
         ${LLVM_DIR}/lib/Target/RISCV/TargetInfo/RISCVTargetInfo.cpp
+        ${LLVM_DIR}/lib/TargetParser/RISCVTargetParser.cpp
+        ${LLVM_DIR}/lib/Transforms/IPO/BarrierNoopPass.cpp
     )
 endif()
 

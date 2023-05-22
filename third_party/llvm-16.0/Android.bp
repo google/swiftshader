@@ -1298,6 +1298,8 @@ cc_defaults {
                 "llvm/lib/Target/RISCV/RISCVTargetObjectFile.cpp",
                 "llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp",
                 "llvm/lib/Target/RISCV/TargetInfo/RISCVTargetInfo.cpp",
+                "llvm/lib/TargetParser/RISCVTargetParser.cpp",
+                "llvm/lib/Transforms/IPO/BarrierNoopPass.cpp",
             ],
         },
         x86: {
