@@ -17,9 +17,12 @@
 #include "osfiber_asm_x64.h"
 
 #include "marl/export.h"
+#include "marl/sanitizers.h"
 
-//You can find an explanation of this code here: https://github.com/google/marl/issues/199
+// You can find an explanation of this code here:
+// https://github.com/google/marl/issues/199
 
+MARL_UNDEFINED_SANITIZER_ONLY(__attribute__((no_sanitize("function"))))
 MARL_EXPORT
 void marl_fiber_trampoline(void (*target)(void*), void* arg) {
   target(arg);
