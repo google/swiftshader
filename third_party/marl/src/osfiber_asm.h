@@ -38,6 +38,8 @@
 #include "osfiber_asm_rv64.h"
 #elif defined(__loongarch__) && _LOONGARCH_SIM == _ABILP64
 #include "osfiber_asm_loongarch64.h"
+#elif defined(__EMSCRIPTEN__)
+#include "osfiber_emscripten.h"
 #else
 #error "Unsupported target"
 #endif
@@ -50,6 +52,13 @@
 
 extern "C" {
 
+#if defined(__EMSCRIPTEN__)
+MARL_EXPORT
+void marl_main_fiber_init(marl_fiber_context* ctx);
+#else
+MARL_EXPORT
+inline void marl_main_fiber_init(marl_fiber_context*) {}
+#endif
 MARL_EXPORT
 extern void marl_fiber_set_target(marl_fiber_context*,
                                   void* stack,
@@ -108,6 +117,7 @@ Allocator::unique_ptr<OSFiber> OSFiber::createFiberFromCurrentThread(
     Allocator* allocator) {
   auto out = allocator->make_unique<OSFiber>(allocator);
   out->context = {};
+  marl_main_fiber_init(&out->context);
   return out;
 }
 

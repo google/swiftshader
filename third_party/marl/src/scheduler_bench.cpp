@@ -37,7 +37,8 @@ BENCHMARK_DEFINE_F(Schedule, SomeWork)
       wg.add(numTasks);
       for (auto i = 0; i < numTasks; i++) {
         marl::schedule([=] {
-          benchmark::DoNotOptimize(doSomeWork(i));
+          uint32_t value = doSomeWork(i);
+          benchmark::DoNotOptimize(value);
           wg.done();
         });
       }
@@ -58,7 +59,8 @@ BENCHMARK_DEFINE_F(Schedule, SomeWorkWorkerAffinityOneOf)
       wg.add(numTasks);
       for (auto i = 0; i < numTasks; i++) {
         marl::schedule([=] {
-          benchmark::DoNotOptimize(doSomeWork(i));
+          uint32_t value = doSomeWork(i);
+          benchmark::DoNotOptimize(value);
           wg.done();
         });
       }
