@@ -114,12 +114,12 @@ void Scheduler::unbind() {
   {
     marl::lock lock(get()->singleThreadedWorkers.mutex);
     auto tid = std::this_thread::get_id();
-    auto it = get()->singleThreadedWorkers.byTid.find(tid);
-    MARL_ASSERT(it != get()->singleThreadedWorkers.byTid.end(),
-                "singleThreadedWorker not found");
+    auto& workers = get()->singleThreadedWorkers.byTid;
+    auto it = workers.find(tid);
+    MARL_ASSERT(it != workers.end(), "singleThreadedWorker not found");
     MARL_ASSERT(it->second.get() == worker, "worker is not bound?");
-    get()->singleThreadedWorkers.byTid.erase(it);
-    if (get()->singleThreadedWorkers.byTid.empty()) {
+    workers.erase(it);
+    if (workers.empty()) {
       get()->singleThreadedWorkers.unbind.notify_one();
     }
   }

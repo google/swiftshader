@@ -61,7 +61,7 @@ class Task {
   Flags flags = Flags::None;
 };
 
-Task::Task() {}
+Task::Task() = default;
 Task::Task(const Task& o) : function(o.function), flags(o.flags) {}
 Task::Task(Task&& o) : function(std::move(o.function)), flags(o.flags) {}
 Task::Task(const Function& function_, Flags flags_ /* = Flags::None */)

@@ -12,6 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+config_setting(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
 cc_library(
     name = "marl",
     srcs = glob(
@@ -25,7 +38,7 @@ cc_library(
             "src/**/*_test.cpp",
         ]),
     ) + select({
-        "@bazel_tools//src/conditions:windows": [],
+        ":windows": [],
         "//conditions:default": glob(["src/**/*.S"]),
     }),
     hdrs = glob([
@@ -35,7 +48,7 @@ cc_library(
         "include",
     ],
     linkopts = select({
-        "@bazel_tools//src/conditions:linux_x86_64": ["-pthread"],
+        ":linux_x86_64": ["-pthread"],
         "//conditions:default": [],
     }),
     visibility = [

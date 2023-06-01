@@ -24,6 +24,10 @@ project(Marl
     LANGUAGES C CXX ASM
 )
 
+if (EMSCRIPTEN)
+    add_compile_options(-O3 -pthread)
+endif()
+
 include(CheckCXXSourceCompiles)
 
 # MARL_IS_SUBPROJECT is 1 if added via add_subdirectory() from another project.
@@ -171,6 +175,7 @@ if(NOT MSVC)
         ${MARL_SRC_DIR}/osfiber_rv64.c
         ${MARL_SRC_DIR}/osfiber_x64.c
         ${MARL_SRC_DIR}/osfiber_x86.c
+        ${MARL_SRC_DIR}/osfiber_emscripten.cpp
     )
     # CMAKE_OSX_ARCHITECTURES settings aren't propagated to assembly files when
     # building for Apple platforms (https://gitlab.kitware.com/cmake/cmake/-/issues/20771),
@@ -397,6 +402,16 @@ if(MARL_BUILD_EXAMPLES)
         set_target_properties(${target} PROPERTIES FOLDER "Examples")
         marl_set_target_options(${target})
         target_link_libraries(${target} PRIVATE marl)
+        if (EMSCRIPTEN)
+            target_link_options(${target} PRIVATE
+                    -O1
+                    -pthread -sPTHREAD_POOL_SIZE=2 -sPROXY_TO_PTHREAD
+                    -sASYNCIFY # -sASYNCIFY_STACK_SIZE=1000000
+                    -sALLOW_MEMORY_GROWTH=1 -sASSERTIONS
+                    -sENVIRONMENT=web,worker
+                    "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/examples/shell.emscripten.html")
+            set_target_properties(${target} PROPERTIES SUFFIX .html)
+        endif()
     endfunction(build_example)
 
     build_example(fractal)

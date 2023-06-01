@@ -8,7 +8,7 @@ Marl is a C++ 11 library that provides a fluent interface for running tasks acro
 
 Marl uses a combination of fibers and threads to allow efficient execution of tasks that can block, while keeping a fixed number of hardware threads.
 
-Marl supports Windows, macOS, Linux, FreeBSD, Fuchsia, Android and iOS (arm, aarch64, loongarch64, mips64, ppc64, rv64, x86 and x64).
+Marl supports Windows, macOS, Linux, FreeBSD, Fuchsia, Emscripten, Android and iOS (arm, aarch64, loongarch64, mips64, ppc64, rv64, x86 and x64).
 
 Marl has no dependencies on other libraries (with an exception on googletest for building the optional unit tests).
 
@@ -92,6 +92,26 @@ make
 ```
 
 The resulting binaries will be found in `<path-to-marl>/build`
+
+### Emscripten
+
+1. install and activate the emscripten sdk following [standard instructions for your platform](https://emscripten.org/docs/getting_started/downloads.html).
+2. build an example from the examples folder using emscripten, say `hello_task`. 
+```bash
+cd <path-to-marl>
+mkdir build
+cd build
+emcmake cmake .. -DMARL_BUILD_EXAMPLES=1
+make hello_task -j 8
+```
+NOTE: you want to change the value of the linker flag `sPTHREAD_POOL_SIZE` that must be at least as large as the number of threads used by your application.
+3. Test the emscripten output.
+You can use the provided python script to create a local web server:
+```bash
+../run_webserver
+```
+In your browser, navigate to the example URL: [http://127.0.0.1:8080/hello_task.html](http://127.0.0.1:8080/hello_task.html).  
+Voilà - you should see the log output appear on the web page.
 
 ### Installing Marl (vcpkg)
 

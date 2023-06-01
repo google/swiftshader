@@ -78,10 +78,10 @@ func Parse(s string) (Benchmark, error) {
 }
 
 var errWrongFormat = errors.New("Wrong format")
-var consoleLineRE = regexp.MustCompile(`([\w/:]+)\s+([0-9]+(?:.[0-9]+)?) ns\s+[0-9]+(?:.[0-9]+) ns\s+([0-9]+)`)
+var consoleLineRE = regexp.MustCompile(`([\w/:]+)\s+([0-9]+(?:.[0-9e+]+)?) ns\s+[0-9]+(?:.[0-9e+]+) ns\s+([0-9]+)`)
 
 func parseConsole(s string) (Benchmark, error) {
-	blocks := strings.Split(s, "------------------------------------------------------------------------------------------")
+	blocks := strings.Split(s, "--------------------------------------------------------------------------------------------------------")
 	if len(blocks) != 3 {
 		return Benchmark{}, errWrongFormat
 	}

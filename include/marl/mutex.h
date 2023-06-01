@@ -73,7 +73,7 @@ class CAPABILITY("mutex") mutex {
 class SCOPED_CAPABILITY lock {
  public:
   inline lock(mutex& m) ACQUIRE(m) : _(m._) {}
-  inline ~lock() RELEASE() {}
+  inline ~lock() RELEASE() = default;
 
   // wait calls cv.wait() on this lock.
   template <typename Predicate>

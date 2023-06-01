@@ -43,8 +43,8 @@ class Thread {
     };
 
     // Comparison functions
-    MARL_NO_EXPORT inline bool operator==(const Core&) const;
-    MARL_NO_EXPORT inline bool operator<(const Core&) const;
+    MARL_NO_EXPORT inline bool operator==(Core) const;
+    MARL_NO_EXPORT inline bool operator<(Core) const;
   };
 
   // Affinity holds the affinity mask for a thread - a description of what cores
@@ -52,7 +52,8 @@ class Thread {
   struct Affinity {
     // supported is true if marl supports controlling thread affinity for this
     // platform.
-#if defined(_WIN32) || (defined(__linux__) && !defined(__ANDROID__)) || \
+#if defined(_WIN32) ||                                                       \
+    (defined(__linux__) && !defined(__ANDROID__) && !defined(__BIONIC__)) || \
     defined(__FreeBSD__)
     static constexpr bool supported = true;
 #else
@@ -91,6 +92,8 @@ class Thread {
     MARL_EXPORT Affinity(Allocator*);
 
     MARL_EXPORT Affinity(Affinity&&);
+
+    MARL_EXPORT Affinity& operator=(Affinity&&);
 
     MARL_EXPORT Affinity(const Affinity&, Allocator* allocator);
 
@@ -156,11 +159,11 @@ class Thread {
 // Thread::Core
 ////////////////////////////////////////////////////////////////////////////////
 // Comparison functions
-bool Thread::Core::operator==(const Core& other) const {
+bool Thread::Core::operator==(Core other) const {
   return pthread.index == other.pthread.index;
 }
 
-bool Thread::Core::operator<(const Core& other) const {
+bool Thread::Core::operator<(Core other) const {
   return pthread.index < other.pthread.index;
 }
 
