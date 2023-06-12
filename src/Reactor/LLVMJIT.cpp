@@ -26,9 +26,23 @@ __pragma(warning(push))
     __pragma(warning(disable : 4146))  // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
+// See https://groups.google.com/g/llvm-dev/c/CAE7Va57h2c/m/74ITeXFEAQAJ
+// for information about `RTDyldObjectLinkingLayer` vs `ObjectLinkingLayer`.
+// On RISC-V, only `ObjectLinkingLayer` is supported.
+#if defined(__riscv)
+#define USE_LEGACY_OBJECT_LINKING_LAYER 0
+#else
+#define USE_LEGACY_OBJECT_LINKING_LAYER 1
+#endif
+
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
+
+#if USE_LEGACY_OBJECT_LINKING_LAYER
 #include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
+#else
+#include "llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h"
+#endif
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Verifier.h"
@@ -216,13 +230,28 @@ JITGlobals *JITGlobals::get()
 #else
 		(void)ok;  // getHostCPUFeatures always returns false on other platforms
 #endif
-
 		for(auto &feature : cpuFeatures)
 		{
 			jitTargetMachineBuilder.getFeatures().AddFeature(feature.first(), feature.second);
 		}
 
 #if LLVM_VERSION_MAJOR >= 11 /* TODO(b/165000222): Unconditional after LLVM 11 upgrade */
+
+#if defined(__riscv) && __riscv_xlen == 64
+		// jitTargetMachineBuilder.getFeatures() on RISC-V does
+		// not return the RISC-V CPU extensions, so they are
+		// manually added.
+		jitTargetMachineBuilder.getFeatures().AddFeature("+m");
+		jitTargetMachineBuilder.getFeatures().AddFeature("+a");
+		jitTargetMachineBuilder.getFeatures().AddFeature("+f");
+		jitTargetMachineBuilder.getFeatures().AddFeature("+d");
+		jitTargetMachineBuilder.getFeatures().AddFeature("+c");
+		// The default code model is "Small".
+		// On RISC-V, using the default code model results in an
+		// "Unsupported riscv relocation" error.
+		jitTargetMachineBuilder.setCodeModel(llvm::CodeModel::Medium);
+#endif
+
 		jitTargetMachineBuilder.setCPU(std::string(llvm::sys::getHostCPUName()));
 #else
 		jitTargetMachineBuilder.setCPU(llvm::sys::getHostCPUName());
@@ -746,9 +775,13 @@ public:
 #if LLVM_VERSION_MAJOR >= 13
 	    , session(std::move(Unwrap(llvm::orc::SelfExecutorProcessControl::Create())))
 #endif
+#if USE_LEGACY_OBJECT_LINKING_LAYER
 	    , objectLayer(session, [this]() {
 		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
 	    })
+#else
+	    , objectLayer(session, llvm::cantFail(llvm::jitlink::InProcessMemoryManager::Create()))
+#endif
 	    , addresses(count)
 	{
 		bool fatalCompileIssue = false;
@@ -861,7 +894,11 @@ private:
 	std::string name;
 	llvm::orc::ExecutionSession session;
 	MemoryMapper memoryMapper;
+#if USE_LEGACY_OBJECT_LINKING_LAYER
 	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
+#else
+	llvm::orc::ObjectLinkingLayer objectLayer;
+#endif
 	std::vector<const void *> addresses;
 };
 
