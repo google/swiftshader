@@ -155,7 +155,7 @@ static void *getTLSAddress(void *control)
 	case MSanTLS::origin: return reinterpret_cast<void *>(&__msan_origin_tls);
 
 	default:
-		UNSUPPORTED("MemorySanitizer used an unrecognized TLS variable: %d", tlsIndex);
+		UNSUPPORTED("MemorySanitizer used an unrecognized TLS variable: %d", static_cast<int>(tlsIndex));
 		return nullptr;
 	}
 }
