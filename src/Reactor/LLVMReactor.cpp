@@ -806,13 +806,13 @@ RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
 Value *Nucleus::createShl(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(jit->builder->CreateShl(V(lhs), V(rhs)));
+	return V(jit->builder->CreateFreeze(jit->builder->CreateShl(V(lhs), V(rhs))));
 }
 
 Value *Nucleus::createLShr(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(jit->builder->CreateLShr(V(lhs), V(rhs)));
+	return V(jit->builder->CreateFreeze(jit->builder->CreateLShr(V(lhs), V(rhs))));
 }
 
 Value *Nucleus::createAShr(Value *lhs, Value *rhs)
