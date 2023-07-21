@@ -1,0 +1,8 @@
+dEQP-VK.spirv_assembly.instruction.compute.non_semantic_info.any_non_constant_type
+dEQP-VK.spirv_assembly.instruction.compute.opconstantcomposite.vector
+dEQP-VK.spirv_assembly.instruction.compute.signed_op.glsl_int_umax
+dEQP-VK.spirv_assembly.instruction.compute.signed_op.glsl_int_umin
+dEQP-VK.spirv_assembly.instruction.compute.signed_op.int_ugreaterthan
+dEQP-VK.spirv_assembly.instruction.compute.signed_op.int_ugreaterthanequal
+dEQP-VK.spirv_assembly.instruction.compute.signed_op.int_ulessthan
+dEQP-VK.spirv_assembly.instruction.compute.signed_op.int_ulessthanequal

@@ -14338,5 +14338,9 @@ dEQP-VK.query_pool.occlusion_query.copy_reset_results_size_64_stride_32_with_ava
 dEQP-VK.query_pool.occlusion_query.copy_reset_results_size_64_stride_40_with_availability
 dEQP-VK.query_pool.occlusion_query.copy_reset_results_size_64_stride_104_with_availability
 dEQP-VK.query_pool.occlusion_query.copy_reset_results_size_64_stride_8192_with_availability
+dEQP-VK.query_pool.frag_invocations.occlusion.primary
+dEQP-VK.query_pool.frag_invocations.occlusion.secondary
+dEQP-VK.query_pool.frag_invocations.frag_invs.primary
+dEQP-VK.query_pool.frag_invocations.frag_invs.secondary
 dEQP-VK.query_pool.concurrent_queries.primary_command_buffer
 dEQP-VK.query_pool.concurrent_queries.secondary_command_buffer
