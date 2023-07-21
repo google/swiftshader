@@ -276,7 +276,10 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 	size_t length = roundUp(bytes, pageSize);
 	void *mapping = nullptr;
 
-#if defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
+#if defined(_WIN32)
+	return VirtualAlloc(nullptr, length, MEM_COMMIT | MEM_RESERVE,
+	                    permissionsToProtectMode(permissions));
+#elif defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	int flags = MAP_PRIVATE;
 
 	// Try to name the memory region for the executable code,
@@ -392,10 +395,11 @@ void deallocateMemoryPages(void *memory, size_t bytes)
 {
 #if defined(_WIN32)
 	unsigned long oldProtection;
-	BOOL result =
-	    VirtualProtect(memory, bytes, PAGE_READWRITE, &oldProtection);
+	BOOL result;
+	result = VirtualProtect(memory, bytes, PAGE_READWRITE, &oldProtection);
 	ASSERT(result);
-	deallocate(memory);
+	result = VirtualFree(memory, 0, MEM_RELEASE);
+	ASSERT(result);
 #elif defined(__APPLE__) || (defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME))
 	size_t pageSize = memoryPageSize();
 	size_t length = (bytes + pageSize - 1) & ~(pageSize - 1);
