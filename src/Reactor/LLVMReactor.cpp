@@ -356,6 +356,21 @@ llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
 	return jit->builder->CreateTrunc(mulh, ty);
 }
 
+// TODO(crbug.com/swiftshader/185): A temporary workaround for failing chromium tests.
+llvm::Value *clampForShift(llvm::Value *rhs)
+{
+	llvm::Value *max;
+	if(auto *vec = llvm::dyn_cast<llvm::VectorType>(rhs->getType()))
+	{
+		max = llvm::ConstantVector::getSplat(vec->getNumElements(), llvm::ConstantInt::get(vec->getElementType(), 31));
+	}
+	else
+	{
+		max = llvm::ConstantInt::get(rhs->getType(), 31);
+	}
+	return jit->builder->CreateSelect(jit->builder->CreateICmpULE(rhs, max), rhs, max);
+}
+
 }  // namespace
 
 namespace rr {
@@ -806,13 +821,15 @@ RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
 Value *Nucleus::createShl(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(jit->builder->CreateFreeze(jit->builder->CreateShl(V(lhs), V(rhs))));
+	auto *clamped_rhs = clampForShift(V(rhs));
+	return V(jit->builder->CreateFreeze(jit->builder->CreateShl(V(lhs), clamped_rhs)));
 }
 
 Value *Nucleus::createLShr(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(jit->builder->CreateFreeze(jit->builder->CreateLShr(V(lhs), V(rhs))));
+	auto *clamped_rhs = clampForShift(V(rhs));
+	return V(jit->builder->CreateFreeze(jit->builder->CreateLShr(V(lhs), clamped_rhs)));
 }
 
 Value *Nucleus::createAShr(Value *lhs, Value *rhs)

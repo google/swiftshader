@@ -2061,6 +2061,169 @@ TEST(ReactorUnitTests, LargeStack)
 	}
 }
 
+TEST(ReactorUnitTests, ShlSmallRHSScalar)
+{
+	// TODO(crbug.com/swiftshader/185): Testing a temporary LLVM workaround
+	if(Caps::backendName().find("LLVM") == std::string::npos) return;
+
+	FunctionT<unsigned()> function;
+	{
+		auto lhs = UInt(4);
+		auto rhs = UInt(8);
+		auto res = lhs << rhs;
+		Return(res);
+	}
+
+	auto routine = function(testName().c_str());
+
+	unsigned res = routine();
+	EXPECT_EQ(res, 1u << 10u);
+}
+
+TEST(ReactorUnitTests, ShlLargeRHSScalar)
+{
+	// TODO(crbug.com/swiftshader/185): Testing a temporary LLVM workaround
+	if(Caps::backendName().find("LLVM") == std::string::npos) return;
+
+	FunctionT<unsigned()> function;
+	{
+		auto lhs = UInt(1);
+		auto rhs = UInt(99);
+		auto res = lhs << rhs;
+		Return(res);
+	}
+
+	auto routine = function(testName().c_str());
+
+	unsigned res = routine();
+	EXPECT_EQ(res, 1u << 31u);
+}
+
+TEST(ReactorUnitTests, ShrSmallRHSScalar)
+{
+	// TODO(crbug.com/swiftshader/185): Testing a temporary LLVM workaround
+	if(Caps::backendName().find("LLVM") == std::string::npos) return;
+
+	FunctionT<unsigned()> function;
+	{
+		auto lhs = UInt(64);
+		auto rhs = UInt(4);
+		auto res = lhs >> rhs;
+		Return(res);
+	}
+
+	auto routine = function(testName().c_str());
+
+	unsigned res = routine();
+	EXPECT_EQ(res, 4);
+}
+
+TEST(ReactorUnitTests, ShrLargeRHSScalar)
+{
+	// TODO(crbug.com/swiftshader/185): Testing a temporary LLVM workaround
+	if(Caps::backendName().find("LLVM") == std::string::npos) return;
+
+	FunctionT<unsigned()> function;
+	{
+		auto lhs = UInt(4);
+		auto rhs = UInt(99);
+		auto res = lhs >> rhs;
+		Return(res);
+	}
+
+	auto routine = function(testName().c_str());
+
+	unsigned res = routine();
+	EXPECT_EQ(res, 0);
+}
+
+TEST(ReactorUnitTests, ShlRHSVector)
+{
+	// TODO(crbug.com/swiftshader/185): Testing a temporary LLVM workaround
+	if(Caps::backendName().find("LLVM") == std::string::npos) return;
+
+	FunctionT<void(unsigned *a, unsigned *b, unsigned *c, unsigned *d)> function;
+	{
+		Pointer<UInt> a = function.Arg<0>();
+		Pointer<UInt> b = function.Arg<1>();
+		Pointer<UInt> c = function.Arg<2>();
+		Pointer<UInt> d = function.Arg<3>();
+
+		auto lhs = UInt4(4, 3, 6, 5);
+		auto rhs = UInt4(8, 99, 2, 50);
+		UInt4 res = lhs << rhs;
+		*a = res.x;
+		*b = res.y;
+		*c = res.z;
+		*d = res.w;
+	}
+
+	auto routine = function(testName().c_str());
+
+	unsigned a = 0;
+	unsigned b = 0;
+	unsigned c = 0;
+	unsigned d = 0;
+	routine(&a, &b, &c, &d);
+	EXPECT_EQ(a, 1024);
+	EXPECT_EQ(b, 0x80000000);
+	EXPECT_EQ(c, 24);
+	EXPECT_EQ(d, 0x80000000);
+}
+
+TEST(ReactorUnitTests, ShrRHSVector)
+{
+	// TODO(crbug.com/swiftshader/185): Testing a temporary LLVM workaround
+	if(Caps::backendName().find("LLVM") == std::string::npos) return;
+
+	FunctionT<void(unsigned *a, unsigned *b, unsigned *c, unsigned *d)> function;
+	{
+		Pointer<UInt> a = function.Arg<0>();
+		Pointer<UInt> b = function.Arg<1>();
+		Pointer<UInt> c = function.Arg<2>();
+		Pointer<UInt> d = function.Arg<3>();
+
+		auto lhs = UInt4(745, 23, 234, 54);
+		auto rhs = UInt4(8, 99, 2, 50);
+		UInt4 res = lhs >> rhs;
+		*a = res.x;
+		*b = res.y;
+		*c = res.z;
+		*d = res.w;
+	}
+
+	auto routine = function(testName().c_str());
+
+	unsigned a = 0;
+	unsigned b = 0;
+	unsigned c = 0;
+	unsigned d = 0;
+	routine(&a, &b, &c, &d);
+	EXPECT_EQ(a, 2);
+	EXPECT_EQ(b, 0);
+	EXPECT_EQ(c, 58);
+	EXPECT_EQ(d, 0);
+}
+
+TEST(ReactorUnitTests, ShrLargeRHSVector)
+{
+	// TODO(crbug.com/swiftshader/185): Testing a temporary LLVM workaround
+	if(Caps::backendName().find("LLVM") == std::string::npos) return;
+
+	FunctionT<unsigned()> function;
+	{
+		auto lhs = UInt(4);
+		auto rhs = UInt(99);
+		auto res = lhs >> rhs;
+		Return(res);
+	}
+
+	auto routine = function(testName().c_str());
+
+	unsigned res = routine();
+	EXPECT_EQ(res, 0);
+}
+
 TEST(ReactorUnitTests, Call)
 {
 	struct Class
