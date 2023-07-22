@@ -2115,7 +2115,7 @@ TEST(ReactorUnitTests, ShrSmallRHSScalar)
 	auto routine = function(testName().c_str());
 
 	unsigned res = routine();
-	EXPECT_EQ(res, 4);
+	EXPECT_EQ(res, 4u);
 }
 
 TEST(ReactorUnitTests, ShrLargeRHSScalar)
@@ -2134,7 +2134,7 @@ TEST(ReactorUnitTests, ShrLargeRHSScalar)
 	auto routine = function(testName().c_str());
 
 	unsigned res = routine();
-	EXPECT_EQ(res, 0);
+	EXPECT_EQ(res, 0u);
 }
 
 TEST(ReactorUnitTests, ShlRHSVector)
@@ -2165,10 +2165,10 @@ TEST(ReactorUnitTests, ShlRHSVector)
 	unsigned c = 0;
 	unsigned d = 0;
 	routine(&a, &b, &c, &d);
-	EXPECT_EQ(a, 1024);
-	EXPECT_EQ(b, 0x80000000);
-	EXPECT_EQ(c, 24);
-	EXPECT_EQ(d, 0x80000000);
+	EXPECT_EQ(a, 1024u);
+	EXPECT_EQ(b, 0x80000000u);
+	EXPECT_EQ(c, 24u);
+	EXPECT_EQ(d, 0x80000000u);
 }
 
 TEST(ReactorUnitTests, ShrRHSVector)
@@ -2199,10 +2199,10 @@ TEST(ReactorUnitTests, ShrRHSVector)
 	unsigned c = 0;
 	unsigned d = 0;
 	routine(&a, &b, &c, &d);
-	EXPECT_EQ(a, 2);
-	EXPECT_EQ(b, 0);
-	EXPECT_EQ(c, 58);
-	EXPECT_EQ(d, 0);
+	EXPECT_EQ(a, 2u);
+	EXPECT_EQ(b, 0u);
+	EXPECT_EQ(c, 58u);
+	EXPECT_EQ(d, 0u);
 }
 
 TEST(ReactorUnitTests, ShrLargeRHSVector)
