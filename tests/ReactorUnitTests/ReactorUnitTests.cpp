@@ -2221,7 +2221,7 @@ TEST(ReactorUnitTests, ShrLargeRHSVector)
 	auto routine = function(testName().c_str());
 
 	unsigned res = routine();
-	EXPECT_EQ(res, 0);
+	EXPECT_EQ(res, 0u);
 }
 
 TEST(ReactorUnitTests, Call)
