@@ -362,11 +362,13 @@ llvm::Value *clampForShift(llvm::Value *rhs)
 	llvm::Value *max;
 	if(auto *vec = llvm::dyn_cast<llvm::VectorType>(rhs->getType()))
 	{
-		max = llvm::ConstantVector::getSplat(vec->getNumElements(), llvm::ConstantInt::get(vec->getElementType(), 31));
+		auto N = vec->getElementType()->getIntegerBitWidth() - 1;
+		max = llvm::ConstantVector::getSplat(vec->getNumElements(), llvm::ConstantInt::get(vec->getElementType(), N));
 	}
 	else
 	{
-		max = llvm::ConstantInt::get(rhs->getType(), 31);
+		auto N = rhs->getType()->getIntegerBitWidth() - 1;
+		max = llvm::ConstantInt::get(rhs->getType(), N);
 	}
 	return jit->builder->CreateSelect(jit->builder->CreateICmpULE(rhs, max), rhs, max);
 }
