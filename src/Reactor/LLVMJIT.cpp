@@ -258,8 +258,12 @@ JITGlobals *JITGlobals::get()
 #endif
 
 		// Reactor's MemorySanitizer support depends on intercepting __emutls_get_address calls.
+#if LLVM_VERSION_MAJOR < 17
 		ASSERT(!__has_feature(memory_sanitizer) || (jitTargetMachineBuilder.getOptions().ExplicitEmulatedTLS &&
 		                                            jitTargetMachineBuilder.getOptions().EmulatedTLS));
+#else
+		ASSERT(!__has_feature(memory_sanitizer) || jitTargetMachineBuilder.getOptions().EmulatedTLS);
+#endif
 
 		auto dataLayout = jitTargetMachineBuilder.getDefaultDataLayoutForTarget();
 		ASSERT_MSG(dataLayout, "JITTargetMachineBuilder::getDefaultDataLayoutForTarget() failed");
@@ -660,13 +664,25 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			auto unmangled = *name;
 #endif
 
+#if LLVM_VERSION_MAJOR < 17
+			auto toSymbol = [](void *ptr) {
+				return llvm::JITEvaluatedSymbol(
+				    static_cast<llvm::JITTargetAddress>(reinterpret_cast<uintptr_t>(ptr)),
+				    llvm::JITSymbolFlags::Exported);
+			};
+#else
+			auto toSymbol = [](void *ptr) {
+				return llvm::orc::ExecutorSymbolDef{
+					llvm::orc::ExecutorAddr(reinterpret_cast<uintptr_t>(ptr)),
+					llvm::JITSymbolFlags::Exported,
+				};
+			};
+#endif
+
 			auto it = resolver.functions.find(unmangled.str());
 			if(it != resolver.functions.end())
 			{
-				symbols[name] = llvm::JITEvaluatedSymbol(
-				    static_cast<llvm::JITTargetAddress>(reinterpret_cast<uintptr_t>(it->second)),
-				    llvm::JITSymbolFlags::Exported);
-
+				symbols[name] = toSymbol(it->second);
 				continue;
 			}
 
@@ -681,10 +697,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 
 			if(address)
 			{
-				symbols[name] = llvm::JITEvaluatedSymbol(
-				    static_cast<llvm::JITTargetAddress>(reinterpret_cast<uintptr_t>(address)),
-				    llvm::JITSymbolFlags::Exported);
-
+				symbols[name] = toSymbol(address);
 				continue;
 			}
 #endif
@@ -866,7 +879,11 @@ public:
 			}
 			else  // Successful compilation
 			{
+#if LLVM_VERSION_MAJOR < 17
 				addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(symbol->getAddress()));
+#else
+				addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(symbol->getAddress().getValue()));
+#endif
 			}
 		}
 

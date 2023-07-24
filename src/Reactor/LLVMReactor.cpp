@@ -68,6 +68,15 @@ llvm::llvm_shutdown_obj llvmShutdownObj;
 // for destructing objects at exit. See crbug.com/1074222
 thread_local rr::JITBuilder *jit = nullptr;
 
+auto getNumElements(llvm::FixedVectorType *vec)
+{
+#if LLVM_VERSION_MAJOR >= 11
+	return vec->getElementCount();
+#else
+	return vec->getNumElements();
+#endif
+}
+
 llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
 {
 	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
@@ -142,13 +151,8 @@ llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
 	llvm::Constant *one;
 	if(llvm::FixedVectorType *vectorTy = llvm::dyn_cast<llvm::FixedVectorType>(ty))
 	{
-		one = llvm::ConstantVector::getSplat(
-#if LLVM_VERSION_MAJOR >= 11
-		    vectorTy->getElementCount(),
-#else
-		    vectorTy->getNumElements(),
-#endif
-		    llvm::ConstantFP::get(vectorTy->getElementType(), 1));
+		one = llvm::ConstantVector::getSplat(getNumElements(vectorTy),
+		                                     llvm::ConstantFP::get(vectorTy->getElementType(), 1));
 	}
 	else
 	{
@@ -165,39 +169,24 @@ llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
 [[maybe_unused]] llvm::Value *lowerVectorShl(llvm::Value *x, uint64_t scalarY)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
-	llvm::Value *y = llvm::ConstantVector::getSplat(
-#if LLVM_VERSION_MAJOR >= 11
-	    ty->getElementCount(),
-#else
-	    ty->getNumElements(),
-#endif
-	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
+	llvm::Value *y = llvm::ConstantVector::getSplat(getNumElements(ty),
+	                                                llvm::ConstantInt::get(ty->getElementType(), scalarY));
 	return jit->builder->CreateShl(x, y);
 }
 
 [[maybe_unused]] llvm::Value *lowerVectorAShr(llvm::Value *x, uint64_t scalarY)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
-	llvm::Value *y = llvm::ConstantVector::getSplat(
-#if LLVM_VERSION_MAJOR >= 11
-	    ty->getElementCount(),
-#else
-	    ty->getNumElements(),
-#endif
-	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
+	llvm::Value *y = llvm::ConstantVector::getSplat(getNumElements(ty),
+	                                                llvm::ConstantInt::get(ty->getElementType(), scalarY));
 	return jit->builder->CreateAShr(x, y);
 }
 
 [[maybe_unused]] llvm::Value *lowerVectorLShr(llvm::Value *x, uint64_t scalarY)
 {
 	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
-	llvm::Value *y = llvm::ConstantVector::getSplat(
-#if LLVM_VERSION_MAJOR >= 11
-	    ty->getElementCount(),
-#else
-	    ty->getNumElements(),
-#endif
-	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
+	llvm::Value *y = llvm::ConstantVector::getSplat(getNumElements(ty),
+	                                                llvm::ConstantInt::get(ty->getElementType(), scalarY));
 	return jit->builder->CreateLShr(x, y);
 }
 
@@ -360,10 +349,10 @@ llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
 llvm::Value *clampForShift(llvm::Value *rhs)
 {
 	llvm::Value *max;
-	if(auto *vec = llvm::dyn_cast<llvm::VectorType>(rhs->getType()))
+	if(auto *vec = llvm::dyn_cast<llvm::FixedVectorType>(rhs->getType()))
 	{
 		auto N = vec->getElementType()->getIntegerBitWidth() - 1;
-		max = llvm::ConstantVector::getSplat(vec->getNumElements(), llvm::ConstantInt::get(vec->getElementType(), N));
+		max = llvm::ConstantVector::getSplat(getNumElements(vec), llvm::ConstantInt::get(vec->getElementType(), N));
 	}
 	else
 	{
