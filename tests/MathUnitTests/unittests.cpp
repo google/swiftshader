@@ -232,8 +232,8 @@ TEST(MathTest, Log2RelaxedExhaustive)
 		}
 	}
 
-	ASSERT_TRUE(worst_margin < 1.0f);
-	ASSERT_TRUE(worst_abs <= 1.0f);
+	ASSERT_TRUE(worst_margin < 1.0f) << " worst_x " << worst_x << " worst_val " << worst_val << " worst_ref " << worst_ref << " worst_ulp " << worst_ulp;
+	ASSERT_TRUE(worst_abs <= 1.0f) << " worst_x " << worst_x << " worst_val " << worst_val << " worst_ref " << worst_ref << " worst_ulp " << worst_ulp;
 
 	CPUID::setDenormalsAreZero(false);
 	CPUID::setFlushToZero(false);
@@ -299,7 +299,7 @@ TEST(MathTest, Exp2RelaxedExhaustive)
 		}
 	}
 
-	ASSERT_TRUE(worst_margin <= 1.0f);
+	ASSERT_TRUE(worst_margin <= 1.0f) << " worst_x " << worst_x << " worst_val " << worst_val << " worst_ref " << worst_ref << " worst_ulp " << worst_ulp;
 
 	CPUID::setDenormalsAreZero(false);
 	CPUID::setFlushToZero(false);
@@ -387,8 +387,8 @@ TEST(MathTest, Log2Exhaustive)
 		}
 	}
 
-	ASSERT_TRUE(worst_margin < 1.0f);
-	ASSERT_TRUE(worst_abs <= 1.0f);
+	ASSERT_TRUE(worst_margin < 1.0f) << " worst_x " << worst_x << " worst_val " << worst_val << " worst_ref " << worst_ref << " worst_ulp " << worst_ulp;
+	ASSERT_TRUE(worst_abs <= 1.0f) << " worst_x " << worst_x << " worst_val " << worst_val << " worst_ref " << worst_ref << " worst_ulp " << worst_ulp;
 
 	CPUID::setDenormalsAreZero(false);
 	CPUID::setFlushToZero(false);
@@ -456,7 +456,7 @@ TEST(MathTest, Exp2Exhaustive)
 		}
 	}
 
-	ASSERT_TRUE(worst_margin <= 1.0f);
+	ASSERT_TRUE(worst_margin <= 1.0f) << " worst_x " << worst_x << " worst_val " << worst_val << " worst_ref " << worst_ref << " worst_ulp " << worst_ulp;
 
 	CPUID::setDenormalsAreZero(false);
 	CPUID::setFlushToZero(false);
