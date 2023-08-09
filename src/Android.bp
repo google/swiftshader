@@ -283,6 +283,14 @@ cc_library_shared {
         "libLLVM16_swiftshader",
     ],
 
+    target: {
+        host: {
+            strip: {
+                keep_symbols_and_debug_frame: true,
+            },
+        },
+    },
+
     defaults: [
         "libvk_swiftshader_common_defaults",
         "libvk_swiftshader_defaults"
