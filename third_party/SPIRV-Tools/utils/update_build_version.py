@@ -59,12 +59,14 @@ def mkdir_p(directory):
         else:
             raise
 
-def command_output(cmd, directory):
+def command_output(cmd, directory, may_fail=False):
     """Runs a command in a directory and returns its standard output stream.
 
     Captures the standard error stream.
 
-    Raises a RuntimeError if the command fails to launch or otherwise fails.
+    Raises a RuntimeError if the command fails to launch or otherwise fails. If
+    `may_fail` is true, suppresses the log message when running the command
+    succeeds but returns a non-zero error code.
     """
     try:
       # Set shell=True on Windows so that Chromium's git.bat can be found when
@@ -75,7 +77,7 @@ def command_output(cmd, directory):
                            stderr=subprocess.PIPE,
                            shell=os.name == 'nt')
       (stdout, stderr) = p.communicate()
-      if p.returncode != 0:
+      if p.returncode != 0 and not may_fail:
         logging.error('Failed to run "{}" in "{}": {}'.format(cmd, directory, stderr.decode()))
     except Exception as e:
         logging.error('Failed to run "{}" in "{}": {}'.format(cmd, directory, str(e)))
@@ -111,7 +113,7 @@ def describe(repo_path):
     Runs 'git describe', or alternately 'git rev-parse HEAD', in directory.  If
     successful, returns the output; otherwise returns 'unknown hash, <date>'."""
 
-    success, output = command_output(['git', 'describe'], repo_path)
+    success, output = command_output(['git', 'describe'], repo_path, may_fail=True)
     if not success:
       output = command_output(['git', 'rev-parse', 'HEAD'], repo_path)
 
