@@ -36,10 +36,9 @@ class ImageView;
 #ifdef __ANDROID__
 struct BackingMemory
 {
-	int stride = 0;
 	bool externalMemory = false;
-	buffer_handle_t nativeHandle = nullptr;
 	VkSwapchainImageUsageFlagsANDROID androidUsage = 0;
+	VkNativeBufferANDROID nativeBufferInfo = {};
 };
 #endif
 

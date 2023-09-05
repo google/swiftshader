@@ -26,7 +26,8 @@
 #include "Device/ETC_Decoder.hpp"
 
 #ifdef __ANDROID__
-#	include "System/GrallocAndroid.hpp"
+#	include <vndk/hardware_buffer.h>
+
 #	include "VkDeviceMemoryExternalAndroid.hpp"
 #endif
 
@@ -314,49 +315,51 @@ void Image::bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset)
 #ifdef __ANDROID__
 VkResult Image::prepareForExternalUseANDROID() const
 {
-	void *nativeBuffer = nullptr;
 	VkExtent3D extent = getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
-	buffer_handle_t importedBufferHandle = nullptr;
-	if(GrallocModule::getInstance()->import(backingMemory.nativeHandle, &importedBufferHandle) != 0)
+	AHardwareBuffer_Desc ahbDesc = {};
+	ahbDesc.width = extent.width;
+	ahbDesc.height = extent.height;
+	ahbDesc.layers = 1;
+	ahbDesc.format = static_cast<uint32_t>(backingMemory.nativeBufferInfo.format);
+	ahbDesc.usage = static_cast<uint64_t>(backingMemory.nativeBufferInfo.usage);
+	ahbDesc.stride = static_cast<uint32_t>(backingMemory.nativeBufferInfo.stride);
+
+	AHardwareBuffer *ahb = nullptr;
+	if(AHardwareBuffer_createFromHandle(&ahbDesc, backingMemory.nativeBufferInfo.handle, AHARDWAREBUFFER_CREATE_FROM_HANDLE_METHOD_CLONE, &ahb) != 0)
 	{
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
-	if(!importedBufferHandle)
+	if(!ahb)
 	{
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
 
-	if(GrallocModule::getInstance()->lock(importedBufferHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer) != 0)
-	{
-		return VK_ERROR_OUT_OF_DATE_KHR;
-	}
+	ARect ahbRect = {};
+	ahbRect.left = 0;
+	ahbRect.top = 0;
+	ahbRect.right = static_cast<int32_t>(extent.width);
+	ahbRect.bottom = static_cast<int32_t>(extent.height);
 
-	if(!nativeBuffer)
+	AHardwareBuffer_Planes ahbPlanes = {};
+	if(AHardwareBuffer_lockPlanes(ahb, AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN, /*fence=*/-1, &ahbRect, &ahbPlanes) != 0)
 	{
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
 
 	int imageRowBytes = rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-	int bufferRowBytes = backingMemory.stride * getFormat().bytes();
+	int bufferRowBytes = backingMemory.nativeBufferInfo.stride * getFormat().bytes();
 	ASSERT(imageRowBytes <= bufferRowBytes);
 
 	uint8_t *srcBuffer = static_cast<uint8_t *>(deviceMemory->getOffsetPointer(0));
-	uint8_t *dstBuffer = static_cast<uint8_t *>(nativeBuffer);
+	uint8_t *dstBuffer = static_cast<uint8_t *>(ahbPlanes.planes[0].data);
 	for(uint32_t i = 0; i < extent.height; i++)
 	{
 		memcpy(dstBuffer + (i * bufferRowBytes), srcBuffer + (i * imageRowBytes), imageRowBytes);
 	}
 
-	if(GrallocModule::getInstance()->unlock(importedBufferHandle) != 0)
-	{
-		return VK_ERROR_OUT_OF_DATE_KHR;
-	}
-
-	if(GrallocModule::getInstance()->release(importedBufferHandle) != 0)
-	{
-		return VK_ERROR_OUT_OF_DATE_KHR;
-	}
+	AHardwareBuffer_unlock(ahb, /*fence=*/nullptr);
+	AHardwareBuffer_release(ahb);
 
 	return VK_SUCCESS;
 }

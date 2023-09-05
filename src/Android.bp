@@ -254,7 +254,6 @@ cc_defaults {
     target: {
         android: {
             srcs: [
-                "System/GrallocAndroid.cpp",
                 "Vulkan/VkDeviceMemoryExternalAndroid.cpp",
             ],
             cflags: [

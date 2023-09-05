@@ -82,9 +82,11 @@
 #include "marl/tsa.h"
 
 #ifdef __ANDROID__
+#	include <unistd.h>
+
 #	include "commit.h"
-#	include "System/GrallocAndroid.hpp"
 #	include <android/log.h>
+#	include <hardware/gralloc.h>
 #	include <hardware/gralloc1.h>
 #	include <sync/sync.h>
 #	ifdef SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
@@ -1969,8 +1971,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID:
 			{
 				const VkNativeBufferANDROID *nativeBufferInfo = reinterpret_cast<const VkNativeBufferANDROID *>(extensionCreateInfo);
-				backmem.nativeHandle = nativeBufferInfo->handle;
-				backmem.stride = nativeBufferInfo->stride;
+				backmem.nativeBufferInfo = *nativeBufferInfo;
+				backmem.nativeBufferInfo.pNext = nullptr;
 				swapchainImage = true;
 			}
 			break;
