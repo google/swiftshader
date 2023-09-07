@@ -14,7 +14,7 @@ Generate webtreemap-compatible JSON summaries of binary size.
 Local Modifications:
 Only bloat.py is used (with no modifications).
 
-========================================================================
+-------------------- DEPENDENCY DIVIDER --------------------
 
 Name: Webtreemap - Web-based treemap
 Short Name: webtreemap
