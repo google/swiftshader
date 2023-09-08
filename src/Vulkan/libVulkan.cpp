@@ -436,7 +436,8 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	// Used by ANGLE to implement triangle/etc list restarts as possible in OpenGL
 	{ { VK_EXT_PRIMITIVE_TOPOLOGY_LIST_RESTART_EXTENSION_NAME, VK_EXT_PRIMITIVE_TOPOLOGY_LIST_RESTART_SPEC_VERSION } },
 	{ { VK_EXT_PIPELINE_ROBUSTNESS_EXTENSION_NAME, VK_EXT_PIPELINE_ROBUSTNESS_SPEC_VERSION } },
-	{ { VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME, VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_SPEC_VERSION } }
+	{ { VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME, VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_SPEC_VERSION } },
+	{ { VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME, VK_EXT_HOST_IMAGE_COPY_SPEC_VERSION } },
 };
 
 static uint32_t numSupportedExtensions(const ExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
@@ -1125,6 +1126,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT:
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES_EXT:
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES_EXT:
 			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
@@ -2001,6 +2003,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 				(void)stencilUsageInfo->stencilUsage;
 			}
 			break;
+		case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT:
+			{
+				// Explicitly ignored, since VK_EXT_image_drm_format_modifier is not supported
+				ASSERT(!hasDeviceExtension(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME));
+			}
+			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:
 			// dEQP tests that this value is ignored.
 			break;
@@ -2070,6 +2078,37 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageSubresourceLayout(VkDevice device, VkImage 
 	      device, static_cast<void *>(image), pSubresource, pLayout);
 
 	vk::Cast(image)->getSubresourceLayout(pSubresource, pLayout);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkGetImageSubresourceLayout2EXT(VkDevice device, VkImage image, const VkImageSubresource2KHR *pSubresource, VkSubresourceLayout2KHR *pLayout)
+{
+	TRACE("(VkDevice device = %p, VkImage image = %p, const VkImageSubresource2KHR* pSubresource = %p, VkSubresourceLayout2KHR* pLayout = %p)",
+	      device, static_cast<void *>(image), pSubresource, pLayout);
+
+	// If tiling is OPTIMAL, this doesn't need to be done, but it's harmless especially since
+	// LINEAR and OPTIMAL are the same.
+	vk::Cast(image)->getSubresourceLayout(&pSubresource->imageSubresource, &pLayout->subresourceLayout);
+
+	VkBaseOutStructure *extInfo = reinterpret_cast<VkBaseOutStructure *>(pLayout->pNext);
+	while(extInfo)
+	{
+		switch(extInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_SUBRESOURCE_HOST_MEMCPY_SIZE_EXT:
+			{
+				// Since the subresource layout is filled above already, get the size out of
+				// that.
+				VkSubresourceHostMemcpySizeEXT *hostMemcpySize = reinterpret_cast<VkSubresourceHostMemcpySizeEXT *>(extInfo);
+				hostMemcpySize->size = pLayout->subresourceLayout.size;
+				break;
+			}
+		default:
+			UNSUPPORTED("pLayout->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+			break;
+		}
+
+		extInfo = extInfo->pNext;
+	}
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageViewCreateInfo *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkImageView *pView)
@@ -3760,6 +3799,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES_EXT:
+			{
+				auto *properties = reinterpret_cast<VkPhysicalDeviceHostImageCopyPropertiesEXT *>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
+			}
+			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNSUPPORTED("pProperties->pNext sType = %s", vk::Stringify(extensionProperties->sType).c_str());
@@ -3881,6 +3926,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 			{
 				// Explicitly ignored, since VK_AMD_texture_gather_bias_lod is not supported
 				ASSERT(!hasDeviceExtension(VK_AMD_TEXTURE_GATHER_BIAS_LOD_EXTENSION_NAME));
+			}
+			break;
+		case VK_STRUCTURE_TYPE_HOST_IMAGE_COPY_DEVICE_PERFORMANCE_QUERY_EXT:
+			{
+				auto *properties = reinterpret_cast<VkHostImageCopyDevicePerformanceQueryEXT *>(extensionProperties);
+				// Host image copy is equally performant on the host with SwiftShader; it's the same code running on the main thread.
+				properties->optimalDeviceAccess = VK_TRUE;
+				properties->identicalMemoryLayout = VK_TRUE;
 			}
 			break;
 #ifdef __ANDROID__
@@ -4327,6 +4380,67 @@ VKAPI_ATTR void VKAPI_CALL vkSubmitDebugUtilsMessageEXT(VkInstance instance, VkD
 	      instance, messageSeverity, messageTypes, pCallbackData);
 
 	vk::Cast(instance)->submitDebugUtilsMessage(messageSeverity, messageTypes, pCallbackData);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCopyMemoryToImageEXT(VkDevice device, const VkCopyMemoryToImageInfoEXT *pCopyMemoryToImageInfo)
+{
+	TRACE("(VkDevice device = %p, const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo = %p)",
+	      device, pCopyMemoryToImageInfo);
+
+	constexpr auto allRecognizedFlagBits = VK_HOST_IMAGE_COPY_MEMCPY_EXT;
+	ASSERT(!(pCopyMemoryToImageInfo->flags & ~allRecognizedFlagBits));
+
+	vk::Image *dstImage = vk::Cast(pCopyMemoryToImageInfo->dstImage);
+	for(uint32_t i = 0; i < pCopyMemoryToImageInfo->regionCount; i++)
+	{
+		dstImage->copyFromMemory(pCopyMemoryToImageInfo->pRegions[i]);
+	}
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCopyImageToMemoryEXT(VkDevice device, const VkCopyImageToMemoryInfoEXT *pCopyImageToMemoryInfo)
+{
+	TRACE("(VkDevice device = %p, const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo = %p)",
+	      device, pCopyImageToMemoryInfo);
+
+	constexpr auto allRecognizedFlagBits = VK_HOST_IMAGE_COPY_MEMCPY_EXT;
+	ASSERT(!(pCopyImageToMemoryInfo->flags & ~allRecognizedFlagBits));
+
+	vk::Image *srcImage = vk::Cast(pCopyImageToMemoryInfo->srcImage);
+	for(uint32_t i = 0; i < pCopyImageToMemoryInfo->regionCount; i++)
+	{
+		srcImage->copyToMemory(pCopyImageToMemoryInfo->pRegions[i]);
+	}
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCopyImageToImageEXT(VkDevice device, const VkCopyImageToImageInfoEXT *pCopyImageToImageInfo)
+{
+	TRACE("(VkDevice device = %p, const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo = %p)",
+	      device, pCopyImageToImageInfo);
+
+	constexpr auto allRecognizedFlagBits = VK_HOST_IMAGE_COPY_MEMCPY_EXT;
+	ASSERT(!(pCopyImageToImageInfo->flags & ~allRecognizedFlagBits));
+
+	vk::Image *srcImage = vk::Cast(pCopyImageToImageInfo->srcImage);
+	vk::Image *dstImage = vk::Cast(pCopyImageToImageInfo->dstImage);
+	for(uint32_t i = 0; i < pCopyImageToImageInfo->regionCount; i++)
+	{
+		srcImage->copyTo(dstImage, pCopyImageToImageInfo->pRegions[i]);
+	}
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkTransitionImageLayoutEXT(VkDevice device, uint32_t transitionCount, const VkHostImageLayoutTransitionInfoEXT *pTransitions)
+{
+	TRACE("(VkDevice device = %p, uint32_t transitionCount = %u, const VkHostImageLayoutTransitionInfoEXT* pTransitions = %p)",
+	      device, transitionCount, pTransitions);
+
+	// This function is a no-op; there are no image layouts in SwiftShader.
+	return VK_SUCCESS;
 }
 
 #ifdef VK_USE_PLATFORM_XCB_KHR

@@ -162,6 +162,11 @@ VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 		case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
 		case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO:
 			break;
+		case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT:
+			{
+				// Explicitly ignored, since VK_EXT_image_drm_format_modifier is not supported
+			}
+			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:
 			// dEQP tests that this value is ignored.
 			break;
@@ -581,9 +586,19 @@ void Image::copySingleAspectTo(Image *dstImage, const VkImageCopy2KHR &region) c
 	dstImage->contentsChanged(ImageSubresourceRange(region.dstSubresource));
 }
 
-void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool bufferIsSource)
+void Image::copy(const void *srcCopyMemory,
+                 void *dstCopyMemory,
+                 uint32_t rowLength,
+                 uint32_t imageHeight,
+                 const VkImageSubresourceLayers &imageSubresource,
+                 const VkOffset3D &imageCopyOffset,
+                 const VkExtent3D &imageCopyExtent)
 {
-	switch(region.imageSubresource.aspectMask)
+	// Decide on whether copying from buffer/memory or to buffer/memory
+	ASSERT((srcCopyMemory == nullptr) != (dstCopyMemory == nullptr));
+	const bool memoryIsSource = srcCopyMemory != nullptr;
+
+	switch(imageSubresource.aspectMask)
 	{
 	case VK_IMAGE_ASPECT_COLOR_BIT:
 	case VK_IMAGE_ASPECT_DEPTH_BIT:
@@ -593,56 +608,54 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool buffe
 	case VK_IMAGE_ASPECT_PLANE_2_BIT:
 		break;
 	default:
-		UNSUPPORTED("aspectMask %x", int(region.imageSubresource.aspectMask));
+		UNSUPPORTED("aspectMask %x", int(imageSubresource.aspectMask));
 		break;
 	}
 
-	auto aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
+	auto aspect = static_cast<VkImageAspectFlagBits>(imageSubresource.aspectMask);
 	Format copyFormat = getFormat(aspect);
 
-	VkExtent3D imageExtent = imageExtentInBlocks(region.imageExtent, aspect);
+	VkExtent3D imageExtent = imageExtentInBlocks(imageCopyExtent, aspect);
 
 	if(imageExtent.width == 0 || imageExtent.height == 0 || imageExtent.depth == 0)
 	{
 		return;
 	}
 
-	VkExtent2D bufferExtent = bufferExtentInBlocks(Extent2D(imageExtent), region);
+	VkExtent2D extent = bufferExtentInBlocks(Extent2D(imageExtent), rowLength, imageHeight, imageSubresource, imageCopyOffset);
 	int bytesPerBlock = copyFormat.bytesPerBlock();
-	int bufferRowPitchBytes = bufferExtent.width * bytesPerBlock;
-	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
+	int memoryRowPitchBytes = extent.width * bytesPerBlock;
+	int memorySlicePitchBytes = extent.height * memoryRowPitchBytes;
 	ASSERT(samples == 1);
 
-	uint8_t *bufferMemory = static_cast<uint8_t *>(buffer->getOffsetPointer(region.bufferOffset));
-	uint8_t *imageMemory = static_cast<uint8_t *>(getTexelPointer(region.imageOffset, ImageSubresource(region.imageSubresource)));
-	uint8_t *srcMemory = bufferIsSource ? bufferMemory : imageMemory;
-	uint8_t *dstMemory = bufferIsSource ? imageMemory : bufferMemory;
-	int imageRowPitchBytes = rowPitchBytes(aspect, region.imageSubresource.mipLevel);
-	int imageSlicePitchBytes = slicePitchBytes(aspect, region.imageSubresource.mipLevel);
+	uint8_t *imageMemory = static_cast<uint8_t *>(getTexelPointer(imageCopyOffset, ImageSubresource(imageSubresource)));
+	const uint8_t *srcMemory = memoryIsSource ? static_cast<const uint8_t *>(srcCopyMemory) : imageMemory;
+	uint8_t *dstMemory = memoryIsSource ? imageMemory : static_cast<uint8_t *>(dstCopyMemory);
+	int imageRowPitchBytes = rowPitchBytes(aspect, imageSubresource.mipLevel);
+	int imageSlicePitchBytes = slicePitchBytes(aspect, imageSubresource.mipLevel);
 
-	int srcSlicePitchBytes = bufferIsSource ? bufferSlicePitchBytes : imageSlicePitchBytes;
-	int dstSlicePitchBytes = bufferIsSource ? imageSlicePitchBytes : bufferSlicePitchBytes;
-	int srcRowPitchBytes = bufferIsSource ? bufferRowPitchBytes : imageRowPitchBytes;
-	int dstRowPitchBytes = bufferIsSource ? imageRowPitchBytes : bufferRowPitchBytes;
+	int srcSlicePitchBytes = memoryIsSource ? memorySlicePitchBytes : imageSlicePitchBytes;
+	int dstSlicePitchBytes = memoryIsSource ? imageSlicePitchBytes : memorySlicePitchBytes;
+	int srcRowPitchBytes = memoryIsSource ? memoryRowPitchBytes : imageRowPitchBytes;
+	int dstRowPitchBytes = memoryIsSource ? imageRowPitchBytes : memoryRowPitchBytes;
 
 	VkDeviceSize copySize = imageExtent.width * bytesPerBlock;
 
 	VkDeviceSize imageLayerSize = getLayerSize(aspect);
-	VkDeviceSize srcLayerSize = bufferIsSource ? bufferSlicePitchBytes : imageLayerSize;
-	VkDeviceSize dstLayerSize = bufferIsSource ? imageLayerSize : bufferSlicePitchBytes;
+	VkDeviceSize srcLayerSize = memoryIsSource ? memorySlicePitchBytes : imageLayerSize;
+	VkDeviceSize dstLayerSize = memoryIsSource ? imageLayerSize : memorySlicePitchBytes;
 
-	for(uint32_t i = 0; i < region.imageSubresource.layerCount; i++)
+	for(uint32_t i = 0; i < imageSubresource.layerCount; i++)
 	{
-		uint8_t *srcLayerMemory = srcMemory;
+		const uint8_t *srcLayerMemory = srcMemory;
 		uint8_t *dstLayerMemory = dstMemory;
 		for(uint32_t z = 0; z < imageExtent.depth; z++)
 		{
-			uint8_t *srcSliceMemory = srcLayerMemory;
+			const uint8_t *srcSliceMemory = srcLayerMemory;
 			uint8_t *dstSliceMemory = dstLayerMemory;
 			for(uint32_t y = 0; y < imageExtent.height; y++)
 			{
-				ASSERT(((bufferIsSource ? dstSliceMemory : srcSliceMemory) + copySize) < end());
-				ASSERT(((bufferIsSource ? srcSliceMemory : dstSliceMemory) + copySize) < buffer->end());
+				ASSERT(((memoryIsSource ? dstSliceMemory : srcSliceMemory) + copySize) < end());
 				memcpy(dstSliceMemory, srcSliceMemory, copySize);
 				srcSliceMemory += srcRowPitchBytes;
 				dstSliceMemory += dstRowPitchBytes;
@@ -655,20 +668,30 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy2KHR &region, bool buffe
 		dstMemory += dstLayerSize;
 	}
 
-	if(bufferIsSource)
+	if(memoryIsSource)
 	{
-		contentsChanged(ImageSubresourceRange(region.imageSubresource));
+		contentsChanged(ImageSubresourceRange(imageSubresource));
 	}
 }
 
 void Image::copyTo(Buffer *dstBuffer, const VkBufferImageCopy2KHR &region)
 {
-	copy(dstBuffer, region, false);
+	copy(nullptr, dstBuffer->getOffsetPointer(region.bufferOffset), region.bufferRowLength, region.bufferImageHeight, region.imageSubresource, region.imageOffset, region.imageExtent);
 }
 
 void Image::copyFrom(Buffer *srcBuffer, const VkBufferImageCopy2KHR &region)
 {
-	copy(srcBuffer, region, true);
+	copy(srcBuffer->getOffsetPointer(region.bufferOffset), nullptr, region.bufferRowLength, region.bufferImageHeight, region.imageSubresource, region.imageOffset, region.imageExtent);
+}
+
+void Image::copyToMemory(const VkImageToMemoryCopyEXT &region)
+{
+	copy(nullptr, region.pHostPointer, region.memoryRowLength, region.memoryImageHeight, region.imageSubresource, region.imageOffset, region.imageExtent);
+}
+
+void Image::copyFromMemory(const VkMemoryToImageCopyEXT &region)
+{
+	copy(region.pHostPointer, nullptr, region.memoryRowLength, region.memoryImageHeight, region.imageSubresource, region.imageOffset, region.imageExtent);
 }
 
 void *Image::getTexelPointer(const VkOffset3D &offset, const VkImageSubresource &subresource) const
@@ -714,33 +737,33 @@ VkOffset3D Image::imageOffsetInBlocks(const VkOffset3D &offset, VkImageAspectFla
 	return adjustedOffset;
 }
 
-VkExtent2D Image::bufferExtentInBlocks(const VkExtent2D &extent, const VkBufferImageCopy2KHR &region) const
+VkExtent2D Image::bufferExtentInBlocks(const VkExtent2D &extent, uint32_t rowLength, uint32_t imageHeight, const VkImageSubresourceLayers &imageSubresource, const VkOffset3D &imageOffset) const
 {
 	VkExtent2D adjustedExtent = extent;
-	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
+	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(imageSubresource.aspectMask);
 	Format usedFormat = getFormat(aspect);
 
-	if(region.bufferRowLength != 0)
+	if(rowLength != 0)
 	{
-		adjustedExtent.width = region.bufferRowLength;
+		adjustedExtent.width = rowLength;
 
 		if(usedFormat.isCompressed())
 		{
 			int blockWidth = usedFormat.blockWidth();
-			ASSERT((adjustedExtent.width % blockWidth == 0) || (adjustedExtent.width + region.imageOffset.x == extent.width));
-			adjustedExtent.width = (region.bufferRowLength + blockWidth - 1) / blockWidth;
+			ASSERT((adjustedExtent.width % blockWidth == 0) || (adjustedExtent.width + imageOffset.x == extent.width));
+			adjustedExtent.width = (rowLength + blockWidth - 1) / blockWidth;
 		}
 	}
 
-	if(region.bufferImageHeight != 0)
+	if(imageHeight != 0)
 	{
-		adjustedExtent.height = region.bufferImageHeight;
+		adjustedExtent.height = imageHeight;
 
 		if(usedFormat.isCompressed())
 		{
 			int blockHeight = usedFormat.blockHeight();
-			ASSERT((adjustedExtent.height % blockHeight == 0) || (adjustedExtent.height + region.imageOffset.y == extent.height));
-			adjustedExtent.height = (region.bufferImageHeight + blockHeight - 1) / blockHeight;
+			ASSERT((adjustedExtent.height % blockHeight == 0) || (adjustedExtent.height + imageOffset.y == extent.height));
+			adjustedExtent.height = (imageHeight + blockHeight - 1) / blockHeight;
 		}
 	}
 

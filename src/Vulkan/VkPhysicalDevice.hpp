@@ -62,6 +62,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceHostImageCopyFeaturesEXT *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
@@ -98,6 +99,7 @@ public:
 	void getProperties(VkPhysicalDeviceShaderIntegerDotProductProperties *properties) const;
 	void getProperties(VkPhysicalDevicePipelineRobustnessPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT *properties) const;
+	void getProperties(VkPhysicalDeviceHostImageCopyPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceVulkan11Properties *properties) const;
 	void getProperties(VkPhysicalDeviceVulkan12Properties *properties) const;
 	void getProperties(VkPhysicalDeviceVulkan13Properties *properties) const;
