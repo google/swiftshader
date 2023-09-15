@@ -27,6 +27,10 @@ vk-default/multiview.txt
 vk-default/pipeline/fast-linked-library.txt
 vk-default/pipeline/monolithic.txt
 vk-default/pipeline/pipeline-library.txt
+vk-default/pipeline/shader-object-linked-binary.txt
+vk-default/pipeline/shader-object-linked-spirv.txt
+vk-default/pipeline/shader-object-unlinked-binary.txt
+vk-default/pipeline/shader-object-unlinked-spirv.txt
 vk-default/protected-memory.txt
 vk-default/query-pool.txt
 vk-default/rasterization.txt
@@ -36,6 +40,7 @@ vk-default/reconvergence.txt
 vk-default/renderpass.txt
 vk-default/renderpass2.txt
 vk-default/robustness.txt
+vk-default/shader-object.txt
 vk-default/sparse-resources.txt
 vk-default/spirv-assembly.txt
 vk-default/ssbo.txt
