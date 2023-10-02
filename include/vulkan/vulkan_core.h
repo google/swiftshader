@@ -27,7 +27,7 @@ extern "C" {
 
 
 #ifndef VK_USE_64_BIT_PTR_DEFINES
-    #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__)
+    #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__) || (defined(__riscv) && __riscv_xlen == 64)
         #define VK_USE_64_BIT_PTR_DEFINES 1
     #else
         #define VK_USE_64_BIT_PTR_DEFINES 0
@@ -69,7 +69,7 @@ extern "C" {
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)// Patch version should always be set to 0
 
 // Version of this file
-#define VK_HEADER_VERSION 263
+#define VK_HEADER_VERSION 266
 
 // Complete version of this file
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
@@ -992,6 +992,8 @@ typedef enum VkStructureType {
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_RDMA_FEATURES_NV = 1000371001,
     VK_STRUCTURE_TYPE_PIPELINE_PROPERTIES_IDENTIFIER_EXT = 1000372000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROPERTIES_FEATURES_EXT = 1000372001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAME_BOUNDARY_FEATURES_EXT = 1000375000,
+    VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT = 1000375001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_FEATURES_EXT = 1000376000,
     VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT = 1000376001,
     VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT = 1000376002,
@@ -1078,6 +1080,9 @@ typedef enum VkStructureType {
     VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_PRIVATE_DATA_INFO_NV = 1000464010,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_DITHERING_FEATURES_EXT = 1000465000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROTECTED_ACCESS_FEATURES_EXT = 1000466000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FORMAT_RESOLVE_FEATURES_ANDROID = 1000468000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FORMAT_RESOLVE_PROPERTIES_ANDROID = 1000468001,
+    VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_RESOLVE_PROPERTIES_ANDROID = 1000468002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR = 1000470000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR = 1000470001,
     VK_STRUCTURE_TYPE_RENDERING_AREA_INFO_KHR = 1000470003,
@@ -1103,6 +1108,15 @@ typedef enum VkStructureType {
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM = 1000497001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT = 1000498000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT = 1000499000,
+    VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV = 1000505000,
+    VK_STRUCTURE_TYPE_LATENCY_SLEEP_INFO_NV = 1000505001,
+    VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV = 1000505002,
+    VK_STRUCTURE_TYPE_GET_LATENCY_MARKER_INFO_NV = 1000505003,
+    VK_STRUCTURE_TYPE_LATENCY_TIMINGS_FRAME_REPORT_NV = 1000505004,
+    VK_STRUCTURE_TYPE_LATENCY_SUBMISSION_PRESENT_ID_NV = 1000505005,
+    VK_STRUCTURE_TYPE_OUT_OF_BAND_QUEUE_TYPE_INFO_NV = 1000505006,
+    VK_STRUCTURE_TYPE_SWAPCHAIN_LATENCY_CREATE_INFO_NV = 1000505007,
+    VK_STRUCTURE_TYPE_LATENCY_SURFACE_CAPABILITIES_NV = 1000505008,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_KHR = 1000506000,
     VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_KHR = 1000506001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_KHR = 1000506002,
@@ -1123,6 +1137,7 @@ typedef enum VkStructureType {
     VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX = 1000529002,
     VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX = 1000529003,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX = 1000529004,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_DRIVER_PROPERTIES_MSFT = 1000530000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_POOL_OVERALLOCATION_FEATURES_NV = 1000546000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
@@ -5796,6 +5811,7 @@ typedef enum VkDriverId {
     VK_DRIVER_ID_MESA_DOZEN = 23,
     VK_DRIVER_ID_MESA_NVK = 24,
     VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA = 25,
+    VK_DRIVER_ID_MESA_AGXV = 26,
     VK_DRIVER_ID_AMD_PROPRIETARY_KHR = VK_DRIVER_ID_AMD_PROPRIETARY,
     VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR = VK_DRIVER_ID_AMD_OPEN_SOURCE,
     VK_DRIVER_ID_MESA_RADV_KHR = VK_DRIVER_ID_MESA_RADV,
@@ -5846,6 +5862,7 @@ typedef enum VkResolveModeFlagBits {
     VK_RESOLVE_MODE_AVERAGE_BIT = 0x00000002,
     VK_RESOLVE_MODE_MIN_BIT = 0x00000004,
     VK_RESOLVE_MODE_MAX_BIT = 0x00000008,
+    VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_ANDROID = 0x00000010,
     VK_RESOLVE_MODE_NONE_KHR = VK_RESOLVE_MODE_NONE,
     VK_RESOLVE_MODE_SAMPLE_ZERO_BIT_KHR = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT,
     VK_RESOLVE_MODE_AVERAGE_BIT_KHR = VK_RESOLVE_MODE_AVERAGE_BIT,
@@ -15830,6 +15847,38 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPipelinePropertiesEXT(
 #endif
 
 
+// VK_EXT_frame_boundary is a preprocessor guard. Do not pass it to API calls.
+#define VK_EXT_frame_boundary 1
+#define VK_EXT_FRAME_BOUNDARY_SPEC_VERSION 1
+#define VK_EXT_FRAME_BOUNDARY_EXTENSION_NAME "VK_EXT_frame_boundary"
+
+typedef enum VkFrameBoundaryFlagBitsEXT {
+    VK_FRAME_BOUNDARY_FRAME_END_BIT_EXT = 0x00000001,
+    VK_FRAME_BOUNDARY_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkFrameBoundaryFlagBitsEXT;
+typedef VkFlags VkFrameBoundaryFlagsEXT;
+typedef struct VkPhysicalDeviceFrameBoundaryFeaturesEXT {
+    VkStructureType    sType;
+    void*              pNext;
+    VkBool32           frameBoundary;
+} VkPhysicalDeviceFrameBoundaryFeaturesEXT;
+
+typedef struct VkFrameBoundaryEXT {
+    VkStructureType            sType;
+    const void*                pNext;
+    VkFrameBoundaryFlagsEXT    flags;
+    uint64_t                   frameID;
+    uint32_t                   imageCount;
+    const VkImage*             pImages;
+    uint32_t                   bufferCount;
+    const VkBuffer*            pBuffers;
+    uint64_t                   tagName;
+    size_t                     tagSize;
+    const void*                pTag;
+} VkFrameBoundaryEXT;
+
+
+
 // VK_EXT_multisampled_render_to_single_sampled is a preprocessor guard. Do not pass it to API calls.
 #define VK_EXT_multisampled_render_to_single_sampled 1
 #define VK_EXT_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_SPEC_VERSION 1
@@ -17546,6 +17595,138 @@ typedef struct VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT {
 
 
 
+// VK_NV_low_latency2 is a preprocessor guard. Do not pass it to API calls.
+#define VK_NV_low_latency2 1
+#define VK_NV_LOW_LATENCY_2_SPEC_VERSION  1
+#define VK_NV_LOW_LATENCY_2_EXTENSION_NAME "VK_NV_low_latency2"
+
+typedef enum VkLatencyMarkerNV {
+    VK_LATENCY_MARKER_SIMULATION_START_NV = 0,
+    VK_LATENCY_MARKER_SIMULATION_END_NV = 1,
+    VK_LATENCY_MARKER_RENDERSUBMIT_START_NV = 2,
+    VK_LATENCY_MARKER_RENDERSUBMIT_END_NV = 3,
+    VK_LATENCY_MARKER_PRESENT_START_NV = 4,
+    VK_LATENCY_MARKER_PRESENT_END_NV = 5,
+    VK_LATENCY_MARKER_INPUT_SAMPLE_NV = 6,
+    VK_LATENCY_MARKER_TRIGGER_FLASH_NV = 7,
+    VK_LATENCY_MARKER_OUT_OF_BAND_RENDERSUBMIT_START_NV = 8,
+    VK_LATENCY_MARKER_OUT_OF_BAND_RENDERSUBMIT_END_NV = 9,
+    VK_LATENCY_MARKER_OUT_OF_BAND_PRESENT_START_NV = 10,
+    VK_LATENCY_MARKER_OUT_OF_BAND_PRESENT_END_NV = 11,
+    VK_LATENCY_MARKER_MAX_ENUM_NV = 0x7FFFFFFF
+} VkLatencyMarkerNV;
+
+typedef enum VkOutOfBandQueueTypeNV {
+    VK_OUT_OF_BAND_QUEUE_TYPE_RENDER_NV = 0,
+    VK_OUT_OF_BAND_QUEUE_TYPE_PRESENT_NV = 1,
+    VK_OUT_OF_BAND_QUEUE_TYPE_MAX_ENUM_NV = 0x7FFFFFFF
+} VkOutOfBandQueueTypeNV;
+typedef struct VkLatencySleepModeInfoNV {
+    VkStructureType    sType;
+    const void*        pNext;
+    VkBool32           lowLatencyMode;
+    VkBool32           lowLatencyBoost;
+    uint32_t           minimumIntervalUs;
+} VkLatencySleepModeInfoNV;
+
+typedef struct VkLatencySleepInfoNV {
+    VkStructureType    sType;
+    const void*        pNext;
+    VkSemaphore        signalSemaphore;
+    uint64_t           value;
+} VkLatencySleepInfoNV;
+
+typedef struct VkSetLatencyMarkerInfoNV {
+    VkStructureType      sType;
+    const void*          pNext;
+    uint64_t             presentID;
+    VkLatencyMarkerNV    marker;
+} VkSetLatencyMarkerInfoNV;
+
+typedef struct VkLatencyTimingsFrameReportNV {
+    VkStructureType    sType;
+    const void*        pNext;
+    uint64_t           presentID;
+    uint64_t           inputSampleTimeUs;
+    uint64_t           simStartTimeUs;
+    uint64_t           simEndTimeUs;
+    uint64_t           renderSubmitStartTimeUs;
+    uint64_t           renderSubmitEndTimeUs;
+    uint64_t           presentStartTimeUs;
+    uint64_t           presentEndTimeUs;
+    uint64_t           driverStartTimeUs;
+    uint64_t           driverEndTimeUs;
+    uint64_t           osRenderQueueStartTimeUs;
+    uint64_t           osRenderQueueEndTimeUs;
+    uint64_t           gpuRenderStartTimeUs;
+    uint64_t           gpuRenderEndTimeUs;
+} VkLatencyTimingsFrameReportNV;
+
+typedef struct VkGetLatencyMarkerInfoNV {
+    VkStructureType                   sType;
+    const void*                       pNext;
+    VkLatencyTimingsFrameReportNV*    pTimings;
+} VkGetLatencyMarkerInfoNV;
+
+typedef struct VkLatencySubmissionPresentIdNV {
+    VkStructureType    sType;
+    const void*        pNext;
+    uint64_t           presentID;
+} VkLatencySubmissionPresentIdNV;
+
+typedef struct VkSwapchainLatencyCreateInfoNV {
+    VkStructureType    sType;
+    const void*        pNext;
+    VkBool32           latencyModeEnable;
+} VkSwapchainLatencyCreateInfoNV;
+
+typedef struct VkOutOfBandQueueTypeInfoNV {
+    VkStructureType           sType;
+    const void*               pNext;
+    VkOutOfBandQueueTypeNV    queueType;
+} VkOutOfBandQueueTypeInfoNV;
+
+typedef struct VkLatencySurfaceCapabilitiesNV {
+    VkStructureType      sType;
+    const void*          pNext;
+    uint32_t             presentModeCount;
+    VkPresentModeKHR*    pPresentModes;
+} VkLatencySurfaceCapabilitiesNV;
+
+typedef VkResult (VKAPI_PTR *PFN_vkSetLatencySleepModeNV)(VkDevice device, VkSwapchainKHR swapchain, VkLatencySleepModeInfoNV* pSleepModeInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkLatencySleepNV)(VkDevice device, VkSwapchainKHR swapchain, VkLatencySleepInfoNV* pSleepInfo);
+typedef void (VKAPI_PTR *PFN_vkSetLatencyMarkerNV)(VkDevice device, VkSwapchainKHR swapchain, VkSetLatencyMarkerInfoNV* pLatencyMarkerInfo);
+typedef void (VKAPI_PTR *PFN_vkGetLatencyTimingsNV)(VkDevice device, VkSwapchainKHR swapchain, uint32_t* pTimingCount, VkGetLatencyMarkerInfoNV* pLatencyMarkerInfo);
+typedef void (VKAPI_PTR *PFN_vkQueueNotifyOutOfBandNV)(VkQueue queue, VkOutOfBandQueueTypeInfoNV pQueueTypeInfo);
+
+#ifndef VK_NO_PROTOTYPES
+VKAPI_ATTR VkResult VKAPI_CALL vkSetLatencySleepModeNV(
+    VkDevice                                    device,
+    VkSwapchainKHR                              swapchain,
+    VkLatencySleepModeInfoNV*                   pSleepModeInfo);
+
+VKAPI_ATTR VkResult VKAPI_CALL vkLatencySleepNV(
+    VkDevice                                    device,
+    VkSwapchainKHR                              swapchain,
+    VkLatencySleepInfoNV*                       pSleepInfo);
+
+VKAPI_ATTR void VKAPI_CALL vkSetLatencyMarkerNV(
+    VkDevice                                    device,
+    VkSwapchainKHR                              swapchain,
+    VkSetLatencyMarkerInfoNV*                   pLatencyMarkerInfo);
+
+VKAPI_ATTR void VKAPI_CALL vkGetLatencyTimingsNV(
+    VkDevice                                    device,
+    VkSwapchainKHR                              swapchain,
+    uint32_t*                                   pTimingCount,
+    VkGetLatencyMarkerInfoNV*                   pLatencyMarkerInfo);
+
+VKAPI_ATTR void VKAPI_CALL vkQueueNotifyOutOfBandNV(
+    VkQueue                                     queue,
+    VkOutOfBandQueueTypeInfoNV                  pQueueTypeInfo);
+#endif
+
+
 // VK_QCOM_multiview_per_view_render_areas is a preprocessor guard. Do not pass it to API calls.
 #define VK_QCOM_multiview_per_view_render_areas 1
 #define VK_QCOM_MULTIVIEW_PER_VIEW_RENDER_AREAS_SPEC_VERSION 1
@@ -17676,6 +17857,24 @@ VKAPI_ATTR void VKAPI_CALL vkCmdSetAttachmentFeedbackLoopEnableEXT(
     VkCommandBuffer                             commandBuffer,
     VkImageAspectFlags                          aspectMask);
 #endif
+
+
+// VK_MSFT_layered_driver is a preprocessor guard. Do not pass it to API calls.
+#define VK_MSFT_layered_driver 1
+#define VK_MSFT_LAYERED_DRIVER_SPEC_VERSION 1
+#define VK_MSFT_LAYERED_DRIVER_EXTENSION_NAME "VK_MSFT_layered_driver"
+
+typedef enum VkLayeredDriverUnderlyingApiMSFT {
+    VK_LAYERED_DRIVER_UNDERLYING_API_NONE_MSFT = 0,
+    VK_LAYERED_DRIVER_UNDERLYING_API_D3D12_MSFT = 1,
+    VK_LAYERED_DRIVER_UNDERLYING_API_MAX_ENUM_MSFT = 0x7FFFFFFF
+} VkLayeredDriverUnderlyingApiMSFT;
+typedef struct VkPhysicalDeviceLayeredDriverPropertiesMSFT {
+    VkStructureType                     sType;
+    void*                               pNext;
+    VkLayeredDriverUnderlyingApiMSFT    underlyingAPI;
+} VkPhysicalDeviceLayeredDriverPropertiesMSFT;
+
 
 
 // VK_NV_descriptor_pool_overallocation is a preprocessor guard. Do not pass it to API calls.
