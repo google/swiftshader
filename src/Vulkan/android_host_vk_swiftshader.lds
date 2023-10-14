@@ -3,6 +3,7 @@ global:
 	# Loader-ICD interface functions
 	vk_icdGetInstanceProcAddr;
 	vk_icdNegotiateLoaderICDInterfaceVersion;
+	vk_icdGetPhysicalDeviceProcAddr;
 
 	# Vulkan 1.0 API entry functions
 	vkCreateInstance;
