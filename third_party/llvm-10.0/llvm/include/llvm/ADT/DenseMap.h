@@ -135,6 +135,7 @@ public:
           P->getFirst() = EmptyKey;
         }
       }
+      (void) NumEntries;
       assert(NumEntries == 0 && "Node count imbalance!");
     }
     setNumEntries(0);

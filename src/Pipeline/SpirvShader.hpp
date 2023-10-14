@@ -736,6 +736,7 @@ public:
 		}
 
 		Decorations(const Decorations &) = default;
+		Decorations& operator= (const Decorations &) = default;
 
 		void Apply(const Decorations &src);
 

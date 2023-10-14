@@ -78,7 +78,6 @@ static void partition_table_zap_equal_elements(
 	int texel_count,
 	partition_info* pi
 ) {
-	int partition_tables_zapped = 0;
 	int i, j;
 	uint64_t *canonicalizeds = new uint64_t[PARTITION_COUNT * 7];
 
@@ -95,7 +94,6 @@ static void partition_table_zap_equal_elements(
 			if (compare_canonicalized_partition_tables(canonicalizeds + 7 * i, canonicalizeds + 7 * j))
 			{
 				pi[i].partition_count = 0;
-				partition_tables_zapped++;
 				break;
 			}
 		}
