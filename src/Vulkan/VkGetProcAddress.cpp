@@ -16,6 +16,8 @@
 #include "VkDevice.hpp"
 
 #include <string>
+#include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -40,17 +42,51 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionP
 	MAKE_VULKAN_GLOBAL_ENTRY(vkEnumerateInstanceExtensionProperties),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkEnumerateInstanceLayerProperties),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkEnumerateInstanceVersion),
+
+	MAKE_VULKAN_GLOBAL_ENTRY(vk_icdGetInstanceProcAddr),
+	MAKE_VULKAN_GLOBAL_ENTRY(vk_icdNegotiateLoaderICDInterfaceVersion),
+#if VK_USE_PLATFORM_WIN32_KHR
+	MAKE_VULKAN_GLOBAL_ENTRY(vk_icdEnumerateAdapterPhysicalDevices),
+#endif  // VK_USE_PLATFORM_WIN32_KHR
 };
 #undef MAKE_VULKAN_GLOBAL_ENTRY
 
 // Functions that can be obtained through GetInstanceProcAddr with an instance object
-#define MAKE_VULKAN_INSTANCE_ENTRY(aFunction)                         \
-	{                                                                 \
-#		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
+struct InstanceFunctionEntry
+{
+	PFN_vkVoidFunction pfn;
+	// True if the first argument is a VkPhysicalDevice. See
+	// https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderDriverInterface.md#reason-for-adding-vk_icdgetphysicaldeviceprocaddr
+	bool isPhysicalDeviceFn;
+};
+
+// Template magic to detect if the first argument of a C function is a VkPhysicalDevice.
+template<typename T>
+struct FunctionArgs
+{};
+
+template<typename R, typename... Args>
+struct FunctionArgs<VKAPI_ATTR R VKAPI_CALL(Args...)>
+{
+	using Tuple = std::tuple<Args...>;
+	using FirstType = typename std::tuple_element<0, Tuple>::type;
+};
+
+template<typename T>
+constexpr bool HasPhysicalDeviceFirstArgument =
+    std::is_same<typename FunctionArgs<T>::FirstType, VkPhysicalDevice>::value;
+
+#define MAKE_VULKAN_INSTANCE_ENTRY(aFunction)                       \
+	{                                                               \
+		#aFunction,                                                 \
+		{                                                           \
+			reinterpret_cast<PFN_vkVoidFunction>(aFunction),        \
+			    HasPhysicalDeviceFirstArgument<decltype(aFunction)> \
+		}                                                           \
 	}
 
 // TODO(b/208256248): Avoid exit-time destructor.
-static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctionPointers = {
+static const std::unordered_map<std::string, InstanceFunctionEntry> instanceFunctionPointers = {
 
 	MAKE_VULKAN_INSTANCE_ENTRY(vkDestroyInstance),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkEnumeratePhysicalDevices),
@@ -652,7 +688,7 @@ PFN_vkVoidFunction GetInstanceProcAddr(Instance *instance, const char *pName)
 		auto instanceFunction = instanceFunctionPointers.find(std::string(pName));
 		if(instanceFunction != instanceFunctionPointers.end())
 		{
-			return instanceFunction->second;
+			return instanceFunction->second.pfn;
 		}
 
 		auto deviceFunction = deviceFunctionPointers.find(std::string(pName));
@@ -672,6 +708,33 @@ PFN_vkVoidFunction GetInstanceProcAddr(Instance *instance, const char *pName)
 	}
 
 	return nullptr;
+}
+
+PFN_vkVoidFunction GetPhysicalDeviceProcAddr(Instance *instance, const char *pName)
+{
+	// This function must return nullptr if the name is not known, or the function doesn't take a
+	// VkPhysicalDevice as the first argument. All functions that have a VkPhysicalDevice as first
+	// argument are instance function, except for vkGetPhysicalDeviceToolPropertiesEXT which seems
+	// to have been miscategorized as a device extension when it was made. So we special case that
+	// funcion.
+	std::string name = pName;
+	if(name == "vkGetPhysicalDeviceToolPropertiesEXT")
+	{
+		return reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceToolPropertiesEXT);
+	}
+
+	auto instanceFunction = instanceFunctionPointers.find(name);
+	if(instanceFunction == instanceFunctionPointers.end())
+	{
+		return nullptr;
+	}
+
+	if(!instanceFunction->second.isPhysicalDeviceFn)
+	{
+		return nullptr;
+	}
+
+	return instanceFunction->second.pfn;
 }
 
 PFN_vkVoidFunction GetDeviceProcAddr(Device *device, const char *pName)

@@ -23,6 +23,7 @@ class Device;
 class Instance;
 
 PFN_vkVoidFunction GetInstanceProcAddr(Instance *instance, const char *pName);
+PFN_vkVoidFunction GetPhysicalDeviceProcAddr(Instance *instance, const char *pName);
 PFN_vkVoidFunction GetDeviceProcAddr(Device *device, const char *pName);
 
 }  // namespace vk
