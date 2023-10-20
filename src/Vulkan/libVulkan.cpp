@@ -96,7 +96,6 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <cmath>
 #include <cstring>
 #include <functional>
 #include <map>
@@ -237,11 +236,6 @@ void ValidateRenderPassPNextChain(VkDevice device, const T *pCreateInfo)
 	}
 }
 
-// This variable will be set to the negotiated ICD interface version negotiated with the loader.
-// It defaults to 1 because if vk_icdNegotiateLoaderICDInterfaceVersion is never called it means
-// that the loader doens't support version 2 of that interface.
-uint32_t sICDInterfaceVersion = 1;
-
 }  // namespace
 
 extern "C" {
@@ -254,29 +248,9 @@ VK_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(VkI
 
 VK_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vk_icdNegotiateLoaderICDInterfaceVersion(uint32_t *pSupportedVersion)
 {
-	sICDInterfaceVersion = std::min(*pSupportedVersion, 7u);
-	*pSupportedVersion = sICDInterfaceVersion;
+	*pSupportedVersion = 3;
 	return VK_SUCCESS;
 }
-
-VK_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetPhysicalDeviceProcAddr(VkInstance instance, const char *pName)
-{
-	return vk::GetPhysicalDeviceProcAddr(vk::Cast(instance), pName);
-}
-
-#if VK_USE_PLATFORM_WIN32_KHR
-
-VKAPI_ATTR VkResult VKAPI_CALL vk_icdEnumerateAdapterPhysicalDevices(VkInstance instance, LUID adapterLUID, uint32_t *pPhysicalDeviceCount, VkPhysicalDevice *pPhysicalDevices)
-{
-	if(!pPhysicalDevices)
-	{
-		*pPhysicalDeviceCount = 0;
-	}
-
-	return VK_SUCCESS;
-}
-
-#endif  // VK_USE_PLATFORM_WIN32_KHR
 
 #if VK_USE_PLATFORM_FUCHSIA
 
@@ -545,39 +519,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 	      pCreateInfo, pAllocator, pInstance);
 
 	initializeLibrary();
-
-	// ICD interface rule for version 5 of the interface:
-	//    - If the loader supports version 4 or lower, the driver must fail with
-	//      VK_ERROR_INCOMPATIBLE_DRIVER for all vkCreateInstance calls with apiVersion
-	//      set to > Vulkan 1.0
-	//    - If the loader supports version 5 or above, the loader must fail with
-	//      VK_ERROR_INCOMPATIBLE_DRIVER if it can't handle the apiVersion, and drivers
-	//      should fail with VK_ERROR_INCOMPATIBLE_DRIVER only if they can not support the
-	//      specified apiVersion.
-	if(pCreateInfo->pApplicationInfo)
-	{
-		uint32_t appApiVersion = pCreateInfo->pApplicationInfo->apiVersion;
-		if(sICDInterfaceVersion <= 4)
-		{
-			// Any version above 1.0 is an error.
-			if(VK_API_VERSION_MAJOR(appApiVersion) != 1 || VK_API_VERSION_MINOR(appApiVersion) != 0)
-			{
-				return VK_ERROR_INCOMPATIBLE_DRIVER;
-			}
-		}
-		else
-		{
-			if(VK_API_VERSION_MAJOR(appApiVersion) > VK_API_VERSION_MINOR(vk::API_VERSION))
-			{
-				return VK_ERROR_INCOMPATIBLE_DRIVER;
-			}
-			if((VK_API_VERSION_MAJOR(appApiVersion) == VK_API_VERSION_MINOR(vk::API_VERSION)) &&
-			   VK_API_VERSION_MINOR(appApiVersion) > VK_API_VERSION_MINOR(vk::API_VERSION))
-			{
-				return VK_ERROR_INCOMPATIBLE_DRIVER;
-			}
-		}
-	}
 
 	if(pCreateInfo->flags != 0)
 	{

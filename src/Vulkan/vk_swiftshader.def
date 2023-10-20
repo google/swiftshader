@@ -3,8 +3,6 @@ EXPORTS
 	; Loader-ICD interface functions
 	vk_icdGetInstanceProcAddr
 	vk_icdNegotiateLoaderICDInterfaceVersion
-	vk_icdGetPhysicalDeviceProcAddr
-	vk_icdEnumerateAdapterPhysicalDevices
 
 	; Vulkan 1.0 API entry functions
 	vkCreateInstance
