@@ -41,17 +41,16 @@ void protectMemoryPages(void *memory, size_t bytes, int permissions);
 void deallocateMemoryPages(void *memory, size_t bytes);
 
 template<typename P>
-P unaligned_read(P *address)
+P unaligned_read(void *address)
 {
 	P value;
 	memcpy(&value, address, sizeof(P));
 	return value;
 }
 
-template<typename P, typename V>
-void unaligned_write(P *address, V value)
+template<typename P>
+void unaligned_write(void *address, P value)
 {
-	static_assert(sizeof(V) == sizeof(P), "value size must match pointee size");
 	memcpy(address, &value, sizeof(P));
 }
 
@@ -60,33 +59,29 @@ class unaligned_ref
 {
 public:
 	explicit unaligned_ref(void *ptr)
-	    : ptr((P *)ptr)
+	    : ptr(ptr)
 	{}
 
-	template<typename V>
-	P operator=(V value)
+	unaligned_ref &operator=(P value)
 	{
 		unaligned_write(ptr, value);
-		return value;
+		return *this;
 	}
 
 	operator P()
 	{
-		return unaligned_read((P *)ptr);
+		return unaligned_read<P>(ptr);
 	}
 
 private:
-	P *ptr;
+	void *ptr;
 };
 
 template<typename P>
 class unaligned_ptr
 {
-	template<typename S>
-	friend class unaligned_ptr;
-
 public:
-	unaligned_ptr(P *ptr)
+	unaligned_ptr(void *ptr)
 	    : ptr(ptr)
 	{}
 
@@ -95,10 +90,9 @@ public:
 		return unaligned_ref<P>(ptr);
 	}
 
-	template<typename S>
-	operator S()
+	explicit operator intptr_t()
 	{
-		return S(ptr);
+		return (intptr_t)ptr;
 	}
 
 private:

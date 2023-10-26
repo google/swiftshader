@@ -518,7 +518,7 @@ static void *relocateSymbol(const ElfHeader *elfHeader, const Elf32_Rel &relocat
 	}
 
 	intptr_t address = (intptr_t)elfHeader + target->sh_offset;
-	unaligned_ptr<int32_t> patchSite = (int32_t *)(address + relocation.r_offset);
+	unaligned_ptr<int32_t> patchSite = (void *)(address + relocation.r_offset);
 
 	if(CPUID::ARM)
 	{
@@ -603,8 +603,8 @@ static void *relocateSymbol(const ElfHeader *elfHeader, const Elf64_Rela &reloca
 	}
 
 	intptr_t address = (intptr_t)elfHeader + target->sh_offset;
-	unaligned_ptr<int32_t> patchSite32 = (int32_t *)(address + relocation.r_offset);
-	unaligned_ptr<int64_t> patchSite64 = (int64_t *)(address + relocation.r_offset);
+	unaligned_ptr<int32_t> patchSite32 = (void *)(address + relocation.r_offset);
+	unaligned_ptr<int64_t> patchSite64 = (void *)(address + relocation.r_offset);
 
 	switch(relocation.getType())
 	{
