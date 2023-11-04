@@ -17,6 +17,9 @@
 
 #include "VkMemory.hpp"
 #include "VkStringify.hpp"
+
+#include "System/Debug.hpp"
+
 #include <cstring>
 #include <vector>
 
@@ -362,13 +365,13 @@ struct SubmitInfo
 	static SubmitInfo *Allocate(uint32_t submitCount, const VkSubmitInfo *pSubmits)
 	{
 		size_t submitSize = sizeof(SubmitInfo) * submitCount;
-		size_t totalSize = submitSize;
+		size_t totalSize = Align8(submitSize);
 		for(uint32_t i = 0; i < submitCount; i++)
 		{
-			totalSize += pSubmits[i].waitSemaphoreCount * sizeof(VkSemaphore);
-			totalSize += pSubmits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags);
-			totalSize += pSubmits[i].signalSemaphoreCount * sizeof(VkSemaphore);
-			totalSize += pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer);
+			totalSize += Align8(pSubmits[i].waitSemaphoreCount * sizeof(VkSemaphore));
+			totalSize += Align8(pSubmits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags));
+			totalSize += Align8(pSubmits[i].signalSemaphoreCount * sizeof(VkSemaphore));
+			totalSize += Align8(pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer));
 
 			for(const auto *extension = reinterpret_cast<const VkBaseInStructure *>(pSubmits[i].pNext);
 			    extension != nullptr; extension = reinterpret_cast<const VkBaseInStructure *>(extension->pNext))
@@ -378,8 +381,8 @@ struct SubmitInfo
 				case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
 					{
 						const auto *tlsSubmitInfo = reinterpret_cast<const VkTimelineSemaphoreSubmitInfo *>(extension);
-						totalSize += tlsSubmitInfo->waitSemaphoreValueCount * sizeof(uint64_t);
-						totalSize += tlsSubmitInfo->signalSemaphoreValueCount * sizeof(uint64_t);
+						totalSize += Align8(tlsSubmitInfo->waitSemaphoreValueCount * sizeof(uint64_t));
+						totalSize += Align8(tlsSubmitInfo->signalSemaphoreValueCount * sizeof(uint64_t));
 					}
 					break;
 				case VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO:
@@ -396,11 +399,12 @@ struct SubmitInfo
 			}
 		}
 
-		uint8_t *mem = static_cast<uint8_t *>(
+		uint8_t *buffer = static_cast<uint8_t *>(
 		    vk::allocateHostMemory(totalSize, vk::HOST_MEMORY_ALLOCATION_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
+		uint8_t *mem = buffer;
 
 		auto submits = new(mem) SubmitInfo[submitCount];
-		mem += submitSize;
+		mem += Align8(submitSize);
 
 		for(uint32_t i = 0; i < submitCount; i++)
 		{
@@ -418,12 +422,12 @@ struct SubmitInfo
 				size_t size = pSubmits[i].waitSemaphoreCount * sizeof(VkSemaphore);
 				submits[i].pWaitSemaphores = reinterpret_cast<VkSemaphore *>(mem);
 				memcpy(mem, pSubmits[i].pWaitSemaphores, size);
-				mem += size;
+				mem += Align8(size);
 
 				size = pSubmits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags);
 				submits[i].pWaitDstStageMask = reinterpret_cast<VkPipelineStageFlags *>(mem);
 				memcpy(mem, pSubmits[i].pWaitDstStageMask, size);
-				mem += size;
+				mem += Align8(size);
 			}
 
 			if(pSubmits[i].signalSemaphoreCount > 0)
@@ -431,7 +435,7 @@ struct SubmitInfo
 				size_t size = pSubmits[i].signalSemaphoreCount * sizeof(VkSemaphore);
 				submits[i].pSignalSemaphores = reinterpret_cast<VkSemaphore *>(mem);
 				memcpy(mem, pSubmits[i].pSignalSemaphores, size);
-				mem += size;
+				mem += Align8(size);
 			}
 
 			if(pSubmits[i].commandBufferCount > 0)
@@ -439,7 +443,7 @@ struct SubmitInfo
 				size_t size = pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer);
 				submits[i].pCommandBuffers = reinterpret_cast<VkCommandBuffer *>(mem);
 				memcpy(mem, pSubmits[i].pCommandBuffers, size);
-				mem += size;
+				mem += Align8(size);
 			}
 
 			submits[i].waitSemaphoreValueCount = 0;
@@ -462,7 +466,7 @@ struct SubmitInfo
 							size_t size = tlsSubmitInfo->waitSemaphoreValueCount * sizeof(uint64_t);
 							submits[i].pWaitSemaphoreValues = reinterpret_cast<uint64_t *>(mem);
 							memcpy(mem, tlsSubmitInfo->pWaitSemaphoreValues, size);
-							mem += size;
+							mem += Align8(size);
 						}
 
 						if(tlsSubmitInfo->signalSemaphoreValueCount > 0)
@@ -471,7 +475,7 @@ struct SubmitInfo
 							size_t size = tlsSubmitInfo->signalSemaphoreValueCount * sizeof(uint64_t);
 							submits[i].pSignalSemaphoreValues = reinterpret_cast<uint64_t *>(mem);
 							memcpy(mem, tlsSubmitInfo->pSignalSemaphoreValues, size);
-							mem += size;
+							mem += Align8(size);
 						}
 					}
 					break;
@@ -489,21 +493,22 @@ struct SubmitInfo
 			}
 		}
 
+		ASSERT(static_cast<size_t>(mem - buffer) == totalSize);
 		return submits;
 	}
 
 	static SubmitInfo *Allocate(uint32_t submitCount, const VkSubmitInfo2 *pSubmits)
 	{
 		size_t submitSize = sizeof(SubmitInfo) * submitCount;
-		size_t totalSize = submitSize;
+		size_t totalSize = Align8(submitSize);
 		for(uint32_t i = 0; i < submitCount; i++)
 		{
-			totalSize += pSubmits[i].waitSemaphoreInfoCount * sizeof(VkSemaphore);
-			totalSize += pSubmits[i].waitSemaphoreInfoCount * sizeof(VkPipelineStageFlags);
-			totalSize += pSubmits[i].waitSemaphoreInfoCount * sizeof(uint64_t);
-			totalSize += pSubmits[i].signalSemaphoreInfoCount * sizeof(VkSemaphore);
-			totalSize += pSubmits[i].signalSemaphoreInfoCount * sizeof(uint64_t);
-			totalSize += pSubmits[i].commandBufferInfoCount * sizeof(VkCommandBuffer);
+			totalSize += Align8(pSubmits[i].waitSemaphoreInfoCount * sizeof(VkSemaphore));
+			totalSize += Align8(pSubmits[i].waitSemaphoreInfoCount * sizeof(VkPipelineStageFlags));
+			totalSize += Align8(pSubmits[i].waitSemaphoreInfoCount * sizeof(uint64_t));
+			totalSize += Align8(pSubmits[i].signalSemaphoreInfoCount * sizeof(VkSemaphore));
+			totalSize += Align8(pSubmits[i].signalSemaphoreInfoCount * sizeof(uint64_t));
+			totalSize += Align8(pSubmits[i].commandBufferInfoCount * sizeof(VkCommandBuffer));
 
 			for(const auto *extension = reinterpret_cast<const VkBaseInStructure *>(pSubmits[i].pNext);
 			    extension != nullptr; extension = reinterpret_cast<const VkBaseInStructure *>(extension->pNext))
@@ -523,11 +528,12 @@ struct SubmitInfo
 			}
 		}
 
-		uint8_t *mem = static_cast<uint8_t *>(
+		uint8_t *buffer = static_cast<uint8_t *>(
 		    vk::allocateHostMemory(totalSize, vk::HOST_MEMORY_ALLOCATION_ALIGNMENT, vk::NULL_ALLOCATION_CALLBACKS, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
+		uint8_t *mem = buffer;
 
 		auto submits = new(mem) SubmitInfo[submitCount];
-		mem += submitSize;
+		mem += Align8(submitSize);
 
 		for(uint32_t i = 0; i < submitCount; i++)
 		{
@@ -549,15 +555,15 @@ struct SubmitInfo
 			{
 				size_t size = submits[i].waitSemaphoreCount * sizeof(VkSemaphore);
 				submits[i].pWaitSemaphores = reinterpret_cast<VkSemaphore *>(mem);
-				mem += size;
+				mem += Align8(size);
 
 				size = submits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags);
 				submits[i].pWaitDstStageMask = reinterpret_cast<VkPipelineStageFlags *>(mem);
-				mem += size;
+				mem += Align8(size);
 
 				size = submits[i].waitSemaphoreCount * sizeof(uint64_t);
 				submits[i].pWaitSemaphoreValues = reinterpret_cast<uint64_t *>(mem);
-				mem += size;
+				mem += Align8(size);
 
 				for(uint32_t j = 0; j < submits[i].waitSemaphoreCount; j++)
 				{
@@ -571,11 +577,11 @@ struct SubmitInfo
 			{
 				size_t size = submits[i].signalSemaphoreCount * sizeof(VkSemaphore);
 				submits[i].pSignalSemaphores = reinterpret_cast<VkSemaphore *>(mem);
-				mem += size;
+				mem += Align8(size);
 
 				size = submits[i].signalSemaphoreCount * sizeof(uint64_t);
 				submits[i].pSignalSemaphoreValues = reinterpret_cast<uint64_t *>(mem);
-				mem += size;
+				mem += Align8(size);
 
 				for(uint32_t j = 0; j < submits[i].signalSemaphoreCount; j++)
 				{
@@ -588,7 +594,7 @@ struct SubmitInfo
 			{
 				size_t size = submits[i].commandBufferCount * sizeof(VkCommandBuffer);
 				submits[i].pCommandBuffers = reinterpret_cast<VkCommandBuffer *>(mem);
-				mem += size;
+				mem += Align8(size);
 
 				for(uint32_t j = 0; j < submits[i].commandBufferCount; j++)
 				{
@@ -597,6 +603,7 @@ struct SubmitInfo
 			}
 		}
 
+		ASSERT(static_cast<size_t>(mem - buffer) == totalSize);
 		return submits;
 	}
 
@@ -616,6 +623,15 @@ struct SubmitInfo
 	uint64_t *pWaitSemaphoreValues;
 	uint32_t signalSemaphoreValueCount;
 	uint64_t *pSignalSemaphoreValues;
+
+private:
+	static size_t Align8(size_t size)
+	{
+		// Keep all arrays 8-byte aligned, so that an odd number of `VkPipelineStageFlags` does not break the
+		// alignment of the other fields.
+		constexpr size_t align = 8;
+		return (size + align - 1) & ~(align - 1);
+	}
 };
 
 }  // namespace vk

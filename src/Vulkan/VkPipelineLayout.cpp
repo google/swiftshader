@@ -14,8 +14,8 @@
 
 #include "VkPipelineLayout.hpp"
 
+#include <algorithm>
 #include <atomic>
-#include <cstring>
 
 namespace vk {
 
@@ -57,9 +57,8 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
 		}
 	}
 
-	size_t pushConstantRangesSize = pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange);
 	pushConstantRanges = reinterpret_cast<VkPushConstantRange *>(bindingStorage);
-	memcpy(pushConstantRanges, pCreateInfo->pPushConstantRanges, pushConstantRangesSize);
+	std::copy(pCreateInfo->pPushConstantRanges, pCreateInfo->pPushConstantRanges + pCreateInfo->pushConstantRangeCount, pushConstantRanges);
 
 	incRefCount();
 }
