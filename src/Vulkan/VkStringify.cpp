@@ -16,7 +16,6 @@
 
 #include "System/Debug.hpp"
 
-#include <vulkan/vk_google_filtering_precision.h>
 #define VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_NAMESPACE vkhpp
 #include <vulkan/vulkan.hpp>
@@ -30,10 +29,6 @@ std::string Stringify(VkStructureType value)
 	{
 	default:
 		return vkhpp::to_string(static_cast<vkhpp::StructureType>(value));
-
-	// TODO(b/174746309): This structure's extension has not been upstreamed yet.
-	case VK_STRUCTURE_TYPE_SAMPLER_FILTERING_PRECISION_GOOGLE:
-		return "SamplerFilteringPrecisionGOOGLE";
 	}
 #else
 	// In Release builds we avoid a dependency on vkhpp::to_string() to reduce binary size.

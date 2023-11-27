@@ -49,7 +49,6 @@ public:
 	typedef VkNonDispatchableHandle<object##Ptr> object; \
 	template class VkNonDispatchableHandle<object##Ptr>;
 
-#include <vulkan/vk_google_filtering_precision.h>
 #include <vulkan/vulkan_core.h>
 
 #endif  // VULKAN_PLATFORM
