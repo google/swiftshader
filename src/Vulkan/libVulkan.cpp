@@ -2485,7 +2485,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerC
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	const vk::SamplerYcbcrConversion *ycbcrConversion = nullptr;
-	VkSamplerFilteringPrecisionModeGOOGLE filteringPrecision = VK_SAMPLER_FILTERING_PRECISION_MODE_LOW_GOOGLE;
 	VkClearColorValue borderColor = {};
 
 	while(extensionCreateInfo)
@@ -2501,11 +2500,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerC
 			break;
 #if !defined(__ANDROID__)
 		case VK_STRUCTURE_TYPE_SAMPLER_FILTERING_PRECISION_GOOGLE:
-			{
-				const VkSamplerFilteringPrecisionGOOGLE *filteringInfo =
-				    reinterpret_cast<const VkSamplerFilteringPrecisionGOOGLE *>(extensionCreateInfo);
-				filteringPrecision = filteringInfo->samplerFilteringPrecisionMode;
-			}
+			// Ignore. Deprecated.
 			break;
 #endif
 		case VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT:
@@ -2524,7 +2519,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerC
 		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
-	vk::SamplerState samplerState(pCreateInfo, ycbcrConversion, filteringPrecision, borderColor);
+	vk::SamplerState samplerState(pCreateInfo, ycbcrConversion, borderColor);
 	uint32_t samplerID = vk::Cast(device)->indexSampler(samplerState);
 
 	VkResult result = vk::Sampler::Create(pAllocator, pCreateInfo, pSampler, samplerState, samplerID);
