@@ -126,7 +126,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
   }
 }
 
-swiftshader_shared_library("swiftshader_libvulkan") {
+swiftshader_source_set("_swiftshader_libvulkan") {
   sources = [
     "VkBuffer.cpp",
     "VkBufferView.cpp",
@@ -170,42 +170,15 @@ swiftshader_shared_library("swiftshader_libvulkan") {
 
   libs = []
 
-  # TODO(capn): Use the same ICD name on both Windows and non-Windows.
   if (is_win) {
-    output_name = "vk_swiftshader"
-  } else {
-    output_name = "libvk_swiftshader"
-  }
-
-  if (is_win) {
-    sources += [
-      "Vulkan.rc",
-      "vk_swiftshader.def",
-    ]
     libs += [
       "gdi32.lib",
       "user32.lib",
     ]
   }
 
-  if (is_mac) {
-    ldflags = [
-      "-Wl,-install_name,@rpath/libvk_swiftshader.dylib",
-      "-Wl,-exported_symbols_list," +
-          rebase_path("vk_swiftshader.exports", root_build_dir),
-    ]
-  } else if (is_linux || is_chromeos || is_fuchsia) {
-    inputs = [ "vk_swiftshader.lds" ]
-    ldflags = [
-      # -Bsymbolic binds symbol references to their global definitions within
-      # a shared object, thereby preventing symbol preemption.
-      "-Wl,-Bsymbolic",
-      "-Wl,--version-script=" +
-          rebase_path("vk_swiftshader.lds", root_build_dir),
-    ]
-  }
-
-  deps = [
+  public_deps = [
+    ":swiftshader_libvulkan_headers",
     "../../third_party/SPIRV-Tools:spvtools_headers",
     "../../third_party/SPIRV-Tools:spvtools_opt",
     "../../third_party/SPIRV-Tools:spvtools_val",
@@ -223,8 +196,44 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "../../third_party/SPIRV-Tools/include",
     "../../third_party/SPIRV-Headers/include",
   ]
+}
 
-  public_deps = [ ":swiftshader_libvulkan_headers" ]
+swiftshader_shared_library("swiftshader_libvulkan") {
+  # TODO(capn): Use the same ICD name on both Windows and non-Windows.
+  if (is_win) {
+    output_name = "vk_swiftshader"
+  } else {
+    output_name = "libvk_swiftshader"
+  }
+
+  if (is_win) {
+    sources = [
+      "Vulkan.rc",
+      "vk_swiftshader.def",
+    ]
+  } else if (is_mac) {
+    ldflags = [
+      "-Wl,-install_name,@rpath/libvk_swiftshader.dylib",
+      "-Wl,-exported_symbols_list," +
+          rebase_path("vk_swiftshader.exports", root_build_dir),
+    ]
+  } else if (is_linux || is_chromeos || is_fuchsia) {
+    inputs = [ "vk_swiftshader.lds" ]
+    ldflags = [
+      # -Bsymbolic binds symbol references to their global definitions within
+      # a shared object, thereby preventing symbol preemption.
+      "-Wl,-Bsymbolic",
+      "-Wl,--version-script=" +
+          rebase_path("vk_swiftshader.lds", root_build_dir),
+    ]
+  }
+
+  deps = [ ":_swiftshader_libvulkan" ]
+}
+
+swiftshader_static_library("swiftshader_libvulkan_static") {
+  complete_static_lib = true
+  deps = [ ":_swiftshader_libvulkan" ]
 }
 
 # Generates an ICD JSON file that can be used by all targets in this GN build
