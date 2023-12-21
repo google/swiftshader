@@ -32,12 +32,68 @@ class ImageView;
 class PipelineLayout;
 class RenderPass;
 
+struct InputsDynamicStateFlags
+{
+	bool dynamicVertexInputBindingStride : 1;
+        bool dynamicVertexInput : 1;
+};
+
+// Note: The split between Inputs and VertexInputInterfaceState is mostly superficial.  The state
+// (be it dynamic or static) in Inputs should have been mostly a part of VertexInputInterfaceState.
+// Changing that requires some surgery.
+struct VertexInputInterfaceDynamicStateFlags
+{
+	bool dynamicPrimitiveRestartEnable : 1;
+	bool dynamicPrimitiveTopology : 1;
+};
+
+struct PreRasterizationDynamicStateFlags
+{
+	bool dynamicLineWidth : 1;
+	bool dynamicDepthBias : 1;
+	bool dynamicDepthBiasEnable : 1;
+	bool dynamicCullMode : 1;
+	bool dynamicFrontFace : 1;
+	bool dynamicViewport : 1;
+	bool dynamicScissor : 1;
+	bool dynamicViewportWithCount : 1;
+	bool dynamicScissorWithCount : 1;
+	bool dynamicRasterizerDiscardEnable : 1;
+};
+
+struct FragmentDynamicStateFlags
+{
+	bool dynamicDepthTestEnable : 1;
+	bool dynamicDepthWriteEnable : 1;
+	bool dynamicDepthBoundsTestEnable : 1;
+	bool dynamicDepthBounds : 1;
+	bool dynamicDepthCompareOp : 1;
+	bool dynamicStencilTestEnable : 1;
+	bool dynamicStencilOp : 1;
+	bool dynamicStencilCompareMask : 1;
+	bool dynamicStencilWriteMask : 1;
+	bool dynamicStencilReference : 1;
+};
+
+struct FragmentOutputInterfaceDynamicStateFlags
+{
+	bool dynamicBlendConstants : 1;
+};
+
+struct DynamicStateFlags
+{
+    // Note: InputsDynamicStateFlags is kept local to Inputs
+	VertexInputInterfaceDynamicStateFlags vertexInputInterface;
+	PreRasterizationDynamicStateFlags preRasterization;
+	FragmentDynamicStateFlags fragment;
+	FragmentOutputInterfaceDynamicStateFlags fragmentOutputInterface;
+};
+
 struct VertexInputBinding
 {
 	Buffer *buffer = nullptr;
 	VkDeviceSize offset = 0;
 	VkDeviceSize size = 0;
-	VkDeviceSize stride = 0;
 };
 
 struct IndexBuffer
@@ -63,9 +119,10 @@ struct Attachments
 	VkFormat depthFormat() const;
 };
 
+struct DynamicState;
 struct Inputs
 {
-	void initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState);
+	void initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState, const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo);
 
 	void updateDescriptorSets(const DescriptorSet::Array &dso,
 	                          const DescriptorSet::Bindings &ds,
@@ -75,13 +132,14 @@ struct Inputs
 	inline const DescriptorSet::DynamicOffsets &getDescriptorDynamicOffsets() const { return descriptorDynamicOffsets; }
 	inline const sw::Stream &getStream(uint32_t i) const { return stream[i]; }
 
-	void bindVertexInputs(int firstInstance, bool dynamicInstanceStride);
-	void setVertexInputBinding(const VertexInputBinding vertexInputBindings[]);
-	void advanceInstanceAttributes(bool dynamicInstanceStride);
-	VkDeviceSize getVertexStride(uint32_t i, bool dynamicVertexStride) const;
-	VkDeviceSize getInstanceStride(uint32_t i, bool dynamicVertexStride) const;
+	void bindVertexInputs(int firstInstance);
+	void setVertexInputBinding(const VertexInputBinding vertexInputBindings[], const DynamicState &dynamicState);
+	void advanceInstanceAttributes();
+	VkDeviceSize getVertexStride(uint32_t i) const;
+	VkDeviceSize getInstanceStride(uint32_t i) const;
 
 private:
+	InputsDynamicStateFlags dynamicStateFlags = {};
 	VertexInputBinding vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS] = {};
 	DescriptorSet::Array descriptorSetObjects = {};
 	DescriptorSet::Bindings descriptorSets = {};
@@ -133,6 +191,20 @@ struct BlendState : sw::Memset<BlendState>
 	VkBlendOp blendOperationAlpha;
 };
 
+struct DynamicVertexInputBindingState
+{
+	VkVertexInputRate inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	VkDeviceSize stride = 0;
+	unsigned int divisor = 0;
+};
+
+struct DynamicVertexInputAttributeState
+{
+	VkFormat format = VK_FORMAT_UNDEFINED;
+	unsigned int offset = 0;
+	unsigned int binding = 0;
+};
+
 struct DynamicState
 {
 	VkViewport viewport = {};
@@ -163,54 +235,8 @@ struct DynamicState
 	VkBool32 rasterizerDiscardEnable = VK_FALSE;
 	VkBool32 depthBiasEnable = VK_FALSE;
 	VkBool32 primitiveRestartEnable = VK_FALSE;
-};
-
-struct VertexInputInterfaceDynamicStateFlags
-{
-	bool dynamicPrimitiveRestartEnable : 1;
-	bool dynamicPrimitiveTopology : 1;
-	bool dynamicVertexInputBindingStride : 1;
-};
-
-struct PreRasterizationDynamicStateFlags
-{
-	bool dynamicLineWidth : 1;
-	bool dynamicDepthBias : 1;
-	bool dynamicDepthBiasEnable : 1;
-	bool dynamicCullMode : 1;
-	bool dynamicFrontFace : 1;
-	bool dynamicViewport : 1;
-	bool dynamicScissor : 1;
-	bool dynamicViewportWithCount : 1;
-	bool dynamicScissorWithCount : 1;
-	bool dynamicRasterizerDiscardEnable : 1;
-};
-
-struct FragmentDynamicStateFlags
-{
-	bool dynamicDepthTestEnable : 1;
-	bool dynamicDepthWriteEnable : 1;
-	bool dynamicDepthBoundsTestEnable : 1;
-	bool dynamicDepthBounds : 1;
-	bool dynamicDepthCompareOp : 1;
-	bool dynamicStencilTestEnable : 1;
-	bool dynamicStencilOp : 1;
-	bool dynamicStencilCompareMask : 1;
-	bool dynamicStencilWriteMask : 1;
-	bool dynamicStencilReference : 1;
-};
-
-struct FragmentOutputInterfaceDynamicStateFlags
-{
-	bool dynamicBlendConstants : 1;
-};
-
-struct DynamicStateFlags
-{
-	VertexInputInterfaceDynamicStateFlags vertexInputInterface;
-	PreRasterizationDynamicStateFlags preRasterization;
-	FragmentDynamicStateFlags fragment;
-	FragmentOutputInterfaceDynamicStateFlags fragmentOutputInterface;
+	DynamicVertexInputBindingState vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS];
+	DynamicVertexInputAttributeState vertexInputAttributes[sw::MAX_INTERFACE_COMPONENTS / 4];
 };
 
 struct VertexInputInterfaceState
@@ -224,7 +250,6 @@ struct VertexInputInterfaceState
 	inline VkPrimitiveTopology getTopology() const { return topology; }
 	inline bool hasPrimitiveRestartEnable() const { return primitiveRestartEnable; }
 
-	inline bool hasDynamicVertexStride() const { return dynamicStateFlags.dynamicVertexInputBindingStride; }
 	inline bool hasDynamicTopology() const { return dynamicStateFlags.dynamicPrimitiveTopology; }
 	inline bool hasDynamicPrimitiveRestartEnable() const { return dynamicStateFlags.dynamicPrimitiveRestartEnable; }
 

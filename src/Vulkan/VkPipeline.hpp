@@ -96,7 +96,6 @@ public:
 	const GraphicsState &getState() const { return state; }
 
 	void getIndexBuffers(const vk::DynamicState &dynamicState, uint32_t count, uint32_t first, bool indexed, std::vector<std::pair<uint32_t, void *>> *indexBuffers) const;
-	bool hasDynamicVertexStride() const { return state.getVertexInputInterfaceState().hasDynamicVertexStride(); }
 
 	IndexBuffer &getIndexBuffer() { return indexBuffer; }
 	const IndexBuffer &getIndexBuffer() const { return indexBuffer; }

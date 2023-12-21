@@ -91,6 +91,37 @@ void ProcessPrimitiveRestart(T *indexBuffer,
 	}
 }
 
+vk::InputsDynamicStateFlags ParseInputsDynamicStateFlags(const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo)
+{
+	vk::InputsDynamicStateFlags dynamicStateFlags = {};
+
+	if(dynamicStateCreateInfo == nullptr)
+	{
+		return dynamicStateFlags;
+	}
+
+	for(uint32_t i = 0; i < dynamicStateCreateInfo->dynamicStateCount; i++)
+	{
+		VkDynamicState dynamicState = dynamicStateCreateInfo->pDynamicStates[i];
+		switch(dynamicState)
+		{
+		case VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE:
+			dynamicStateFlags.dynamicVertexInputBindingStride = true;
+			break;
+		case VK_DYNAMIC_STATE_VERTEX_INPUT_EXT:
+			dynamicStateFlags.dynamicVertexInput = true;
+			dynamicStateFlags.dynamicVertexInputBindingStride = true;
+			break;
+
+		default:
+			// The rest of the dynamic state is handled by ParseDynamicStateFlags.
+			break;
+		}
+	}
+
+	return dynamicStateFlags;
+}
+
 vk::DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo)
 {
 	vk::DynamicStateFlags dynamicStateFlags = {};
@@ -119,7 +150,8 @@ vk::DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateI
 			dynamicStateFlags.vertexInputInterface.dynamicPrimitiveTopology = true;
 			break;
 		case VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE:
-			dynamicStateFlags.vertexInputInterface.dynamicVertexInputBindingStride = true;
+		case VK_DYNAMIC_STATE_VERTEX_INPUT_EXT:
+			// Handled by ParseInputsDynamicStateFlags
 			break;
 
 		// Pre-rasterization:
@@ -281,12 +313,19 @@ VkFormat Attachments::depthFormat() const
 	}
 }
 
-void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState)
+void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState, const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo)
 {
 	if(vertexInputState->flags != 0)
 	{
 		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("vertexInputState->flags");
+	}
+
+	dynamicStateFlags = ParseInputsDynamicStateFlags(dynamicStateCreateInfo);
+
+	if(dynamicStateFlags.dynamicVertexInput)
+	{
+		return;
 	}
 
 	// Temporary in-binding-order representation of buffer strides, to be consumed below
@@ -310,8 +349,14 @@ void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputS
 		input.offset = desc.offset;
 		input.binding = desc.binding;
 		input.inputRate = inputRates[desc.binding];
-		input.vertexStride = vertexStrides[desc.binding];
-		input.instanceStride = instanceStrides[desc.binding];
+		if(!dynamicStateFlags.dynamicVertexInputBindingStride)
+		{
+			// The following gets overriden with dynamic state anyway and setting it is
+			// harmless.  But it is not done to be able to catch bugs with this dynamic
+			// state easier.
+			input.vertexStride = vertexStrides[desc.binding];
+			input.instanceStride = instanceStrides[desc.binding];
+		}
 	}
 }
 
@@ -324,7 +369,7 @@ void Inputs::updateDescriptorSets(const DescriptorSet::Array &dso,
 	descriptorDynamicOffsets = ddo;
 }
 
-void Inputs::bindVertexInputs(int firstInstance, bool dynamicInstanceStride)
+void Inputs::bindVertexInputs(int firstInstance)
 {
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
@@ -333,7 +378,7 @@ void Inputs::bindVertexInputs(int firstInstance, bool dynamicInstanceStride)
 		{
 			const auto &vertexInput = vertexInputBindings[attrib.binding];
 			VkDeviceSize offset = attrib.offset + vertexInput.offset +
-			                      getInstanceStride(i, dynamicInstanceStride) * firstInstance;
+			                      getInstanceStride(i) * firstInstance;
 			attrib.buffer = vertexInput.buffer ? vertexInput.buffer->getOffsetPointer(offset) : nullptr;
 
 			VkDeviceSize size = vertexInput.buffer ? vertexInput.buffer->getSize() : 0;
@@ -342,21 +387,50 @@ void Inputs::bindVertexInputs(int firstInstance, bool dynamicInstanceStride)
 	}
 }
 
-void Inputs::setVertexInputBinding(const VertexInputBinding bindings[])
+void Inputs::setVertexInputBinding(const VertexInputBinding bindings[], const DynamicState &dynamicState)
 {
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; ++i)
 	{
 		vertexInputBindings[i] = bindings[i];
 	}
+
+	if(dynamicStateFlags.dynamicVertexInput)
+	{
+		// If the entire vertex input state is dynamic, recalculate the contents of `stream`.
+		// This is similar to Inputs::initialize.
+		for(uint32_t i = 0; i < sw::MAX_INTERFACE_COMPONENTS / 4; i++)
+		{
+			const auto &desc = dynamicState.vertexInputAttributes[i];
+			const auto &bindingDesc = dynamicState.vertexInputBindings[desc.binding];
+			sw::Stream &input = stream[i];
+			input.format = desc.format;
+			input.offset = desc.offset;
+			input.binding = desc.binding;
+			input.inputRate = bindingDesc.inputRate;
+		}
+	}
+
+	// Stride may come from two different dynamic states
+	if(dynamicStateFlags.dynamicVertexInput || dynamicStateFlags.dynamicVertexInputBindingStride)
+	{
+		for(uint32_t i = 0; i < sw::MAX_INTERFACE_COMPONENTS / 4; i++)
+		{
+			sw::Stream &input = stream[i];
+			const VkDeviceSize stride = dynamicState.vertexInputBindings[input.binding].stride;
+
+			input.vertexStride = input.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? stride : 0;
+			input.instanceStride = input.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE ? stride : 0;
+		}
+	}
 }
 
-void Inputs::advanceInstanceAttributes(bool dynamicInstanceStride)
+void Inputs::advanceInstanceAttributes()
 {
 	for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
 		auto &attrib = stream[i];
 
-		VkDeviceSize instanceStride = getInstanceStride(i, dynamicInstanceStride);
+		VkDeviceSize instanceStride = getInstanceStride(i);
 		if((attrib.format != VK_FORMAT_UNDEFINED) && instanceStride && (instanceStride < attrib.robustnessSize))
 		{
 			// Under the casts: attrib.buffer += instanceStride
@@ -366,37 +440,23 @@ void Inputs::advanceInstanceAttributes(bool dynamicInstanceStride)
 	}
 }
 
-VkDeviceSize Inputs::getVertexStride(uint32_t i, bool dynamicVertexStride) const
+VkDeviceSize Inputs::getVertexStride(uint32_t i) const
 {
 	auto &attrib = stream[i];
-	if(attrib.format != VK_FORMAT_UNDEFINED && attrib.inputRate == VK_VERTEX_INPUT_RATE_VERTEX)
+	if(attrib.format != VK_FORMAT_UNDEFINED)
 	{
-		if(dynamicVertexStride)
-		{
-			return vertexInputBindings[attrib.binding].stride;
-		}
-		else
-		{
-			return attrib.vertexStride;
-		}
+		return attrib.vertexStride;
 	}
 
 	return 0;
 }
 
-VkDeviceSize Inputs::getInstanceStride(uint32_t i, bool dynamicInstanceStride) const
+VkDeviceSize Inputs::getInstanceStride(uint32_t i) const
 {
 	auto &attrib = stream[i];
-	if(attrib.format != VK_FORMAT_UNDEFINED && attrib.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE)
+	if(attrib.format != VK_FORMAT_UNDEFINED)
 	{
-		if(dynamicInstanceStride)
-		{
-			return vertexInputBindings[attrib.binding].stride;
-		}
-		else
-		{
-			return attrib.instanceStride;
-		}
+		return attrib.instanceStride;
 	}
 
 	return 0;

@@ -361,18 +361,23 @@ private:
 class CmdVertexBufferBind : public vk::CommandBuffer::Command
 {
 public:
-	CmdVertexBufferBind(uint32_t binding, vk::Buffer *buffer, const VkDeviceSize offset, const VkDeviceSize size, const VkDeviceSize stride)
+	CmdVertexBufferBind(uint32_t binding, vk::Buffer *buffer, const VkDeviceSize offset, const VkDeviceSize size, const VkDeviceSize stride, bool hasStride)
 	    : binding(binding)
 	    , buffer(buffer)
 	    , offset(offset)
 	    , size(size)
 	    , stride(stride)
+	    , hasStride(hasStride)
 	{
 	}
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		executionState.vertexInputBindings[binding] = { buffer, offset, size, stride };
+		executionState.vertexInputBindings[binding] = { buffer, offset, size };
+		if(hasStride)
+		{
+			executionState.dynamicState.vertexInputBindings[binding].stride = stride;
+		}
 	}
 
 	std::string description() override { return "vkCmdVertexBufferBind()"; }
@@ -383,6 +388,7 @@ private:
 	const VkDeviceSize offset;
 	const VkDeviceSize size;
 	const VkDeviceSize stride;
+	const bool hasStride;
 };
 
 class CmdIndexBufferBind : public vk::CommandBuffer::Command
@@ -397,7 +403,7 @@ public:
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		executionState.indexBufferBinding = { buffer, offset, 0, 0 };
+		executionState.indexBufferBinding = { buffer, offset, 0 };
 		executionState.indexType = indexType;
 	}
 
@@ -911,6 +917,44 @@ private:
 	const VkBool32 primitiveRestartEnable;
 };
 
+class CmdSetVertexInput : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetVertexInput(uint32_t vertexBindingDescriptionCount,
+	                  const VkVertexInputBindingDescription2EXT *pVertexBindingDescriptions,
+	                  uint32_t vertexAttributeDescriptionCount,
+	                  const VkVertexInputAttributeDescription2EXT *pVertexAttributeDescriptions)
+	    :  // Note: the pNext values are unused, so this copy is currently safe.
+	    vertexBindingDescriptions(pVertexBindingDescriptions, pVertexBindingDescriptions + vertexBindingDescriptionCount)
+	    , vertexAttributeDescriptions(pVertexAttributeDescriptions, pVertexAttributeDescriptions + vertexAttributeDescriptionCount)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		for(const auto &desc : vertexBindingDescriptions)
+		{
+			vk::DynamicVertexInputBindingState &state = executionState.dynamicState.vertexInputBindings[desc.binding];
+			state.inputRate = desc.inputRate;
+			state.stride = desc.stride;
+			state.divisor = desc.divisor;
+		}
+
+		for(const auto &desc : vertexAttributeDescriptions)
+		{
+			vk::DynamicVertexInputAttributeState &state = executionState.dynamicState.vertexInputAttributes[desc.location];
+			state.format = desc.format;
+			state.offset = desc.offset;
+			state.binding = desc.binding;
+		}
+	}
+
+	std::string description() override { return "vkCmdSetVertexInputEXT()"; }
+
+private:
+	const std::vector<VkVertexInputBindingDescription2EXT> vertexBindingDescriptions;
+	const std::vector<VkVertexInputAttributeDescription2EXT> vertexAttributeDescriptions;
+};
+
 class CmdDrawBase : public vk::CommandBuffer::Command
 {
 public:
@@ -920,7 +964,6 @@ public:
 		const auto &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_GRAPHICS];
 
 		auto *pipeline = static_cast<vk::GraphicsPipeline *>(pipelineState.pipeline);
-		bool hasDynamicVertexStride = pipeline->hasDynamicVertexStride();
 
 		vk::Attachments &attachments = pipeline->getAttachments();
 		executionState.bindAttachments(&attachments);
@@ -929,8 +972,8 @@ public:
 		inputs.updateDescriptorSets(pipelineState.descriptorSetObjects,
 		                            pipelineState.descriptorSets,
 		                            pipelineState.descriptorDynamicOffsets);
-		inputs.setVertexInputBinding(executionState.vertexInputBindings);
-		inputs.bindVertexInputs(firstInstance, hasDynamicVertexStride);
+		inputs.setVertexInputBinding(executionState.vertexInputBindings, executionState.dynamicState);
+		inputs.bindVertexInputs(firstInstance);
 
 		if(indexed)
 		{
@@ -963,7 +1006,7 @@ public:
 			if(instanceCount > 1)
 			{
 				UNOPTIMIZED("Optimize instancing to use a single draw call.");  // TODO(b/137740918)
-				inputs.advanceInstanceAttributes(hasDynamicVertexStride);
+				inputs.advanceInstanceAttributes();
 			}
 		}
 	}
@@ -1909,7 +1952,8 @@ void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, uint32_t bindingCou
 	{
 		addCommand<::CmdVertexBufferBind>(i + firstBinding, vk::Cast(pBuffers[i]), pOffsets[i],
 		                                  pSizes ? pSizes[i] : 0,
-		                                  pStrides ? pStrides[i] : 0);
+		                                  pStrides ? pStrides[i] : 0,
+		                                  pStrides);
 	}
 }
 
@@ -2083,6 +2127,15 @@ void CommandBuffer::setDepthBiasEnable(VkBool32 depthBiasEnable)
 void CommandBuffer::setPrimitiveRestartEnable(VkBool32 primitiveRestartEnable)
 {
 	addCommand<::CmdSetPrimitiveRestartEnable>(primitiveRestartEnable);
+}
+
+void CommandBuffer::setVertexInput(uint32_t vertexBindingDescriptionCount,
+                                   const VkVertexInputBindingDescription2EXT *pVertexBindingDescriptions,
+                                   uint32_t vertexAttributeDescriptionCount,
+                                   const VkVertexInputAttributeDescription2EXT *pVertexAttributeDescriptions)
+{
+	addCommand<::CmdSetVertexInput>(vertexBindingDescriptionCount, pVertexBindingDescriptions,
+	                                vertexAttributeDescriptionCount, pVertexAttributeDescriptions);
 }
 
 void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout *pipelineLayout,

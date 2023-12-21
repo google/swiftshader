@@ -359,7 +359,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	}
 	if(state.hasVertexInputInterfaceState() && !vertexInputInterfaceInLibraries)
 	{
-		inputs.initialize(pCreateInfo->pVertexInputState);
+		inputs.initialize(pCreateInfo->pVertexInputState, pCreateInfo->pDynamicState);
 	}
 }
 
