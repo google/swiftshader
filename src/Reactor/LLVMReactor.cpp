@@ -813,14 +813,14 @@ Value *Nucleus::createShl(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto *clamped_rhs = clampForShift(V(rhs));
-	return V(jit->builder->CreateShl(V(lhs), clamped_rhs));
+	return V(jit->builder->CreateFreeze(jit->builder->CreateShl(V(lhs), clamped_rhs)));
 }
 
 Value *Nucleus::createLShr(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto *clamped_rhs = clampForShift(V(rhs));
-	return V(jit->builder->CreateLShr(V(lhs), clamped_rhs));
+	return V(jit->builder->CreateFreeze(jit->builder->CreateLShr(V(lhs), clamped_rhs)));
 }
 
 Value *Nucleus::createAShr(Value *lhs, Value *rhs)
