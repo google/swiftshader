@@ -89,13 +89,13 @@ Identifier::Identifier(const VkImageViewCreateInfo *pCreateInfo)
 	const Image *sampledImage = image->getSampledImage(viewFormat);
 
 	vk::Format samplingFormat = (image == sampledImage) ? viewFormat : sampledImage->getFormat().getAspectFormat(subresource.aspectMask);
-	pack({ pCreateInfo->viewType, samplingFormat, ResolveComponentMapping(pCreateInfo->components, viewFormat), subresource.levelCount <= 1u });
+	pack({ pCreateInfo->viewType, samplingFormat, ResolveComponentMapping(pCreateInfo->components, viewFormat), static_cast<uint8_t>(subresource.baseMipLevel + subresource.levelCount), subresource.levelCount <= 1u });
 }
 
 Identifier::Identifier(VkFormat bufferFormat)
 {
 	constexpr VkComponentMapping identityMapping = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-	pack({ VK_IMAGE_VIEW_TYPE_1D, bufferFormat, ResolveComponentMapping(identityMapping, bufferFormat), true });
+	pack({ VK_IMAGE_VIEW_TYPE_1D, bufferFormat, ResolveComponentMapping(identityMapping, bufferFormat), 1, true });
 }
 
 void Identifier::pack(const State &state)
@@ -106,6 +106,7 @@ void Identifier::pack(const State &state)
 	g = static_cast<uint32_t>(state.mapping.g);
 	b = static_cast<uint32_t>(state.mapping.b);
 	a = static_cast<uint32_t>(state.mapping.a);
+	maxLod = state.maxLod;
 	singleMipLevel = state.singleMipLevel;
 }
 
@@ -117,6 +118,7 @@ Identifier::State Identifier::getState() const
 		       static_cast<VkComponentSwizzle>(g),
 		       static_cast<VkComponentSwizzle>(b),
 		       static_cast<VkComponentSwizzle>(a) },
+		     static_cast<uint8_t>(maxLod),
 		     static_cast<bool>(singleMipLevel) };
 }
 
