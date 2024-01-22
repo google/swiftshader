@@ -111,6 +111,7 @@ SpirvEmitter::ImageSampler *SpirvEmitter::getImageSampler(const vk::Device *devi
 			// Otherwise make sure LOD is clamped for robustness
 			else
 			{
+				samplerState.minLod = imageViewState.minLod;
 				samplerState.maxLod = imageViewState.maxLod;
 			}
 		}

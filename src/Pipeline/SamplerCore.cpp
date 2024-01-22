@@ -133,6 +133,7 @@ Vector4f SamplerCore::sampleTexture128(Pointer<Byte> &texture, Float4 uvwa[4], c
 	{
 		// TODO: Eliminate int-float-int conversion.
 		lod = Float(As<Int>(lodOrBias));
+		lod = Max(lod, state.minLod);
 		lod = Min(lod, state.maxLod);
 	}
 	else if(function == Base || function == Gather)
