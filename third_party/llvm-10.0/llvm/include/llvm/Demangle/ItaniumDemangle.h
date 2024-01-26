@@ -28,6 +28,7 @@
 #include <cstring>
 #include <exception>
 #include <numeric>
+#include <type_traits>
 #include <utility>
 
 #define FOR_EACH_NODE_KIND(X) \
@@ -2171,13 +2172,13 @@ FOR_EACH_NODE_KIND(SPECIALIZATION)
 
 template <class T, size_t N>
 class PODSmallVector {
-  static_assert(std::is_pod<T>::value,
-                "T is required to be a plain old data type");
+  static_assert(std::is_trivial<T>::value,
+                "T is required to be a trivial type");
 
   T* First = nullptr;
   T* Last = nullptr;
   T* Cap = nullptr;
-  T Inline[N] = {0};
+  T Inline[N] = {};
 
   bool isInline() const { return First == Inline; }
 
