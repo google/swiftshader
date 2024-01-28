@@ -307,7 +307,7 @@ if (supports_subzero) {
 
 if (supports_llvm) {
   swiftshader_source_set("swiftshader_llvm_reactor") {
-    llvm_dir = "../../third_party/llvm-10.0"
+    llvm_dir = "../../third_party/llvm-16.0"
 
     deps = [
       ":swiftshader_reactor_base",
