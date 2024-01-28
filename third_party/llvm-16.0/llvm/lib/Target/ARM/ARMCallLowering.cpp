@@ -161,7 +161,7 @@ struct ARMOutgoingValueHandler : public CallLowering::OutgoingValueHandler {
       std::swap(NewRegs[0], NewRegs[1]);
 
     if (Thunk) {
-      *Thunk = [=]() {
+      *Thunk = [=, this]() {
         assignValueToReg(NewRegs[0], VA.getLocReg(), VA);
         assignValueToReg(NewRegs[1], NextVA.getLocReg(), NextVA);
       };

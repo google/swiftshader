@@ -17,7 +17,10 @@
 #define LLVM_SUPPORT_THREAD_H
 
 #include "llvm/Config/llvm-config.h"
+#include <exception>
+#include <memory>
 #include <optional>
+#include <tuple>
 
 #ifdef _WIN32
 typedef unsigned long DWORD;

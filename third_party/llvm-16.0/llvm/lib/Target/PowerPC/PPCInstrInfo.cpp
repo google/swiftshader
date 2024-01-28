@@ -3498,7 +3498,7 @@ void PPCInstrInfo::fixupIsDeadOrKill(MachineInstr *StartMI, MachineInstr *EndMI,
 
   bool IsKillSet = false;
 
-  auto clearOperandKillInfo = [=] (MachineInstr &MI, unsigned Index) {
+  auto clearOperandKillInfo = [=, this] (MachineInstr &MI, unsigned Index) {
     MachineOperand &MO = MI.getOperand(Index);
     if (MO.isReg() && MO.isUse() && MO.isKill() &&
         getRegisterInfo().regsOverlap(MO.getReg(), RegNo))

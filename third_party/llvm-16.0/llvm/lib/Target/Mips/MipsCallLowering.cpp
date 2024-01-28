@@ -279,7 +279,7 @@ MipsOutgoingValueHandler::assignCustomValue(CallLowering::ArgInfo &Arg,
   // If we can return a thunk, just include the register copies. The unmerge can
   // be emitted earlier.
   if (Thunk) {
-    *Thunk = [=]() {
+    *Thunk = [=, this]() {
       MIRBuilder.buildCopy(VALo.getLocReg(), Lo);
       MIRBuilder.buildCopy(VAHi.getLocReg(), Hi);
     };

@@ -9,6 +9,7 @@
 #ifndef LLVM_SUPPORT_NATIVEFORMATTING_H
 #define LLVM_SUPPORT_NATIVEFORMATTING_H
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 

@@ -29,6 +29,7 @@
 #include "llvm/Config/llvm-config.h"
 #include "llvm/Support/Compiler.h"
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <vector>
 

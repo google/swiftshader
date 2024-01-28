@@ -17,6 +17,7 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/type_traits.h"
 #include <cassert>
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <type_traits>

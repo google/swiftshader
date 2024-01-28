@@ -64,6 +64,7 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <type_traits>
 
 namespace llvm {
 

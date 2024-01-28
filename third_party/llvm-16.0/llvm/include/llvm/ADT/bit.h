@@ -16,6 +16,7 @@
 
 #include "llvm/Support/Compiler.h"
 #include <cstdint>
+#include <cstddef>
 #include <limits>
 #include <type_traits>
 
