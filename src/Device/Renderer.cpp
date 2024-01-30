@@ -285,11 +285,7 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	data->layer = layer;
 	data->instanceID = instanceID;
 	data->baseVertex = baseVertex;
-
-	if(indexBuffer)
-	{
-		draw->indexType = pipeline->getIndexBuffer().getIndexType();
-	}
+	draw->indexType = indexBuffer ? pipeline->getIndexBuffer().getIndexType() : VK_INDEX_TYPE_UINT16;
 
 	draw->vertexRoutine = vertexRoutine;
 
