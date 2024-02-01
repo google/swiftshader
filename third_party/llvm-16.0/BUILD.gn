@@ -617,7 +617,6 @@ swiftshader_llvm_source_set("swiftshader_llvm_source_set_0") {
     "llvm/lib/DebugInfo/DWARF/DWARFAbbreviationDeclaration.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFAcceleratorTable.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFAddressRange.cpp",
-    "llvm/lib/DebugInfo/DWARF/DWARFCompileUnit.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFContext.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFDataExtractor.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFDebugAbbrev.cpp",
@@ -633,13 +632,11 @@ swiftshader_llvm_source_set("swiftshader_llvm_source_set_0") {
     "llvm/lib/DebugInfo/DWARF/DWARFDebugRangeList.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFDebugRnglists.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFDie.cpp",
-    "llvm/lib/DebugInfo/DWARF/DWARFExpression.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFFormValue.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFGdbIndex.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFListTable.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFTypePrinter.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFTypeUnit.cpp",
-    "llvm/lib/DebugInfo/DWARF/DWARFUnit.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFUnitIndex.cpp",
     "llvm/lib/DebugInfo/DWARF/DWARFVerifier.cpp",
     "llvm/lib/Demangle/DLangDemangle.cpp",
@@ -1260,6 +1257,9 @@ swiftshader_llvm_source_set("swiftshader_llvm_source_set_0") {
 }
 swiftshader_llvm_source_set("swiftshader_llvm_source_set_1") {
   sources = [
+    "llvm/lib/DebugInfo/DWARF/DWARFCompileUnit.cpp",
+    "llvm/lib/DebugInfo/DWARF/DWARFExpression.cpp",
+    "llvm/lib/DebugInfo/DWARF/DWARFUnit.cpp",
     "llvm/lib/ExecutionEngine/JITLink/COFF.cpp",
     "llvm/lib/ExecutionEngine/JITLink/MachO.cpp",
     "llvm/lib/IRPrinter/IRPrintingPasses.cpp",

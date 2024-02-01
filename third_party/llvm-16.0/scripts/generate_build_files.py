@@ -447,7 +447,8 @@ def get_filename(path):
 def partition_paths(filepaths):
     partitions = []
     for path in filepaths:
-        filename = get_filename(path)
+        # Convert to lower case to support case-insensitive filesystem
+        filename = get_filename(path).lower()
         inserted = False
         for partition in partitions:
             if not filename in partition:
