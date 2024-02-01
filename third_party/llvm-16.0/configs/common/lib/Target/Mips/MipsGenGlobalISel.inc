@@ -12611,7 +12611,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
       GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
       GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/0, /*OpIdx*/1, /*SubRegIdx*/1, // src
-      GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::GPR32RegClassID,
+      GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::DSPRRegClassID,
       GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, Mips::GPR64RegClassID,
       GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::SLL,
       GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
@@ -13347,7 +13347,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
         GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
         GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/1, /*OpIdx*/1, /*SubRegIdx*/1, // rs
-        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::GPR32RegClassID,
+        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::DSPRRegClassID,
         GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, Mips::GPR64RegClassID,
         GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::DSLLV,
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
@@ -14123,7 +14123,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
         GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
         GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/1, /*OpIdx*/1, /*SubRegIdx*/1, // rs
-        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::GPR32RegClassID,
+        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::DSPRRegClassID,
         GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, Mips::GPR64RegClassID,
         GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::DSRLV,
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
@@ -14879,7 +14879,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
         GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
         GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/1, /*OpIdx*/1, /*SubRegIdx*/1, // rs
-        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::GPR32RegClassID,
+        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::DSPRRegClassID,
         GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, Mips::GPR64RegClassID,
         GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::DSRAV,
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
@@ -15594,7 +15594,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
         GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
         GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/1, /*OpIdx*/1, /*SubRegIdx*/1, // rs
-        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::GPR32RegClassID,
+        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, Mips::DSPRRegClassID,
         GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, Mips::GPR64RegClassID,
         GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::DROTRV,
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
