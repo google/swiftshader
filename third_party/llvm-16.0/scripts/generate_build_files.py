@@ -361,6 +361,7 @@ files_llvm.extend(files_to_add_back_for_llvm)
 
 files_llvm_debug = [
     "/lib/Analysis/RegionPrinter.cpp",
+    "/lib/MC/MCDisassembler/MCDisassembler.cpp",
 ]
 
 files_to_add_back_for_llvm_arm = [
@@ -496,6 +497,7 @@ build_gn_template_data = {
     'files_Mips' : format_file_list_for_build_gn(files_Mips),
     'files_PowerPC' : format_file_list_for_build_gn(files_PowerPC),
     'files_RISCV' : format_file_list_for_build_gn(files_RISCV),
+    'files_llvm_debug': format_file_list_for_build_gn(files_llvm_debug),
 }
 with open(BUILD_GN_TEMPLATE_PATH, 'r') as f:
     build_gn_template = CustomTemplate(f.read())

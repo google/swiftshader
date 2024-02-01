@@ -156,6 +156,10 @@ swiftshader_llvm_source_set("swiftshader_llvm") {
 %$%llvm_deps
   ]
 
+  if (is_debug) {
+    deps += [ ":swiftshader_llvm_debug" ]
+  }
+
   if (current_cpu == "arm64") {
     deps += [ ":swiftshader_llvm_aarch64" ]
   } else if (current_cpu == "arm") {
@@ -185,6 +189,12 @@ swiftshader_llvm_source_set("swiftshader_llvm") {
 # file names, even if they are in different subdirectories. Because of this, some files are
 # split out into their own source_set.
 %$%llvm_source_sets
+
+swiftshader_llvm_source_set("swiftshader_llvm_debug") {
+  sources = [
+%$%files_llvm_debug
+  ]
+}
 
 swiftshader_llvm_source_set("swiftshader_llvm_aarch64") {
   sources = [

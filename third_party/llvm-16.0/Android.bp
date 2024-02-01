@@ -1533,5 +1533,6 @@ cc_library_static {
 
     srcs: [
         "llvm/lib/Analysis/RegionPrinter.cpp",
+        "llvm/lib/MC/MCDisassembler/MCDisassembler.cpp",
     ],
 }

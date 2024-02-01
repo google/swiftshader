@@ -158,6 +158,10 @@ swiftshader_llvm_source_set("swiftshader_llvm") {
 
   ]
 
+  if (is_debug) {
+    deps += [ ":swiftshader_llvm_debug" ]
+  }
+
   if (current_cpu == "arm64") {
     deps += [ ":swiftshader_llvm_aarch64" ]
   } else if (current_cpu == "arm") {
@@ -1269,6 +1273,13 @@ swiftshader_llvm_source_set("swiftshader_llvm_source_set_1") {
   ]
 }
 
+
+swiftshader_llvm_source_set("swiftshader_llvm_debug") {
+  sources = [
+    "llvm/lib/Analysis/RegionPrinter.cpp",
+    "llvm/lib/MC/MCDisassembler/MCDisassembler.cpp",
+  ]
+}
 
 swiftshader_llvm_source_set("swiftshader_llvm_aarch64") {
   sources = [
