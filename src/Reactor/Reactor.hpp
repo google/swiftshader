@@ -2053,6 +2053,9 @@ RValue<Float4> Trunc(RValue<Float4> x);
 RValue<Float4> Frac(RValue<Float4> x);
 RValue<Float4> Floor(RValue<Float4> x);
 RValue<Float4> Ceil(RValue<Float4> x);
+inline RValue<Float4> Mix(RValue<Float4> x, RValue<Float4> y, RValue<Float4> frac) {
+	return (x * (Float4(1.0f) - frac)) + (y * frac);
+}
 
 // Trigonometric functions
 RValue<Float4> Sin(RValue<Float4> x);

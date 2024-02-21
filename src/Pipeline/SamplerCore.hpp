@@ -86,12 +86,16 @@ private:
 	void applyOffset(Float4 &u, Float4 &v, Float4 &w, Vector4i &offset, Pointer<Byte> mipmap);
 	void computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, const Short4 &cubeArrayLayer, const Int4 &sample, const Pointer<Byte> &mipmap);
 	void computeIndices(UInt index[4], Int4 uuuu, Int4 vvvv, Int4 wwww, const Int4 &sample, Int4 valid, const Pointer<Byte> &mipmap);
+	void bilinearInterpolateFloat(Vector4f &output, const Short4 &uuuu0, const Short4 &vvvv0, Vector4f &c00, Vector4f &c01, Vector4f &c10, Vector4f &c11, const Pointer<Byte> &mipmap, bool interpolateComponent0, bool interpolateComponent1, bool interpolateComponent2, bool interpolateComponent3);
+	void bilinearInterpolate(Vector4s &output, const Short4 &uuuu0, const Short4 &vvvv0, Vector4s &c00, Vector4s &c01, Vector4s &c10, Vector4s &c11, const Pointer<Byte> &mipmap);
+	void sampleLumaTexel(Vector4f& output, Short4 &u, Short4 &v, Short4 &w, const Short4 &cubeArrayLayer, const Int4 &sample, Pointer<Byte> &lumaMipmap, Pointer<Byte> lumaBuffer);
+	void sampleChromaTexel(Vector4f& output, Short4 &u, Short4 &v, Short4 &w, const Short4 &cubeArrayLayer, const Int4 &sample, Pointer<Byte> &mipmapU, Pointer<Byte> bufferU, Pointer<Byte> &mipmapV, Pointer<Byte> bufferV);
 	Vector4s sampleTexel(Short4 &u, Short4 &v, Short4 &w, const Short4 &cubeArrayLayer, const Int4 &sample, Pointer<Byte> &mipmap, Pointer<Byte> buffer);
 	Vector4s sampleTexel(UInt index[4], Pointer<Byte> buffer);
 	Vector4f sampleTexel(Int4 &u, Int4 &v, Int4 &w, const Float4 &dRef, const Int4 &sample, Pointer<Byte> &mipmap, Pointer<Byte> buffer);
 	Vector4f replaceBorderTexel(const Vector4f &c, Int4 valid);
 	Pointer<Byte> selectMipmap(const Pointer<Byte> &texture, const Float &lod, bool secondLOD);
-	Short4 address(const Float4 &uvw, AddressingMode addressingMode, Pointer<Byte> &mipmap);
+	Short4 address(const Float4 &uvw, AddressingMode addressingMode);
 	Short4 computeLayerIndex16(const Float4 &a, Pointer<Byte> &mipmap);
 	void address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Int4 &filter, int whd, AddressingMode addressingMode);
 	Int4 computeLayerIndex(const Float4 &a, Pointer<Byte> &mipmap);

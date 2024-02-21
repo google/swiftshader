@@ -56,6 +56,9 @@ struct SamplerState : sw::Memset<SamplerState>
 	const bool highPrecisionFiltering = false;
 	bool studioSwing = false;    // Narrow range
 	bool swappedChroma = false;  // Cb/Cr components in reverse order
+	VkFilter chromaFilter = VK_FILTER_NEAREST;
+	VkChromaLocation chromaXOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
+	VkChromaLocation chromaYOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
 };
 
 class Sampler : public Object<Sampler, VkSampler>, public SamplerState

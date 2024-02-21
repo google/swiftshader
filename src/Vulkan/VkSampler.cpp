@@ -44,6 +44,9 @@ SamplerState::SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::Sam
 		ycbcrModel = ycbcrConversion->ycbcrModel;
 		studioSwing = (ycbcrConversion->ycbcrRange == VK_SAMPLER_YCBCR_RANGE_ITU_NARROW);
 		swappedChroma = (ycbcrConversion->components.r != VK_COMPONENT_SWIZZLE_R);
+        chromaFilter = ycbcrConversion->chromaFilter;
+        chromaXOffset = ycbcrConversion->xChromaOffset;
+        chromaYOffset = ycbcrConversion->yChromaOffset;
 	}
 }
 
