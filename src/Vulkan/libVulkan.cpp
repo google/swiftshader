@@ -432,6 +432,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_EXT_TOOLING_INFO_EXTENSION_NAME, VK_EXT_TOOLING_INFO_SPEC_VERSION } },
 	{ { VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME, VK_KHR_COPY_COMMANDS_2_SPEC_VERSION } },
 	{ { VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_SPEC_VERSION } },
+	{ { VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_SPEC_VERSION } },
 	{ { VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME, VK_KHR_FORMAT_FEATURE_FLAGS_2_SPEC_VERSION } },
 	{ { VK_KHR_MAINTENANCE_4_EXTENSION_NAME, VK_KHR_MAINTENANCE_4_SPEC_VERSION } },
 	{ { VK_KHR_SHADER_INTEGER_DOT_PRODUCT_EXTENSION_NAME, VK_KHR_SHADER_INTEGER_DOT_PRODUCT_SPEC_VERSION } },
@@ -882,6 +883,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 
 				// Dynamic rendering is supported
 				(void)(dynamicRenderingFeatures->dynamicRendering);
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR:
+			{
+				const VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR *dynamicRenderingLocalReadFeatures = reinterpret_cast<const VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR *>(extensionCreateInfo);
+
+				// Dynamic rendering local read is supported
+				(void)(dynamicRenderingLocalReadFeatures->dynamicRenderingLocalRead);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES:
@@ -3481,10 +3490,23 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBeginRendering(VkCommandBuffer commandBuffer, co
 
 VKAPI_ATTR void VKAPI_CALL vkCmdEndRendering(VkCommandBuffer commandBuffer)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p)",
-	      commandBuffer);
+	TRACE("(VkCommandBuffer commandBuffer = %p)", commandBuffer);
 
 	vk::Cast(commandBuffer)->endRendering();
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetRenderingAttachmentLocationsKHR(VkCommandBuffer commandBuffer, const VkRenderingAttachmentLocationInfoKHR *pLocationInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p)", commandBuffer);
+
+	// No-op; the same information is provided in pipeline create info.
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetRenderingInputAttachmentIndicesKHR(VkCommandBuffer commandBuffer, const VkRenderingInputAttachmentIndexInfoKHR *pInputAttachmentIndexInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p)", commandBuffer);
+
+	// No-op; the same information is provided in pipeline create info.
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceVersion(uint32_t *pApiVersion)

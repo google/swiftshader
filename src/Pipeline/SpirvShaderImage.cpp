@@ -832,16 +832,17 @@ void SpirvEmitter::EmitImageRead(const ImageInstruction &instruction)
 	auto coordinate = Operand(shader, *this, instruction.coordinateId);
 	const Spirv::DescriptorDecorations &d = shader.descriptorDecorations.at(instruction.imageId);
 
+	const bool isInt = shader.getType(imageType.definition.word(2)).opcode() == spv::OpTypeInt;
+
 	// For subpass data, format in the instruction is spv::ImageFormatUnknown. Get it from
 	// the renderpass data instead. In all other cases, we can use the format in the instruction.
 	vk::Format imageFormat = (dim == spv::DimSubpassData)
-	                             ? shader.getInputAttachmentFormat(d.InputAttachmentIndex)
+	                             ? shader.getInputAttachmentFormat(d.InputAttachmentIndex, isInt)
 	                             : SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(instruction.imageFormat));
 
 	// Depth+Stencil image attachments select aspect based on the Sampled Type of the
 	// OpTypeImage. If float, then we want the depth aspect. If int, we want the stencil aspect.
-	bool useStencilAspect = (imageFormat == VK_FORMAT_D32_SFLOAT_S8_UINT &&
-	                         shader.getType(imageType.definition.word(2)).opcode() == spv::OpTypeInt);
+	const bool useStencilAspect = imageFormat == VK_FORMAT_D32_SFLOAT_S8_UINT && isInt;
 
 	if(useStencilAspect)
 	{

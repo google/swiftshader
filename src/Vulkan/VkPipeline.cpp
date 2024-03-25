@@ -337,6 +337,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	// VkGraphicsPipelineCreateInfo itself.  Same with shaders.
 	const auto *libraryCreateInfo = GetExtendedStruct<VkPipelineLibraryCreateInfoKHR>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR);
 	bool vertexInputInterfaceInLibraries = false;
+	bool fragmentOutputInterfaceInLibraries = false;
 	if(libraryCreateInfo)
 	{
 		for(uint32_t i = 0; i < libraryCreateInfo->libraryCount; ++i)
@@ -355,11 +356,51 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 			{
 				fragmentShader = library->fragmentShader;
 			}
+			if(library->state.hasFragmentOutputInterfaceState())
+			{
+				memcpy(attachments.indexToLocation, library->attachments.indexToLocation, sizeof(attachments.indexToLocation));
+				memcpy(attachments.locationToIndex, library->attachments.locationToIndex, sizeof(attachments.locationToIndex));
+				fragmentOutputInterfaceInLibraries = true;
+			}
 		}
 	}
 	if(state.hasVertexInputInterfaceState() && !vertexInputInterfaceInLibraries)
 	{
 		inputs.initialize(pCreateInfo->pVertexInputState, pCreateInfo->pDynamicState);
+	}
+	if(state.hasFragmentOutputInterfaceState() && !fragmentOutputInterfaceInLibraries)
+	{
+		const auto *colorMapping = GetExtendedStruct<VkRenderingAttachmentLocationInfoKHR>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_LOCATION_INFO_KHR);
+		if(colorMapping)
+		{
+			// Note that with VK_KHR_dynamic_rendering_local_read, if
+			// VkRenderingAttachmentLocationInfoKHR is provided, setting an index to
+			// VK_ATTACHMENT_UNUSED disables output for that attachment, even if write
+			// mask is not explicitly disabled.
+			for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
+			{
+				attachments.indexToLocation[i] = VK_ATTACHMENT_UNUSED;
+				attachments.locationToIndex[i] = VK_ATTACHMENT_UNUSED;
+			}
+
+			for(uint32_t i = 0; i < colorMapping->colorAttachmentCount; ++i)
+			{
+				const uint32_t location = colorMapping->pColorAttachmentLocations[i];
+				if(location != VK_ATTACHMENT_UNUSED)
+				{
+					attachments.indexToLocation[i] = location;
+					attachments.locationToIndex[location] = i;
+				}
+			}
+		}
+		else
+		{
+			for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
+			{
+				attachments.indexToLocation[i] = i;
+				attachments.locationToIndex[i] = i;
+			}
+		}
 	}
 }
 
@@ -471,6 +512,9 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 	const bool expectVertexShader = (pipelineSubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0;
 	const bool expectFragmentShader = (pipelineSubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT) != 0;
 
+	const auto *rendering = GetExtendedStruct<VkPipelineRenderingCreateInfo>(pCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO);
+	const auto *inputAttachmentMapping = GetExtendedStruct<VkRenderingInputAttachmentIndexInfoKHR>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO_KHR);
+
 	for(uint32_t stageIndex = 0; stageIndex < pCreateInfo->stageCount; stageIndex++)
 	{
 		const VkPipelineShaderStageCreateInfo &stageInfo = pCreateInfo->pStages[stageIndex];
@@ -546,7 +590,7 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 
 		// TODO(b/201798871): use allocator.
 		auto shader = std::make_shared<sw::SpirvShader>(stageInfo.stage, stageInfo.pName, spirv,
-		                                                vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass, stageRobustBufferAccess);
+		                                                vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass, rendering, inputAttachmentMapping, stageRobustBufferAccess);
 
 		setShader(stageInfo.stage, shader);
 
@@ -641,7 +685,7 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 
 	// TODO(b/201798871): use allocator.
 	shader = std::make_shared<sw::SpirvShader>(stage.stage, stage.pName, spirv,
-	                                           nullptr, 0, stageRobustBufferAccess);
+	                                           nullptr, 0, nullptr, nullptr, stageRobustBufferAccess);
 
 	const PipelineCache::ComputeProgramKey programKey(shader->getIdentifier(), layout->identifier);
 

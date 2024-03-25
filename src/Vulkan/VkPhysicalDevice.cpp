@@ -308,6 +308,12 @@ static void getPhysicalDeviceDynamicRenderingFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceDynamicRenderingLocalReadFeatures(T *features)
+{
+	features->dynamicRenderingLocalRead = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceInlineUniformBlockFeatures(T *features)
 {
 	features->inlineUniformBlock = VK_TRUE;
@@ -584,6 +590,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES:
 			getPhysicalDeviceDynamicRenderingFeatures(reinterpret_cast<VkPhysicalDeviceDynamicRenderingFeatures *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR:
+			getPhysicalDeviceDynamicRenderingLocalReadFeatures(reinterpret_cast<VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES:
 			getPhysicalDeviceDescriptorIndexingFeatures(reinterpret_cast<VkPhysicalDeviceDescriptorIndexingFeatures *>(curExtension));

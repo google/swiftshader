@@ -1807,6 +1807,8 @@ SpirvShader::SpirvShader(VkShaderStageFlagBits stage,
                          const SpirvBinary &insns,
                          const vk::RenderPass *renderPass,
                          uint32_t subpassIndex,
+                         const VkPipelineRenderingCreateInfo *rendering,
+                         const VkRenderingInputAttachmentIndexInfoKHR *inputAttachmentMapping,
                          bool robustBufferAccess)
     : Spirv(stage, entryPointName, insns)
     , robustBufferAccess(robustBufferAccess)
@@ -1822,6 +1824,50 @@ SpirvShader::SpirvShader(VkShaderStageFlagBits stage,
 			inputAttachmentFormats.push_back(attachmentIndex != VK_ATTACHMENT_UNUSED
 			                                     ? renderPass->getAttachment(attachmentIndex).format
 			                                     : VK_FORMAT_UNDEFINED);
+		}
+	}
+	else
+	{
+		if(rendering)
+		{
+			inputAttachmentFormats.resize(rendering->colorAttachmentCount + 2, VK_FORMAT_UNDEFINED);
+			for(auto i = 0u; i < rendering->colorAttachmentCount; i++)
+			{
+				// Note: VK_KHR_dynamic_rendering_local_read requires inputAttachmentMapping->colorAttachmentCount to match
+				// rendering->colorAttachmentCount.
+				auto location = inputAttachmentMapping && inputAttachmentMapping->pColorAttachmentInputIndices ? inputAttachmentMapping->pColorAttachmentInputIndices[i] : i;
+				if(location != VK_ATTACHMENT_UNUSED)
+				{
+					inputAttachmentFormats[location] = rendering->pColorAttachmentFormats[i];
+				}
+			}
+
+			if(inputAttachmentMapping && inputAttachmentMapping->pDepthInputAttachmentIndex)
+			{
+				auto attachmentIndex = *inputAttachmentMapping->pDepthInputAttachmentIndex;
+				if(attachmentIndex != VK_ATTACHMENT_UNUSED)
+				{
+					inputAttachmentFormats[attachmentIndex] = rendering->depthAttachmentFormat;
+				}
+			}
+
+			if(inputAttachmentMapping && inputAttachmentMapping->pStencilInputAttachmentIndex)
+			{
+				auto attachmentIndex = *inputAttachmentMapping->pStencilInputAttachmentIndex;
+				if(attachmentIndex != VK_ATTACHMENT_UNUSED)
+				{
+					inputAttachmentFormats[attachmentIndex] = rendering->stencilAttachmentFormat;
+				}
+			}
+
+			// If pDepthInputAttachmentIndex or pStencilInputAttachmentIndex is NULL,
+			// the shader is expected to have NOT declared an InputAttachmentIndex
+			// decoration for them.  In that case, depthInputAttachmentFormat or
+			// stencilInputAttachmentFormat would be used respectively.  So these really
+			// only need to be set in the `else` case of the above `if`s, but set
+			// uncondtionally for simplicity.
+			depthInputAttachmentFormat = rendering->depthAttachmentFormat;
+			stencilInputAttachmentFormat = rendering->stencilAttachmentFormat;
 		}
 	}
 }

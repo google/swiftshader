@@ -115,7 +115,15 @@ struct Attachments
 	ImageView *depthBuffer = nullptr;
 	ImageView *stencilBuffer = nullptr;
 
-	VkFormat colorFormat(int index) const;
+	// VK_KHR_dynamic_rendering_local_read allows color locations to be mapped to the render
+	// pass attachments, but blend and other state is not affected by this map.  The image views
+	// placed in colorBuffer are indexed by "location" (i.e the decoration in the shader), and
+	// the following maps facilitate the association between the attachment-specific state and
+	// the location-indexed color buffers.
+	uint32_t indexToLocation[sw::MAX_COLOR_BUFFERS] = {};
+	uint32_t locationToIndex[sw::MAX_COLOR_BUFFERS] = {};
+
+	VkFormat colorFormat(int location) const;
 	VkFormat depthFormat() const;
 };
 
@@ -407,9 +415,10 @@ struct FragmentOutputInterfaceState
 
 	inline const sw::float4 &getBlendConstants() const { return blendConstants; }
 
-	BlendState getBlendState(int index, const Attachments &attachments, bool fragmentContainsKill) const;
-
-	int colorWriteActive(int index, const Attachments &attachments) const;
+	// The following take the attachment "location", which may not be the same as the index in
+	// the attachment list with VK_KHR_dynamic_rendering_local_read.
+	BlendState getBlendState(int location, const Attachments &attachments, bool fragmentContainsKill) const;
+	int colorWriteActive(int location, const Attachments &attachments) const;
 
 private:
 	void setColorBlendState(const VkPipelineColorBlendStateCreateInfo *colorBlendState);
@@ -417,7 +426,7 @@ private:
 	VkBlendFactor blendFactor(VkBlendOp blendOperation, VkBlendFactor blendFactor) const;
 	VkBlendOp blendOperation(VkBlendOp blendOperation, VkBlendFactor sourceBlendFactor, VkBlendFactor destBlendFactor, vk::Format format) const;
 
-	bool alphaBlendActive(int index, const Attachments &attachments, bool fragmentContainsKill) const;
+	bool alphaBlendActive(int location, const Attachments &attachments, bool fragmentContainsKill) const;
 	bool colorWriteActive(const Attachments &attachments) const;
 
 	int colorWriteMask[sw::MAX_COLOR_BUFFERS] = {};  // RGBA

@@ -979,6 +979,8 @@ public:
 	            const SpirvBinary &insns,
 	            const vk::RenderPass *renderPass,
 	            uint32_t subpassIndex,
+		    const VkPipelineRenderingCreateInfo *rendering,
+		    const VkRenderingInputAttachmentIndexInfoKHR *inputAttachmentMapping,
 	            bool robustBufferAccess);
 
 	~SpirvShader();
@@ -991,12 +993,30 @@ public:
 	bool getRobustBufferAccess() const { return robustBufferAccess; }
 	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, const vk::PipelineLayout *pipelineLayout) const;
 
-	vk::Format getInputAttachmentFormat(int32_t index) const { return inputAttachmentFormats[index]; }
+	vk::Format getInputAttachmentFormat(int32_t index, bool useStencilAspect) const
+	{
+		if (index < 0)
+		{
+			return useStencilAspect ? stencilInputAttachmentFormat : depthInputAttachmentFormat;
+		}
+		return inputAttachmentFormats[index];
+	}
 
 private:
 	const bool robustBufferAccess;
 
+	// With render passes objects, this includes all the information derived from
+	// VkSubpassDescription::pInputAttachments.
+	//
+	// With VK_KHR_dynamic_rendering_local_read, it includes info based on
+	// VkPipelineRenderingCreateInfo and VkRenderingInputAttachmentIndexInfoKHR.
+	//
+	// In the latter case, the shader is allowed to not specify InputAttachmentIndex for
+	// depth/stencil, in which case getInputAttachmentFormat would receive -1 as index.
+	// The additional depth/stencil vk::Format variables below are used in that case.
 	std::vector<vk::Format> inputAttachmentFormats;
+	vk::Format depthInputAttachmentFormat{VK_FORMAT_UNDEFINED};
+	vk::Format stencilInputAttachmentFormat{VK_FORMAT_UNDEFINED};
 };
 
 // The SpirvEmitter class translates the parsed SPIR-V shader into Reactor code.
