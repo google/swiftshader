@@ -315,17 +315,17 @@ VkFormat Attachments::depthFormat() const
 
 void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState, const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo)
 {
-	if(vertexInputState->flags != 0)
-	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-		UNSUPPORTED("vertexInputState->flags");
-	}
-
 	dynamicStateFlags = ParseInputsDynamicStateFlags(dynamicStateCreateInfo);
 
 	if(dynamicStateFlags.dynamicVertexInput)
 	{
 		return;
+	}
+
+	if(vertexInputState->flags != 0)
+	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("vertexInputState->flags");
 	}
 
 	// Temporary in-binding-order representation of buffer strides, to be consumed below
@@ -513,7 +513,7 @@ void VertexInputInterfaceState::initialize(const VkPipelineVertexInputStateCreat
 {
 	dynamicStateFlags = allDynamicStateFlags.vertexInputInterface;
 
-	if(vertexInputState->flags != 0)
+	if(vertexInputState && vertexInputState->flags != 0)
 	{
 		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("vertexInputState->flags");
