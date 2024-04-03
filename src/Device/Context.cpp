@@ -773,10 +773,7 @@ void PreRasterizationState::applyState(const DynamicState &dynamicState)
 
 	if(dynamicStateFlags.dynamicViewportWithCount && dynamicState.viewportCount > 0)
 	{
-		viewport.width = static_cast<float>(dynamicState.viewports[0].extent.width);
-		viewport.height = static_cast<float>(dynamicState.viewports[0].extent.height);
-		viewport.x = static_cast<float>(dynamicState.viewports[0].offset.x);
-		viewport.y = static_cast<float>(dynamicState.viewports[0].offset.y);
+		viewport = dynamicState.viewports[0];
 	}
 
 	if(dynamicStateFlags.dynamicScissorWithCount && dynamicState.scissorCount > 0)

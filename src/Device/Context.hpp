@@ -231,7 +231,7 @@ struct DynamicState
 	VkStencilOpState backStencil = {};
 	VkBool32 stencilTestEnable = VK_FALSE;
 	uint32_t viewportCount = 0;
-	VkRect2D viewports[vk::MAX_VIEWPORTS] = {};
+	VkViewport viewports[vk::MAX_VIEWPORTS] = {};
 	VkBool32 rasterizerDiscardEnable = VK_FALSE;
 	VkBool32 depthBiasEnable = VK_FALSE;
 	VkBool32 primitiveRestartEnable = VK_FALSE;

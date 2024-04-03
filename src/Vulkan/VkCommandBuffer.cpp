@@ -844,7 +844,7 @@ public:
 	CmdSetViewportWithCount(uint32_t viewportCount, const VkViewport *pViewports)
 	    : viewportCount(viewportCount)
 	{
-		memcpy(&(viewports[0]), pViewports, viewportCount * sizeof(VkRect2D));
+		memcpy(viewports, pViewports, sizeof(VkViewport) * viewportCount);
 	}
 
 	void execute(vk::CommandBuffer::ExecutionState &executionState) override
@@ -860,7 +860,7 @@ public:
 
 private:
 	const uint32_t viewportCount;
-	VkRect2D viewports[vk::MAX_VIEWPORTS];
+	VkViewport viewports[vk::MAX_VIEWPORTS];
 };
 
 class CmdSetRasterizerDiscardEnable : public vk::CommandBuffer::Command
