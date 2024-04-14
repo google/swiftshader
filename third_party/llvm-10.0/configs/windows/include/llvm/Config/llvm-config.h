@@ -22,6 +22,10 @@
 #define __x86_64__ 1
 #endif
 
+#if !defined(__aarch64__) && (defined(_M_ARM64) || defined (_M_ARM64EC))
+#define __aarch64__ 1
+#endif
+
 #define LLVM_CONFIG_H
 
 /* Define if LLVM_ENABLE_DUMP is enabled */

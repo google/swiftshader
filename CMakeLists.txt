@@ -84,6 +84,17 @@ if(CMAKE_OSX_ARCHITECTURES)
     endif()
 endif()
 
+# Cross compiling with `cmake -A <arch>`.
+if(CMAKE_GENERATOR_PLATFORM)
+    if(CMAKE_GENERATOR_PLATFORM MATCHES "^(Win32|win32|X86|x86)$")
+        set(ARCH "x86")
+    elseif(CMAKE_GENERATOR_PLATFORM MATCHES "^(Win64|win64|X64|x64)$")
+        set(ARCH "x86_64")
+    elseif(CMAKE_GENERATOR_PLATFORM MATCHES "^(ARM64|Arm64|arm64)$")
+        set(ARCH "aarch64")
+    endif()
+endif()
+
 set(CMAKE_MACOSX_RPATH TRUE)
 
 if ((CMAKE_GENERATOR MATCHES "Visual Studio") AND (CMAKE_GENERATOR_TOOLSET STREQUAL ""))
