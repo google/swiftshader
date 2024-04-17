@@ -32,6 +32,9 @@ LLVM_TARGET(ARM)
 #if defined(__i386__) || defined(__x86_64__)
 LLVM_TARGET(X86)
 #endif
+#if defined(__loongarch__)
+LLVM_TARGET(LoongArch)
+#endif
 #if defined(__mips__)
 LLVM_TARGET(Mips)
 #endif

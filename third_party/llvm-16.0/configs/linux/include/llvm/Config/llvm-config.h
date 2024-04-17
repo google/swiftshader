@@ -37,6 +37,8 @@
 #define LLVM_DEFAULT_TARGET_TRIPLE "armv7-linux-gnueabihf"
 #elif defined(__aarch64__)
 #define LLVM_DEFAULT_TARGET_TRIPLE "aarch64-linux-gnu"
+#elif defined(__loongarch__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "loongarch64-unknown-linux-gnu"
 #elif defined(__mips__)
 #define LLVM_DEFAULT_TARGET_TRIPLE "mipsel-linux-gnu"
 #elif defined(__mips64)
@@ -64,6 +66,8 @@
 #define LLVM_HOST_TRIPLE "armv7-linux-gnueabihf"
 #elif defined(__aarch64__)
 #define LLVM_HOST_TRIPLE "aarch64-linux-gnu"
+#elif defined(__loongarch__)
+#define LLVM_HOST_TRIPLE "loongarch64-unknown-linux-gnu"
 #elif defined(__mips__)
 #define LLVM_HOST_TRIPLE "mipsel-linux-gnu"
 #elif defined(__mips64)
@@ -83,6 +87,8 @@
 #define LLVM_NATIVE_ARCH ARM
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_ARCH X86
+#elif defined(__loongarch__)
+#define LLVM_NATIVE_ARCH LoongArch
 #elif defined(__mips__)
 #define LLVM_NATIVE_ARCH Mips
 #elif defined(__powerpc64__)
@@ -100,6 +106,8 @@
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeARMAsmParser
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeX86AsmParser
+#elif defined(__loongarch__)
+#define LLVM_NATIVE_ASMPARSER LLVMInitializeLoongArchAsmParser
 #elif defined(__mips__)
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeMipsAsmParser
 #elif defined(__powerpc64__)
@@ -117,6 +125,8 @@
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeARMAsmPrinter
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeX86AsmPrinter
+#elif defined(__loongarch__)
+#define LLVM_NATIVE_ASMPRINTER LLVMInitializeLoongArchAsmPrinter
 #elif defined(__mips__)
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeMipsAsmPrinter
 #elif defined(__powerpc64__)
@@ -134,6 +144,8 @@
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeARMDisassembler
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeX86Disassembler
+#elif defined(__loongarch__)
+#define LLVM_NATIVE_DISASSEMBLER LLVMInitializeLoongArchDisassembler
 #elif defined(__mips__)
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeMipsDisassembler
 #elif defined(__powerpc64__)
@@ -151,6 +163,8 @@
 #define LLVM_NATIVE_TARGET LLVMInitializeARMTarget
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_TARGET LLVMInitializeX86Target
+#elif defined(__loongarch__)
+#define LLVM_NATIVE_TARGET LLVMInitializeLoongArchTarget
 #elif defined(__mips__)
 #define LLVM_NATIVE_TARGET LLVMInitializeMipsTarget
 #elif defined(__powerpc64__)
@@ -168,6 +182,8 @@
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeARMTargetInfo
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeX86TargetInfo
+#elif defined(__loongarch__)
+#define LLVM_NATIVE_TARGETINFO LLVMInitializeLoongArchTargetInfo
 #elif defined(__mips__)
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeMipsTargetInfo
 #elif defined(__powerpc64__)
@@ -185,6 +201,8 @@
 #define LLVM_NATIVE_TARGETMC LLVMInitializeARMTargetMC
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_TARGETMC LLVMInitializeX86TargetMC
+#elif defined(__loongarch__)
+#define LLVM_NATIVE_TARGETMC LLVMInitializeLoongArchTargetMC
 #elif defined(__mips__)
 #define LLVM_NATIVE_TARGETMC LLVMInitializeMipsTargetMC
 #elif defined(__powerpc64__)

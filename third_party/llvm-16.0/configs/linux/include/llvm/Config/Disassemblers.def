@@ -33,6 +33,9 @@ LLVM_DISASSEMBLER(ARM)
 #if defined(__i386__) || defined(__x86_64__)
 LLVM_DISASSEMBLER(X86)
 #endif
+#if defined(__loongarch__)
+LLVM_DISASSEMBLER(LoongArch)
+#endif
 #if defined(__mips__)
 LLVM_DISASSEMBLER(Mips)
 #endif

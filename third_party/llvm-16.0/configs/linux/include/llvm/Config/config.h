@@ -222,7 +222,7 @@
 #define HAVE_UNISTD_H 1
 
 /* Define to 1 if you have the <valgrind/valgrind.h> header file. */
-/* #undef HAVE_VALGRIND_VALGRIND_H */
+#define HAVE_VALGRIND_VALGRIND_H 1
 
 /* Have host's _alloca */
 /* #undef HAVE__ALLOCA */
