@@ -97,6 +97,7 @@ llvm_include_dirs = [
   "llvm/include/",
   "llvm/lib/Target/AArch64/",
   "llvm/lib/Target/ARM/",
+  "llvm/lib/Target/LoongArch/",
   "llvm/lib/Target/Mips/",
   "llvm/lib/Target/PowerPC/",
   "llvm/lib/Target/RISCV/",
@@ -106,6 +107,7 @@ llvm_include_dirs = [
   "configs/common/lib/IR/",
   "configs/common/lib/Target/AArch64/",
   "configs/common/lib/Target/ARM/",
+  "configs/common/lib/Target/LoongArch/",
   "configs/common/lib/Target/Mips/",
   "configs/common/lib/Target/PowerPC/",
   "configs/common/lib/Target/RISCV/",
@@ -166,6 +168,8 @@ swiftshader_llvm_source_set("swiftshader_llvm") {
     deps += [ ":swiftshader_llvm_aarch64" ]
   } else if (current_cpu == "arm") {
     deps += [ ":swiftshader_llvm_arm" ]
+  } else if (current_cpu == "loong64") {
+    deps += [ ":swiftshader_llvm_loongarch64" ]
   } else if (current_cpu == "mipsel" || current_cpu == "mips64el") {
     deps += [ ":swiftshader_llvm_mips" ]
   } else if (current_cpu == "ppc64") {
@@ -1441,6 +1445,38 @@ swiftshader_llvm_source_set("swiftshader_llvm_arm") {
   if (!is_ubsan_vptr) {
     sources += [ "llvm/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp" ]
   }
+}
+
+swiftshader_llvm_source_set("swiftshader_llvm_loongarch64") {
+  sources = [
+    "llvm/lib/Target/LoongArch/AsmParser/LoongArchAsmParser.cpp",
+    "llvm/lib/Target/LoongArch/Disassembler/LoongArchDisassembler.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchAsmPrinter.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchExpandAtomicPseudoInsts.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchExpandPseudoInsts.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchFrameLowering.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchISelDAGToDAG.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchISelLowering.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchInstrInfo.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchMCInstLower.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchRegisterInfo.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchSubtarget.cpp",
+    "llvm/lib/Target/LoongArch/LoongArchTargetMachine.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchAsmBackend.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchBaseInfo.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchELFObjectWriter.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchELFStreamer.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchInstPrinter.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchMCAsmInfo.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchMCCodeEmitter.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchMCExpr.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchMCTargetDesc.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchMatInt.cpp",
+    "llvm/lib/Target/LoongArch/MCTargetDesc/LoongArchTargetStreamer.cpp",
+    "llvm/lib/Target/LoongArch/TargetInfo/LoongArchTargetInfo.cpp",
+    "llvm/lib/TargetParser/LoongArchTargetParser.cpp",
+    "llvm/lib/Transforms/IPO/BarrierNoopPass.cpp",
+  ]
 }
 
 swiftshader_llvm_source_set("swiftshader_llvm_mips") {

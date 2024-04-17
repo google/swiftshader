@@ -371,6 +371,11 @@ files_to_add_back_for_llvm_arm = [
     "/lib/Transforms/IPO/BarrierNoopPass.cpp",
 ]
 
+files_to_add_back_for_llvm_loongarch = [
+    "/lib/TargetParser/LoongArchTargetParser.cpp",
+    "/lib/Transforms/IPO/BarrierNoopPass.cpp",
+]
+
 files_to_add_back_for_llvm_riscv = [
     "/lib/TargetParser/RISCVTargetParser.cpp",
     "/lib/Transforms/IPO/BarrierNoopPass.cpp",
@@ -385,6 +390,9 @@ files_AArch64.sort()
 files_ARM = keep_files_with_prefix(all_files, "/lib/Target/ARM/")
 files_ARM.extend(files_to_add_back_for_llvm_arm)
 files_ARM.sort()
+files_LoongArch = keep_files_with_prefix(all_files, "/lib/Target/LoongArch/")
+files_LoongArch.extend(files_to_add_back_for_llvm_loongarch)
+files_LoongArch.sort()
 files_PowerPC = keep_files_with_prefix(all_files, "/lib/Target/PowerPC/")
 files_RISCV = keep_files_with_prefix(all_files, "/lib/Target/RISCV/")
 files_RISCV.extend(files_to_add_back_for_llvm_riscv)
@@ -399,6 +407,7 @@ cmake_template_data = {
     'generated_file_comment' : "# " + generated_file_comment,
     'files_llvm' : '\n'.join(["    ${LLVM_DIR}" + s for s in files_llvm]),
     'files_x86' : format_file_list_for_cmake(files_x86),
+    'files_LoongArch' : format_file_list_for_cmake(files_LoongArch),
     'files_Mips' : format_file_list_for_cmake(files_Mips),
     'files_AArch64' : format_file_list_for_cmake(files_AArch64),
     'files_ARM' : format_file_list_for_cmake(files_ARM),
@@ -495,6 +504,7 @@ build_gn_template_data = {
     'files_x86' : format_file_list_for_build_gn(files_x86),
     'files_AArch64' : format_file_list_for_build_gn(files_AArch64),
     'files_ARM' : format_file_list_for_build_gn(files_ARM_build_gn),
+    'files_LoongArch' : format_file_list_for_build_gn(files_LoongArch),
     'files_Mips' : format_file_list_for_build_gn(files_Mips),
     'files_PowerPC' : format_file_list_for_build_gn(files_PowerPC),
     'files_RISCV' : format_file_list_for_build_gn(files_RISCV),

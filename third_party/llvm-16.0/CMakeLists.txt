@@ -1394,6 +1394,36 @@ elseif(ARCH STREQUAL "arm")
         ${LLVM_DIR}/lib/Target/ARM/Utils/ARMBaseInfo.cpp
         ${LLVM_DIR}/lib/Transforms/IPO/BarrierNoopPass.cpp
     )
+elseif(ARCH STREQUAL "loongarch64")
+    list(APPEND LLVM_LIST
+        ${LLVM_DIR}/lib/Target/LoongArch/AsmParser/LoongArchAsmParser.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/Disassembler/LoongArchDisassembler.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchAsmPrinter.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchExpandAtomicPseudoInsts.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchExpandPseudoInsts.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchFrameLowering.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchISelDAGToDAG.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchISelLowering.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchInstrInfo.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchMCInstLower.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchRegisterInfo.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchSubtarget.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/LoongArchTargetMachine.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchAsmBackend.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchBaseInfo.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchELFObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchELFStreamer.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchInstPrinter.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchMCAsmInfo.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchMCCodeEmitter.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchMCExpr.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchMCTargetDesc.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchMatInt.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/MCTargetDesc/LoongArchTargetStreamer.cpp
+        ${LLVM_DIR}/lib/Target/LoongArch/TargetInfo/LoongArchTargetInfo.cpp
+        ${LLVM_DIR}/lib/TargetParser/LoongArchTargetParser.cpp
+        ${LLVM_DIR}/lib/Transforms/IPO/BarrierNoopPass.cpp
+    )
 elseif(ARCH STREQUAL "ppc64le")
     list(APPEND LLVM_LIST
         ${LLVM_DIR}/lib/Target/PowerPC/AsmParser/PPCAsmParser.cpp
@@ -1529,6 +1559,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/include
     ${LLVM_DIR}/lib/Target/AArch64
     ${LLVM_DIR}/lib/Target/ARM
+    ${LLVM_DIR}/lib/Target/LoongArch
     ${LLVM_DIR}/lib/Target/Mips
     ${LLVM_DIR}/lib/Target/PowerPC
     ${LLVM_DIR}/lib/Target/RISCV
@@ -1537,6 +1568,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_CONFIG_DIR}/common/lib/IR
     ${LLVM_CONFIG_DIR}/common/lib/Target/AArch64
     ${LLVM_CONFIG_DIR}/common/lib/Target/ARM
+    ${LLVM_CONFIG_DIR}/common/lib/Target/LoongArch
     ${LLVM_CONFIG_DIR}/common/lib/Target/Mips
     ${LLVM_CONFIG_DIR}/common/lib/Target/PowerPC
     ${LLVM_CONFIG_DIR}/common/lib/Target/RISCV

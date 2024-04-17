@@ -37,6 +37,10 @@ elseif(ARCH STREQUAL "arm")
     list(APPEND LLVM_LIST
 %$%files_ARM
     )
+elseif(ARCH STREQUAL "loongarch64")
+    list(APPEND LLVM_LIST
+%$%files_LoongArch
+    )
 elseif(ARCH STREQUAL "ppc64le")
     list(APPEND LLVM_LIST
 %$%files_PowerPC
@@ -74,6 +78,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/include
     ${LLVM_DIR}/lib/Target/AArch64
     ${LLVM_DIR}/lib/Target/ARM
+    ${LLVM_DIR}/lib/Target/LoongArch
     ${LLVM_DIR}/lib/Target/Mips
     ${LLVM_DIR}/lib/Target/PowerPC
     ${LLVM_DIR}/lib/Target/RISCV
@@ -82,6 +87,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_CONFIG_DIR}/common/lib/IR
     ${LLVM_CONFIG_DIR}/common/lib/Target/AArch64
     ${LLVM_CONFIG_DIR}/common/lib/Target/ARM
+    ${LLVM_CONFIG_DIR}/common/lib/Target/LoongArch
     ${LLVM_CONFIG_DIR}/common/lib/Target/Mips
     ${LLVM_CONFIG_DIR}/common/lib/Target/PowerPC
     ${LLVM_CONFIG_DIR}/common/lib/Target/RISCV

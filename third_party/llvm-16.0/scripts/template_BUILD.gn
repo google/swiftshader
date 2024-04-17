@@ -97,6 +97,7 @@ llvm_include_dirs = [
   "llvm/include/",
   "llvm/lib/Target/AArch64/",
   "llvm/lib/Target/ARM/",
+  "llvm/lib/Target/LoongArch/",
   "llvm/lib/Target/Mips/",
   "llvm/lib/Target/PowerPC/",
   "llvm/lib/Target/RISCV/",
@@ -106,6 +107,7 @@ llvm_include_dirs = [
   "configs/common/lib/IR/",
   "configs/common/lib/Target/AArch64/",
   "configs/common/lib/Target/ARM/",
+  "configs/common/lib/Target/LoongArch/",
   "configs/common/lib/Target/Mips/",
   "configs/common/lib/Target/PowerPC/",
   "configs/common/lib/Target/RISCV/",
@@ -164,6 +166,8 @@ swiftshader_llvm_source_set("swiftshader_llvm") {
     deps += [ ":swiftshader_llvm_aarch64" ]
   } else if (current_cpu == "arm") {
     deps += [ ":swiftshader_llvm_arm" ]
+  } else if (current_cpu == "loong64") {
+    deps += [ ":swiftshader_llvm_loongarch64" ]
   } else if (current_cpu == "mipsel" || current_cpu == "mips64el") {
     deps += [ ":swiftshader_llvm_mips" ]
   } else if (current_cpu == "ppc64") {
@@ -211,6 +215,12 @@ swiftshader_llvm_source_set("swiftshader_llvm_arm") {
   if (!is_ubsan_vptr) {
     sources += [ "llvm/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp" ]
   }
+}
+
+swiftshader_llvm_source_set("swiftshader_llvm_loongarch64") {
+  sources = [
+%$%files_LoongArch
+  ]
 }
 
 swiftshader_llvm_source_set("swiftshader_llvm_mips") {
