@@ -9,8 +9,8 @@ import("../swiftshader.gni")
 import("//build_overrides/build.gni")
 
 declare_args() {
-  # Subzero doesn't support ARM64, MIPS64, PPC64, and RISCV64 (only x86 and ARMv7a).
-  supports_subzero = current_cpu != "arm64" && current_cpu != "mips64el" && current_cpu != "ppc64" && current_cpu != "riscv64"
+  # Subzero doesn't support ARM64, LOONGARCH64, MIPS64, PPC64, and RISCV64 (only x86 and ARMv7a).
+  supports_subzero = current_cpu != "arm64" && current_cpu != "mips64el" && current_cpu != "ppc64" && current_cpu != "riscv64" && current_cpu != "loong64"
 }
 
 declare_args() {
