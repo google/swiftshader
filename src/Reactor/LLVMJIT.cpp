@@ -28,8 +28,8 @@ __pragma(warning(push))
 
 // See https://groups.google.com/g/llvm-dev/c/CAE7Va57h2c/m/74ITeXFEAQAJ
 // for information about `RTDyldObjectLinkingLayer` vs `ObjectLinkingLayer`.
-// On RISC-V, only `ObjectLinkingLayer` is supported.
-#if defined(__riscv)
+// On RISC-V and LoongArch, only `ObjectLinkingLayer` is supported.
+#if defined(__riscv) || defined(__loongarch__)
 #define USE_LEGACY_OBJECT_LINKING_LAYER 0
 #else
 #define USE_LEGACY_OBJECT_LINKING_LAYER 1
@@ -250,6 +250,11 @@ JITGlobals *JITGlobals::get()
 		// On RISC-V, using the default code model results in an
 		// "Unsupported riscv relocation" error.
 		jitTargetMachineBuilder.setCodeModel(llvm::CodeModel::Medium);
+#elif defined(__loongarch__)
+		// jitTargetMachineBuilder.getFeatures() on LoongArch does
+		// not return the LoongArch CPU extensions, so they are
+		// manually added.
+		jitTargetMachineBuilder.getFeatures().AddFeature("+d");
 #endif
 
 		jitTargetMachineBuilder.setCPU(std::string(llvm::sys::getHostCPUName()));
