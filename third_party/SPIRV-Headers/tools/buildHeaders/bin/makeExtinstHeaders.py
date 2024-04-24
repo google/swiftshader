@@ -27,3 +27,4 @@ mk_extinst('AMD_shader_trinary_minmax', 'extinst.spv-amd-shader-trinary-minmax.g
 mk_extinst('NonSemanticDebugPrintf', 'extinst.nonsemantic.debugprintf.grammar.json')
 mk_extinst('NonSemanticClspvReflection', 'extinst.nonsemantic.clspvreflection.grammar.json')
 mk_extinst('NonSemanticDebugBreak', 'extinst.nonsemantic.debugbreak.grammar.json')
+mk_extinst('NonSemanticVkspReflection', 'extinst.nonsemantic.vkspreflection.grammar.json')

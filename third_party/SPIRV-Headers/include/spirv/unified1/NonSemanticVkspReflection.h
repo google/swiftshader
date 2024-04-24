@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2024 The Khronos Group Inc.
+// Copyright (c) 2020-2024 The Khronos Group Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and/or associated documentation files (the
@@ -23,15 +23,35 @@
 // CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 // MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+// 
 
-#include <spirv/unified1/GLSL.std.450.h>
-#include <spirv/unified1/OpenCL.std.h>
-#include <spirv/unified1/spirv.hpp>
+#ifndef SPIRV_UNIFIED1_NonSemanticVkspReflection_H_
+#define SPIRV_UNIFIED1_NonSemanticVkspReflection_H_
 
-namespace {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-const GLSLstd450 kSin = GLSLstd450Sin;
-const OpenCLLIB::Entrypoints kNative_cos = OpenCLLIB::Native_cos;
-const spv::Op kNop = spv::OpNop;
+enum {
+    NonSemanticVkspReflectionRevision = 2,
+    NonSemanticVkspReflectionRevision_BitWidthPadding = 0x7fffffff
+};
 
-}  // anonymous namespace
+enum NonSemanticVkspReflectionInstructions {
+    NonSemanticVkspReflectionConfiguration = 1,
+    NonSemanticVkspReflectionStartCounter = 2,
+    NonSemanticVkspReflectionStopCounter = 3,
+    NonSemanticVkspReflectionPushConstants = 4,
+    NonSemanticVkspReflectionSpecializationMapEntry = 5,
+    NonSemanticVkspReflectionDescriptorSetBuffer = 6,
+    NonSemanticVkspReflectionDescriptorSetImage = 7,
+    NonSemanticVkspReflectionDescriptorSetSampler = 8,
+    NonSemanticVkspReflectionInstructionsMax = 0x7fffffff
+};
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // SPIRV_UNIFIED1_NonSemanticVkspReflection_H_
