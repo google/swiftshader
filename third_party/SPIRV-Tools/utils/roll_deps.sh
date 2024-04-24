@@ -29,7 +29,6 @@ function ExitIfIsInterestingError() {
 }
 
 
-# We are not rolling google test for now. The latest version requires C++14.
 dependencies=("external/effcee/"
               "external/googletest/"
               "external/re2/"

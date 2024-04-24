@@ -30,6 +30,9 @@ set PATH=C:\python36;"C:\Program Files\cmake-3.23.1-windows-x86_64\bin";%PATH%
 if %VS_VERSION% == 2017 (
   call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
   echo "Using VS 2017..."
+
+  :: RE2 does not support VS2017, we we must disable tests.
+  set BUILD_TESTS=NO
 ) else if %VS_VERSION% == 2019 (
   call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
   echo "Using VS 2019..."
@@ -56,6 +59,10 @@ set CMAKE_FLAGS=-DCMAKE_INSTALL_PREFIX=%KOKORO_ARTIFACTS_DIR%\install -GNinja -D
 :: Build spirv-fuzz
 set CMAKE_FLAGS=%CMAKE_FLAGS% -DSPIRV_BUILD_FUZZER=ON
 
+if "%BUILD_TESTS%" == "NO" (
+  set CMAKE_FLAGS=-DSPIRV_SKIP_TESTS=ON %CMAKE_FLAGS%
+) 
+
 cmake %CMAKE_FLAGS% ..
 
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
@@ -71,10 +78,12 @@ setlocal ENABLEDELAYEDEXPANSION
 :: ################################################
 :: Run the tests
 :: ################################################
-echo "Running Tests... %DATE% %TIME%"
-ctest -C %BUILD_TYPE% --output-on-failure --timeout 300
-if !ERRORLEVEL! NEQ 0 exit /b !ERRORLEVEL!
-echo "Tests Completed %DATE% %TIME%"
+if "%BUILD_TESTS%" NEQ "NO" (
+  echo "Running Tests... %DATE% %TIME%"
+  ctest -C %BUILD_TYPE% --output-on-failure --timeout 300
+  if !ERRORLEVEL! NEQ 0 exit /b !ERRORLEVEL!
+  echo "Tests Completed %DATE% %TIME%"
+)
 
 :: ################################################
 :: Install and package.

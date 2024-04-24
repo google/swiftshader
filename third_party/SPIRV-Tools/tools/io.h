@@ -144,6 +144,7 @@ class OutputFile {
 
   ~OutputFile() {
     if (fp_ == stdout) {
+      fflush(stdout);
       SET_STDOUT_MODE(old_mode_);
     } else if (fp_ != nullptr) {
       fclose(fp_);

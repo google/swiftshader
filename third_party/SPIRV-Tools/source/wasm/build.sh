@@ -45,7 +45,7 @@ build() {
     emcc \
         --bind \
         -I../../include \
-        -std=c++11 \
+        -std=c++17 \
         ../../source/wasm/spirv-tools.cpp \
         source/libSPIRV-Tools.a \
         -o spirv-tools.js \

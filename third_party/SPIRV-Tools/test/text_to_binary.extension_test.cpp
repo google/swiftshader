@@ -1247,5 +1247,58 @@ INSTANTIATE_TEST_SUITE_P(
              MakeInstruction(spv::Op::OpStencilAttachmentReadEXT, {1, 2, 3})},
         })));
 
+// SPV_KHR_maximal_reconvergence
+
+INSTANTIATE_TEST_SUITE_P(
+    SPV_KHR_maximal_reconvergence, ExtensionRoundTripTest,
+    Combine(
+        Values(SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_5, SPV_ENV_VULKAN_1_0,
+               SPV_ENV_VULKAN_1_1, SPV_ENV_VULKAN_1_2, SPV_ENV_VULKAN_1_3),
+        ValuesIn(std::vector<AssemblyCase>{
+            {"OpExtension \"SPV_KHR_maximal_reconvergence\"\n",
+             MakeInstruction(spv::Op::OpExtension,
+                             MakeVector("SPV_KHR_maximal_reconvergence"))},
+            {"OpExecutionMode %1 MaximallyReconvergesKHR\n",
+             MakeInstruction(
+                 spv::Op::OpExecutionMode,
+                 {1, (uint32_t)spv::ExecutionMode::MaximallyReconvergesKHR})},
+        })));
+
+// SPV_KHR_float_controls2
+
+INSTANTIATE_TEST_SUITE_P(
+    SPV_KHR_float_controls2, ExtensionRoundTripTest,
+    Combine(
+        Values(SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_5, SPV_ENV_VULKAN_1_0,
+               SPV_ENV_VULKAN_1_1, SPV_ENV_VULKAN_1_2, SPV_ENV_VULKAN_1_3),
+        ValuesIn(std::vector<AssemblyCase>{
+            {"OpExtension \"SPV_KHR_float_controls2\"\n",
+             MakeInstruction(spv::Op::OpExtension,
+                             MakeVector("SPV_KHR_float_controls2"))},
+            {"OpCapability FloatControls2\n",
+             MakeInstruction(spv::Op::OpCapability,
+                             {(uint32_t)spv::Capability::FloatControls2})},
+            {"OpExecutionMode %1 FPFastMathDefault %2 %3\n",
+             // The operands are: target type, flags constant
+             MakeInstruction(
+                 spv::Op::OpExecutionMode,
+                 {1, (uint32_t)spv::ExecutionMode::FPFastMathDefault, 2, 3})},
+            {"OpDecorate %1 FPFastMathMode AllowContract\n",
+             MakeInstruction(
+                 spv::Op::OpDecorate,
+                 {1, (uint32_t)spv::Decoration::FPFastMathMode,
+                  (uint32_t)spv::FPFastMathModeMask::AllowContract})},
+            {"OpDecorate %1 FPFastMathMode AllowReassoc\n",
+             MakeInstruction(
+                 spv::Op::OpDecorate,
+                 {1, (uint32_t)spv::Decoration::FPFastMathMode,
+                  (uint32_t)spv::FPFastMathModeMask::AllowReassoc})},
+            {"OpDecorate %1 FPFastMathMode AllowTransform\n",
+             MakeInstruction(
+                 spv::Op::OpDecorate,
+                 {1, (uint32_t)spv::Decoration::FPFastMathMode,
+                  (uint32_t)spv::FPFastMathModeMask::AllowTransform})},
+        })));
+
 }  // namespace
 }  // namespace spvtools
