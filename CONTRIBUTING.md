@@ -3,7 +3,7 @@
 ## For users: Reporting bugs and requesting features
 
 We organize known future work in GitHub projects. See
-[Tracking SPIRV-Tools work with GitHub projects](https://github.com/KhronosGroup/SPIRV-Tools/blob/master/docs/projects.md)
+[Tracking SPIRV-Tools work with GitHub projects](https://github.com/KhronosGroup/SPIRV-Tools/blob/main/docs/projects.md)
 for more.
 
 To report a new bug or request a new feature, please file a GitHub issue. Please
@@ -46,7 +46,7 @@ sign the CLA until after you've submitted your code for review and a member has
 approved it, but you must do it before we can put your code into our codebase.
 
 See
-[README.md](https://github.com/KhronosGroup/SPIRV-Tools/blob/master/README.md)
+[README.md](https://github.com/KhronosGroup/SPIRV-Tools/blob/main/README.md)
 for instruction on how to get, build, and test the source. Once you have made
 your changes:
 
@@ -59,7 +59,7 @@ your changes:
 *   If your patch completely fixes bug 1234, the commit message should say
     `Fixes https://github.com/KhronosGroup/SPIRV-Tools/issues/1234` When you do
     this, the issue will be closed automatically when the commit goes into
-    master. Also, this helps us update the [CHANGES](CHANGES) file.
+    main. Also, this helps us update the [CHANGES](CHANGES) file.
 *   Watch the continuous builds to make sure they pass.
 *   Request a code review.
 
@@ -107,7 +107,7 @@ should pay particular attention to:
 
 ## For maintainers: Merging a PR
 
-We intend to maintain a linear history on the GitHub master branch, and the
+We intend to maintain a linear history on the GitHub main branch, and the
 build and its tests should pass at each commit in that history. A linear
 always-working history is easier to understand and to bisect in case we want to
 find which commit introduced a bug. The

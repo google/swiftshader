@@ -1154,7 +1154,10 @@ INSTANTIATE_TEST_SUITE_P(
         {"%2 = OpSpecConstantOp %1 !1000 %2",
          "Invalid OpSpecConstantOp opcode: 1000"},
         {"OpCapability !9999", "Invalid capability operand: 9999"},
-        {"OpSource !9999 100", "Invalid source language operand: 9999"},
+        {"OpSource !9999 100",
+         "Invalid source language operand: 9999, if you are creating a new "
+         "source language please use value 0 (Unknown) and when ready, add "
+         "your source language to SPRIV-Headers"},
         {"OpEntryPoint !9999", "Invalid execution model operand: 9999"},
         {"OpMemoryModel !9999", "Invalid addressing model operand: 9999"},
         {"OpMemoryModel Logical !9999", "Invalid memory model operand: 9999"},
