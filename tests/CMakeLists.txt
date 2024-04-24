@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2023 The Khronos Group Inc.
+# Copyright (c) 2015-2024 The Khronos Group Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and/or associated documentation files (the
@@ -24,13 +24,13 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
-add_library(simple_test STATIC)
+add_library(spirv_headers_simple_test STATIC)
 
-target_sources(simple_test PRIVATE
+target_sources(spirv_headers_simple_test PRIVATE
     example.cpp
 )
 
-target_link_libraries(simple_test PRIVATE
+target_link_libraries(spirv_headers_simple_test PRIVATE
     SPIRV-Headers::SPIRV-Headers
 )
 
