@@ -803,6 +803,7 @@ if (NOT TARGET SPIRV-Tools)
     set(SPIRV-Headers_SOURCE_DIR "${THIRD_PARTY_DIR}/SPIRV-Headers")
     set(SPIRV_SKIP_TESTS TRUE CACHE BOOL "" FORCE)
     set(SPIRV_SKIP_EXECUTABLES TRUE CACHE BOOL "" FORCE)
+    set(SPIRV_WERROR FALSE CACHE BOOL "" FORCE)
     add_subdirectory(${THIRD_PARTY_DIR}/SPIRV-Tools) # Add SPIRV-Tools target
 endif()
 
