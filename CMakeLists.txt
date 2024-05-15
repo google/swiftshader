@@ -116,7 +116,7 @@ endif()
 # Install Gerrit commit hook
 ###########################################################
 
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/commit-msg)
+if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git AND NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/commit-msg)
     message(WARNING "
         .git/hooks/commit-msg was not found.
         Downloading from https://gerrit-review.googlesource.com/tools/hooks/commit-msg...
