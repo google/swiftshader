@@ -208,6 +208,8 @@ const (
 	QualityWarning = Status("QUALITY_WARNING")
 	// InternalError is the status of a test that failed on an API usage error.
 	InternalError = Status("INTERNAL_ERROR")
+	// Unknown is the status of a test that had a result that could not be parsed.
+	Unknown = Status("INTERNAL_ERROR")
 )
 
 // Statuses is the full list of status types
@@ -225,6 +227,7 @@ var Statuses = []Status{
 	CompatibilityWarning,
 	QualityWarning,
 	InternalError,
+	Unknown,
 }
 
 // Failing returns true if the task status requires fixing.

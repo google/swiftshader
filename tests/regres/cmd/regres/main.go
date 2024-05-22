@@ -300,10 +300,10 @@ func (r *regres) run() error {
 	for {
 		if now := time.Now(); toDate(now) != lastUpdatedTestLists {
 			lastUpdatedTestLists = toDate(now)
-			if err := r.runDaily(client, backendLLVM, false); err != nil {
+			if err := r.runDaily(client, backendLLVM); err != nil {
 				log.Println(err.Error())
 			}
-			if err := r.runDaily(client, backendSubzero, true); err != nil {
+			if err := r.runDaily(client, backendSubzero); err != nil {
 				log.Println(err.Error())
 			}
 		}
@@ -636,26 +636,11 @@ func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqp
 }
 
 // runDaily runs a full deqp run on the HEAD change, posting the results to a
-// new or existing gerrit change. If genCov is true, then coverage
-// information will be generated for the run, and commiteed to the
-// coverageBranch.
-func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend, genCov bool) error {
-	// TODO(b/152192800): Generating coverage data is currently broken.
-	genCov = false
-
+// new or existing gerrit change.
+func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend) error {
 	log.Printf("Updating test lists (Backend: %v)\n", reactorBackend)
 
-	if genCov {
-		if r.githubUser == "" {
-			log.Println("--gh-user not specified and SS_GITHUB_USER not set. Disabling code coverage generation")
-			genCov = false
-		} else if r.githubPass == "" {
-			log.Println("--gh-pass not specified and SS_GITHUB_PASS not set. Disabling code coverage generation")
-			genCov = false
-		}
-	}
-
-	dailyHash := git.Hash{}
+	var dailyHash git.Hash
 	if r.dailyChange == "" {
 		headHash, err := git.FetchRefHash(gitDailyBranch, gitURL)
 		if err != nil {
@@ -666,34 +651,6 @@ func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend, 
 		dailyHash = git.ParseHash(r.dailyChange)
 	}
 
-	return r.runDailyTest(dailyHash, reactorBackend, genCov,
-		func(test *test, testLists testlist.Lists, results *deqp.Results) error {
-			errs := []error{}
-
-			if err := r.postDailyResults(client, test, testLists, results, reactorBackend, dailyHash); err != nil {
-				errs = append(errs, err)
-			}
-
-			if genCov {
-				if err := r.postCoverageResults(results.Coverage, dailyHash); err != nil {
-					errs = append(errs, err)
-				}
-			}
-
-			if len(errs) > 0 {
-				msg := strings.Builder{}
-				for _, err := range errs {
-					msg.WriteString(err.Error() + "\n")
-				}
-				return fmt.Errorf("%s", msg.String())
-			}
-			return nil
-		})
-}
-
-// runDailyTest performs the full deqp run on the HEAD change, calling
-// withResults with the test results.
-func (r *regres) runDailyTest(dailyHash git.Hash, reactorBackend reactorBackend, genCov bool, withResults func(*test, testlist.Lists, *deqp.Results) error) error {
 	// Get the full test results.
 	test := r.newTest(dailyHash).setReactorBackend(reactorBackend)
 	defer test.cleanup()
@@ -701,6 +658,12 @@ func (r *regres) runDailyTest(dailyHash git.Hash, reactorBackend reactorBackend,
 	// Always need to checkout the change.
 	if err := test.checkout(); err != nil {
 		return fmt.Errorf("failed to checkout '%s': %w", dailyHash, err)
+	}
+
+	// Update dEQP to latest
+	newPaths, err := r.updateLocalDeqpFiles(test)
+	if err != nil {
+		return fmt.Errorf("failed to update test lists from dEQP: %w", err)
 	}
 
 	d, err := r.getOrBuildDEQP(test)
@@ -714,15 +677,6 @@ func (r *regres) runDailyTest(dailyHash git.Hash, reactorBackend reactorBackend,
 		return fmt.Errorf("failed to load full test lists for '%s': %w", dailyHash, err)
 	}
 
-	if genCov {
-		test.coverageEnv = &cov.Env{
-			LLVM:     *r.toolchain,
-			RootDir:  test.checkoutDir,
-			ExePath:  filepath.Join(test.buildDir, "libvk_swiftshader.so"),
-			TurboCov: filepath.Join(test.buildDir, "turbo-cov"),
-		}
-	}
-
 	// Build the change.
 	if err := test.build(); err != nil {
 		return fmt.Errorf("failed to build '%s': %w", dailyHash, err)
@@ -734,7 +688,13 @@ func (r *regres) runDailyTest(dailyHash git.Hash, reactorBackend reactorBackend,
 		return fmt.Errorf("failed to test '%s': %w", dailyHash, err)
 	}
 
-	return withResults(test, testLists, results)
+	if err := r.postDailyResults(client, test, testLists, results, reactorBackend, dailyHash, newPaths); err != nil {
+		msg := strings.Builder{}
+		msg.WriteString(err.Error() + "\n")
+		return fmt.Errorf("%s", msg.String())
+	}
+
+	return nil
 }
 
 // copyFileIfDifferent copies src to dst if src doesn't exist or if there are differences
@@ -755,6 +715,9 @@ func copyFileIfDifferent(dst, src string) error {
 	}
 
 	if !bytes.Equal(srcContents, dstContents) {
+		if err := os.MkdirAll(path.Dir(dst), 0777); err != nil {
+			return err
+		}
 		if err := os.WriteFile(dst, srcContents, srcFileInfo.Mode()); err != nil {
 			return err
 		}
@@ -808,7 +771,6 @@ func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 
 	// Use getOrBuildDEQPFromConfig as it'll prevent us from copying data from a revision of dEQP that has build errors.
 	deqpBuild, err := r.getOrBuildDEQPFromConfig(test, cfg, test.checkoutDir)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve dEQP build information: %w", err)
 	}
@@ -893,17 +855,13 @@ func (r *regres) postDailyResults(
 	testLists testlist.Lists,
 	results *deqp.Results,
 	reactorBackend reactorBackend,
-	dailyHash git.Hash) error {
+	dailyHash git.Hash,
+	newPaths []string) error {
 
 	// Write out the test list status files.
 	filePaths, err := test.writeTestListsByStatus(testLists, results)
 	if err != nil {
 		return fmt.Errorf("failed to write test lists by status: %w", err)
-	}
-
-	newPaths, err := r.updateLocalDeqpFiles(test)
-	if err != nil {
-		return fmt.Errorf("failed to update test lists from dEQP: %w", err)
 	}
 
 	filePaths = append(filePaths, newPaths...)
@@ -1496,6 +1454,7 @@ func compare(old, new *deqp.Results) (msg string, alert bool) {
 	}
 
 	sb := strings.Builder{}
+	sb.WriteString("```\n")
 
 	// list prints the list l to sb, truncating after a limit.
 	list := func(l []string) {
@@ -1547,7 +1506,7 @@ func compare(old, new *deqp.Results) (msg string, alert bool) {
 	}
 
 	if len(broken) == 0 && len(fixed) == 0 && len(removed) == 0 && len(changed) == 0 {
-		sb.WriteString(fmt.Sprintf("\n--- No change in test results ---\n"))
+		sb.WriteString("\n--- No change in test results ---\n")
 	}
 
 	sb.WriteString(fmt.Sprintf("          Total tests: %d\n", totalTests))
@@ -1567,6 +1526,7 @@ func compare(old, new *deqp.Results) (msg string, alert bool) {
 		{"        Not Supported", testlist.NotSupported},
 		{"Compatibility Warning", testlist.CompatibilityWarning},
 		{"      Quality Warning", testlist.QualityWarning},
+		{"              Unknown", testlist.Unknown},
 	} {
 		old, new := oldStatusCounts[s.status], newStatusCounts[s.status]
 		if old == 0 && new == 0 {
@@ -1633,6 +1593,8 @@ func compare(old, new *deqp.Results) (msg string, alert bool) {
 			sb.WriteString(fmt.Sprintf("  > %v: %v -> %v (%+d%%)\n", d.name, d.old, d.new, percent))
 		}
 	}
+
+	sb.WriteString("```\n")
 
 	return sb.String(), alert
 }
