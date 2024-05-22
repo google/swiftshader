@@ -32,7 +32,7 @@ import (
 	"swiftshader.googlesource.com/SwiftShader/tests/regres/util"
 )
 
-const maxLLVMVersion = 10
+const maxLLVMVersion = 17
 
 // Version holds the build version information of an LLVM toolchain.
 type Version struct {
@@ -83,20 +83,22 @@ func (v Version) DownloadForOS(osName string) ([]byte, error) {
 		return nil, fmt.Errorf("Could not download LLVM from %v: %v", url, err)
 	}
 
-	sigfile, err := os.Open(sig)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't open file '%s': %v", sig, err)
-	}
-	defer sigfile.Close()
+	if sig != "" {
+		sigfile, err := os.Open(sig)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't open file '%s': %v", sig, err)
+		}
+		defer sigfile.Close()
 
-	keyfile, err := os.Open(key)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't open file '%s': %v", key, err)
-	}
-	defer keyfile.Close()
+		keyfile, err := os.Open(key)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't open file '%s': %v", key, err)
+		}
+		defer keyfile.Close()
 
-	if err := util.CheckPGP(bytes.NewReader(content), sigfile, keyfile); err != nil {
-		return nil, err
+		if err := util.CheckPGP(bytes.NewReader(content), sigfile, keyfile); err != nil {
+			return nil, err
+		}
 	}
 	return content, nil
 }
@@ -119,6 +121,20 @@ func (v Version) DownloadInfoForOS(os string) (url, sig, key string, err error) 
 		case "windows":
 			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/LLVM-10.0.0-win64.exe"
 			sig = relfile("10.0.0-win64.sig")
+			return
+		default:
+			return "", "", "", fmt.Errorf("Unsupported OS: %v", os)
+		}
+	case Version{17, 0, 0}:
+		switch os {
+		case "linux":
+			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
+			return
+		case "darwin":
+			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-arm64-apple-darwin22.0.tar.xz"
+			return
+		case "windows":
+			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe"
 			return
 		default:
 			return "", "", "", fmt.Errorf("Unsupported OS: %v", os)

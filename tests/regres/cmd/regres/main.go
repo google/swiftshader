@@ -80,7 +80,7 @@ const (
 
 var (
 	numParallelTests = runtime.NumCPU()
-	llvmVersion      = llvm.Version{Major: 10}
+	llvmVersion      = llvm.Version{Major: 17, Point: 6}
 
 	cacheDir        = flag.String("cache", "cache", "path to the output cache directory")
 	gerritEmail     = flag.String("email", "$SS_REGRES_EMAIL", "gerrit email address for posting regres results")
