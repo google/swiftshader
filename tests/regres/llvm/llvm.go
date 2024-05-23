@@ -125,7 +125,7 @@ func (v Version) DownloadInfoForOS(os string) (url, sig, key string, err error) 
 		default:
 			return "", "", "", fmt.Errorf("Unsupported OS: %v", os)
 		}
-	case Version{17, 0, 0}:
+	case Version{17, 0, 6}:
 		switch os {
 		case "linux":
 			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
