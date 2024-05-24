@@ -1,0 +1,5 @@
+dEQP-VK.binding_model.inline_uniform_blocks.copy_at_offset_nonzero
+dEQP-VK.binding_model.inline_uniform_blocks.copy_from_offset_nonzero
+dEQP-VK.binding_model.inline_uniform_blocks.copy_size_4
+dEQP-VK.binding_model.inline_uniform_blocks.copy_size_8
+dEQP-VK.binding_model.inline_uniform_blocks.write_offset_nonzero

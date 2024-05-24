@@ -1,0 +1,1 @@
+dEQP-VK.pipeline.fast_linked_library.misc.interpolate_at_sample_no_sample_shading
