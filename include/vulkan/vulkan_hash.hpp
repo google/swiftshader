@@ -5638,6 +5638,19 @@ namespace std
 #  endif /*VK_USE_PLATFORM_IOS_MVK*/
 
   template <>
+  struct hash<VULKAN_HPP_NAMESPACE::ImageAlignmentControlCreateInfoMESA>
+  {
+    std::size_t operator()( VULKAN_HPP_NAMESPACE::ImageAlignmentControlCreateInfoMESA const & imageAlignmentControlCreateInfoMESA ) const VULKAN_HPP_NOEXCEPT
+    {
+      std::size_t seed = 0;
+      VULKAN_HPP_HASH_COMBINE( seed, imageAlignmentControlCreateInfoMESA.sType );
+      VULKAN_HPP_HASH_COMBINE( seed, imageAlignmentControlCreateInfoMESA.pNext );
+      VULKAN_HPP_HASH_COMBINE( seed, imageAlignmentControlCreateInfoMESA.maximumRequestedAlignment );
+      return seed;
+    }
+  };
+
+  template <>
   struct hash<VULKAN_HPP_NAMESPACE::ImageBlit>
   {
     std::size_t operator()( VULKAN_HPP_NAMESPACE::ImageBlit const & imageBlit ) const VULKAN_HPP_NOEXCEPT
@@ -9117,6 +9130,34 @@ namespace std
   };
 
   template <>
+  struct hash<VULKAN_HPP_NAMESPACE::PhysicalDeviceImageAlignmentControlFeaturesMESA>
+  {
+    std::size_t operator()(
+      VULKAN_HPP_NAMESPACE::PhysicalDeviceImageAlignmentControlFeaturesMESA const & physicalDeviceImageAlignmentControlFeaturesMESA ) const VULKAN_HPP_NOEXCEPT
+    {
+      std::size_t seed = 0;
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceImageAlignmentControlFeaturesMESA.sType );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceImageAlignmentControlFeaturesMESA.pNext );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceImageAlignmentControlFeaturesMESA.imageAlignmentControl );
+      return seed;
+    }
+  };
+
+  template <>
+  struct hash<VULKAN_HPP_NAMESPACE::PhysicalDeviceImageAlignmentControlPropertiesMESA>
+  {
+    std::size_t operator()( VULKAN_HPP_NAMESPACE::PhysicalDeviceImageAlignmentControlPropertiesMESA const & physicalDeviceImageAlignmentControlPropertiesMESA )
+      const VULKAN_HPP_NOEXCEPT
+    {
+      std::size_t seed = 0;
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceImageAlignmentControlPropertiesMESA.sType );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceImageAlignmentControlPropertiesMESA.pNext );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceImageAlignmentControlPropertiesMESA.supportedImageAlignmentMask );
+      return seed;
+    }
+  };
+
+  template <>
   struct hash<VULKAN_HPP_NAMESPACE::PhysicalDeviceImageCompressionControlFeaturesEXT>
   {
     std::size_t operator()( VULKAN_HPP_NAMESPACE::PhysicalDeviceImageCompressionControlFeaturesEXT const & physicalDeviceImageCompressionControlFeaturesEXT )
@@ -9408,6 +9449,34 @@ namespace std
       VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyDitheringFeaturesEXT.sType );
       VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyDitheringFeaturesEXT.pNext );
       VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyDitheringFeaturesEXT.legacyDithering );
+      return seed;
+    }
+  };
+
+  template <>
+  struct hash<VULKAN_HPP_NAMESPACE::PhysicalDeviceLegacyVertexAttributesFeaturesEXT>
+  {
+    std::size_t operator()(
+      VULKAN_HPP_NAMESPACE::PhysicalDeviceLegacyVertexAttributesFeaturesEXT const & physicalDeviceLegacyVertexAttributesFeaturesEXT ) const VULKAN_HPP_NOEXCEPT
+    {
+      std::size_t seed = 0;
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyVertexAttributesFeaturesEXT.sType );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyVertexAttributesFeaturesEXT.pNext );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyVertexAttributesFeaturesEXT.legacyVertexAttributes );
+      return seed;
+    }
+  };
+
+  template <>
+  struct hash<VULKAN_HPP_NAMESPACE::PhysicalDeviceLegacyVertexAttributesPropertiesEXT>
+  {
+    std::size_t operator()( VULKAN_HPP_NAMESPACE::PhysicalDeviceLegacyVertexAttributesPropertiesEXT const & physicalDeviceLegacyVertexAttributesPropertiesEXT )
+      const VULKAN_HPP_NOEXCEPT
+    {
+      std::size_t seed = 0;
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyVertexAttributesPropertiesEXT.sType );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyVertexAttributesPropertiesEXT.pNext );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceLegacyVertexAttributesPropertiesEXT.nativeUnalignedPerformance );
       return seed;
     }
   };
@@ -11512,6 +11581,21 @@ namespace std
       VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceShaderQuadControlFeaturesKHR.sType );
       VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceShaderQuadControlFeaturesKHR.pNext );
       VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceShaderQuadControlFeaturesKHR.shaderQuadControl );
+      return seed;
+    }
+  };
+
+  template <>
+  struct hash<VULKAN_HPP_NAMESPACE::PhysicalDeviceShaderReplicatedCompositesFeaturesEXT>
+  {
+    std::size_t
+      operator()( VULKAN_HPP_NAMESPACE::PhysicalDeviceShaderReplicatedCompositesFeaturesEXT const & physicalDeviceShaderReplicatedCompositesFeaturesEXT ) const
+      VULKAN_HPP_NOEXCEPT
+    {
+      std::size_t seed = 0;
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceShaderReplicatedCompositesFeaturesEXT.sType );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceShaderReplicatedCompositesFeaturesEXT.pNext );
+      VULKAN_HPP_HASH_COMBINE( seed, physicalDeviceShaderReplicatedCompositesFeaturesEXT.shaderReplicatedComposites );
       return seed;
     }
   };

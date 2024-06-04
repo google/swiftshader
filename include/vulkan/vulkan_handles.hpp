@@ -1695,6 +1695,10 @@ namespace VULKAN_HPP_NAMESPACE
   struct MutableDescriptorTypeCreateInfoEXT;
   using MutableDescriptorTypeCreateInfoVALVE = MutableDescriptorTypeCreateInfoEXT;
 
+  //=== VK_EXT_legacy_vertex_attributes ===
+  struct PhysicalDeviceLegacyVertexAttributesFeaturesEXT;
+  struct PhysicalDeviceLegacyVertexAttributesPropertiesEXT;
+
   //=== VK_EXT_layer_settings ===
   struct LayerSettingsCreateInfoEXT;
   struct LayerSettingEXT;
@@ -1826,8 +1830,16 @@ namespace VULKAN_HPP_NAMESPACE
   //=== VK_NV_shader_atomic_float16_vector ===
   struct PhysicalDeviceShaderAtomicFloat16VectorFeaturesNV;
 
+  //=== VK_EXT_shader_replicated_composites ===
+  struct PhysicalDeviceShaderReplicatedCompositesFeaturesEXT;
+
   //=== VK_NV_ray_tracing_validation ===
   struct PhysicalDeviceRayTracingValidationFeaturesNV;
+
+  //=== VK_MESA_image_alignment_control ===
+  struct PhysicalDeviceImageAlignmentControlFeaturesMESA;
+  struct PhysicalDeviceImageAlignmentControlPropertiesMESA;
+  struct ImageAlignmentControlCreateInfoMESA;
 
   //===================================
   //=== HANDLE forward declarations ===
@@ -2407,7 +2419,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSurfaceKHR;
 
   public:
-    VULKAN_HPP_CONSTEXPR SurfaceKHR() = default;
+    SurfaceKHR()                                     = default;
+    SurfaceKHR( SurfaceKHR const & rhs )             = default;
+    SurfaceKHR & operator=( SurfaceKHR const & rhs ) = default;
+    SurfaceKHR( SurfaceKHR && rhs )                  = default;
+    SurfaceKHR & operator=( SurfaceKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR SurfaceKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -2477,11 +2493,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::SurfaceKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkSurfaceKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::SurfaceKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::SurfaceKHR>
@@ -2500,7 +2518,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDebugReportCallbackEXT;
 
   public:
-    VULKAN_HPP_CONSTEXPR DebugReportCallbackEXT() = default;
+    DebugReportCallbackEXT()                                                 = default;
+    DebugReportCallbackEXT( DebugReportCallbackEXT const & rhs )             = default;
+    DebugReportCallbackEXT & operator=( DebugReportCallbackEXT const & rhs ) = default;
+    DebugReportCallbackEXT( DebugReportCallbackEXT && rhs )                  = default;
+    DebugReportCallbackEXT & operator=( DebugReportCallbackEXT && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DebugReportCallbackEXT( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -2573,11 +2595,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DebugReportCallbackEXT;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDebugReportCallbackEXT, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DebugReportCallbackEXT;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DebugReportCallbackEXT>
@@ -2596,7 +2620,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR DebugUtilsMessengerEXT() = default;
+    DebugUtilsMessengerEXT()                                                 = default;
+    DebugUtilsMessengerEXT( DebugUtilsMessengerEXT const & rhs )             = default;
+    DebugUtilsMessengerEXT & operator=( DebugUtilsMessengerEXT const & rhs ) = default;
+    DebugUtilsMessengerEXT( DebugUtilsMessengerEXT && rhs )                  = default;
+    DebugUtilsMessengerEXT & operator=( DebugUtilsMessengerEXT && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DebugUtilsMessengerEXT( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -2663,11 +2691,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DebugUtilsMessengerEXT;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDebugUtilsMessengerEXT, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DebugUtilsMessengerEXT;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DebugUtilsMessengerEXT>
@@ -2686,7 +2716,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDisplayKHR;
 
   public:
-    VULKAN_HPP_CONSTEXPR DisplayKHR() = default;
+    DisplayKHR()                                     = default;
+    DisplayKHR( DisplayKHR const & rhs )             = default;
+    DisplayKHR & operator=( DisplayKHR const & rhs ) = default;
+    DisplayKHR( DisplayKHR && rhs )                  = default;
+    DisplayKHR & operator=( DisplayKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DisplayKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -2756,11 +2790,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DisplayKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDisplayKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DisplayKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DisplayKHR>
@@ -2779,7 +2815,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSwapchainKHR;
 
   public:
-    VULKAN_HPP_CONSTEXPR SwapchainKHR() = default;
+    SwapchainKHR()                                       = default;
+    SwapchainKHR( SwapchainKHR const & rhs )             = default;
+    SwapchainKHR & operator=( SwapchainKHR const & rhs ) = default;
+    SwapchainKHR( SwapchainKHR && rhs )                  = default;
+    SwapchainKHR & operator=( SwapchainKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR SwapchainKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -2849,11 +2889,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::SwapchainKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkSwapchainKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::SwapchainKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::SwapchainKHR>
@@ -2872,7 +2914,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSemaphore;
 
   public:
-    VULKAN_HPP_CONSTEXPR Semaphore() = default;
+    Semaphore()                                    = default;
+    Semaphore( Semaphore const & rhs )             = default;
+    Semaphore & operator=( Semaphore const & rhs ) = default;
+    Semaphore( Semaphore && rhs )                  = default;
+    Semaphore & operator=( Semaphore && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Semaphore( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -2942,11 +2988,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Semaphore;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkSemaphore, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Semaphore;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Semaphore>
@@ -2965,7 +3013,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eFence;
 
   public:
-    VULKAN_HPP_CONSTEXPR Fence() = default;
+    Fence()                                = default;
+    Fence( Fence const & rhs )             = default;
+    Fence & operator=( Fence const & rhs ) = default;
+    Fence( Fence && rhs )                  = default;
+    Fence & operator=( Fence && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Fence( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3035,11 +3087,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Fence;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkFence, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Fence;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Fence>
@@ -3058,7 +3112,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR PerformanceConfigurationINTEL() = default;
+    PerformanceConfigurationINTEL()                                                        = default;
+    PerformanceConfigurationINTEL( PerformanceConfigurationINTEL const & rhs )             = default;
+    PerformanceConfigurationINTEL & operator=( PerformanceConfigurationINTEL const & rhs ) = default;
+    PerformanceConfigurationINTEL( PerformanceConfigurationINTEL && rhs )                  = default;
+    PerformanceConfigurationINTEL & operator=( PerformanceConfigurationINTEL && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR PerformanceConfigurationINTEL( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3125,11 +3183,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::PerformanceConfigurationINTEL;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkPerformanceConfigurationINTEL, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::PerformanceConfigurationINTEL;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::PerformanceConfigurationINTEL>
@@ -3148,7 +3208,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eQueryPool;
 
   public:
-    VULKAN_HPP_CONSTEXPR QueryPool() = default;
+    QueryPool()                                    = default;
+    QueryPool( QueryPool const & rhs )             = default;
+    QueryPool & operator=( QueryPool const & rhs ) = default;
+    QueryPool( QueryPool && rhs )                  = default;
+    QueryPool & operator=( QueryPool && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR QueryPool( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3218,11 +3282,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::QueryPool;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkQueryPool, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::QueryPool;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::QueryPool>
@@ -3241,7 +3307,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eBuffer;
 
   public:
-    VULKAN_HPP_CONSTEXPR Buffer() = default;
+    Buffer()                                 = default;
+    Buffer( Buffer const & rhs )             = default;
+    Buffer & operator=( Buffer const & rhs ) = default;
+    Buffer( Buffer && rhs )                  = default;
+    Buffer & operator=( Buffer && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Buffer( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3311,11 +3381,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Buffer;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkBuffer, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Buffer;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Buffer>
@@ -3334,7 +3406,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipelineLayout;
 
   public:
-    VULKAN_HPP_CONSTEXPR PipelineLayout() = default;
+    PipelineLayout()                                         = default;
+    PipelineLayout( PipelineLayout const & rhs )             = default;
+    PipelineLayout & operator=( PipelineLayout const & rhs ) = default;
+    PipelineLayout( PipelineLayout && rhs )                  = default;
+    PipelineLayout & operator=( PipelineLayout && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR PipelineLayout( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3404,11 +3480,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::PipelineLayout;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkPipelineLayout, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::PipelineLayout;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::PipelineLayout>
@@ -3427,7 +3505,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorSet;
 
   public:
-    VULKAN_HPP_CONSTEXPR DescriptorSet() = default;
+    DescriptorSet()                                        = default;
+    DescriptorSet( DescriptorSet const & rhs )             = default;
+    DescriptorSet & operator=( DescriptorSet const & rhs ) = default;
+    DescriptorSet( DescriptorSet && rhs )                  = default;
+    DescriptorSet & operator=( DescriptorSet && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DescriptorSet( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3497,11 +3579,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DescriptorSet;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDescriptorSet, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DescriptorSet;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DescriptorSet>
@@ -3520,7 +3604,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eImageView;
 
   public:
-    VULKAN_HPP_CONSTEXPR ImageView() = default;
+    ImageView()                                    = default;
+    ImageView( ImageView const & rhs )             = default;
+    ImageView & operator=( ImageView const & rhs ) = default;
+    ImageView( ImageView && rhs )                  = default;
+    ImageView & operator=( ImageView && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR ImageView( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3590,11 +3678,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::ImageView;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkImageView, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::ImageView;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::ImageView>
@@ -3613,7 +3703,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipeline;
 
   public:
-    VULKAN_HPP_CONSTEXPR Pipeline() = default;
+    Pipeline()                                   = default;
+    Pipeline( Pipeline const & rhs )             = default;
+    Pipeline & operator=( Pipeline const & rhs ) = default;
+    Pipeline( Pipeline && rhs )                  = default;
+    Pipeline & operator=( Pipeline && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Pipeline( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3683,11 +3777,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Pipeline;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkPipeline, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Pipeline;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Pipeline>
@@ -3706,7 +3802,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR ShaderEXT() = default;
+    ShaderEXT()                                    = default;
+    ShaderEXT( ShaderEXT const & rhs )             = default;
+    ShaderEXT & operator=( ShaderEXT const & rhs ) = default;
+    ShaderEXT( ShaderEXT && rhs )                  = default;
+    ShaderEXT & operator=( ShaderEXT && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR ShaderEXT( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3770,11 +3870,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::ShaderEXT;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkShaderEXT, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::ShaderEXT;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::ShaderEXT>
@@ -3793,7 +3895,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eImage;
 
   public:
-    VULKAN_HPP_CONSTEXPR Image() = default;
+    Image()                                = default;
+    Image( Image const & rhs )             = default;
+    Image & operator=( Image const & rhs ) = default;
+    Image( Image && rhs )                  = default;
+    Image & operator=( Image && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Image( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3863,11 +3969,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Image;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkImage, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Image;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Image>
@@ -3886,7 +3994,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eAccelerationStructureNV;
 
   public:
-    VULKAN_HPP_CONSTEXPR AccelerationStructureNV() = default;
+    AccelerationStructureNV()                                                  = default;
+    AccelerationStructureNV( AccelerationStructureNV const & rhs )             = default;
+    AccelerationStructureNV & operator=( AccelerationStructureNV const & rhs ) = default;
+    AccelerationStructureNV( AccelerationStructureNV && rhs )                  = default;
+    AccelerationStructureNV & operator=( AccelerationStructureNV && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR AccelerationStructureNV( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -3959,11 +4071,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::AccelerationStructureNV;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkAccelerationStructureNV, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::AccelerationStructureNV;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::AccelerationStructureNV>
@@ -3982,7 +4096,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR OpticalFlowSessionNV() = default;
+    OpticalFlowSessionNV()                                               = default;
+    OpticalFlowSessionNV( OpticalFlowSessionNV const & rhs )             = default;
+    OpticalFlowSessionNV & operator=( OpticalFlowSessionNV const & rhs ) = default;
+    OpticalFlowSessionNV( OpticalFlowSessionNV && rhs )                  = default;
+    OpticalFlowSessionNV & operator=( OpticalFlowSessionNV && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR OpticalFlowSessionNV( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -4049,11 +4167,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::OpticalFlowSessionNV;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkOpticalFlowSessionNV, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::OpticalFlowSessionNV;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::OpticalFlowSessionNV>
@@ -4072,7 +4192,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorUpdateTemplate;
 
   public:
-    VULKAN_HPP_CONSTEXPR DescriptorUpdateTemplate() = default;
+    DescriptorUpdateTemplate()                                                   = default;
+    DescriptorUpdateTemplate( DescriptorUpdateTemplate const & rhs )             = default;
+    DescriptorUpdateTemplate & operator=( DescriptorUpdateTemplate const & rhs ) = default;
+    DescriptorUpdateTemplate( DescriptorUpdateTemplate && rhs )                  = default;
+    DescriptorUpdateTemplate & operator=( DescriptorUpdateTemplate && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DescriptorUpdateTemplate( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -4145,11 +4269,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DescriptorUpdateTemplate;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDescriptorUpdateTemplate, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DescriptorUpdateTemplate;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DescriptorUpdateTemplate>
@@ -4170,7 +4296,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eEvent;
 
   public:
-    VULKAN_HPP_CONSTEXPR Event() = default;
+    Event()                                = default;
+    Event( Event const & rhs )             = default;
+    Event & operator=( Event const & rhs ) = default;
+    Event( Event && rhs )                  = default;
+    Event & operator=( Event && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Event( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -4240,11 +4370,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Event;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkEvent, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Event;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Event>
@@ -4263,7 +4395,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eAccelerationStructureKHR;
 
   public:
-    VULKAN_HPP_CONSTEXPR AccelerationStructureKHR() = default;
+    AccelerationStructureKHR()                                                   = default;
+    AccelerationStructureKHR( AccelerationStructureKHR const & rhs )             = default;
+    AccelerationStructureKHR & operator=( AccelerationStructureKHR const & rhs ) = default;
+    AccelerationStructureKHR( AccelerationStructureKHR && rhs )                  = default;
+    AccelerationStructureKHR & operator=( AccelerationStructureKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR AccelerationStructureKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -4336,11 +4472,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::AccelerationStructureKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkAccelerationStructureKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::AccelerationStructureKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::AccelerationStructureKHR>
@@ -4359,7 +4497,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR MicromapEXT() = default;
+    MicromapEXT()                                      = default;
+    MicromapEXT( MicromapEXT const & rhs )             = default;
+    MicromapEXT & operator=( MicromapEXT const & rhs ) = default;
+    MicromapEXT( MicromapEXT && rhs )                  = default;
+    MicromapEXT & operator=( MicromapEXT && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR MicromapEXT( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -4423,11 +4565,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::MicromapEXT;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkMicromapEXT, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::MicromapEXT;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::MicromapEXT>
@@ -4446,7 +4590,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCommandBuffer;
 
   public:
-    VULKAN_HPP_CONSTEXPR CommandBuffer() = default;
+    CommandBuffer()                                        = default;
+    CommandBuffer( CommandBuffer const & rhs )             = default;
+    CommandBuffer & operator=( CommandBuffer const & rhs ) = default;
+    CommandBuffer( CommandBuffer && rhs )                  = default;
+    CommandBuffer & operator=( CommandBuffer && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR CommandBuffer( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -6817,11 +6965,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::CommandBuffer;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkCommandBuffer, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::CommandBuffer;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::CommandBuffer>
@@ -6840,7 +6990,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDeviceMemory;
 
   public:
-    VULKAN_HPP_CONSTEXPR DeviceMemory() = default;
+    DeviceMemory()                                       = default;
+    DeviceMemory( DeviceMemory const & rhs )             = default;
+    DeviceMemory & operator=( DeviceMemory const & rhs ) = default;
+    DeviceMemory( DeviceMemory && rhs )                  = default;
+    DeviceMemory & operator=( DeviceMemory && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DeviceMemory( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -6910,11 +7064,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DeviceMemory;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDeviceMemory, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DeviceMemory;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DeviceMemory>
@@ -6933,7 +7089,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR VideoSessionKHR() = default;
+    VideoSessionKHR()                                          = default;
+    VideoSessionKHR( VideoSessionKHR const & rhs )             = default;
+    VideoSessionKHR & operator=( VideoSessionKHR const & rhs ) = default;
+    VideoSessionKHR( VideoSessionKHR && rhs )                  = default;
+    VideoSessionKHR & operator=( VideoSessionKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR VideoSessionKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -6997,11 +7157,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::VideoSessionKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkVideoSessionKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::VideoSessionKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::VideoSessionKHR>
@@ -7020,7 +7182,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR DeferredOperationKHR() = default;
+    DeferredOperationKHR()                                               = default;
+    DeferredOperationKHR( DeferredOperationKHR const & rhs )             = default;
+    DeferredOperationKHR & operator=( DeferredOperationKHR const & rhs ) = default;
+    DeferredOperationKHR( DeferredOperationKHR && rhs )                  = default;
+    DeferredOperationKHR & operator=( DeferredOperationKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DeferredOperationKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7087,11 +7253,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DeferredOperationKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDeferredOperationKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DeferredOperationKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DeferredOperationKHR>
@@ -7111,7 +7279,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eBufferCollectionFUCHSIA;
 
   public:
-    VULKAN_HPP_CONSTEXPR BufferCollectionFUCHSIA() = default;
+    BufferCollectionFUCHSIA()                                                  = default;
+    BufferCollectionFUCHSIA( BufferCollectionFUCHSIA const & rhs )             = default;
+    BufferCollectionFUCHSIA & operator=( BufferCollectionFUCHSIA const & rhs ) = default;
+    BufferCollectionFUCHSIA( BufferCollectionFUCHSIA && rhs )                  = default;
+    BufferCollectionFUCHSIA & operator=( BufferCollectionFUCHSIA && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR BufferCollectionFUCHSIA( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7184,11 +7356,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::BufferCollectionFUCHSIA;
   };
 
+#  if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkBufferCollectionFUCHSIA, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::BufferCollectionFUCHSIA;
   };
+#  endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::BufferCollectionFUCHSIA>
@@ -7208,7 +7382,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eBufferView;
 
   public:
-    VULKAN_HPP_CONSTEXPR BufferView() = default;
+    BufferView()                                     = default;
+    BufferView( BufferView const & rhs )             = default;
+    BufferView & operator=( BufferView const & rhs ) = default;
+    BufferView( BufferView && rhs )                  = default;
+    BufferView & operator=( BufferView && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR BufferView( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7278,11 +7456,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::BufferView;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkBufferView, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::BufferView;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::BufferView>
@@ -7301,7 +7481,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCommandPool;
 
   public:
-    VULKAN_HPP_CONSTEXPR CommandPool() = default;
+    CommandPool()                                      = default;
+    CommandPool( CommandPool const & rhs )             = default;
+    CommandPool & operator=( CommandPool const & rhs ) = default;
+    CommandPool( CommandPool && rhs )                  = default;
+    CommandPool & operator=( CommandPool && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR CommandPool( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7371,11 +7555,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::CommandPool;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkCommandPool, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::CommandPool;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::CommandPool>
@@ -7394,7 +7580,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePipelineCache;
 
   public:
-    VULKAN_HPP_CONSTEXPR PipelineCache() = default;
+    PipelineCache()                                        = default;
+    PipelineCache( PipelineCache const & rhs )             = default;
+    PipelineCache & operator=( PipelineCache const & rhs ) = default;
+    PipelineCache( PipelineCache && rhs )                  = default;
+    PipelineCache & operator=( PipelineCache && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR PipelineCache( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7464,11 +7654,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::PipelineCache;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkPipelineCache, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::PipelineCache;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::PipelineCache>
@@ -7487,7 +7679,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCuFunctionNVX;
 
   public:
-    VULKAN_HPP_CONSTEXPR CuFunctionNVX() = default;
+    CuFunctionNVX()                                        = default;
+    CuFunctionNVX( CuFunctionNVX const & rhs )             = default;
+    CuFunctionNVX & operator=( CuFunctionNVX const & rhs ) = default;
+    CuFunctionNVX( CuFunctionNVX && rhs )                  = default;
+    CuFunctionNVX & operator=( CuFunctionNVX && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR CuFunctionNVX( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7557,11 +7753,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::CuFunctionNVX;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkCuFunctionNVX, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::CuFunctionNVX;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::CuFunctionNVX>
@@ -7580,7 +7778,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCuModuleNVX;
 
   public:
-    VULKAN_HPP_CONSTEXPR CuModuleNVX() = default;
+    CuModuleNVX()                                      = default;
+    CuModuleNVX( CuModuleNVX const & rhs )             = default;
+    CuModuleNVX & operator=( CuModuleNVX const & rhs ) = default;
+    CuModuleNVX( CuModuleNVX && rhs )                  = default;
+    CuModuleNVX & operator=( CuModuleNVX && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR CuModuleNVX( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7650,11 +7852,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::CuModuleNVX;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkCuModuleNVX, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::CuModuleNVX;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::CuModuleNVX>
@@ -7674,7 +7878,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCudaFunctionNV;
 
   public:
-    VULKAN_HPP_CONSTEXPR CudaFunctionNV() = default;
+    CudaFunctionNV()                                         = default;
+    CudaFunctionNV( CudaFunctionNV const & rhs )             = default;
+    CudaFunctionNV & operator=( CudaFunctionNV const & rhs ) = default;
+    CudaFunctionNV( CudaFunctionNV && rhs )                  = default;
+    CudaFunctionNV & operator=( CudaFunctionNV && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR CudaFunctionNV( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7744,11 +7952,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::CudaFunctionNV;
   };
 
+#  if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkCudaFunctionNV, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::CudaFunctionNV;
   };
+#  endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::CudaFunctionNV>
@@ -7769,7 +7979,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eCudaModuleNV;
 
   public:
-    VULKAN_HPP_CONSTEXPR CudaModuleNV() = default;
+    CudaModuleNV()                                       = default;
+    CudaModuleNV( CudaModuleNV const & rhs )             = default;
+    CudaModuleNV & operator=( CudaModuleNV const & rhs ) = default;
+    CudaModuleNV( CudaModuleNV && rhs )                  = default;
+    CudaModuleNV & operator=( CudaModuleNV && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR CudaModuleNV( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7839,11 +8053,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::CudaModuleNV;
   };
 
+#  if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkCudaModuleNV, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::CudaModuleNV;
   };
+#  endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::CudaModuleNV>
@@ -7863,7 +8079,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorPool;
 
   public:
-    VULKAN_HPP_CONSTEXPR DescriptorPool() = default;
+    DescriptorPool()                                         = default;
+    DescriptorPool( DescriptorPool const & rhs )             = default;
+    DescriptorPool & operator=( DescriptorPool const & rhs ) = default;
+    DescriptorPool( DescriptorPool && rhs )                  = default;
+    DescriptorPool & operator=( DescriptorPool && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DescriptorPool( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -7933,11 +8153,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DescriptorPool;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDescriptorPool, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DescriptorPool;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DescriptorPool>
@@ -7956,7 +8178,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDescriptorSetLayout;
 
   public:
-    VULKAN_HPP_CONSTEXPR DescriptorSetLayout() = default;
+    DescriptorSetLayout()                                              = default;
+    DescriptorSetLayout( DescriptorSetLayout const & rhs )             = default;
+    DescriptorSetLayout & operator=( DescriptorSetLayout const & rhs ) = default;
+    DescriptorSetLayout( DescriptorSetLayout && rhs )                  = default;
+    DescriptorSetLayout & operator=( DescriptorSetLayout && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DescriptorSetLayout( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8029,11 +8255,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DescriptorSetLayout;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDescriptorSetLayout, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DescriptorSetLayout;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DescriptorSetLayout>
@@ -8052,7 +8280,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eFramebuffer;
 
   public:
-    VULKAN_HPP_CONSTEXPR Framebuffer() = default;
+    Framebuffer()                                      = default;
+    Framebuffer( Framebuffer const & rhs )             = default;
+    Framebuffer & operator=( Framebuffer const & rhs ) = default;
+    Framebuffer( Framebuffer && rhs )                  = default;
+    Framebuffer & operator=( Framebuffer && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Framebuffer( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8122,11 +8354,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Framebuffer;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkFramebuffer, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Framebuffer;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Framebuffer>
@@ -8145,7 +8379,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR IndirectCommandsLayoutNV() = default;
+    IndirectCommandsLayoutNV()                                                   = default;
+    IndirectCommandsLayoutNV( IndirectCommandsLayoutNV const & rhs )             = default;
+    IndirectCommandsLayoutNV & operator=( IndirectCommandsLayoutNV const & rhs ) = default;
+    IndirectCommandsLayoutNV( IndirectCommandsLayoutNV && rhs )                  = default;
+    IndirectCommandsLayoutNV & operator=( IndirectCommandsLayoutNV && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR IndirectCommandsLayoutNV( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8212,11 +8450,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::IndirectCommandsLayoutNV;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkIndirectCommandsLayoutNV, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::IndirectCommandsLayoutNV;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::IndirectCommandsLayoutNV>
@@ -8235,7 +8475,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR PrivateDataSlot() = default;
+    PrivateDataSlot()                                          = default;
+    PrivateDataSlot( PrivateDataSlot const & rhs )             = default;
+    PrivateDataSlot & operator=( PrivateDataSlot const & rhs ) = default;
+    PrivateDataSlot( PrivateDataSlot && rhs )                  = default;
+    PrivateDataSlot & operator=( PrivateDataSlot && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR PrivateDataSlot( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8299,11 +8543,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::PrivateDataSlot;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkPrivateDataSlot, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::PrivateDataSlot;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::PrivateDataSlot>
@@ -8324,7 +8570,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eRenderPass;
 
   public:
-    VULKAN_HPP_CONSTEXPR RenderPass() = default;
+    RenderPass()                                     = default;
+    RenderPass( RenderPass const & rhs )             = default;
+    RenderPass & operator=( RenderPass const & rhs ) = default;
+    RenderPass( RenderPass && rhs )                  = default;
+    RenderPass & operator=( RenderPass && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR RenderPass( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8394,11 +8644,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::RenderPass;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkRenderPass, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::RenderPass;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::RenderPass>
@@ -8417,7 +8669,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSampler;
 
   public:
-    VULKAN_HPP_CONSTEXPR Sampler() = default;
+    Sampler()                                  = default;
+    Sampler( Sampler const & rhs )             = default;
+    Sampler & operator=( Sampler const & rhs ) = default;
+    Sampler( Sampler && rhs )                  = default;
+    Sampler & operator=( Sampler && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Sampler( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8487,11 +8743,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Sampler;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkSampler, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Sampler;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Sampler>
@@ -8510,7 +8768,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eSamplerYcbcrConversion;
 
   public:
-    VULKAN_HPP_CONSTEXPR SamplerYcbcrConversion() = default;
+    SamplerYcbcrConversion()                                                 = default;
+    SamplerYcbcrConversion( SamplerYcbcrConversion const & rhs )             = default;
+    SamplerYcbcrConversion & operator=( SamplerYcbcrConversion const & rhs ) = default;
+    SamplerYcbcrConversion( SamplerYcbcrConversion && rhs )                  = default;
+    SamplerYcbcrConversion & operator=( SamplerYcbcrConversion && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR SamplerYcbcrConversion( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8583,11 +8845,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::SamplerYcbcrConversion;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkSamplerYcbcrConversion, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::SamplerYcbcrConversion;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::SamplerYcbcrConversion>
@@ -8608,7 +8872,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eShaderModule;
 
   public:
-    VULKAN_HPP_CONSTEXPR ShaderModule() = default;
+    ShaderModule()                                       = default;
+    ShaderModule( ShaderModule const & rhs )             = default;
+    ShaderModule & operator=( ShaderModule const & rhs ) = default;
+    ShaderModule( ShaderModule && rhs )                  = default;
+    ShaderModule & operator=( ShaderModule && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR ShaderModule( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8678,11 +8946,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::ShaderModule;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkShaderModule, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::ShaderModule;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::ShaderModule>
@@ -8701,7 +8971,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eValidationCacheEXT;
 
   public:
-    VULKAN_HPP_CONSTEXPR ValidationCacheEXT() = default;
+    ValidationCacheEXT()                                             = default;
+    ValidationCacheEXT( ValidationCacheEXT const & rhs )             = default;
+    ValidationCacheEXT & operator=( ValidationCacheEXT const & rhs ) = default;
+    ValidationCacheEXT( ValidationCacheEXT && rhs )                  = default;
+    ValidationCacheEXT & operator=( ValidationCacheEXT && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR ValidationCacheEXT( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8773,11 +9047,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::ValidationCacheEXT;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkValidationCacheEXT, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::ValidationCacheEXT;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::ValidationCacheEXT>
@@ -8796,7 +9072,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eUnknown;
 
   public:
-    VULKAN_HPP_CONSTEXPR VideoSessionParametersKHR() = default;
+    VideoSessionParametersKHR()                                                    = default;
+    VideoSessionParametersKHR( VideoSessionParametersKHR const & rhs )             = default;
+    VideoSessionParametersKHR & operator=( VideoSessionParametersKHR const & rhs ) = default;
+    VideoSessionParametersKHR( VideoSessionParametersKHR && rhs )                  = default;
+    VideoSessionParametersKHR & operator=( VideoSessionParametersKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR VideoSessionParametersKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -8863,11 +9143,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::VideoSessionParametersKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkVideoSessionParametersKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::VideoSessionParametersKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::VideoSessionParametersKHR>
@@ -8886,7 +9168,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eQueue;
 
   public:
-    VULKAN_HPP_CONSTEXPR Queue() = default;
+    Queue()                                = default;
+    Queue( Queue const & rhs )             = default;
+    Queue & operator=( Queue const & rhs ) = default;
+    Queue( Queue && rhs )                  = default;
+    Queue & operator=( Queue && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Queue( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -9114,11 +9400,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Queue;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkQueue, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Queue;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Queue>
@@ -9137,7 +9425,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDevice;
 
   public:
-    VULKAN_HPP_CONSTEXPR Device() = default;
+    Device()                                 = default;
+    Device( Device const & rhs )             = default;
+    Device & operator=( Device const & rhs ) = default;
+    Device( Device && rhs )                  = default;
+    Device & operator=( Device && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Device( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -14258,11 +14550,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Device;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDevice, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Device;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Device>
@@ -14281,7 +14575,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eDisplayModeKHR;
 
   public:
-    VULKAN_HPP_CONSTEXPR DisplayModeKHR() = default;
+    DisplayModeKHR()                                         = default;
+    DisplayModeKHR( DisplayModeKHR const & rhs )             = default;
+    DisplayModeKHR & operator=( DisplayModeKHR const & rhs ) = default;
+    DisplayModeKHR( DisplayModeKHR && rhs )                  = default;
+    DisplayModeKHR & operator=( DisplayModeKHR && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR DisplayModeKHR( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -14351,11 +14649,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::DisplayModeKHR;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkDisplayModeKHR, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::DisplayModeKHR;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::DisplayModeKHR>
@@ -14374,7 +14674,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::ePhysicalDevice;
 
   public:
-    VULKAN_HPP_CONSTEXPR PhysicalDevice() = default;
+    PhysicalDevice()                                         = default;
+    PhysicalDevice( PhysicalDevice const & rhs )             = default;
+    PhysicalDevice & operator=( PhysicalDevice const & rhs ) = default;
+    PhysicalDevice( PhysicalDevice && rhs )                  = default;
+    PhysicalDevice & operator=( PhysicalDevice && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR PhysicalDevice( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -15779,11 +16083,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::PhysicalDevice;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkPhysicalDevice, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::PhysicalDevice;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::PhysicalDevice>
@@ -15802,7 +16108,11 @@ namespace VULKAN_HPP_NAMESPACE
       VULKAN_HPP_NAMESPACE::DebugReportObjectTypeEXT::eInstance;
 
   public:
-    VULKAN_HPP_CONSTEXPR Instance() = default;
+    Instance()                                   = default;
+    Instance( Instance const & rhs )             = default;
+    Instance & operator=( Instance const & rhs ) = default;
+    Instance( Instance && rhs )                  = default;
+    Instance & operator=( Instance && rhs )      = default;
 
     VULKAN_HPP_CONSTEXPR Instance( std::nullptr_t ) VULKAN_HPP_NOEXCEPT {}
 
@@ -16451,11 +16761,13 @@ namespace VULKAN_HPP_NAMESPACE
     using Type = VULKAN_HPP_NAMESPACE::Instance;
   };
 
+#if ( VK_USE_64_BIT_PTR_DEFINES == 1 )
   template <>
   struct CppType<VkInstance, VK_NULL_HANDLE>
   {
     using Type = VULKAN_HPP_NAMESPACE::Instance;
   };
+#endif
 
   template <>
   struct isVulkanHandleType<VULKAN_HPP_NAMESPACE::Instance>
