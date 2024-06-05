@@ -494,21 +494,6 @@ static llvm::Function *createFunction(const char *name, llvm::Type *retTy, const
 	func->setDoesNotThrow();
 	func->setCallingConv(llvm::CallingConv::C);
 
-	if(__has_feature(memory_sanitizer))
-	{
-		func->addFnAttr(llvm::Attribute::SanitizeMemory);
-
-		// Assume that when using recent versions of LLVM, MemorySanitizer enabled builds
-		// use -fsanitize-memory-param-retval, which makes the caller not update the shadow
-		// of function parameters. NoUndef skips generating checks for uninitialized values.
-#if LLVM_VERSION_MAJOR >= 13
-		for(unsigned int i = 0; i < params.size(); i++)
-		{
-			func->addParamAttr(i, llvm::Attribute::NoUndef);
-		}
-#endif
-	}
-
 	if(__has_feature(address_sanitizer))
 	{
 		func->addFnAttr(llvm::Attribute::SanitizeAddress);
