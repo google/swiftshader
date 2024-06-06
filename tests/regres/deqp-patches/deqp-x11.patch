@@ -10,17 +10,16 @@ index 10c875869..1d1f9f577 100644
  
  #include <X11/Xutil.h>
  
-@@ -80,7 +81,12 @@ XlibDisplay::XlibDisplay (EventState& eventState, const char* name)
- 	//     a multi-threaded program calls, and it must complete before any other
- 	//     Xlib call is made.
- 	DE_CHECK_RUNTIME_ERR(XInitThreads() != 0);
--	m_display = XOpenDisplay((char*)name); // Won't modify argument string.
-+	for (int i = 0; i < 10; i++) {
-+		m_display = XOpenDisplay((char*)name); // Won't modify argument string.
-+		if (m_display)
-+			break;
-+		deSleep(100*(1<<i));
-+	}
- 	if (!m_display)
- 		throw ResourceError("Failed to open display", name, __FILE__, __LINE__);
+@@ -79,6 +80,12 @@ XlibDisplay::XlibDisplay(EventState &eventState, const char *name) : DisplayBase
+     //     Xlib call is made.
+     DE_CHECK_RUNTIME_ERR(XInitThreads() != 0);
+     m_display = XOpenDisplay((char *)name); // Won't modify argument string.
++    for (int i = 0; i < 10; i++) {
++        m_display = XOpenDisplay((char*)name); // Won't modify argument string.
++        if (m_display)
++            break;
++        deSleep(100*(1<<i));
++    }
+     if (!m_display)
+         throw ResourceError("Failed to open display", name, __FILE__, __LINE__);
  
