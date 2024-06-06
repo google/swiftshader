@@ -19,6 +19,8 @@ dEQP-VK.compute.pipeline.basic.image_barrier_single
 dEQP-VK.compute.pipeline.basic.max_local_size_x
 dEQP-VK.compute.pipeline.basic.max_local_size_y
 dEQP-VK.compute.pipeline.basic.max_local_size_z
+dEQP-VK.compute.pipeline.basic.pk_immediate
+dEQP-VK.compute.pipeline.basic.pkadd_immediate
 dEQP-VK.compute.pipeline.basic.secondary_compute_only_queue
 dEQP-VK.compute.pipeline.basic.shared_atomic_op_multiple_groups
 dEQP-VK.compute.pipeline.basic.shared_atomic_op_multiple_invocations
