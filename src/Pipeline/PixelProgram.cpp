@@ -26,8 +26,9 @@ PixelProgram::PixelProgram(
     const PixelProcessor::State &state,
     const vk::PipelineLayout *pipelineLayout,
     const SpirvShader *spirvShader,
+    const vk::Attachments &attachments,
     const vk::DescriptorSet::Bindings &descriptorSets)
-    : PixelRoutine(state, pipelineLayout, spirvShader, descriptorSets)
+    : PixelRoutine(state, pipelineLayout, spirvShader, attachments, descriptorSets)
 {
 }
 
@@ -197,7 +198,7 @@ void PixelProgram::executeShader(Int cMask[4], Int sMask[4], Int zMask[4], const
 	SIMD::Int storesAndAtomicsMask = maskAny(cMask, sMask, zMask, samples);
 	routine.discardMask = 0;
 
-	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets, state.multiSampleCount);
+	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets, &attachments, state.multiSampleCount);
 	spirvShader->emitEpilog(&routine);
 
 	for(int i = 0; i < MAX_COLOR_BUFFERS; i++)

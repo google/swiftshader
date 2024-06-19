@@ -30,9 +30,11 @@ PixelRoutine::PixelRoutine(
     const PixelProcessor::State &state,
     const vk::PipelineLayout *pipelineLayout,
     const SpirvShader *spirvShader,
+    const vk::Attachments &attachments,
     const vk::DescriptorSet::Bindings &descriptorSets)
     : QuadRasterizer(state, spirvShader)
     , routine(pipelineLayout)
+    , attachments(attachments)
     , descriptorSets(descriptorSets)
     , shaderContainsInterpolation(spirvShader && spirvShader->getUsedCapabilities().InterpolationFunction)
     , shaderContainsSampleQualifier(spirvShader && spirvShader->getAnalysis().ContainsSampleQualifier)

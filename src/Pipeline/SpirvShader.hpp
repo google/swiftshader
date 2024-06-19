@@ -52,6 +52,7 @@ class PipelineLayout;
 class ImageView;
 class Sampler;
 class RenderPass;
+struct Attachments;
 struct SampledImageDescriptor;
 struct SamplerState;
 
@@ -979,7 +980,6 @@ public:
 	            const SpirvBinary &insns,
 	            const vk::RenderPass *renderPass,
 	            uint32_t subpassIndex,
-		    const VkPipelineRenderingCreateInfo *rendering,
 		    const VkRenderingInputAttachmentIndexInfoKHR *inputAttachmentMapping,
 	            bool robustBufferAccess);
 
@@ -987,36 +987,47 @@ public:
 
 	// TODO(b/247020580): Move to SpirvRoutine
 	void emitProlog(SpirvRoutine *routine) const;
-	void emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
+	void emit(SpirvRoutine *routine, const RValue<SIMD::Int> &activeLaneMask, const RValue<SIMD::Int> &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, const vk::Attachments *attachments = nullptr, unsigned int multiSampleCount = 0) const;
 	void emitEpilog(SpirvRoutine *routine) const;
 
 	bool getRobustBufferAccess() const { return robustBufferAccess; }
 	OutOfBoundsBehavior getOutOfBoundsBehavior(Object::ID pointerId, const vk::PipelineLayout *pipelineLayout) const;
 
-	vk::Format getInputAttachmentFormat(int32_t index, bool useStencilAspect) const
-	{
-		if (index < 0)
-		{
-			return useStencilAspect ? stencilInputAttachmentFormat : depthInputAttachmentFormat;
-		}
-		return inputAttachmentFormats[index];
-	}
+	vk::Format getInputAttachmentFormat(const vk::Attachments &attachments, int32_t index) const;
 
 private:
 	const bool robustBufferAccess;
 
-	// With render passes objects, this includes all the information derived from
+	// When reading from an input attachment, its format is needed.  When the fragment shader
+	// pipeline library is created, the formats are available with render pass objects, but not
+	// with dynamic rendering.  Instead, with dynamic rendering the formats are provided to the
+	// fragment output interface pipeline library.
+	//
+	// This class is instantiated by the fragment shader pipeline library.  With dynamic
+	// rendering, the mapping from input attachment indices to render pass attachments are
+	// stored here at that point.  Later, when the formats are needed, the information is taken
+	// out of the information provided to the fragment output interface pipeline library.
+	//
+	// In the following, `inputIndexToColorIndex` maps from an input attachment index docoration
+	// in the shader to the attachment index (not the remapped location).
+	//
+	// The depthInputIndex and stencilInputIndex values are only valid for dynamic rendering and
+	// indicate what input attachment index is supposed to map to each.  They are optional, as
+	// the shader no longer has to decorate depth and stencil input attachments with
+	// an InputAttachmentIndex decoration.
+	//
+	// Note: If SpirvEmitter::EmitImageRead were to take the format from the bound descriptor,
+	// none of the following would be necessary.  With the current implementation, read-only
+	// input attachments cannot be supported with dynamic rendering because they don't map to
+	// any attachment.
+	const bool isUsedWithDynamicRendering;
+	std::unordered_map<uint32_t, uint32_t> inputIndexToColorIndex;
+	int32_t depthInputIndex = -1;
+	int32_t stencilInputIndex = -1;
+
+	// With render passes objects, all formats are derived early from
 	// VkSubpassDescription::pInputAttachments.
-	//
-	// With VK_KHR_dynamic_rendering_local_read, it includes info based on
-	// VkPipelineRenderingCreateInfo and VkRenderingInputAttachmentIndexInfoKHR.
-	//
-	// In the latter case, the shader is allowed to not specify InputAttachmentIndex for
-	// depth/stencil, in which case getInputAttachmentFormat would receive -1 as index.
-	// The additional depth/stencil vk::Format variables below are used in that case.
 	std::vector<vk::Format> inputAttachmentFormats;
-	vk::Format depthInputAttachmentFormat{VK_FORMAT_UNDEFINED};
-	vk::Format stencilInputAttachmentFormat{VK_FORMAT_UNDEFINED};
 };
 
 // The SpirvEmitter class translates the parsed SPIR-V shader into Reactor code.
@@ -1035,6 +1046,7 @@ public:
 	                 Spirv::Function::ID entryPoint,
 	                 RValue<SIMD::Int> activeLaneMask,
 	                 RValue<SIMD::Int> storesAndAtomicsMask,
+	                 const vk::Attachments *attachments,
 	                 const vk::DescriptorSet::Bindings &descriptorSets,
 	                 unsigned int multiSampleCount);
 
@@ -1050,6 +1062,7 @@ private:
 	             Spirv::Function::ID entryPoint,
 	             RValue<SIMD::Int> activeLaneMask,
 	             RValue<SIMD::Int> storesAndAtomicsMask,
+	             const vk::Attachments *attachments,
 	             const vk::DescriptorSet::Bindings &descriptorSets,
 	             unsigned int multiSampleCount);
 
@@ -1561,6 +1574,7 @@ private:
 	std::unordered_map<Block::Edge, RValue<SIMD::Int>, Block::Edge::Hash> edgeActiveLaneMasks;
 	std::deque<Block::ID> *pending;
 
+	const vk::Attachments *attachments;
 	const vk::DescriptorSet::Bindings &descriptorSets;
 
 	std::unordered_map<Object::ID, Intermediate> intermediates;

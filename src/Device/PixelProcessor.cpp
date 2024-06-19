@@ -189,13 +189,14 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 PixelProcessor::RoutineType PixelProcessor::routine(const State &state,
                                                     const vk::PipelineLayout *pipelineLayout,
                                                     const SpirvShader *pixelShader,
+                                                    const vk::Attachments &attachments,
                                                     const vk::DescriptorSet::Bindings &descriptorSets)
 {
 	auto routine = routineCache->lookup(state);
 
 	if(!routine)
 	{
-		QuadRasterizer *generator = new PixelProgram(state, pipelineLayout, pixelShader, descriptorSets);
+		QuadRasterizer *generator = new PixelProgram(state, pipelineLayout, pixelShader, attachments, descriptorSets);
 		generator->generate();
 		routine = (*generator)("PixelRoutine_%0.8X", state.shaderID);
 		delete generator;

@@ -30,6 +30,7 @@ public:
 	PixelRoutine(const PixelProcessor::State &state,
 	             const vk::PipelineLayout *pipelineLayout,
 	             const SpirvShader *spirvShader,
+	             const vk::Attachments &attachments,
 	             const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~PixelRoutine();
@@ -42,6 +43,7 @@ protected:
 	SIMD::Float rhw;   // Reciprocal w
 
 	SpirvRoutine routine;
+	const vk::Attachments &attachments;
 	const vk::DescriptorSet::Bindings &descriptorSets;
 
 	virtual void setBuiltins(Int &x, Int &y, SIMD::Float (&z)[4], SIMD::Float &w, Int cMask[4], const SampleSet &samples) = 0;

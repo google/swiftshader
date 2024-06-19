@@ -512,7 +512,6 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 	const bool expectVertexShader = (pipelineSubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0;
 	const bool expectFragmentShader = (pipelineSubset & VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT) != 0;
 
-	const auto *rendering = GetExtendedStruct<VkPipelineRenderingCreateInfo>(pCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO);
 	const auto *inputAttachmentMapping = GetExtendedStruct<VkRenderingInputAttachmentIndexInfoKHR>(pCreateInfo->pNext, VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO_KHR);
 
 	for(uint32_t stageIndex = 0; stageIndex < pCreateInfo->stageCount; stageIndex++)
@@ -590,7 +589,7 @@ VkResult GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocato
 
 		// TODO(b/201798871): use allocator.
 		auto shader = std::make_shared<sw::SpirvShader>(stageInfo.stage, stageInfo.pName, spirv,
-		                                                vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass, rendering, inputAttachmentMapping, stageRobustBufferAccess);
+		                                                vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass, inputAttachmentMapping, stageRobustBufferAccess);
 
 		setShader(stageInfo.stage, shader);
 
@@ -685,7 +684,7 @@ VkResult ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator
 
 	// TODO(b/201798871): use allocator.
 	shader = std::make_shared<sw::SpirvShader>(stage.stage, stage.pName, spirv,
-	                                           nullptr, 0, nullptr, nullptr, stageRobustBufferAccess);
+	                                           nullptr, 0, nullptr, stageRobustBufferAccess);
 
 	const PipelineCache::ComputeProgramKey programKey(shader->getIdentifier(), layout->identifier);
 

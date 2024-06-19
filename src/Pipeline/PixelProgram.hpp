@@ -26,6 +26,7 @@ public:
 	    const PixelProcessor::State &state,
 	    const vk::PipelineLayout *pipelineLayout,
 	    const SpirvShader *spirvShader,
+	    const vk::Attachments &attachments,
 	    const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~PixelProgram() {}
