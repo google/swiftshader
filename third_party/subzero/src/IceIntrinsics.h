@@ -110,11 +110,15 @@ enum MemoryOrder {
 bool isMemoryOrderValid(IntrinsicID ID, uint64_t Order,
                         uint64_t OrderOther = MemoryOrderInvalid);
 
-enum SideEffects { SideEffects_F = 0, SideEffects_T = 1 };
+/// The _T values are set to -1 rather than 1 to avoid an implicit conversion
+/// warning. A good explanation of the warning is here:
+/// https://github.com/llvm/llvm-project/issues/53253.
+/// Allows us to re-enable the warning in crbug.com/40234766
+enum SideEffects { SideEffects_F = 0, SideEffects_T = -1 };
 
-enum ReturnsTwice { ReturnsTwice_F = 0, ReturnsTwice_T = 1 };
+enum ReturnsTwice { ReturnsTwice_F = 0, ReturnsTwice_T = -1 };
 
-enum MemoryWrite { MemoryWrite_F = 0, MemoryWrite_T = 1 };
+enum MemoryWrite { MemoryWrite_F = 0, MemoryWrite_T = -1 };
 
 /// Basic attributes related to each intrinsic, that are relevant to code
 /// generation.
