@@ -100,6 +100,10 @@ dEQP-VK.video.decode.h265_query_with_status_layered_dpb
 dEQP-VK.video.decode.h265_query_with_status_separated_dpb
 dEQP-VK.video.decode.h265_resources_without_profiles_layered_dpb
 dEQP-VK.video.decode.h265_resources_without_profiles_separated_dpb
+dEQP-VK.video.decode.h265_slist_a_layered_dpb
+dEQP-VK.video.decode.h265_slist_a_separated_dpb
+dEQP-VK.video.decode.h265_slist_b_layered_dpb
+dEQP-VK.video.decode.h265_slist_b_separated_dpb
 dEQP-VK.video.encode.h264_i
 dEQP-VK.video.encode.h264_i_p
 dEQP-VK.video.encode.h264_i_p_b_13

@@ -1,1 +1,2 @@
+dEQP-VK.dynamic_rendering.primary_cmd_buff.local_read.max_input_attachments
 dEQP-VK.pipeline.fast_linked_library.misc.interpolate_at_sample_no_sample_shading

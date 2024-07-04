@@ -2204,3 +2204,5 @@ dEQP-VK.dynamic_rendering.primary_cmd_buff.suballocation.unused_attachment.loado
 dEQP-VK.dynamic_rendering.primary_cmd_buff.suballocation.unused_attachment.loadopdontcare.storeopdontcare.stencilloadopdontcare.stencilstoreopdontcare
 dEQP-VK.dynamic_rendering.primary_cmd_buff.suballocation.unused_attachment.loadopload.storeopdontcare.stencilloadopdontcare.stencilstoreopdontcare
 dEQP-VK.dynamic_rendering.primary_cmd_buff.suballocation.unused_attachment.loadopload.storeopstore.stencilloadopdontcare.stencilstoreopdontcare
+dEQP-VK.image.mismatched_dimensionality.2d
+dEQP-VK.image.mismatched_dimensionality.cube

@@ -31,6 +31,7 @@ vk-default/image/load-store.txt
 vk-default/image/load-store-lod.txt
 vk-default/image/load-store-multisample.txt
 vk-default/image/misaligned-cube.txt
+vk-default/image/mismatched-dimensionality.txt
 vk-default/image/mismatched-formats.txt
 vk-default/image/mismatched-write-op.txt
 vk-default/image/mutable.txt

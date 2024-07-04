@@ -1,0 +1,4 @@
+dEQP-VK.image.mismatched_dimensionality.1d
+dEQP-VK.image.mismatched_dimensionality.2d
+dEQP-VK.image.mismatched_dimensionality.3d
+dEQP-VK.image.mismatched_dimensionality.cube

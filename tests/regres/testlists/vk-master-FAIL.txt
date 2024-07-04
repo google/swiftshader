@@ -12,7 +12,6 @@ dEQP-VK.draw.renderpass.implicit_sample_shading.sample_id_static_use
 dEQP-VK.draw.renderpass.implicit_sample_shading.sample_position_static_use
 dEQP-VK.draw.renderpass.shader_invocation.helper_invocation_volatile
 dEQP-VK.draw.renderpass.shader_invocation.helper_invocation_volatile_mem_model
-dEQP-VK.dynamic_rendering.primary_cmd_buff.local_read.max_attachments_remapped_repeatedly
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.sampler_bias
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.sampler_minlod
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.shader_bias
