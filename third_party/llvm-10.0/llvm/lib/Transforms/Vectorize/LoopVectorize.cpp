@@ -6827,7 +6827,7 @@ VPRecipeBuilder::tryToOptimizeInduction(Instruction *I, VFRange &Range) {
   auto isOptimizableIVTruncate =
       [&](Instruction *K) -> std::function<bool(unsigned)> {
     return
-        [=](unsigned VF) -> bool { return CM.isOptimizableIVTruncate(K, VF); };
+        [this, K](unsigned VF) -> bool { return CM.isOptimizableIVTruncate(K, VF); };
   };
 
   if (isa<TruncInst>(I) && LoopVectorizationPlanner::getDecisionAndClampRange(

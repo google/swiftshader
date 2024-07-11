@@ -218,14 +218,18 @@ void ComputeProgram::run(
 	data.pushConstants = pushConstants;
 
 	marl::WaitGroup wg;
-	const uint32_t batchCount = 16;
+	constexpr uint32_t batchCount = 16;
 
 	auto groupCount = groupCountX * groupCountY * groupCountZ;
 
 	for(uint32_t batchID = 0; batchID < batchCount && batchID < groupCount; batchID++)
 	{
 		wg.add(1);
-		marl::schedule([=, &data] {
+		marl::schedule([this, batchID, groupCount, groupCountX, groupCountY,
+		                baseGroupZ, baseGroupY, baseGroupX, wg, subgroupsPerWorkgroup,
+		                &data] {
+			// Workaround for the fact that some compilers don't allow batchCount to be captured.
+			constexpr uint32_t batchCount = 16;
 			defer(wg.done());
 			std::vector<uint8_t> workgroupMemory(shader->workgroupMemory.size());
 

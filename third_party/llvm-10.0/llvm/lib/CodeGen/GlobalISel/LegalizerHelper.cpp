@@ -2938,7 +2938,7 @@ LegalizerHelper::reduceLoadStoreWidth(MachineInstr &MI, unsigned TypeIdx,
   // is a load, return the new registers in ValRegs. For a store, each elements
   // of ValRegs should be PartTy. Returns the next offset that needs to be
   // handled.
-  auto splitTypePieces = [=](LLT PartTy, SmallVectorImpl<Register> &ValRegs,
+  auto splitTypePieces = [this, IsLoad, MMO, OffsetTy, NumParts, TotalSize, AddrReg](LLT PartTy, SmallVectorImpl<Register> &ValRegs,
                              unsigned Offset) -> unsigned {
     MachineFunction &MF = MIRBuilder.getMF();
     unsigned PartSize = PartTy.getSizeInBits();

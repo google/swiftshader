@@ -769,7 +769,7 @@ InstrProfiling::getOrCreateRegionCounters(InstrProfIncrementInst *Inc) {
       Visibility = GlobalValue::HiddenVisibility;
     }
   }
-  auto MaybeSetComdat = [=](GlobalVariable *GV) {
+  auto MaybeSetComdat = [this, NeedComdat](GlobalVariable *GV) {
     if (NeedComdat)
       GV->setComdat(M->getOrInsertComdat(GV->getName()));
   };

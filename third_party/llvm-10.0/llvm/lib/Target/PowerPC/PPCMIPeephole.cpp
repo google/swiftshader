@@ -361,7 +361,7 @@ bool PPCMIPeephole::simplifyCode(void) {
         // redundant. Replace with a copy. This doesn't happen directly due
         // to code in PPCDAGToDAGISel.cpp, but it can happen when converting
         // a load of a double to a vector of 64-bit integers.
-        auto isConversionOfLoadAndSplat = [=]() -> bool {
+        auto isConversionOfLoadAndSplat = [this, DefOpc, TRI, DefMI]() -> bool {
           if (DefOpc != PPC::XVCVDPSXDS && DefOpc != PPC::XVCVDPUXDS)
             return false;
           unsigned FeedReg1 =
@@ -464,7 +464,7 @@ bool PPCMIPeephole::simplifyCode(void) {
         if (!DefMI)
           break;
         unsigned DefOpcode = DefMI->getOpcode();
-        auto isConvertOfSplat = [=]() -> bool {
+        auto isConvertOfSplat = [this, DefOpcode, DefMI]() -> bool {
           if (DefOpcode != PPC::XVCVSPSXWS && DefOpcode != PPC::XVCVSPUXWS)
             return false;
           Register ConvReg = DefMI->getOperand(1).getReg();

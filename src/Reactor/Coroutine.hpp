@@ -185,7 +185,7 @@ Coroutine<Return(Arguments...)>::operator()(Arguments... args)
 	finalize();
 
 	// TODO(b/148400732): Go back to just calling the CoroutineEntryBegin function directly.
-	std::function<Nucleus::CoroutineHandle()> coroutineBegin = [=] {
+	std::function<Nucleus::CoroutineHandle()> coroutineBegin = [this, args...] {
 		using Sig = Nucleus::CoroutineBegin<Arguments...>;
 		auto pfn = (Sig *)routine->getEntry(Nucleus::CoroutineEntryBegin);
 		auto handle = pfn(args...);
