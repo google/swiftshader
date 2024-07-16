@@ -12,6 +12,8 @@ dEQP-VK.query_pool.frag_invocations.occlusion.primary_with_vertex_color
 dEQP-VK.query_pool.frag_invocations.occlusion.secondary
 dEQP-VK.query_pool.frag_invocations.occlusion.secondary_with_atomic_counter
 dEQP-VK.query_pool.frag_invocations.occlusion.secondary_with_vertex_color
+dEQP-VK.query_pool.maintenance7.query_32b_wrap_notrequired
+dEQP-VK.query_pool.maintenance7.query_32b_wrap_required
 dEQP-VK.query_pool.occlusion_query.basic_conservative
 dEQP-VK.query_pool.occlusion_query.basic_precise
 dEQP-VK.query_pool.occlusion_query.copy_reset_results_conservative_size_32_wait_query_with_availability_draw_points

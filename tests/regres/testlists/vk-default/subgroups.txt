@@ -38627,6 +38627,15 @@ dEQP-VK.subgroups.subgroup_uniform_control_flow.small_full_control.small_subgrou
 dEQP-VK.subgroups.subgroup_uniform_control_flow.small_full_control.small_subgroup_reconverge18
 dEQP-VK.subgroups.subgroup_uniform_control_flow.small_full_control.small_subgroup_reconverge19
 dEQP-VK.subgroups.subgroup_uniform_control_flow.small_full_control.small_subgroup_reconverge20
+dEQP-VK.subgroups.uniform_descriptor_indexing.combined_image_sampler
+dEQP-VK.subgroups.uniform_descriptor_indexing.input_attachment
+dEQP-VK.subgroups.uniform_descriptor_indexing.sampled_image
+dEQP-VK.subgroups.uniform_descriptor_indexing.sampler
+dEQP-VK.subgroups.uniform_descriptor_indexing.storage_buffer
+dEQP-VK.subgroups.uniform_descriptor_indexing.storage_image
+dEQP-VK.subgroups.uniform_descriptor_indexing.storage_texel_buffer
+dEQP-VK.subgroups.uniform_descriptor_indexing.uniform_buffer
+dEQP-VK.subgroups.uniform_descriptor_indexing.uniform_texel_buffer
 dEQP-VK.subgroups.vote.compute.subgroupall_uint
 dEQP-VK.subgroups.vote.compute.subgroupall_uint_requiredsubgroupsize
 dEQP-VK.subgroups.vote.compute.subgroupallequal_bool

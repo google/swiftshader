@@ -22915,6 +22915,14 @@ dEQP-VK.renderpass2.fragment_density_map.properties.secondary_cmd_buff_imageless
 dEQP-VK.renderpass2.fragment_density_map.properties.secondary_cmd_buff_imageless_framebuffer_static_subsampled
 dEQP-VK.renderpass2.fragment_density_map.properties.subsampled_coarse_reconstruction
 dEQP-VK.renderpass2.fragment_density_map.properties.subsampled_loads
+dEQP-VK.renderpass2.nested_command_buffers.ext.inline_secondary.inline_secondary
+dEQP-VK.renderpass2.nested_command_buffers.ext.inline_secondary.secondary_inline
+dEQP-VK.renderpass2.nested_command_buffers.ext.secondary_inline.inline_secondary
+dEQP-VK.renderpass2.nested_command_buffers.ext.secondary_inline.secondary_inline
+dEQP-VK.renderpass2.nested_command_buffers.khr.inline_secondary.inline_secondary
+dEQP-VK.renderpass2.nested_command_buffers.khr.inline_secondary.secondary_inline
+dEQP-VK.renderpass2.nested_command_buffers.khr.secondary_inline.inline_secondary
+dEQP-VK.renderpass2.nested_command_buffers.khr.secondary_inline.secondary_inline
 dEQP-VK.renderpass2.no_draws.no_draw_clear_load_store
 dEQP-VK.renderpass2.suballocation.attachment.1.0
 dEQP-VK.renderpass2.suballocation.attachment.1.1

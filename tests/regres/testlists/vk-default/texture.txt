@@ -4968,6 +4968,8 @@ dEQP-VK.texture.mipmap.min_lod_gather.minlod_1_1.component_2
 dEQP-VK.texture.mipmap.min_lod_gather.minlod_1_1.component_3
 dEQP-VK.texture.multisample.atomic.storage_image_r32i
 dEQP-VK.texture.multisample.atomic.storage_image_r32ui
+dEQP-VK.texture.multisample.atomic.storage_image_r64i
+dEQP-VK.texture.multisample.atomic.storage_image_r64ui
 dEQP-VK.texture.multisample.invalid_sample_index.sample_count_16
 dEQP-VK.texture.multisample.invalid_sample_index.sample_count_2
 dEQP-VK.texture.multisample.invalid_sample_index.sample_count_32
