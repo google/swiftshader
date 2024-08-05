@@ -6549,8 +6549,17 @@ dEQP-VK.ray_tracing_pipeline.acceleration_structures.update.cpu.vertices
 dEQP-VK.ray_tracing_pipeline.acceleration_structures.update.gpu.indices
 dEQP-VK.ray_tracing_pipeline.acceleration_structures.update.gpu.transform
 dEQP-VK.ray_tracing_pipeline.acceleration_structures.update.gpu.vertices
+dEQP-VK.ray_tracing_pipeline.amber.barycentrics
 dEQP-VK.ray_tracing_pipeline.amber.basic
 dEQP-VK.ray_tracing_pipeline.amber.basic2
+dEQP-VK.ray_tracing_pipeline.amber.basic_lib
+dEQP-VK.ray_tracing_pipeline.amber.different-payload-sizes
+dEQP-VK.ray_tracing_pipeline.amber.divergent-as
+dEQP-VK.ray_tracing_pipeline.amber.flags-accept-first
+dEQP-VK.ray_tracing_pipeline.amber.flags-culling
+dEQP-VK.ray_tracing_pipeline.amber.flags-force-non-opaque
+dEQP-VK.ray_tracing_pipeline.amber.flags-force-opaque
+dEQP-VK.ray_tracing_pipeline.amber.flags-skip-chit
 dEQP-VK.ray_tracing_pipeline.amber.rt-sample
 dEQP-VK.ray_tracing_pipeline.barrier.simg.memory_barrier.from_ahit_to_ahit
 dEQP-VK.ray_tracing_pipeline.barrier.simg.memory_barrier.from_ahit_to_call
