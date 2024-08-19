@@ -8842,6 +8842,7 @@ dEQP-VK.ray_tracing_pipeline.misc.recursiveTraces_tri_9
 dEQP-VK.ray_tracing_pipeline.misc.report_intersection_result
 dEQP-VK.ray_tracing_pipeline.misc.reuse_creation_buffer_bottom
 dEQP-VK.ray_tracing_pipeline.misc.reuse_creation_buffer_top
+dEQP-VK.ray_tracing_pipeline.misc.reuse_scratch_buffer
 dEQP-VK.ray_tracing_pipeline.misc.shaderRecordExplicitSTD430Offset_1
 dEQP-VK.ray_tracing_pipeline.misc.shaderRecordExplicitSTD430Offset_2
 dEQP-VK.ray_tracing_pipeline.misc.shaderRecordExplicitSTD430Offset_3

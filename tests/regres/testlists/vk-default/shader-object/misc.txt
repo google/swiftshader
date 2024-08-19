@@ -136,6 +136,8 @@ dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.color_write.true
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.cull.back
+dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.cull.front
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.cull.none
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.depth.bias
@@ -175,6 +177,8 @@ dEQP-VK.shader_object.misc.state.pipeline.vert.color_write.true
 dEQP-VK.shader_object.misc.state.pipeline.vert.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.pipeline.vert.cull.back
+dEQP-VK.shader_object.misc.state.pipeline.vert.cull.front
 dEQP-VK.shader_object.misc.state.pipeline.vert.cull.front_and_back
 dEQP-VK.shader_object.misc.state.pipeline.vert.cull.none
 dEQP-VK.shader_object.misc.state.pipeline.vert.depth.bias
@@ -214,6 +218,8 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_frag.color_write.true
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.pipeline.vert_frag.cull.back
+dEQP-VK.shader_object.misc.state.pipeline.vert_frag.cull.front
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.cull.none
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.depth.bias
@@ -253,6 +259,8 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.color_write.true
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.cull.back
+dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.cull.front
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.cull.none
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.depth.bias
@@ -294,6 +302,8 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.color_write.true
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.cull.back
+dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.cull.front
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.cull.none
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.depth.bias
@@ -333,6 +343,8 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.color_write.true
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.cull.back
+dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.cull.front
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.cull.none
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.depth.bias
@@ -374,6 +386,8 @@ dEQP-VK.shader_object.misc.state.shaders.mesh_frag.color_write.true
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.shaders.mesh_frag.cull.back
+dEQP-VK.shader_object.misc.state.shaders.mesh_frag.cull.front
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.cull.none
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.depth.bias
@@ -413,6 +427,8 @@ dEQP-VK.shader_object.misc.state.shaders.vert.color_write.true
 dEQP-VK.shader_object.misc.state.shaders.vert.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.shaders.vert.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.shaders.vert.cull.back
+dEQP-VK.shader_object.misc.state.shaders.vert.cull.front
 dEQP-VK.shader_object.misc.state.shaders.vert.cull.front_and_back
 dEQP-VK.shader_object.misc.state.shaders.vert.cull.none
 dEQP-VK.shader_object.misc.state.shaders.vert.depth.bias
@@ -452,6 +468,8 @@ dEQP-VK.shader_object.misc.state.shaders.vert_frag.color_write.true
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.shaders.vert_frag.cull.back
+dEQP-VK.shader_object.misc.state.shaders.vert_frag.cull.front
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.cull.none
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.depth.bias
@@ -491,6 +509,8 @@ dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.color_write.true
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.cull.back
+dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.cull.front
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.cull.none
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.depth.bias
@@ -532,6 +552,8 @@ dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.color_write.true
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.cull.back
+dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.cull.front
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.cull.none
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.depth.bias
@@ -571,6 +593,8 @@ dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.color_write.true
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.conservative_rasterization.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.conservative_rasterization.enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.conservative_rasterization.overestimate
+dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.cull.back
+dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.cull.front
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.cull.front_and_back
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.cull.none
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.depth.bias

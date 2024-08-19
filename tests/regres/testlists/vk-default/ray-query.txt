@@ -23193,6 +23193,7 @@ dEQP-VK.ray_query.inside_aabbs.ray_end_tmax_zero.scaling_factor_5.rotation_2
 dEQP-VK.ray_query.inside_aabbs.ray_end_tmax_zero.scaling_factor_5.rotation_3
 dEQP-VK.ray_query.inside_aabbs.ray_end_tmax_zero.scaling_factor_5.rotation_4
 dEQP-VK.ray_query.misc.dynamic_indexing
+dEQP-VK.ray_query.misc.reuse_scratch_buffer
 dEQP-VK.ray_query.multiple_ray_queries.ahit_shader
 dEQP-VK.ray_query.multiple_ray_queries.call_shader
 dEQP-VK.ray_query.multiple_ray_queries.chit_shader
