@@ -36,17 +36,12 @@ bool shouldUsePerSampleShading(const PixelProcessor::State &state, const SpirvSh
 
 	if(spirvShader)
 	{
-		if(spirvShader->getUsedCapabilities().InterpolationFunction) // TODO(b/194714095)
+		if(spirvShader->getUsedCapabilities().InterpolationFunction)  // TODO(b/194714095)
 		{
 			return true;
 		}
 
 		if(spirvShader->getUsedCapabilities().SampleRateShading)
-		{
-			return true;
-		}
-
-		if(spirvShader->getAnalysis().ContainsSampleQualifier)
 		{
 			return true;
 		}
