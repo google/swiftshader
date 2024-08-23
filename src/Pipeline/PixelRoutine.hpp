@@ -112,7 +112,6 @@ private:
 
 	// Derived state parameters
 	const bool shaderContainsInterpolation;  // TODO(b/194714095)
-	const bool shaderContainsSampleQualifier;
 	const bool perSampleShading;
 	const int invocationCount;
 

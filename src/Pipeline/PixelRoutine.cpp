@@ -25,6 +25,32 @@
 #include "Vulkan/VkStringify.hpp"
 
 namespace sw {
+namespace {
+
+bool shouldUsePerSampleShading(const PixelProcessor::State &state, const SpirvShader *spirvShader)
+{
+	if(state.sampleShadingEnabled && (state.minSampleShading * state.multiSampleCount > 1.0f))
+	{
+		return true;
+	}
+
+	if(spirvShader)
+	{
+		if(spirvShader->getUsedCapabilities().InterpolationFunction) // TODO(b/194714095)
+		{
+			return true;
+		}
+
+		if(spirvShader->getAnalysis().ContainsSampleQualifier)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+}  // namespace
 
 PixelRoutine::PixelRoutine(
     const PixelProcessor::State &state,
@@ -37,9 +63,7 @@ PixelRoutine::PixelRoutine(
     , attachments(attachments)
     , descriptorSets(descriptorSets)
     , shaderContainsInterpolation(spirvShader && spirvShader->getUsedCapabilities().InterpolationFunction)
-    , shaderContainsSampleQualifier(spirvShader && spirvShader->getAnalysis().ContainsSampleQualifier)
-    , perSampleShading((state.sampleShadingEnabled && (state.minSampleShading * state.multiSampleCount > 1.0f)) ||
-                       shaderContainsSampleQualifier || shaderContainsInterpolation)  // TODO(b/194714095)
+    , perSampleShading(shouldUsePerSampleShading(state, spirvShader))
     , invocationCount(perSampleShading ? state.multiSampleCount : 1)
 {
 	if(spirvShader)
