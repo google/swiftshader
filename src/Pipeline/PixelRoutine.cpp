@@ -41,6 +41,11 @@ bool shouldUsePerSampleShading(const PixelProcessor::State &state, const SpirvSh
 			return true;
 		}
 
+		if(spirvShader->getUsedCapabilities().SampleRateShading)
+		{
+			return true;
+		}
+
 		if(spirvShader->getAnalysis().ContainsSampleQualifier)
 		{
 			return true;
