@@ -1,3 +1,2 @@
 dEQP-VK.dynamic_rendering.primary_cmd_buff.local_read.max_input_attachments
-dEQP-VK.memory_model.write_after_read.ext.u32.noncoherent.atomic_atomic.atomicrmw.device.payload_nonlocal.workgroup.guard_nonlocal.workgroup.comp
 dEQP-VK.pipeline.fast_linked_library.misc.interpolate_at_sample_no_sample_shading
