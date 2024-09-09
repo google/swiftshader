@@ -173,3 +173,18 @@ TEST_P(WithBoundScheduler, DAGFanOutFanIn) {
               UnorderedElementsAre("E0", "E1", "E2", "E3"));
   ASSERT_THAT(data.order[11], "F");
 }
+
+TEST_P(WithBoundScheduler, DAGForwardFunc) {
+  marl::DAG<void>::Builder builder;
+  std::function<void()> func([](){});
+
+  ASSERT_TRUE(func);
+
+  auto a = builder.root()
+      .then(func)
+      .then(func);
+
+  builder.node(func, {a});
+
+  ASSERT_TRUE(func);
+}

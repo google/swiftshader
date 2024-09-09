@@ -235,6 +235,11 @@ class BoundedPool : public Pool<T> {
     MARL_NO_EXPORT inline Storage(Allocator* allocator);
     MARL_NO_EXPORT inline ~Storage();
     MARL_NO_EXPORT inline void return_(Item*) override;
+    // We cannot copy this as the Item pointers would be shared and
+    // deleted at a wrong point. We cannot move this because we return
+    // pointers into items[N].
+    MARL_NO_EXPORT inline Storage(const Storage&) = delete;
+    MARL_NO_EXPORT inline Storage& operator=(const Storage&) = delete;
 
     Item items[N];
     marl::mutex mutex;
@@ -361,6 +366,11 @@ class UnboundedPool : public Pool<T> {
     MARL_NO_EXPORT inline Storage(Allocator* allocator);
     MARL_NO_EXPORT inline ~Storage();
     MARL_NO_EXPORT inline void return_(Item*) override;
+    // We cannot copy this as the Item pointers would be shared and
+    // deleted at a wrong point. We could move this but would have to take
+    // extra care no Item pointers are left in the moved-out object.
+    MARL_NO_EXPORT inline Storage(const Storage&) = delete;
+    MARL_NO_EXPORT inline Storage& operator=(const Storage&) = delete;
 
     Allocator* allocator;
     marl::mutex mutex;
