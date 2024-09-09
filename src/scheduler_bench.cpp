@@ -48,6 +48,35 @@ BENCHMARK_DEFINE_F(Schedule, SomeWork)
 }
 BENCHMARK_REGISTER_F(Schedule, SomeWork)->Apply(Schedule::args);
 
+BENCHMARK_DEFINE_F(Schedule, MultipleForkAndJoin)(benchmark::State& state) {
+  run(state, [&](int numTasks) {
+    const int batchSize = std::max(1, Schedule::numThreads(state));
+    for (auto _ : state) {
+      marl::WaitGroup wg;
+      for (int i = 0; i < numTasks; i++) {
+        wg.add(1);
+        marl::schedule([=] {
+          // Give each task a significant amount of work so that concurrency matters.
+          // If any worker performs more than one task, it will affect the results.
+          int value = i;
+          for (int j = 0; j < 256; ++j) {
+            value = doSomeWork(value);
+          }
+          benchmark::DoNotOptimize(value);
+          wg.done();
+        });
+        // Wait for completion after every batch. This simulates the fork-and-join pattern.
+        if ((i + 1) % batchSize == 0) {
+          wg.wait();
+        }
+      }
+      wg.wait();
+    }
+  });
+}
+
+BENCHMARK_REGISTER_F(Schedule, MultipleForkAndJoin)->Apply(Schedule::args<512>);
+
 BENCHMARK_DEFINE_F(Schedule, SomeWorkWorkerAffinityOneOf)
 (benchmark::State& state) {
   marl::Scheduler::Config cfg;
