@@ -2,7 +2,15 @@
 
 # update-marl merges the latest changes from the github.com/google/marl into
 # third_party/marl. This script copies the change descriptions from the squash
-# change into the top merge change, along with a standardized description.
+# change into the top merge change, along with a standardized description. It
+# should be run from the top of the swiftshader directory, followed by
+# `git cl upload`.
+#
+# IMPORTANT NOTE: that git subtree doesn't play nicely with gerrit, so this script will
+# result in two separate CLs, the first of which will have a merge conflict.
+# You should force-submit the second (child) CL, ignoring the merge conflict on
+# the parent. Make sure you're up-to-date beforehand, to avoid the possibility
+# of a real merge conflict!
 REASON=$1
 
 if [ ! -z "$REASON" ]; then
