@@ -313,6 +313,22 @@ VkFormat Attachments::depthFormat() const
 	}
 }
 
+VkFormat Attachments::depthStencilFormat() const
+{
+	if(depthBuffer)
+	{
+		return depthBuffer->getFormat();
+	}
+	else if(stencilBuffer)
+	{
+		return stencilBuffer->getFormat();
+	}
+	else
+	{
+		return VK_FORMAT_UNDEFINED;
+	}
+}
+
 void Inputs::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState, const VkPipelineDynamicStateCreateInfo *dynamicStateCreateInfo)
 {
 	dynamicStateFlags = ParseInputsDynamicStateFlags(dynamicStateCreateInfo);

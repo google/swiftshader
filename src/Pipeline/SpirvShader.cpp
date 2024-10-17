@@ -1759,7 +1759,7 @@ vk::Format SpirvShader::getInputAttachmentFormat(const vk::Attachments &attachme
 		// attachment.
 		if(index < 0 || index == depthInputIndex || index == stencilInputIndex)
 		{
-			return attachments.depthFormat();
+			return attachments.depthStencilFormat();
 		}
 
 		// See if the input index is mapped to an attachment.  If it isn't, the

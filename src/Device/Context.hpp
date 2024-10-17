@@ -125,6 +125,7 @@ struct Attachments
 
 	VkFormat colorFormat(int location) const;
 	VkFormat depthFormat() const;
+	VkFormat depthStencilFormat() const;
 };
 
 struct DynamicState;
