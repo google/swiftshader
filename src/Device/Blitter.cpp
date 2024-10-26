@@ -268,7 +268,7 @@ bool Blitter::fastClear(const void *clearValue, vk::Format clearFormat, vk::Imag
 			area.extent.width = extent.width;
 			area.extent.height = extent.height;
 		}
-		if(dest->is3DSlice())
+		else if(dest->is3DSlice())
 		{
 			extent.depth = 1;  // The 3D image is instead interpreted as a 2D image with layers
 		}
