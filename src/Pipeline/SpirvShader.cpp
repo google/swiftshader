@@ -1862,7 +1862,7 @@ SpirvShader::SpirvShader(VkShaderStageFlagBits stage,
 	{
 		for(auto i = 0u; i < inputAttachmentMapping->colorAttachmentCount; i++)
 		{
-			auto inputIndex = inputAttachmentMapping->pColorAttachmentInputIndices[i];
+			auto inputIndex = inputAttachmentMapping->pColorAttachmentInputIndices != nullptr ? inputAttachmentMapping->pColorAttachmentInputIndices[i] : i;
 			if(inputIndex != VK_ATTACHMENT_UNUSED)
 			{
 				inputIndexToColorIndex[inputIndex] = i;
