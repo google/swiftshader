@@ -20,6 +20,7 @@ vk-default/glsl.txt
 vk-default/graphicsfuzz.txt
 vk-default/image/astc-decode-mode.txt
 vk-default/image/atomic-operations.txt
+vk-default/image/concurrent-copy.txt
 vk-default/image/depth-stencil-descriptor.txt
 vk-default/image/depth-stencil-separate-access.txt
 vk-default/image/device-scope-access.txt
