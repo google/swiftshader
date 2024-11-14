@@ -26,6 +26,13 @@
 #	pragma GCC diagnostic push
 #	pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
+// Clang also warns that
+// error: first argument in call to 'memset' is a pointer to non-trivially
+// copyable type 'T' [-Werror,-Wnontrivial-memaccess]
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnontrivial-memaccess"
+#endif
 
 namespace sw {
 
