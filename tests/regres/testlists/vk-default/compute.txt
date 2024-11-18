@@ -1,3 +1,4 @@
+dEQP-VK.compute.pipeline.basic.atomic_barrier_sum_small
 dEQP-VK.compute.pipeline.basic.branch_past_barrier
 dEQP-VK.compute.pipeline.basic.concurrent_compute
 dEQP-VK.compute.pipeline.basic.copy_image_to_ssbo_large
