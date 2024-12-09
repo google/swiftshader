@@ -5725,7 +5725,6 @@ dEQP-VK.protected_memory.ssbo.ssbo_write.protected_access.protected_access_only.
 dEQP-VK.protected_memory.ssbo.ssbo_write.protected_access.protected_access_only.fragment.static.write_4
 dEQP-VK.protected_memory.ssbo.ssbo_write.protected_access.protected_access_only.fragment.static.write_5
 dEQP-VK.protected_memory.ssbo.ssbo_write.protected_access.protected_access_only.fragment.static.write_6
-dEQP-VK.protected_memory.stack.stacksize_1024
 dEQP-VK.protected_memory.stack.stacksize_128
 dEQP-VK.protected_memory.stack.stacksize_256
 dEQP-VK.protected_memory.stack.stacksize_32
