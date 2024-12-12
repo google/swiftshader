@@ -8,6 +8,8 @@
 #ifndef VULKAN_ENUMS_HPP
 #define VULKAN_ENUMS_HPP
 
+#include <type_traits>
+
 namespace VULKAN_HPP_NAMESPACE
 {
   template <typename FlagBitsType>

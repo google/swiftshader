@@ -12,13 +12,14 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Support/COFF.h"
-#include "llvm/Support/MachO.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/Errc.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FileSystem.h"
+#include "llvm/Support/MachO.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
+#include <errno.h>
 #include <cctype>
 #include <cstring>
 

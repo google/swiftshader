@@ -8,6 +8,9 @@
 #ifndef VULKAN_FUNCS_HPP
 #define VULKAN_FUNCS_HPP
 
+#include <cstddef>
+#include <cstdlib>
+
 namespace VULKAN_HPP_NAMESPACE
 {
 

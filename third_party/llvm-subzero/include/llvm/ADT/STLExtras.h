@@ -17,15 +17,17 @@
 #ifndef LLVM_ADT_STLEXTRAS_H
 #define LLVM_ADT_STLEXTRAS_H
 
-#include <algorithm> // for std::all_of
+#include <stdint.h>
+
+#include <algorithm>  // for std::all_of
 #include <cassert>
-#include <cstddef> // for std::size_t
-#include <cstdlib> // for qsort
+#include <cstddef>  // for std::size_t
+#include <cstdlib>  // for qsort
 #include <functional>
 #include <iterator>
 #include <memory>
 #include <tuple>
-#include <utility> // for std::pair
+#include <utility>  // for std::pair
 
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/iterator.h"
