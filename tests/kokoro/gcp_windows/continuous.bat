@@ -2,7 +2,7 @@
 
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-SET PATH=C:\python36;C:\Program Files\cmake\bin;%PATH%
+SET PATH=C:\python312;%PATH%
 SET SRC=%cd%\git\SwiftShader
 
 cd %SRC% || goto :error
