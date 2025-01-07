@@ -547,6 +547,7 @@ dEQP-VK.memory.binding.regular.suballocated.image_33_8
 dEQP-VK.memory.binding.regular.suballocated.image_8_257
 dEQP-VK.memory.binding.regular.suballocated.image_8_33
 dEQP-VK.memory.binding.regular.suballocated.image_8_8
+dEQP-VK.memory.concurrent_access.shader_and_host
 dEQP-VK.memory.device_group_allocation.basic.percent_1.forward.count_12
 dEQP-VK.memory.device_group_allocation.basic.percent_1.mixed.count_12
 dEQP-VK.memory.device_group_allocation.basic.percent_1.reverse.count_12
