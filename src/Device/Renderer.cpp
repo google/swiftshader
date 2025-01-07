@@ -693,6 +693,12 @@ void DrawCall::processPrimitiveVertices(
 	{
 		switch(indexType)
 		{
+		case VK_INDEX_TYPE_UINT8_EXT:
+			if(!setBatchIndices(triangleIndicesOut, topology, provokingVertexMode, static_cast<const uint8_t *>(primitiveIndices), start, triangleCount))
+			{
+				return;
+			}
+			break;
 		case VK_INDEX_TYPE_UINT16:
 			if(!setBatchIndices(triangleIndicesOut, topology, provokingVertexMode, static_cast<const uint16_t *>(primitiveIndices), start, triangleCount))
 			{

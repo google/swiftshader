@@ -236,7 +236,8 @@ namespace vk {
 
 uint32_t IndexBuffer::bytesPerIndex() const
 {
-	return indexType == VK_INDEX_TYPE_UINT16 ? 2u : 4u;
+	return indexType == VK_INDEX_TYPE_UINT8_EXT ? 1u : indexType == VK_INDEX_TYPE_UINT16 ? 2u
+	                                                                                     : 4u;
 }
 
 void IndexBuffer::setIndexBufferBinding(const VertexInputBinding &indexBufferBinding, VkIndexType type)
@@ -266,6 +267,9 @@ void IndexBuffer::getIndexBuffers(VkPrimitiveTopology topology, uint32_t count, 
 		{
 			switch(indexType)
 			{
+			case VK_INDEX_TYPE_UINT8_EXT:
+				ProcessPrimitiveRestart(static_cast<uint8_t *>(indexBuffer), topology, count, indexBuffers);
+				break;
 			case VK_INDEX_TYPE_UINT16:
 				ProcessPrimitiveRestart(static_cast<uint16_t *>(indexBuffer), topology, count, indexBuffers);
 				break;

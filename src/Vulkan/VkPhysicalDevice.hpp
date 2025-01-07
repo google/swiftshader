@@ -64,6 +64,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceHostImageCopyFeaturesEXT *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceIndexTypeUint8FeaturesEXT *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;
