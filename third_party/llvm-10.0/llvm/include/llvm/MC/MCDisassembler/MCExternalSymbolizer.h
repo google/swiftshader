@@ -18,6 +18,7 @@
 #include "llvm-c/Disassembler.h"
 #include "llvm/MC/MCDisassembler/MCSymbolizer.h"
 #include <memory>
+#include <utility>
 
 namespace llvm {
 

@@ -14,6 +14,7 @@
 #define LLVM_LIB_TARGET_AARCH64_DISASSEMBLER_AARCH64EXTERNALSYMBOLIZER_H
 
 #include "llvm/MC/MCDisassembler/MCExternalSymbolizer.h"
+#include <utility>
 
 namespace llvm {
 

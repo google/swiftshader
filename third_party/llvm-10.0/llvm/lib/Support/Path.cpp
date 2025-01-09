@@ -19,6 +19,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/Signals.h"
+#include <errno.h>
 #include <cctype>
 #include <cstring>
 
