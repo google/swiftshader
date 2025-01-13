@@ -63,7 +63,7 @@ VkResult Win32SurfaceKHR::getSurfaceCapabilities(const void *pSurfaceInfoPNext, 
 	pSurfaceCapabilities->minImageExtent = extent;
 	pSurfaceCapabilities->maxImageExtent = extent;
 
-	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
+	SetCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 	return VK_SUCCESS;
 }
 

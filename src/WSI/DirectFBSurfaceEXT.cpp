@@ -44,7 +44,7 @@ VkResult DirectFBSurfaceEXT::getSurfaceCapabilities(const void *pSurfaceInfoPNex
 	pSurfaceCapabilities->minImageExtent = extent;
 	pSurfaceCapabilities->maxImageExtent = extent;
 
-	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
+	SetCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 	return VK_SUCCESS;
 }
 

@@ -158,7 +158,7 @@ VkResult MetalSurface::getSurfaceCapabilities(const void *pSurfaceInfoPNext,
     pSurfaceCapabilities->minImageExtent = extent;
     pSurfaceCapabilities->maxImageExtent = extent;
 
-    setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities,
+    SetCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities,
                                  pSurfaceCapabilitiesPNext);
     return VK_SUCCESS;
 }

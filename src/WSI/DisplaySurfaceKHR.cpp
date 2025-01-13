@@ -282,7 +282,7 @@ VkResult DisplaySurfaceKHR::getSurfaceCapabilities(const void *pSurfaceInfoPNext
 	pSurfaceCapabilities->minImageExtent = extent;
 	pSurfaceCapabilities->maxImageExtent = extent;
 
-	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
+	SetCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 	return VK_SUCCESS;
 }
 

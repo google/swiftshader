@@ -35,7 +35,7 @@ VkResult HeadlessSurfaceKHR::getSurfaceCapabilities(const void *pSurfaceInfoPNex
 	pSurfaceCapabilities->minImageExtent = { 0, 0 };
 	pSurfaceCapabilities->maxImageExtent = { 3840, 2160 };
 
-	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
+	SetCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 	return VK_SUCCESS;
 }
 

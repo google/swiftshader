@@ -68,7 +68,7 @@ VkResult WaylandSurfaceKHR::getSurfaceCapabilities(const void *pSurfaceInfoPNext
 	pSurfaceCapabilities->minImageExtent = { 1, 1 };
 	pSurfaceCapabilities->maxImageExtent = { 0xFFFFFFFF, 0xFFFFFFFF };
 
-	setCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
+	SetCommonSurfaceCapabilities(pSurfaceInfoPNext, pSurfaceCapabilities, pSurfaceCapabilitiesPNext);
 	return VK_SUCCESS;
 }
 
