@@ -82,6 +82,15 @@ func Commit(wd, msg string, flags CommitFlags) error {
 	return shell.Shell(gitTimeout, exe, wd, args...)
 }
 
+func InjectUserInHostUrl(userEmail string, url string) string {
+	if userEmail == "" {
+		return url
+	}
+
+	user := strings.Replace(userEmail, "@", "%40", 1)
+	return strings.Replace(url, "://", "://"+user+"@", 1)
+}
+
 // PushFlags advanced flags for Commit
 type PushFlags struct {
 	Username string // Used for authentication when uploading
@@ -105,19 +114,25 @@ func Push(wd, remote, localBranch, remoteBranch string, flags PushFlags) error {
 		f.WriteString(fmt.Sprintf("%v	FALSE	/	TRUE	2147483647	o	%v=%v\n", u.Host, flags.Username, flags.Password))
 		f.Close()
 		args = append(args, "-c", "http.cookiefile="+f.Name())
+
+		remote = InjectUserInHostUrl(flags.Username, remote)
 	}
 	args = append(args, "push", remote, localBranch+":"+remoteBranch)
 	return shell.Shell(gitTimeout, exe, wd, args...)
 }
 
 // CheckoutRemoteBranch performs a git fetch and checkout of the given branch into path.
-func CheckoutRemoteBranch(path, url string, branch string) error {
+func CheckoutRemoteBranch(path, url string, branch string, flags CommitFlags) error {
 	if err := os.MkdirAll(path, 0777); err != nil {
 		return fmt.Errorf("mkdir '"+path+"' failed: %w", err)
 	}
 
+	url = InjectUserInHostUrl(flags.Email, url)
+
 	for _, cmds := range [][]string{
 		{"init"},
+		{"config", "user.name", flags.Name},
+		{"config", "user.email", flags.Email},
 		{"remote", "add", "origin", url},
 		{"fetch", "origin", "--depth=1", branch},
 		{"checkout", branch},
@@ -132,13 +147,17 @@ func CheckoutRemoteBranch(path, url string, branch string) error {
 }
 
 // CheckoutRemoteCommit performs a git fetch and checkout of the given commit into path.
-func CheckoutRemoteCommit(path, url string, commit Hash) error {
+func CheckoutRemoteCommit(path, url string, commit Hash, flags CommitFlags) error {
 	if err := os.MkdirAll(path, 0777); err != nil {
 		return fmt.Errorf("mkdir '"+path+"' failed: %w", err)
 	}
 
+	url = InjectUserInHostUrl(flags.Email, url)
+
 	for _, cmds := range [][]string{
 		{"init"},
+		{"config", "user.name", flags.Name},
+		{"config", "user.email", flags.Email},
 		{"remote", "add", "origin", url},
 		{"fetch", "origin", "--depth=1", commit.String()},
 		{"checkout", commit.String()},
@@ -163,7 +182,8 @@ func Apply(dir, patch string) error {
 }
 
 // FetchRefHash returns the git hash of the given ref.
-func FetchRefHash(ref, url string) (Hash, error) {
+func FetchRefHash(ref, url string, userEmail string) (Hash, error) {
+	url = InjectUserInHostUrl(userEmail, url)
 	out, err := shell.Exec(gitTimeout, exe, "", nil, "", "ls-remote", url, ref)
 	if err != nil {
 		return Hash{}, err

@@ -63,6 +63,7 @@ const (
 	gitURL                = "https://swiftshader.googlesource.com/SwiftShader"
 	gitDailyBranch        = "HEAD"
 	gerritURL             = "https://swiftshader-review.googlesource.com/"
+	gerritUserName        = "SwiftShader Regression Bot"
 	coverageURL           = "https://$USERNAME:$PASSWORD@github.com/swiftshader-regres/swiftshader-coverage.git"
 	coverageBranch        = "gh-pages"
 	coveragePath          = "coverage/coverage.zip"
@@ -259,13 +260,13 @@ func (r *regres) resolveExes() error {
 }
 
 // run performs the main processing loop for the regress tool. It:
-// * Scans for open and recently updated changes in gerrit using queryChanges()
-//   and changeInfo.update().
-// * Builds the most recent patchset and the commit's parent CL using
-//   r.newTest(<hash>).lazyRun().
-// * Compares the results of the tests using compare().
-// * Posts the results of the compare to gerrit as a review.
-// * Repeats the above steps until the process is interrupted.
+//   - Scans for open and recently updated changes in gerrit using queryChanges()
+//     and changeInfo.update().
+//   - Builds the most recent patchset and the commit's parent CL using
+//     r.newTest(<hash>).lazyRun().
+//   - Compares the results of the tests using compare().
+//   - Posts the results of the compare to gerrit as a review.
+//   - Repeats the above steps until the process is interrupted.
 func (r *regres) run() error {
 	if err := r.resolveExes(); err != nil {
 		return fmt.Errorf("failed to resolve all exes: %w", err)
@@ -505,7 +506,7 @@ func (r *regres) getOrBuildDEQPFromConfig(test *test, cfg DeqpConfig, checkoutDi
 			// commit by SHA. This is a workaround for git repos that error when
 			// attempting to directly checkout a remote commit.
 			log.Printf("Checking out deqp %v branch %v into %v\n", cfg.Remote, cfg.Branch, cacheDir)
-			if err := git.CheckoutRemoteBranch(cacheDir, cfg.Remote, cfg.Branch); err != nil {
+			if err := git.CheckoutRemoteBranch(cacheDir, cfg.Remote, cfg.Branch, git.CommitFlags{}); err != nil {
 				return deqpBuild{}, fmt.Errorf("failed to checkout deqp branch %v @ %v: %w", cfg.Remote, cfg.Branch, err)
 			}
 			log.Printf("Checking out deqp %v commit %v \n", cfg.Remote, cfg.SHA)
@@ -514,7 +515,7 @@ func (r *regres) getOrBuildDEQPFromConfig(test *test, cfg DeqpConfig, checkoutDi
 			}
 		} else {
 			log.Printf("Checking out deqp %v @ %v into %v\n", cfg.Remote, cfg.SHA, cacheDir)
-			if err := git.CheckoutRemoteCommit(cacheDir, cfg.Remote, git.ParseHash(cfg.SHA)); err != nil {
+			if err := git.CheckoutRemoteCommit(cacheDir, cfg.Remote, git.ParseHash(cfg.SHA), git.CommitFlags{}); err != nil {
 				return deqpBuild{}, fmt.Errorf("failed to checkout deqp commit %v @ %v: %w", cfg.Remote, cfg.SHA, err)
 			}
 		}
@@ -642,7 +643,7 @@ func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend) 
 
 	var dailyHash git.Hash
 	if r.dailyChange == "" {
-		headHash, err := git.FetchRefHash(gitDailyBranch, gitURL)
+		headHash, err := git.FetchRefHash(gitDailyBranch, gitURL, r.gerritEmail)
 		if err != nil {
 			return fmt.Errorf("failed to get hash of master HEAD: %w", err)
 		}
@@ -748,7 +749,7 @@ func (r *regres) updateLocalDeqpFiles(test *test) ([]string, error) {
 		return nil, fmt.Errorf("failed to open dEQP config file: %w", err)
 	}
 
-	hash, err := git.FetchRefHash("HEAD", cfg.Remote)
+	hash, err := git.FetchRefHash("HEAD", cfg.Remote, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch dEQP ref: %w", err)
 	}
@@ -890,7 +891,7 @@ func (r *regres) postDailyResults(
 	}
 
 	if err := git.Commit(test.checkoutDir, commitMsg.String(), git.CommitFlags{
-		Name:  "SwiftShader Regression Bot",
+		Name:  gerritUserName,
 		Email: r.gerritEmail,
 	}); err != nil {
 		return fmt.Errorf("failed to commit test results: %w", err)
@@ -938,7 +939,7 @@ func (r *regres) postCoverageResults(cov *cov.Tree, revision git.Hash) error {
 
 	dir := filepath.Join(r.cacheRoot, "coverage")
 	defer os.RemoveAll(dir)
-	if err := git.CheckoutRemoteBranch(dir, url, coverageBranch); err != nil {
+	if err := git.CheckoutRemoteBranch(dir, url, coverageBranch, git.CommitFlags{}); err != nil {
 		return fmt.Errorf("failed to checkout gh-pages branch: %w", err)
 	}
 
@@ -961,7 +962,7 @@ func (r *regres) postCoverageResults(cov *cov.Tree, revision git.Hash) error {
 	shortHash := revision.String()[:8]
 
 	err = git.Commit(dir, "Update coverage data @ "+shortHash, git.CommitFlags{
-		Name:  "SwiftShader Regression Bot",
+		Name:  gerritUserName,
 		Email: r.gerritEmail,
 	})
 	if err != nil {
@@ -1218,7 +1219,10 @@ func (t *test) checkout() error {
 	}
 	log.Printf("Checking out '%s'\n", t.commit)
 	os.RemoveAll(t.checkoutDir)
-	if err := git.CheckoutRemoteCommit(t.checkoutDir, gitURL, t.commit); err != nil {
+	if err := git.CheckoutRemoteCommit(t.checkoutDir, gitURL, t.commit, git.CommitFlags{
+		Name:  gerritUserName,
+		Email: t.r.gerritEmail,
+	}); err != nil {
 		return fmt.Errorf("failed to check out commit '%s': %w", t.commit, err)
 	}
 	log.Printf("Checked out commit '%s'\n", t.commit)
