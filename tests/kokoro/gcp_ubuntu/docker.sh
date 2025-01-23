@@ -44,7 +44,7 @@ CLONE_SRC_DIR="$(pwd)"
 . /bin/using.sh # Declare the bash `using` function for configuring toolchains.
 
 using cmake-3.31.2
-using gcc-9
+using gcc-13
 
 status "Cloning to clean source directory at '${SRC_DIR}'"
 
