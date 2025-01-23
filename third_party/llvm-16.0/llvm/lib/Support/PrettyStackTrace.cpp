@@ -144,10 +144,7 @@ static void setCrashLogMessage(const char *msg) {
 
 #ifdef __APPLE__
 using CrashHandlerString = SmallString<2048>;
-using CrashHandlerStringStorage =
-    std::aligned_storage<sizeof(CrashHandlerString),
-                         alignof(CrashHandlerString)>::type;
-static CrashHandlerStringStorage crashHandlerStringStorage;
+static alignas(CrashHandlerString) char crashHandlerStringStorage[sizeof(CrashHandlerString)];
 #endif
 
 /// This callback is run if a fatal signal is delivered to the process, it
