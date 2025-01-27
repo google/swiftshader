@@ -16,3 +16,4 @@ dEQP-VK.pipeline.pipeline_library.sampler.max_sampler_lod_bias.sampler_bias
 dEQP-VK.pipeline.pipeline_library.sampler.max_sampler_lod_bias.sampler_minlod
 dEQP-VK.pipeline.pipeline_library.sampler.max_sampler_lod_bias.shader_bias
 dEQP-VK.pipeline.pipeline_library.sampler.max_sampler_lod_bias.shader_lod
+dEQP-VK.wsi.xcb.surface.query_present_modes_surfaceless
