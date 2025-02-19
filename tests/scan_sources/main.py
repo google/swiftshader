@@ -28,11 +28,11 @@ def main(rootdir):
 
 	# Regex for Memset< template use as base class (must be the first,
 	# thus, there must not be a ',' before it)
-	memset_template_check = re.compile(",\s*Memset\s*<")
+	memset_template_check = re.compile(",\\s*Memset\\s*<")
 	
 	# Regex for Memset( template use as initializer (must be the first,
 	# thus, there must not be a ',' before it)
-	memset_call_check = re.compile(",\s*Memset\s*\(")
+	memset_call_check = re.compile(",\\s*Memset\\s*\\(")
 
 	retval = 0
 
