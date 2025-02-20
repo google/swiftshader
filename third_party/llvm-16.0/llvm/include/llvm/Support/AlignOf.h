@@ -20,7 +20,7 @@ namespace llvm {
 /// A suitably aligned and sized character array member which can hold elements
 /// of any type.
 template <typename T, typename... Ts> struct AlignedCharArrayUnion {
-  alignas(Ts...) char buffer[std::max({sizeof(Ts)...})];
+  alignas(std::max({std::size_t(1), alignof(T), alignof(Ts)...})) char buffer[std::max({std::size_t(1), sizeof(T), sizeof(Ts)...})];
 };
 
 } // end namespace llvm
