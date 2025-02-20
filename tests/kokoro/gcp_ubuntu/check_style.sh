@@ -23,4 +23,4 @@ docker run --rm -i \
   --volume "${ROOT_DIR}:${ROOT_DIR}" \
   --workdir "${ROOT_DIR}" \
   --entrypoint "${SCRIPT_DIR}/check_style-docker.sh" \
-  "gcr.io/shaderc-build/radial-build:latest"
+  us-east4-docker.pkg.dev/shaderc-build/radial-docker/ubuntu-24.04-amd64/formatter
