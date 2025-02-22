@@ -42,4 +42,4 @@ docker run --rm -i \
   --env REACTOR_BACKEND=$REACTOR_BACKEND \
   --env LLVM_VERSION=$LLVM_VERSION \
   --entrypoint "${SCRIPT_DIR}/docker.sh" \
-  "gcr.io/shaderc-build/radial-build:latest"
+  us-east4-docker.pkg.dev/shaderc-build/radial-docker/ubuntu-24.04-amd64/cpp-builder
