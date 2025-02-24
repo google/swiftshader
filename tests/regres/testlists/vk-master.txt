@@ -3,6 +3,7 @@ vk-default/binding-model.txt
 vk-default/clipping.txt
 vk-default/compute.txt
 vk-default/conditional-rendering.txt
+vk-default/cooperative-vector.txt
 vk-default/depth.txt
 vk-default/descriptor-indexing.txt
 vk-default/device-group.txt
