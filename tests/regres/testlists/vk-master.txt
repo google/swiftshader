@@ -38,6 +38,7 @@ vk-default/image/misaligned-cube.txt
 vk-default/image/mismatched-formats.txt
 vk-default/image/mismatched-write-op.txt
 vk-default/image/mutable.txt
+vk-default/image/non-uniform-offset-sample.txt
 vk-default/image/nontemporal-operand.txt
 vk-default/image/qualifiers.txt
 vk-default/image/queue-transfer.txt
