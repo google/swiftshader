@@ -3331,6 +3331,7 @@ dEQP-VK.wsi.android.swapchain.create.pre_transform
 dEQP-VK.wsi.android.swapchain.create.present_mode
 dEQP-VK.wsi.android.swapchain.destroy.null_handle
 dEQP-VK.wsi.android.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.android.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.android.swapchain.get_images.count
 dEQP-VK.wsi.android.swapchain.get_images.incomplete
 dEQP-VK.wsi.android.swapchain.modify.resize
@@ -6212,6 +6213,7 @@ dEQP-VK.wsi.direct_drm.swapchain.create.pre_transform
 dEQP-VK.wsi.direct_drm.swapchain.create.present_mode
 dEQP-VK.wsi.direct_drm.swapchain.destroy.null_handle
 dEQP-VK.wsi.direct_drm.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.direct_drm.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.direct_drm.swapchain.get_images.count
 dEQP-VK.wsi.direct_drm.swapchain.get_images.incomplete
 dEQP-VK.wsi.direct_drm.swapchain.private_data.clipped
@@ -9108,6 +9110,7 @@ dEQP-VK.wsi.headless.swapchain.create.pre_transform
 dEQP-VK.wsi.headless.swapchain.create.present_mode
 dEQP-VK.wsi.headless.swapchain.destroy.null_handle
 dEQP-VK.wsi.headless.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.headless.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.headless.swapchain.get_images.count
 dEQP-VK.wsi.headless.swapchain.get_images.incomplete
 dEQP-VK.wsi.headless.swapchain.modify.resize
@@ -12711,6 +12714,7 @@ dEQP-VK.wsi.metal.swapchain.create.pre_transform
 dEQP-VK.wsi.metal.swapchain.create.present_mode
 dEQP-VK.wsi.metal.swapchain.destroy.null_handle
 dEQP-VK.wsi.metal.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.metal.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.metal.swapchain.get_images.count
 dEQP-VK.wsi.metal.swapchain.get_images.incomplete
 dEQP-VK.wsi.metal.swapchain.modify.resize
@@ -15592,6 +15596,7 @@ dEQP-VK.wsi.wayland.swapchain.create.pre_transform
 dEQP-VK.wsi.wayland.swapchain.create.present_mode
 dEQP-VK.wsi.wayland.swapchain.destroy.null_handle
 dEQP-VK.wsi.wayland.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.wayland.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.wayland.swapchain.get_images.count
 dEQP-VK.wsi.wayland.swapchain.get_images.incomplete
 dEQP-VK.wsi.wayland.swapchain.modify.resize
@@ -18475,6 +18480,7 @@ dEQP-VK.wsi.win32.swapchain.create.pre_transform
 dEQP-VK.wsi.win32.swapchain.create.present_mode
 dEQP-VK.wsi.win32.swapchain.destroy.null_handle
 dEQP-VK.wsi.win32.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.win32.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.win32.swapchain.get_images.count
 dEQP-VK.wsi.win32.swapchain.get_images.incomplete
 dEQP-VK.wsi.win32.swapchain.private_data.clipped
@@ -21357,6 +21363,7 @@ dEQP-VK.wsi.xcb.swapchain.create.pre_transform
 dEQP-VK.wsi.xcb.swapchain.create.present_mode
 dEQP-VK.wsi.xcb.swapchain.destroy.null_handle
 dEQP-VK.wsi.xcb.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.xcb.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.xcb.swapchain.get_images.count
 dEQP-VK.wsi.xcb.swapchain.get_images.incomplete
 dEQP-VK.wsi.xcb.swapchain.private_data.clipped
@@ -24239,6 +24246,7 @@ dEQP-VK.wsi.xlib.swapchain.create.pre_transform
 dEQP-VK.wsi.xlib.swapchain.create.present_mode
 dEQP-VK.wsi.xlib.swapchain.destroy.null_handle
 dEQP-VK.wsi.xlib.swapchain.destroy.old_swapchain
+dEQP-VK.wsi.xlib.swapchain.destroy.old_swapchain_acquired_image
 dEQP-VK.wsi.xlib.swapchain.get_images.count
 dEQP-VK.wsi.xlib.swapchain.get_images.incomplete
 dEQP-VK.wsi.xlib.swapchain.private_data.clipped
