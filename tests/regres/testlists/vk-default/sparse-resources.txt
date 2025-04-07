@@ -250,6 +250,7 @@ dEQP-VK.sparse_resources.buffer.indirect_buffer.sparse_binding
 dEQP-VK.sparse_resources.buffer.indirect_buffer.sparse_binding_aliased
 dEQP-VK.sparse_resources.buffer.indirect_buffer.sparse_residency
 dEQP-VK.sparse_resources.buffer.indirect_buffer.sparse_residency_aliased
+dEQP-VK.sparse_resources.buffer.indirect_dispatch.sparse_residency
 dEQP-VK.sparse_resources.buffer.ssbo.device_group_sparse_binding_aliased.buffer_size_2_10
 dEQP-VK.sparse_resources.buffer.ssbo.device_group_sparse_binding_aliased.buffer_size_2_12
 dEQP-VK.sparse_resources.buffer.ssbo.device_group_sparse_binding_aliased.buffer_size_2_16
@@ -290,6 +291,7 @@ dEQP-VK.sparse_resources.buffer.transfer.sparse_binding.buffer_size_2_16
 dEQP-VK.sparse_resources.buffer.transfer.sparse_binding.buffer_size_2_17
 dEQP-VK.sparse_resources.buffer.transfer.sparse_binding.buffer_size_2_20
 dEQP-VK.sparse_resources.buffer.transfer.sparse_binding.buffer_size_2_24
+dEQP-VK.sparse_resources.buffer.transform_feedback.sparse_residency
 dEQP-VK.sparse_resources.buffer.ubo.device_group_sparse_binding
 dEQP-VK.sparse_resources.buffer.ubo.device_group_sparse_binding_aliased
 dEQP-VK.sparse_resources.buffer.ubo.device_group_sparse_residency
