@@ -231,7 +231,7 @@ VkResult Queue::present(const VkPresentInfoKHR *presentInfo)
 		}
 
 		// The wait semaphores and the swapchain are no longer accessed
-		if(presentFences)
+		if(presentFences && presentFences->pFences[i])
 		{
 			vk::Cast(presentFences->pFences[i])->complete();
 		}
