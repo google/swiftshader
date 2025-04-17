@@ -74,6 +74,7 @@ config("swiftshader_llvm_private_config") {
       "-Wno-unused-variable",
       "-Wno-unnecessary-virtual-specifier",
       "-Wno-unique-object-duplication",
+      "-Wno-unknown-warning-option",
     ]
   }
 
