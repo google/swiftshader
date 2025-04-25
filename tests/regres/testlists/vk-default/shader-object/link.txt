@@ -80,8 +80,6 @@ dEQP-VK.shader_object.link.mesh_unlinked_unlinked_unlinked.default
 dEQP-VK.shader_object.link.mesh_unlinked_unlinked_unlinked.random_order
 dEQP-VK.shader_object.link.mesh_unlinked_unlinked_unused.default
 dEQP-VK.shader_object.link.mesh_unlinked_unlinked_unused.random_order
-dEQP-VK.shader_object.link.meshnext_stage.frag
-dEQP-VK.shader_object.link.meshnext_stage.mesh
 dEQP-VK.shader_object.link.next_stage.geom_f
 dEQP-VK.shader_object.link.next_stage.geom_no_frag
 dEQP-VK.shader_object.link.next_stage.tesc_t

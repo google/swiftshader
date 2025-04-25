@@ -13,6 +13,7 @@ dEQP-VK.descriptor_indexing.combined_image_sampler_in_loop_with_lod
 dEQP-VK.descriptor_indexing.combined_image_sampler_in_loop_with_lod_lifetime
 dEQP-VK.descriptor_indexing.combined_image_sampler_lifetime
 dEQP-VK.descriptor_indexing.combined_image_sampler_minNonUniform
+dEQP-VK.descriptor_indexing.combined_image_sampler_no_runtime_array
 dEQP-VK.descriptor_indexing.combined_image_sampler_with_lod
 dEQP-VK.descriptor_indexing.combined_image_sampler_with_lod_lifetime
 dEQP-VK.descriptor_indexing.combined_image_sampler_with_lod_minNonUniform
@@ -65,6 +66,7 @@ dEQP-VK.descriptor_indexing.storage_buffer_in_loop
 dEQP-VK.descriptor_indexing.storage_buffer_in_loop_lifetime
 dEQP-VK.descriptor_indexing.storage_buffer_lifetime
 dEQP-VK.descriptor_indexing.storage_buffer_minNonUniform
+dEQP-VK.descriptor_indexing.storage_buffer_no_runtime_array
 dEQP-VK.descriptor_indexing.storage_image
 dEQP-VK.descriptor_indexing.storage_image_after_bind
 dEQP-VK.descriptor_indexing.storage_image_after_bind_in_loop
@@ -74,6 +76,7 @@ dEQP-VK.descriptor_indexing.storage_image_in_loop
 dEQP-VK.descriptor_indexing.storage_image_in_loop_lifetime
 dEQP-VK.descriptor_indexing.storage_image_lifetime
 dEQP-VK.descriptor_indexing.storage_image_minNonUniform
+dEQP-VK.descriptor_indexing.storage_image_no_runtime_array
 dEQP-VK.descriptor_indexing.storage_texel_buffer
 dEQP-VK.descriptor_indexing.storage_texel_buffer_after_bind
 dEQP-VK.descriptor_indexing.storage_texel_buffer_after_bind_in_loop
@@ -83,6 +86,7 @@ dEQP-VK.descriptor_indexing.storage_texel_buffer_in_loop
 dEQP-VK.descriptor_indexing.storage_texel_buffer_in_loop_lifetime
 dEQP-VK.descriptor_indexing.storage_texel_buffer_lifetime
 dEQP-VK.descriptor_indexing.storage_texel_buffer_minNonUniform
+dEQP-VK.descriptor_indexing.storage_texel_buffer_no_runtime_array
 dEQP-VK.descriptor_indexing.uniform_buffer
 dEQP-VK.descriptor_indexing.uniform_buffer_dynamic
 dEQP-VK.descriptor_indexing.uniform_buffer_dynamic_in_loop
@@ -92,6 +96,7 @@ dEQP-VK.descriptor_indexing.uniform_buffer_in_loop
 dEQP-VK.descriptor_indexing.uniform_buffer_in_loop_lifetime
 dEQP-VK.descriptor_indexing.uniform_buffer_lifetime
 dEQP-VK.descriptor_indexing.uniform_buffer_minNonUniform
+dEQP-VK.descriptor_indexing.uniform_buffer_no_runtime_array
 dEQP-VK.descriptor_indexing.uniform_texel_buffer
 dEQP-VK.descriptor_indexing.uniform_texel_buffer_after_bind
 dEQP-VK.descriptor_indexing.uniform_texel_buffer_after_bind_in_loop
@@ -101,3 +106,4 @@ dEQP-VK.descriptor_indexing.uniform_texel_buffer_in_loop
 dEQP-VK.descriptor_indexing.uniform_texel_buffer_in_loop_lifetime
 dEQP-VK.descriptor_indexing.uniform_texel_buffer_lifetime
 dEQP-VK.descriptor_indexing.uniform_texel_buffer_minNonUniform
+dEQP-VK.descriptor_indexing.uniform_texel_buffer_no_runtime_array
