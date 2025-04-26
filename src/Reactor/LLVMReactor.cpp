@@ -59,6 +59,12 @@ using FixedVectorType = VectorType;
 }  // namespace llvm
 #endif
 
+#if LLVM_VERSION_MAJOR >= 18
+constexpr static auto &our_getInt8PtrTy = llvm::PointerType::getUnqual;
+#else
+constexpr static auto &our_getInt8PtrTy = llvm::Type::getInt8PtrTy;
+#endif
+
 namespace {
 
 // Used to automatically invoke llvm_shutdown() when driver is unloaded
@@ -3782,7 +3788,7 @@ RValue<Int> pmovmskb(RValue<Byte8> x)
 void VPrintf(const std::vector<Value *> &vals)
 {
 	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
-	auto i8PtrTy = llvm::Type::getInt8PtrTy(*jit->context);
+	auto i8PtrTy = our_getInt8PtrTy(*jit->context);
 	auto funcTy = llvm::FunctionType::get(i32Ty, { i8PtrTy }, true);
 	auto func = jit->module->getOrInsertFunction("rr::DebugPrintf", funcTy);
 	jit->builder->CreateCall(func, V(vals));
@@ -3851,7 +3857,7 @@ void promoteFunctionToCoroutine()
 	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
 	auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
 	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
-	auto i8PtrTy = llvm::Type::getInt8PtrTy(*jit->context);
+	auto i8PtrTy = our_getInt8PtrTy(*jit->context);
 	auto promiseTy = jit->coroutine.yieldType;
 	auto promisePtrTy = promiseTy->getPointerTo();
 
@@ -4016,7 +4022,7 @@ void Nucleus::createCoroutine(Type *YieldType, const std::vector<Type *> &Params
 	// coroutine.
 	auto voidTy = llvm::Type::getVoidTy(*jit->context);
 	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
-	auto i8PtrTy = llvm::Type::getInt8PtrTy(*jit->context);
+	auto i8PtrTy = our_getInt8PtrTy(*jit->context);
 	auto handleTy = i8PtrTy;
 	auto boolTy = i1Ty;
 	auto promiseTy = T(YieldType);
