@@ -47,7 +47,11 @@ __pragma(warning(push))
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/CommandLine.h"
+#if LLVM_VERSION_MAJOR >= 18
+#include "llvm/TargetParser/Host.h"
+#else
 #include "llvm/Support/Host.h"
+#endif
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Instrumentation/AddressSanitizer.h"
@@ -71,6 +75,12 @@ __pragma(warning(push))
 #	include "llvm/Pass.h"
 #	include "llvm/Transforms/Coroutines.h"
 #	include "llvm/Transforms/IPO.h"
+#endif
+
+#if LLVM_VERSION_MAJOR < 18
+using LLVMOptLevel = llvm::CodeGenOpt::Level;
+#else
+using LLVMOptLevel = llvm::CodeGenOptLevel;
 #endif
 
 #ifdef _MSC_VER
@@ -190,7 +200,7 @@ public:
 private:
 	JITGlobals(llvm::orc::JITTargetMachineBuilder &&jitTargetMachineBuilder, llvm::DataLayout &&dataLayout);
 
-	static llvm::CodeGenOpt::Level toLLVM(int level);
+	static LLVMOptLevel toLLVM(int level);
 
 	const llvm::orc::JITTargetMachineBuilder jitTargetMachineBuilder;
 	const llvm::DataLayout dataLayout;
@@ -303,26 +313,30 @@ JITGlobals::JITGlobals(llvm::orc::JITTargetMachineBuilder &&jitTargetMachineBuil
 {
 }
 
-llvm::CodeGenOpt::Level JITGlobals::toLLVM(int level)
+LLVMOptLevel JITGlobals::toLLVM(int level)
 {
+#if LLVM_VERSION_MAJOR < 18
+#define CodeGenOptLevel CodeGenOpt
+#endif
 	// TODO(b/173257647): MemorySanitizer instrumentation produces IR which takes
 	// a lot longer to process by the machine code optimization passes. Disabling
 	// them has a negligible effect on code quality but compiles much faster.
 	if(__has_feature(memory_sanitizer))
 	{
-		return llvm::CodeGenOpt::None;
+		return llvm::CodeGenOptLevel::None;
 	}
 
 	switch(level)
 	{
-	case 0: return llvm::CodeGenOpt::None;
-	case 1: return llvm::CodeGenOpt::Less;
-	case 2: return llvm::CodeGenOpt::Default;
-	case 3: return llvm::CodeGenOpt::Aggressive;
+	case 0: return llvm::CodeGenOptLevel::None;
+	case 1: return llvm::CodeGenOptLevel::Less;
+	case 2: return llvm::CodeGenOptLevel::Default;
+	case 3: return llvm::CodeGenOptLevel::Aggressive;
 	default: UNREACHABLE("Unknown Optimization Level %d", int(level));
 	}
 
-	return llvm::CodeGenOpt::Default;
+	return llvm::CodeGenOptLevel::Default;
+#undef CodeGenOptLevel
 }
 
 class MemoryMapper final : public llvm::SectionMemoryManager::MemoryMapper
