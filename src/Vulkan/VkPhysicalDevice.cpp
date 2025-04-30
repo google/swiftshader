@@ -483,6 +483,13 @@ static void getPhysicalDeviceExtendedDynamicStateFeaturesEXT(VkPhysicalDeviceExt
 	features->extendedDynamicState = VK_TRUE;
 }
 
+static void getPhysicalDeviceExtendedDynamicState2FeaturesEXT(VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *features)
+{
+	features->extendedDynamicState2 = VK_TRUE;
+	features->extendedDynamicState2LogicOp = VK_FALSE;
+	features->extendedDynamicState2PatchControlPoints = VK_FALSE;
+}
+
 static void getPhysicalDeviceVertexInputDynamicStateFeaturesEXT(VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *features)
 {
 	features->vertexInputDynamicState = VK_TRUE;
@@ -617,6 +624,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT:
 			getPhysicalDeviceExtendedDynamicStateFeaturesEXT(reinterpret_cast<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT:
+			getPhysicalDeviceExtendedDynamicState2FeaturesEXT(reinterpret_cast<VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT:
 			getPhysicalDeviceVertexInputDynamicStateFeaturesEXT(reinterpret_cast<VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *>(curExtension));
@@ -1558,6 +1568,15 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceLineRasterization
 	       CheckFeature(requested, supported, stippledRectangularLines) &&
 	       CheckFeature(requested, supported, stippledBresenhamLines) &&
 	       CheckFeature(requested, supported, stippledSmoothLines);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, extendedDynamicState2) &&
+	       CheckFeature(requested, supported, extendedDynamicState2LogicOp) &&
+	       CheckFeature(requested, supported, extendedDynamicState2PatchControlPoints);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceProvokingVertexFeaturesEXT *requested) const

@@ -424,6 +424,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_SPEC_VERSION } },
 	// Vulkan 1.3 promoted extensions
 	{ { VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME, VK_EXT_EXTENDED_DYNAMIC_STATE_SPEC_VERSION } },
+	{ { VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME, VK_EXT_EXTENDED_DYNAMIC_STATE_2_SPEC_VERSION } },
 	{ { VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME, VK_EXT_INLINE_UNIFORM_BLOCK_SPEC_VERSION } },
 	{ { VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_EXTENSION_NAME, VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_SPEC_VERSION } },
 	{ { VK_EXT_PIPELINE_CREATION_FEEDBACK_EXTENSION_NAME, VK_EXT_PIPELINE_CREATION_FEEDBACK_SPEC_VERSION } },
@@ -1049,6 +1050,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT:
 			{
 				const auto *dynamicStateFeatures = reinterpret_cast<const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *>(extensionCreateInfo);
+				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(dynamicStateFeatures);
+				if(!hasFeatures)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT:
+			{
+				const auto *dynamicStateFeatures = reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *>(extensionCreateInfo);
 				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(dynamicStateFeatures);
 				if(!hasFeatures)
 				{
@@ -3076,6 +3087,20 @@ VKAPI_ATTR void VKAPI_CALL vkCmdSetPrimitiveRestartEnable(VkCommandBuffer comman
 	      commandBuffer, primitiveRestartEnable);
 
 	vk::Cast(commandBuffer)->setPrimitiveRestartEnable(primitiveRestartEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetLogicOpEXT(VkCommandBuffer commandBuffer, VkLogicOp logicOp)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkLogicOp logicOp = %d)", commandBuffer, logicOp);
+
+	UNREACHABLE("extendedDynamicState2LogicOp not supported");
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetPatchControlPointsEXT(VkCommandBuffer commandBuffer, uint32_t patchControlPoints)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, patchControlPoints = %d)", commandBuffer, patchControlPoints);
+
+	UNREACHABLE("extendedDynamicState2PatchControlPoints not supported");
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetVertexInputEXT(VkCommandBuffer commandBuffer, uint32_t vertexBindingDescriptionCount,
