@@ -53,6 +53,9 @@ config("swiftshader_config") {
         if (arm_control_flow_integrity == "standard") {
           cflags += [ "-mbranch-protection=standard" ]
           asmflags += [ "-mbranch-protection=standard" ]
+        } else if (arm_control_flow_integrity == "bti+pac") {
+          cflags += [ "-mbranch-protection=bti+pac-ret" ]
+          asmflags += [ "-mbranch-protection=bti+pac-ret" ]
         } else if (arm_control_flow_integrity == "pac") {
           cflags += [ "-mbranch-protection=pac-ret" ]
           asmflags += [ "-mbranch-protection=pac-ret" ]
