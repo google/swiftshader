@@ -57,6 +57,8 @@ uint32_t GetAHBFormatFromVkFormat(VkFormat format)
 		return AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420;
 	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
 		return AHARDWAREBUFFER_FORMAT_YCbCr_P010;
+	case VK_FORMAT_B8G8R8A8_UNORM:
+		return AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM;
 	default:
 		UNSUPPORTED("AHardwareBufferExternalMemory::VkFormat %d", int(format));
 		return 0;
@@ -306,7 +308,7 @@ VkResult AHardwareBufferExternalMemory::lockAndroidHardwareBuffer(void **pBuffer
 		usage = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN | AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN;
 	}
 
-	// Empty fence, lock immedietly.
+	// Empty fence, lock immediately.
 	int32_t fence = -1;
 
 	// Empty rect, lock entire buffer.
@@ -388,6 +390,8 @@ VkFormat AHardwareBufferExternalMemory::GetVkFormatFromAHBFormat(uint32_t ahbFor
 		return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
 	case AHARDWAREBUFFER_FORMAT_YCbCr_P010:
 		return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
+	case AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM:
+		return VK_FORMAT_B8G8R8A8_UNORM;
 	default:
 		UNSUPPORTED("AHardwareBufferExternalMemory::AHardwareBuffer_Format %d", int(ahbFormat));
 		return VK_FORMAT_UNDEFINED;
