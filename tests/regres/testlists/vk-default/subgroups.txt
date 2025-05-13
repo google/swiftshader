@@ -30755,6 +30755,7 @@ dEQP-VK.subgroups.quad.ray_tracing.subgroupquadswapvertical_vec4
 dEQP-VK.subgroups.shader_quad_control.divergent_condition
 dEQP-VK.subgroups.shader_quad_control.quad_derivatives
 dEQP-VK.subgroups.shader_quad_control.require_full_quads
+dEQP-VK.subgroups.shader_quad_control.terminated_invocation
 dEQP-VK.subgroups.shape.compute.clustered
 dEQP-VK.subgroups.shape.compute.clustered_requiredsubgroupsize
 dEQP-VK.subgroups.shape.compute.quad

@@ -3899,6 +3899,7 @@ dEQP-VK.wsi.android.swapchain.create.image_extent
 dEQP-VK.wsi.android.swapchain.create.image_format
 dEQP-VK.wsi.android.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.android.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.android.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.android.swapchain.create.image_usage
 dEQP-VK.wsi.android.swapchain.create.min_image_count
 dEQP-VK.wsi.android.swapchain.create.pre_transform
@@ -3935,6 +3936,7 @@ dEQP-VK.wsi.android.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.android.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.android.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.android.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.android.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.android.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.android.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.android.swapchain.simulate_oom.pre_transform
@@ -7343,6 +7345,7 @@ dEQP-VK.wsi.direct_drm.swapchain.create.image_extent
 dEQP-VK.wsi.direct_drm.swapchain.create.image_format
 dEQP-VK.wsi.direct_drm.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.direct_drm.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.direct_drm.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.direct_drm.swapchain.create.image_usage
 dEQP-VK.wsi.direct_drm.swapchain.create.min_image_count
 dEQP-VK.wsi.direct_drm.swapchain.create.pre_transform
@@ -7378,6 +7381,7 @@ dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.direct_drm.swapchain.simulate_oom.pre_transform
@@ -10802,6 +10806,7 @@ dEQP-VK.wsi.headless.swapchain.create.image_extent
 dEQP-VK.wsi.headless.swapchain.create.image_format
 dEQP-VK.wsi.headless.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.headless.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.headless.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.headless.swapchain.create.image_usage
 dEQP-VK.wsi.headless.swapchain.create.min_image_count
 dEQP-VK.wsi.headless.swapchain.create.pre_transform
@@ -10838,6 +10843,7 @@ dEQP-VK.wsi.headless.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.headless.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.headless.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.headless.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.headless.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.headless.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.headless.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.headless.swapchain.simulate_oom.pre_transform
@@ -15112,6 +15118,7 @@ dEQP-VK.wsi.metal.swapchain.create.image_extent
 dEQP-VK.wsi.metal.swapchain.create.image_format
 dEQP-VK.wsi.metal.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.metal.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.metal.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.metal.swapchain.create.image_usage
 dEQP-VK.wsi.metal.swapchain.create.min_image_count
 dEQP-VK.wsi.metal.swapchain.create.pre_transform
@@ -15148,6 +15155,7 @@ dEQP-VK.wsi.metal.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.metal.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.metal.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.metal.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.metal.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.metal.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.metal.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.metal.swapchain.simulate_oom.pre_transform
@@ -18556,6 +18564,7 @@ dEQP-VK.wsi.wayland.swapchain.create.image_extent
 dEQP-VK.wsi.wayland.swapchain.create.image_format
 dEQP-VK.wsi.wayland.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.wayland.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.wayland.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.wayland.swapchain.create.image_usage
 dEQP-VK.wsi.wayland.swapchain.create.min_image_count
 dEQP-VK.wsi.wayland.swapchain.create.pre_transform
@@ -18592,6 +18601,7 @@ dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.wayland.swapchain.simulate_oom.pre_transform
@@ -22002,6 +22012,7 @@ dEQP-VK.wsi.win32.swapchain.create.image_extent
 dEQP-VK.wsi.win32.swapchain.create.image_format
 dEQP-VK.wsi.win32.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.win32.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.win32.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.win32.swapchain.create.image_usage
 dEQP-VK.wsi.win32.swapchain.create.min_image_count
 dEQP-VK.wsi.win32.swapchain.create.pre_transform
@@ -22037,6 +22048,7 @@ dEQP-VK.wsi.win32.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.win32.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.win32.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.win32.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.win32.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.win32.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.win32.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.win32.swapchain.simulate_oom.pre_transform
@@ -25447,6 +25459,7 @@ dEQP-VK.wsi.xcb.swapchain.create.image_extent
 dEQP-VK.wsi.xcb.swapchain.create.image_format
 dEQP-VK.wsi.xcb.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.xcb.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.xcb.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.xcb.swapchain.create.image_usage
 dEQP-VK.wsi.xcb.swapchain.create.min_image_count
 dEQP-VK.wsi.xcb.swapchain.create.pre_transform
@@ -25482,6 +25495,7 @@ dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.pre_transform
@@ -28892,6 +28906,7 @@ dEQP-VK.wsi.xlib.swapchain.create.image_extent
 dEQP-VK.wsi.xlib.swapchain.create.image_format
 dEQP-VK.wsi.xlib.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.xlib.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.xlib.swapchain.create.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.xlib.swapchain.create.image_usage
 dEQP-VK.wsi.xlib.swapchain.create.min_image_count
 dEQP-VK.wsi.xlib.swapchain.create.pre_transform
@@ -28927,6 +28942,7 @@ dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_sharing_mode
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_swapchain_create_info
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_swapchain_create_info_concurrent
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.pre_transform
