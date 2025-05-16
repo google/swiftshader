@@ -4,7 +4,6 @@ dEQP-VK.api.get_device_proc_addr.non_enabled
 dEQP-VK.clipping.misc.negative_and_non_negative_cull_distance
 dEQP-VK.draw.renderpass.shader_invocation.helper_invocation_volatile
 dEQP-VK.draw.renderpass.shader_invocation.helper_invocation_volatile_mem_model
-dEQP-VK.glsl.helper_invocations.load_from_texture
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.sampler_bias
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.sampler_minlod
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.shader_bias
