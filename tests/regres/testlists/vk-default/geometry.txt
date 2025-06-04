@@ -14,6 +14,8 @@ dEQP-VK.geometry.basic.point_size
 dEQP-VK.geometry.basic.primitive_id
 dEQP-VK.geometry.basic.primitive_id_in
 dEQP-VK.geometry.basic.primitive_id_in_restarted
+dEQP-VK.geometry.basic.side_effect_with_condition
+dEQP-VK.geometry.basic.side_effect_with_degenerate
 dEQP-VK.geometry.emit.line_strip_emit_0_end_0
 dEQP-VK.geometry.emit.line_strip_emit_0_end_1
 dEQP-VK.geometry.emit.line_strip_emit_0_end_2

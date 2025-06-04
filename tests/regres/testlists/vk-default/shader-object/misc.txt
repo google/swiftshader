@@ -147,6 +147,7 @@ dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.depth.clip
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.depth.none
+dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.discard_rectangles.enabled
@@ -188,6 +189,7 @@ dEQP-VK.shader_object.misc.state.pipeline.vert.depth.clamp
 dEQP-VK.shader_object.misc.state.pipeline.vert.depth.clip
 dEQP-VK.shader_object.misc.state.pipeline.vert.depth.clip_control
 dEQP-VK.shader_object.misc.state.pipeline.vert.depth.none
+dEQP-VK.shader_object.misc.state.pipeline.vert.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.pipeline.vert.discard_rectangles.enabled
@@ -229,6 +231,7 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.depth.clip
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.depth.none
+dEQP-VK.shader_object.misc.state.pipeline.vert_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.pipeline.vert_frag.discard_rectangles.enabled
@@ -270,6 +273,7 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.depth.clip
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.depth.none
+dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.pipeline.vert_geom_frag.discard_rectangles.enabled
@@ -313,6 +317,7 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.depth.clip
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.depth.none
+dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_frag.discard_rectangles.enabled
@@ -354,6 +359,7 @@ dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.depth.clip
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.depth.none
+dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.pipeline.vert_tess_geom_frag.discard_rectangles.enabled
@@ -397,6 +403,7 @@ dEQP-VK.shader_object.misc.state.shaders.mesh_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.depth.clip
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.depth.none
+dEQP-VK.shader_object.misc.state.shaders.mesh_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.shaders.mesh_frag.discard_rectangles.enabled
@@ -438,6 +445,7 @@ dEQP-VK.shader_object.misc.state.shaders.vert.depth.clamp
 dEQP-VK.shader_object.misc.state.shaders.vert.depth.clip
 dEQP-VK.shader_object.misc.state.shaders.vert.depth.clip_control
 dEQP-VK.shader_object.misc.state.shaders.vert.depth.none
+dEQP-VK.shader_object.misc.state.shaders.vert.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.shaders.vert.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.shaders.vert.discard_rectangles.enabled
@@ -479,6 +487,7 @@ dEQP-VK.shader_object.misc.state.shaders.vert_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.depth.clip
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.depth.none
+dEQP-VK.shader_object.misc.state.shaders.vert_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.shaders.vert_frag.discard_rectangles.enabled
@@ -520,6 +529,7 @@ dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.depth.clip
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.depth.none
+dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.shaders.vert_geom_frag.discard_rectangles.enabled
@@ -563,6 +573,7 @@ dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.depth.clip
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.depth.none
+dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_frag.discard_rectangles.enabled
@@ -604,6 +615,7 @@ dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.depth.clamp
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.depth.clip
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.depth.clip_control
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.depth.none
+dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.depth.test_disabled_write_enabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.discard_rectangles.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.discard_rectangles.discard
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.discard_rectangles.enabled
