@@ -54,4 +54,5 @@ luci.cq_group(
 
 luci.cq(
     status_host = "chromium-cq-status.appspot.com",
+    gerrit_listener_type = cq.GERRIT_LISTENER_TYPE_LEGACY_POLLER,
 )
