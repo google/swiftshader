@@ -1151,10 +1151,6 @@ dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.2_0_0.16x16x1_remaining_la
 dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.2_0_0.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.2_0_0.32x32_16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.2_0_0.53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.4_1_3.16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.4_1_3.17x19_53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.4_1_3.32x32_16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.4_1_3.53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.4_3_1.16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.4_3_1.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r16_unorm.optimal.4_3_1.32x32_16x16x1_remaining_layers
@@ -1181,10 +1177,6 @@ dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.2_0_0.16x16x1_remaining_l
 dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.2_0_0.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.2_0_0.32x32_16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.2_0_0.53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.4_1_3.16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.4_1_3.17x19_53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.4_1_3.32x32_16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.4_1_3.53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.4_3_1.16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.4_3_1.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r32_sfloat.optimal.4_3_1.32x32_16x16x1_remaining_layers
@@ -1211,10 +1203,6 @@ dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.2_0_0.16x16x1_remaining_lay
 dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.2_0_0.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.2_0_0.32x32_16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.2_0_0.53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.4_1_3.16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.4_1_3.17x19_53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.4_1_3.32x32_16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.4_1_3.53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.4_3_1.16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.4_3_1.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8_unorm.optimal.4_3_1.32x32_16x16x1_remaining_layers
@@ -1241,10 +1229,6 @@ dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.2_0_0.16x16x1_remaining_l
 dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.2_0_0.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.2_0_0.32x32_16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.2_0_0.53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.4_1_3.16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.4_1_3.17x19_53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.4_1_3.32x32_16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.4_1_3.53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.4_3_1.16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.4_3_1.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8_unorm.optimal.4_3_1.32x32_16x16x1_remaining_layers
@@ -1271,10 +1255,6 @@ dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.2_0_0.16x16x1_remaini
 dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.2_0_0.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.2_0_0.32x32_16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.2_0_0.53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.4_1_3.16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.4_1_3.17x19_53x61x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.4_1_3.32x32_16x16x1_remaining_layers
-dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.4_1_3.53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.4_3_1.16x16x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.4_3_1.17x19_53x61x1_remaining_layers
 dEQP-VK.image.host_image_copy.array.r8g8b8a8_unorm.optimal.4_3_1.32x32_16x16x1_remaining_layers
