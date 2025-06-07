@@ -28,17 +28,17 @@ public:
 	// Call once after construction so that virtual functions may be called during init
 	void initialize();
 
-	const vk::DynamicLoader &dynamicLoader() const { return *dl; }
+	const vk::detail::DynamicLoader &dynamicLoader() const { return *dl; }
 	vk::PhysicalDevice &getPhysicalDevice() { return physicalDevice; }
 	vk::Device &getDevice() { return device; }
 	vk::Queue &getQueue() { return queue; }
 	uint32_t getQueueFamilyIndex() const { return queueFamilyIndex; }
 
 private:
-	std::unique_ptr<vk::DynamicLoader> loadDriver();
+	std::unique_ptr<vk::detail::DynamicLoader> loadDriver();
 
 	std::unique_ptr<class ScopedSetIcdFilenames> setIcdFilenames;
-	std::unique_ptr<vk::DynamicLoader> dl;
+	std::unique_ptr<vk::detail::DynamicLoader> dl;
 	vk::DebugUtilsMessengerEXT debugReport;
 
 protected:

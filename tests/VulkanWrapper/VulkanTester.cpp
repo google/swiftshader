@@ -357,11 +357,11 @@ void VulkanTester::initialize()
 	queue = device.getQueue(queueFamilyIndex, 0);
 }
 
-std::unique_ptr<vk::DynamicLoader> VulkanTester::loadDriver()
+std::unique_ptr<vk::detail::DynamicLoader> VulkanTester::loadDriver()
 {
 	if(LOAD_NATIVE_DRIVER)
 	{
-		return std::make_unique<vk::DynamicLoader>();
+		return std::make_unique<vk::detail::DynamicLoader>();
 	}
 
 	auto driverPath = findDriverPath();
@@ -369,7 +369,7 @@ std::unique_ptr<vk::DynamicLoader> VulkanTester::loadDriver()
 
 	if(LOAD_SWIFTSHADER_DIRECTLY)
 	{
-		return std::make_unique<vk::DynamicLoader>(driverPath);
+		return std::make_unique<vk::detail::DynamicLoader>(driverPath);
 	}
 
 	// Load SwiftShader via loader
@@ -377,20 +377,20 @@ std::unique_ptr<vk::DynamicLoader> VulkanTester::loadDriver()
 	// Set VK_ICD_FILENAMES env var so it gets picked up by the loading of the ICD driver
 	setIcdFilenames = std::make_unique<ScopedSetIcdFilenames>(driverPath.c_str());
 
-	std::unique_ptr<vk::DynamicLoader> dl;
+	std::unique_ptr<vk::detail::DynamicLoader> dl;
 #ifndef VULKAN_HPP_NO_EXCEPTIONS
 	try
 	{
-		dl = std::make_unique<vk::DynamicLoader>();
+		dl = std::make_unique<vk::detail::DynamicLoader>();
 	}
 	catch(std::exception &ex)
 	{
-		std::cerr << "vk::DynamicLoader exception: " << ex.what() << std::endl;
+		std::cerr << "vk::detail::DynamicLoader exception: " << ex.what() << std::endl;
 		std::cerr << "Falling back to loading SwiftShader directly (i.e. no validation layers)" << std::endl;
-		dl = std::make_unique<vk::DynamicLoader>(driverPath);
+		dl = std::make_unique<vk::detail::DynamicLoader>(driverPath);
 	}
 #else
-	dl = std::make_unique<vk::DynamicLoader>();
+	dl = std::make_unique<vk::detail::DynamicLoader>();
 #endif
 
 	return dl;
