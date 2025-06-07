@@ -457,6 +457,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_KHR_VULKAN_MEMORY_MODEL_EXTENSION_NAME, VK_KHR_VULKAN_MEMORY_MODEL_SPEC_VERSION } },
 	{ { VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_SPEC_VERSION } },
 	{ { VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME, VK_KHR_PIPELINE_LIBRARY_SPEC_VERSION } },
+	{ { VK_KHR_UNIFIED_IMAGE_LAYOUTS_EXTENSION_NAME, VK_KHR_UNIFIED_IMAGE_LAYOUTS_SPEC_VERSION } },
 #ifndef __ANDROID__
 	{ { VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME, VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_SPEC_VERSION } },
 	{ { VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME, VK_EXT_SWAPCHAIN_MAINTENANCE_1_SPEC_VERSION } },
@@ -1207,6 +1208,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			{
 				const auto *bufferDeviceAddressFeatures = reinterpret_cast<const VkPhysicalDeviceBufferDeviceAddressFeatures *>(extensionCreateInfo);
 				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(bufferDeviceAddressFeatures);
+				if(!hasFeatures)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR:
+			{
+				const auto *unifiedImageLayoutsFeatures = reinterpret_cast<const VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR *>(extensionCreateInfo);
+				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(unifiedImageLayoutsFeatures);
 				if(!hasFeatures)
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;

@@ -395,6 +395,13 @@ static void getPhysicalDeviceGraphicsPipelineLibraryFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceUnifiedImageLayoutsFeatures(T *features)
+{
+	features->unifiedImageLayouts = VK_TRUE;
+	features->unifiedImageLayoutsVideo = VK_FALSE;
+}
+
+template<typename T>
 static void getPhysicalDeviceGlobalPriorityQueryFeatures(T *features)
 {
 	features->globalPriorityQuery = VK_TRUE;
@@ -678,6 +685,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT:
 			getPhysicalDeviceGraphicsPipelineLibraryFeatures(reinterpret_cast<struct VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR:
+			getPhysicalDeviceUnifiedImageLayoutsFeatures(reinterpret_cast<struct VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT:
 			getPhysicalDeviceSwapchainMaintenance1FeaturesKHR(reinterpret_cast<struct VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *>(curExtension));
@@ -1777,6 +1787,14 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineL
 	auto supported = getSupportedFeatures(requested);
 
 	return CheckFeature(requested, supported, graphicsPipelineLibrary);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, unifiedImageLayouts) &&
+	       CheckFeature(requested, supported, unifiedImageLayoutsVideo);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *requested) const

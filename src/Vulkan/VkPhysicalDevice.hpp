@@ -62,6 +62,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceProtectedMemoryFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceBufferDeviceAddressFeatures *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceHostImageCopyFeaturesEXT *requested) const;
