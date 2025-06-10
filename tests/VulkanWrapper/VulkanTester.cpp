@@ -316,11 +316,11 @@ void VulkanTester::initialize()
 		                        vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
 		                        vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 
-		PFN_vkDebugUtilsMessengerCallbackEXT debugInfoCallback =
+		vk::PFN_DebugUtilsMessengerCallbackEXT debugInfoCallback =
 		    [](
-		        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		        VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-		        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+		        vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		        vk::Flags<vk::DebugUtilsMessageTypeFlagBitsEXT> messageTypes,
+		        const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData,
 		        void *pUserData) -> VkBool32 {
 			// assert(false);
 			std::cerr << "[DebugInfoCallback] " << pCallbackData->pMessage << std::endl;
