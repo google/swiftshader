@@ -8668,9 +8668,13 @@ dEQP-VK.rasterization.polygon_as_large_points.vert_tess_geom_dynamic_polygon_mod
 dEQP-VK.rasterization.polygon_as_large_points.vert_tess_geom_static_polygon_mode
 dEQP-VK.rasterization.polygon_as_large_points.vert_tess_static_polygon_mode
 dEQP-VK.rasterization.primitive_size.default_size.points.all
+dEQP-VK.rasterization.primitive_size.default_size.points.all_no_large_points
 dEQP-VK.rasterization.primitive_size.default_size.points.geometry
+dEQP-VK.rasterization.primitive_size.default_size.points.geometry_no_large_points
 dEQP-VK.rasterization.primitive_size.default_size.points.tessellation
+dEQP-VK.rasterization.primitive_size.default_size.points.tessellation_no_large_points
 dEQP-VK.rasterization.primitive_size.default_size.points.vertex
+dEQP-VK.rasterization.primitive_size.default_size.points.vertex_no_large_points
 dEQP-VK.rasterization.primitive_size.default_size.polygon_as_points.mesh_dynamic_polygon_mode
 dEQP-VK.rasterization.primitive_size.default_size.polygon_as_points.mesh_static_polygon_mode
 dEQP-VK.rasterization.primitive_size.default_size.polygon_as_points.vert_dynamic_polygon_mode
