@@ -232,6 +232,8 @@ dEQP-VK.tessellation.limits.max_tessellation_evaluation_input_components
 dEQP-VK.tessellation.limits.max_tessellation_evaluation_output_components
 dEQP-VK.tessellation.limits.max_tessellation_generation_level
 dEQP-VK.tessellation.limits.max_tessellation_patch_size
+dEQP-VK.tessellation.matrix_multiplication.tesc_1
+dEQP-VK.tessellation.matrix_multiplication.tesc_2
 dEQP-VK.tessellation.misc_draw.fill_cover_quads_equal_spacing_draw
 dEQP-VK.tessellation.misc_draw.fill_cover_quads_equal_spacing_draw_indirect
 dEQP-VK.tessellation.misc_draw.fill_cover_quads_fractional_even_spacing_draw
