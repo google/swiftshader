@@ -41,8 +41,8 @@ RTDyldMemoryManager::~RTDyldMemoryManager() {}
 #endif
 
 #if HAVE_EHTABLE_SUPPORT
-extern "C" void __register_frame(void *);
-extern "C" void __deregister_frame(void *);
+extern "C" void __register_frame(const void *);
+extern "C" void __deregister_frame(const void *);
 #else
 // The building compiler does not have __(de)register_frame but
 // it may be found at runtime in a dynamically-loaded library.
