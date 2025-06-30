@@ -94,7 +94,6 @@ dEQP-VK.graphicsfuzz.cov-constants-mix-uniform
 dEQP-VK.graphicsfuzz.cov-continue-break-discard-return-in-loop
 dEQP-VK.graphicsfuzz.cov-copy-array-elements-except-first-nested-loop-replace-identical-values
 dEQP-VK.graphicsfuzz.cov-copy-output-color-swizzle-array-indexing
-dEQP-VK.graphicsfuzz.cov-copy-prop-arrays-func-argument
 dEQP-VK.graphicsfuzz.cov-copy-prop-arrays-no-stores
 dEQP-VK.graphicsfuzz.cov-copy-prop-arrays-param-uniform
 dEQP-VK.graphicsfuzz.cov-cosh-clamped-to-one
@@ -719,7 +718,6 @@ dEQP-VK.graphicsfuzz.struct-array-data-as-loop-iterator
 dEQP-VK.graphicsfuzz.struct-array-index
 dEQP-VK.graphicsfuzz.struct-controlled-loop
 dEQP-VK.graphicsfuzz.struct-used-as-temporary
-dEQP-VK.graphicsfuzz.switch-case-with-undefined-expression
 dEQP-VK.graphicsfuzz.switch-if-discard
 dEQP-VK.graphicsfuzz.switch-inside-while-always-return
 dEQP-VK.graphicsfuzz.switch-loop-switch-if
