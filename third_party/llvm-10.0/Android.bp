@@ -1047,6 +1047,7 @@ cc_defaults {
     ],
 
     cflags: [
+        "-Wno-bitwise-instead-of-logical",
         "-Wno-implicit-fallthrough",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
