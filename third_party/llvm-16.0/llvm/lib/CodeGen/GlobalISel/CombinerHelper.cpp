@@ -2223,7 +2223,7 @@ bool CombinerHelper::matchCombineFAbsOfFNeg(MachineInstr &MI,
   if (!mi_match(Src, MRI, m_GFNeg(m_Reg(NegSrc))))
     return false;
 
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     Observer.changingInstr(MI);
     MI.getOperand(1).setReg(NegSrc);
     Observer.changedInstr(MI);
@@ -2863,7 +2863,7 @@ bool CombinerHelper::matchOverlappingAnd(
           m_GAnd(m_GAnd(m_Reg(R), m_ICst(C1)), m_ICst(C2))))
     return false;
 
-  MatchInfo = [=](MachineIRBuilder &B) {
+  MatchInfo = [=, this](MachineIRBuilder &B) {
     if (C1 & C2) {
       B.buildAnd(Dst, R, B.buildConstant(Ty, C1 & C2));
       return;
@@ -3602,7 +3602,7 @@ bool CombinerHelper::matchLoadOrCombine(
       !Fast)
     return false;
 
-  MatchInfo = [=](MachineIRBuilder &MIB) {
+  MatchInfo = [=, this](MachineIRBuilder &MIB) {
     MIB.setInstrAndDebugLoc(*LatestLoad);
     Register LoadDst = NeedsBSwap ? MRI.cloneVirtualRegister(Dst) : Dst;
     MIB.buildLoad(LoadDst, Ptr, *NewMMO);
@@ -4327,7 +4327,7 @@ bool CombinerHelper::matchAndOrDisjointMask(
   if (AndMaskBits & OrMaskBits)
     return false;
 
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     Observer.changingInstr(MI);
     // Canonicalize the result to have the constant on the RHS.
     if (MI.getOperand(1).getReg() == AndMaskReg)
@@ -4590,7 +4590,7 @@ bool CombinerHelper::matchReassocConstantInnerRHS(GPtrAdd &MI,
   if (!C2)
     return false;
 
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     LLT PtrTy = MRI.getType(MI.getOperand(0).getReg());
 
     auto NewBase =
@@ -4616,7 +4616,7 @@ bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd &MI,
     return false;
 
   auto *LHSPtrAdd = cast<GPtrAdd>(LHS);
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     // When we change LHSPtrAdd's offset register we might cause it to use a reg
     // before its def. Sink the instruction so the outer PTR_ADD to ensure this
     // doesn't happen.
@@ -4653,7 +4653,7 @@ bool CombinerHelper::matchReassocFoldConstantsInSubTree(GPtrAdd &MI,
   if (!C2)
     return false;
 
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     auto NewCst = B.buildConstant(MRI.getType(Src2Reg), *C1 + *C2);
     Observer.changingInstr(MI);
     MI.getOperand(1).setReg(LHSSrc1);
@@ -4784,7 +4784,7 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
     return false;
   Register BinOpLHS = LHSInst->getOperand(1).getReg();
   Register BinOpRHS = LHSInst->getOperand(2).getReg();
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     auto NarrowLHS = Builder.buildTrunc(NarrowTy, BinOpLHS);
     auto NarrowRHS = Builder.buildTrunc(NarrowTy, BinOpRHS);
     auto NarrowBinOp =
@@ -4804,7 +4804,7 @@ bool CombinerHelper::matchMulOBy2(MachineInstr &MI, BuildFnTy &MatchInfo) {
   if (!mi_match(MI.getOperand(3).getReg(), MRI, m_SpecificICstOrSplat(2)))
     return false;
 
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     Observer.changingInstr(MI);
     unsigned NewOpc = Opc == TargetOpcode::G_UMULO ? TargetOpcode::G_UADDO
                                                    : TargetOpcode::G_SADDO;
@@ -4918,7 +4918,7 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr &MI,
                         mi_match(Y, MRI, m_SpecificICstOrSplat(CstX))))
       ReplaceReg = Z;
     if (ReplaceReg) {
-      MatchInfo = [=](MachineIRBuilder &B) {
+      MatchInfo = [=, this](MachineIRBuilder &B) {
         auto Zero = B.buildConstant(MRI.getType(Dst), 0);
         B.buildSub(Dst, Zero, ReplaceReg);
       };
@@ -5252,7 +5252,7 @@ bool CombinerHelper::matchRedundantNegOperands(MachineInstr &MI,
   } else
     return false;
 
-  MatchInfo = [=, &MI](MachineIRBuilder &B) {
+  MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
     Observer.changingInstr(MI);
     MI.setDesc(B.getTII().get(Opc));
     MI.getOperand(1).setReg(X);
@@ -5503,7 +5503,7 @@ bool CombinerHelper::matchCombineFAddFMAFMulToFMadOrFMA(
     Register U = FMulMI->getOperand(1).getReg();
     Register V = FMulMI->getOperand(2).getReg();
 
-    MatchInfo = [=, &MI](MachineIRBuilder &B) {
+    MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
       Register InnerFMA = MRI.createGenericVirtualRegister(DstTy);
       B.buildInstr(PreferredFusedOpcode, {InnerFMA}, {U, V, Z});
       B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
@@ -5824,7 +5824,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
       isContractableFMul(*FMulMI, AllowFusionGlobally) &&
       TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy,
                           MRI.getType(FMulMI->getOperand(0).getReg()))) {
-    MatchInfo = [=, &MI](MachineIRBuilder &B) {
+    MatchInfo = [=, this, &MI](MachineIRBuilder &B) {
       Register FMAReg = MRI.createGenericVirtualRegister(DstTy);
       buildMatchInfo(FMAReg, FMulMI->getOperand(1).getReg(),
                      FMulMI->getOperand(2).getReg(), RHSReg, B);
@@ -6178,7 +6178,7 @@ bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr &MI,
       return false;
     Y = X == OpLHS ? OpRHS : X == OpRHS ? OpLHS : Register();
   }
-  MatchInfo = [=](MachineIRBuilder &B) {
+  MatchInfo = [=, this](MachineIRBuilder &B) {
     auto Zero = B.buildConstant(MRI.getType(Y), 0);
     B.buildICmp(Pred, Dst, Y, Zero);
   };

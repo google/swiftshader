@@ -105,7 +105,7 @@ void CallGraph::populateCallGraphNode(CallGraphNode *Node) {
           Node->addCalledFunction(Call, getOrInsertFunction(Callee));
 
         // Add reference to callback functions.
-        forEachCallbackFunction(*Call, [=](Function *CB) {
+        forEachCallbackFunction(*Call, [=, this](Function *CB) {
           Node->addCalledFunction(nullptr, getOrInsertFunction(CB));
         });
       }
@@ -215,7 +215,7 @@ void CallGraphNode::removeCallEdgeFor(CallBase &Call) {
       CalledFunctions.pop_back();
 
       // Remove all references to callback functions if there are any.
-      forEachCallbackFunction(Call, [=](Function *CB) {
+      forEachCallbackFunction(Call, [=, this](Function *CB) {
         removeOneAbstractEdgeTo(CG->getOrInsertFunction(CB));
       });
       return;

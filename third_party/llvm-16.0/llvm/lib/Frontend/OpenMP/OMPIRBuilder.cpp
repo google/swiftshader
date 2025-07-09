@@ -1023,7 +1023,7 @@ IRBuilder<>::InsertPoint OpenMPIRBuilder::createParallel(
   }
 
   OutlineInfo OI;
-  OI.PostOutlineCB = [=](Function &OutlinedFn) {
+  OI.PostOutlineCB = [=, this](Function &OutlinedFn) {
     // Add some known attributes.
     OutlinedFn.addParamAttr(0, Attribute::NoAlias);
     OutlinedFn.addParamAttr(1, Attribute::NoAlias);
@@ -2088,7 +2088,7 @@ CanonicalLoopInfo *OpenMPIRBuilder::createCanonicalLoop(
   Value *TripCount = Builder.CreateSelect(ZeroCmp, Zero, CountIfLooping,
                                           "omp_" + Name + ".tripcount");
 
-  auto BodyGen = [=](InsertPointTy CodeGenIP, Value *IV) {
+  auto BodyGen = [=, this](InsertPointTy CodeGenIP, Value *IV) {
     Builder.restoreIP(CodeGenIP);
     Value *Span = Builder.CreateMul(IV, Step);
     Value *IndVar = Builder.CreateAdd(Span, Start);

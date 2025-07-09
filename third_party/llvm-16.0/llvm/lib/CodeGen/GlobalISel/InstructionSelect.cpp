@@ -91,7 +91,7 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction &MF) {
   InstructionSelector *ISel = MF.getSubtarget().getInstructionSelector();
 
   CodeGenOpt::Level OldOptLevel = OptLevel;
-  auto RestoreOptLevel = make_scope_exit([=]() { OptLevel = OldOptLevel; });
+  auto RestoreOptLevel = make_scope_exit([=, this]() { OptLevel = OldOptLevel; });
   OptLevel = MF.getFunction().hasOptNone() ? CodeGenOpt::None
                                            : MF.getTarget().getOptLevel();
 

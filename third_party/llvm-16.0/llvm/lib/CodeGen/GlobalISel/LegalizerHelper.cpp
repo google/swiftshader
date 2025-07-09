@@ -4080,7 +4080,7 @@ LegalizerHelper::reduceLoadStoreWidth(GLoadStore &LdStMI, unsigned TypeIdx,
   // handled.
   bool isBigEndian = MIRBuilder.getDataLayout().isBigEndian();
   auto MMO = LdStMI.getMMO();
-  auto splitTypePieces = [=](LLT PartTy, SmallVectorImpl<Register> &ValRegs,
+  auto splitTypePieces = [=, this](LLT PartTy, SmallVectorImpl<Register> &ValRegs,
                              unsigned NumParts, unsigned Offset) -> unsigned {
     MachineFunction &MF = MIRBuilder.getMF();
     unsigned PartSize = PartTy.getSizeInBits();

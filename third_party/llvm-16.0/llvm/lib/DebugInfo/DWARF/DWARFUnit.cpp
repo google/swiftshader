@@ -71,7 +71,7 @@ void DWARFUnitVector::addUnitsImpl(
   DWARFDataExtractor Data(Obj, Section, LE, 0);
   // Lazy initialization of Parser, now that we have all section info.
   if (!Parser) {
-    Parser = [=, &Context, &Obj, &Section, &SOS,
+    Parser = [=, this, &Context, &Obj, &Section, &SOS,
               &LS](uint64_t Offset, DWARFSectionKind SectionKind,
                    const DWARFSection *CurSection,
                    const DWARFUnitIndex::Entry *IndexEntry)

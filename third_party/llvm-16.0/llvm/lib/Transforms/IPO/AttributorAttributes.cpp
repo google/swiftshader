@@ -7500,7 +7500,7 @@ struct AAPrivatizablePtrArgument final : public AAPrivatizablePtrImpl {
     // beginning and initialized with the values passed through arguments. The
     // new alloca replaces the use of the old pointer argument.
     Attributor::ArgumentReplacementInfo::CalleeRepairCBTy FnRepairCB =
-        [=](const Attributor::ArgumentReplacementInfo &ARI,
+        [=, this](const Attributor::ArgumentReplacementInfo &ARI,
             Function &ReplacementFn, Function::arg_iterator ArgIt) {
           BasicBlock &EntryBB = ReplacementFn.getEntryBlock();
           Instruction *IP = &*EntryBB.getFirstInsertionPt();
@@ -7524,7 +7524,7 @@ struct AAPrivatizablePtrArgument final : public AAPrivatizablePtrImpl {
     // of the privatizable type are loaded prior to the call and passed to the
     // new function version.
     Attributor::ArgumentReplacementInfo::ACSRepairCBTy ACSRepairCB =
-        [=, &AlignAA](const Attributor::ArgumentReplacementInfo &ARI,
+        [=, this, &AlignAA](const Attributor::ArgumentReplacementInfo &ARI,
                       AbstractCallSite ACS,
                       SmallVectorImpl<Value *> &NewArgOperands) {
           // When no alignment is specified for the load instruction,

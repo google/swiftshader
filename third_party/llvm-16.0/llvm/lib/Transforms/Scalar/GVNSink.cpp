@@ -504,7 +504,7 @@ public:
 
     uint32_t e = ExpressionNumbering[exp];
     if (!e) {
-      hash_code H = exp->getHashValue([=](Value *V) { return lookupOrAdd(V); });
+      hash_code H = exp->getHashValue([=, this](Value *V) { return lookupOrAdd(V); });
       auto I = HashNumbering.find(H);
       if (I != HashNumbering.end()) {
         e = I->second;

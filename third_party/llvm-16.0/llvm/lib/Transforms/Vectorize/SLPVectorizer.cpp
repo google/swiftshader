@@ -6615,7 +6615,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
   bool NeedToShuffleReuses = !E->ReuseShuffleIndices.empty();
   // FIXME: it tries to fix a problem with MSVC buildbots.
   TargetTransformInfo *TTI = this->TTI;
-  auto AdjustExtractsCost = [=](InstructionCost &Cost) {
+  auto AdjustExtractsCost = [=, this](InstructionCost &Cost) {
     // If the resulting type is scalarized, do not adjust the cost.
     unsigned VecNumParts = TTI->getNumberOfParts(VecTy);
     if (VecNumParts == VecTy->getNumElements())
@@ -6930,7 +6930,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
       E->isAltShuffle() ? (unsigned)Instruction::ShuffleVector : E->getOpcode();
   const unsigned Sz = VL.size();
   auto GetCostDiff =
-      [=](function_ref<InstructionCost(unsigned)> ScalarEltCost,
+      [=, this](function_ref<InstructionCost(unsigned)> ScalarEltCost,
           function_ref<InstructionCost(InstructionCost)> VectorCost) {
         // Calculate the cost of this instruction.
         InstructionCost ScalarCost = 0;
@@ -7179,7 +7179,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
                                    VI->getOperand(0)->getType(),
                                    TTI::getCastContextHint(VI), CostKind, VI);
     };
-    auto GetVectorCost = [=](InstructionCost CommonCost) {
+    auto GetVectorCost = [=, this](InstructionCost CommonCost) {
       Type *SrcTy = VL0->getOperand(0)->getType();
       auto *SrcVecTy = FixedVectorType::get(SrcTy, VL.size());
       InstructionCost VecCost = CommonCost;
@@ -7275,7 +7275,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
       return TTI->getArithmeticInstrCost(ShuffleOrOp, ScalarTy, CostKind,
                                          Op1Info, Op2Info, Operands, VI);
     };
-    auto GetVectorCost = [=](InstructionCost CommonCost) {
+    auto GetVectorCost = [=, this](InstructionCost CommonCost) {
       unsigned OpIdx = isa<UnaryOperator>(VL0) ? 0 : 1;
       TTI::OperandValueInfo Op1Info = getOperandInfo(VL, 0);
       TTI::OperandValueInfo Op2Info = getOperandInfo(VL, OpIdx);
@@ -7329,7 +7329,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
   }
   case Instruction::Store: {
     bool IsReorder = !E->ReorderIndices.empty();
-    auto GetScalarCost = [=](unsigned Idx) {
+    auto GetScalarCost = [=, this](unsigned Idx) {
       auto *VI = cast<StoreInst>(VL[Idx]);
       TTI::OperandValueInfo OpInfo = getOperandInfo(VI, 0);
       return TTI->getMemoryOpCost(Instruction::Store, ScalarTy, VI->getAlign(),
@@ -7338,7 +7338,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
     };
     auto *BaseSI =
         cast<StoreInst>(IsReorder ? VL[E->ReorderIndices.front()] : VL0);
-    auto GetVectorCost = [=](InstructionCost CommonCost) {
+    auto GetVectorCost = [=, this](InstructionCost CommonCost) {
       // We know that we can merge the stores. Calculate the cost.
       TTI::OperandValueInfo OpInfo = getOperandInfo(VL, 0);
       return TTI->getMemoryOpCost(Instruction::Store, VecTy, BaseSI->getAlign(),
@@ -7356,7 +7356,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
            GetGEPCostDiff(PointerOps, BaseSI->getPointerOperand());
   }
   case Instruction::Call: {
-    auto GetScalarCost = [=](unsigned Idx) {
+    auto GetScalarCost = [=, this](unsigned Idx) {
       auto *CI = cast<CallInst>(VL[Idx]);
       Intrinsic::ID ID = getVectorIntrinsicIDForCall(CI, TLI);
       if (ID != Intrinsic::not_intrinsic) {
@@ -7367,7 +7367,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
                                    CI->getFunctionType()->getReturnType(),
                                    CI->getFunctionType()->params(), CostKind);
     };
-    auto GetVectorCost = [=](InstructionCost CommonCost) {
+    auto GetVectorCost = [=, this](InstructionCost CommonCost) {
       auto *CI = cast<CallInst>(VL0);
       auto VecCallCosts = getVectorCallCosts(CI, VecTy, TTI, TLI);
       return std::min(VecCallCosts.first, VecCallCosts.second) + CommonCost;
@@ -7384,7 +7384,7 @@ InstructionCost BoUpSLP::getEntryCost(const TreeEntry *E,
            "Invalid Shuffle Vector Operand");
     // Try to find the previous shuffle node with the same operands and same
     // main/alternate ops.
-    auto TryFindNodeWithEqualOperands = [=]() {
+    auto TryFindNodeWithEqualOperands = [=, this]() {
       for (const std::unique_ptr<TreeEntry> &TE : VectorizableTree) {
         if (TE.get() == E)
           break;
@@ -8335,7 +8335,7 @@ BoUpSLP::isGatherShuffledEntry(const TreeEntry *TE, ArrayRef<Value *> VL,
   // We suppose it is better to ignore instruction, which do not form splats,
   // are not vectorized/not extractelements (these instructions will be handled
   // by extractelements processing) or may form vector node in future.
-  auto MightBeIgnored = [=](Value *V) {
+  auto MightBeIgnored = [=, this](Value *V) {
     auto *I = dyn_cast<Instruction>(V);
     SmallVector<Value *> IgnoredVals;
     if (UserIgnoreList)

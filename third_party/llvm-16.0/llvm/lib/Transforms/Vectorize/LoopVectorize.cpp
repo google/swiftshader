@@ -8262,7 +8262,7 @@ VPWidenIntOrFpInductionRecipe *VPRecipeBuilder::tryToOptimizeInductionTruncate(
   // can be optimized.
   auto isOptimizableIVTruncate =
       [&](Instruction *K) -> std::function<bool(ElementCount)> {
-    return [=](ElementCount VF) -> bool {
+    return [=, this](ElementCount VF) -> bool {
       return CM.isOptimizableIVTruncate(K, VF);
     };
   };
