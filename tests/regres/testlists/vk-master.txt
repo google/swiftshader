@@ -30,6 +30,7 @@ vk-default/image/extend-operands-spirv1p4.txt
 vk-default/image/extended-usage-bit.txt
 vk-default/image/extended-usage-bit-compatibility.txt
 vk-default/image/format-reinterpret.txt
+vk-default/image/general-layout.txt
 vk-default/image/host-image-copy.txt
 vk-default/image/image-size.txt
 vk-default/image/load-store.txt

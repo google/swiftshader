@@ -124,6 +124,7 @@ dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_snorm_r8g8b8a8_unorm_store_t
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_b8g8r8a8_snorm_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_b8g8r8a8_snorm_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_b8g8r8a8_snorm_draw_copy_format_list
+dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_b8g8r8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_b8g8r8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_b8g8r8a8_srgb_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_b8g8r8a8_unorm_clear_copy_format_list
@@ -155,6 +156,7 @@ dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_r8g8b8a8_unorm_store_lo
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_srgb_r8g8b8a8_unorm_store_texture_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_unorm_b8g8r8a8_snorm_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_unorm_b8g8r8a8_snorm_copy_copy_format_list
+dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_unorm_b8g8r8a8_snorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_unorm_b8g8r8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_unorm_b8g8r8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.android.2d.r8g8b8a8_unorm_b8g8r8a8_srgb_draw_copy_format_list
@@ -423,6 +425,7 @@ dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_srgb_r8g8b8a8_unorm_store_co
 dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_srgb_r8g8b8a8_unorm_store_load_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_srgb_r8g8b8a8_unorm_store_texture_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_unorm_b8g8r8a8_snorm_clear_copy_format_list
+dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_unorm_b8g8r8a8_snorm_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_unorm_b8g8r8a8_snorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_unorm_b8g8r8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d.b8g8r8a8_unorm_b8g8r8a8_srgb_copy_copy_format_list
@@ -586,6 +589,7 @@ dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_snorm_dr
 dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_snorm_store_copy_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_snorm_store_load_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_snorm_store_texture_format_list
+dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_srgb_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.wayland.2d_array.b8g8r8a8_srgb_r8g8b8a8_unorm_clear_copy_format_list
@@ -784,6 +788,7 @@ dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_b8g8r8a8_snorm_clear_cop
 dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_b8g8r8a8_snorm_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_b8g8r8a8_snorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_b8g8r8a8_srgb_clear_copy_format_list
+dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_b8g8r8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_b8g8r8a8_srgb_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_r8g8b8a8_snorm_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.b8g8r8a8_unorm_r8g8b8a8_snorm_clear_load_format_list
@@ -871,6 +876,7 @@ dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_srgb_r8g8b8a8_unorm_store_load
 dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_srgb_r8g8b8a8_unorm_store_texture_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_unorm_b8g8r8a8_snorm_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_unorm_b8g8r8a8_snorm_copy_copy_format_list
+dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_unorm_b8g8r8a8_snorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_unorm_b8g8r8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_unorm_b8g8r8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d.r8g8b8a8_unorm_b8g8r8a8_srgb_draw_copy_format_list
@@ -920,6 +926,7 @@ dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_cop
 dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_copy_load_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_copy_texture_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_draw_copy_format_list
+dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_draw_load_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_draw_texture_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_store_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_store_load_format_list
@@ -1010,6 +1017,7 @@ dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_cop
 dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_copy_texture_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_draw_load_format_list
+dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_draw_texture_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_store_copy_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_store_load_format_list
 dEQP-VK.image.swapchain_mutable.win32.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_store_texture_format_list
@@ -1091,6 +1099,7 @@ dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_snorm_store_textu
 dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_srgb_draw_copy_format_list
+dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_unorm_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_unorm_clear_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_unorm_clear_texture_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.b8g8r8a8_snorm_r8g8b8a8_unorm_copy_copy_format_list
@@ -1167,6 +1176,7 @@ dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_snorm_copy_copy_f
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_snorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_srgb_copy_copy_format_list
+dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_srgb_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_unorm_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_unorm_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_snorm_b8g8r8a8_unorm_draw_copy_format_list
@@ -1200,6 +1210,7 @@ dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_clear_textur
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_copy_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_copy_texture_format_list
+dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_draw_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_draw_texture_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d.r8g8b8a8_srgb_r8g8b8a8_snorm_store_copy_format_list
@@ -1263,6 +1274,7 @@ dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_srgb_clear_
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_srgb_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_clear_copy_format_list
+dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_clear_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_clear_texture_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.b8g8r8a8_snorm_r8g8b8a8_unorm_copy_load_format_list
@@ -1349,10 +1361,12 @@ dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_clear
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_clear_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_clear_texture_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_copy_copy_format_list
+dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_copy_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_copy_texture_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_draw_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_draw_texture_format_list
+dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_store_copy_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_store_load_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_snorm_r8g8b8a8_unorm_store_texture_format_list
 dEQP-VK.image.swapchain_mutable.xcb.2d_array.r8g8b8a8_srgb_b8g8r8a8_snorm_clear_copy_format_list
@@ -1584,10 +1598,12 @@ dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_copy_copy_
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_copy_load_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_copy_texture_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_draw_copy_format_list
+dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_draw_load_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_draw_texture_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_store_copy_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_store_load_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_snorm_store_texture_format_list
+dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_srgb_clear_copy_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_srgb_copy_copy_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d.r8g8b8a8_unorm_r8g8b8a8_srgb_draw_copy_format_list
 dEQP-VK.image.swapchain_mutable.xlib.2d_array.b8g8r8a8_snorm_b8g8r8a8_srgb_clear_copy_format_list
@@ -1779,6 +1795,7 @@ dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.image_sharing_
 dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.image_usage
 dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.min_image_count
 dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.pre_transform
+dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.present_mode
 dEQP-VK.protected_memory.interaction.wsi.android.swapchain.render.basic
 dEQP-VK.protected_memory.interaction.wsi.wayland.swapchain.create.clipped
 dEQP-VK.protected_memory.interaction.wsi.wayland.swapchain.create.composite_alpha
@@ -1825,6 +1842,7 @@ dEQP-VK.protected_memory.interaction.wsi.xlib.swapchain.create.pre_transform
 dEQP-VK.protected_memory.interaction.wsi.xlib.swapchain.create.present_mode
 dEQP-VK.protected_memory.interaction.wsi.xlib.swapchain.render.basic
 dEQP-VK.wsi.android.colorspace.basic
+dEQP-VK.wsi.android.colorspace.extensions
 dEQP-VK.wsi.android.colorspace.hdr
 dEQP-VK.wsi.android.display_timing.fifo.display_timing
 dEQP-VK.wsi.android.display_timing.fifo.reference
@@ -2931,6 +2949,7 @@ dEQP-VK.wsi.android.surface.query_support
 dEQP-VK.wsi.android.swapchain.create.clipped
 dEQP-VK.wsi.android.swapchain.create.composite_alpha
 dEQP-VK.wsi.android.swapchain.create.image_array_layers
+dEQP-VK.wsi.android.swapchain.create.image_extent
 dEQP-VK.wsi.android.swapchain.create.image_format
 dEQP-VK.wsi.android.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.android.swapchain.create.image_swapchain_create_info
@@ -3773,6 +3792,7 @@ dEQP-VK.wsi.win32.swapchain.create.image_extent
 dEQP-VK.wsi.win32.swapchain.create.image_format
 dEQP-VK.wsi.win32.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.win32.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.win32.swapchain.create.image_usage
 dEQP-VK.wsi.win32.swapchain.create.min_image_count
 dEQP-VK.wsi.win32.swapchain.create.pre_transform
 dEQP-VK.wsi.win32.swapchain.create.present_mode
