@@ -4187,7 +4187,9 @@ dEQP-VK.wsi.xcb.shared_presentable_image.scale_none.rotate_90.pre_multiplied.con
 dEQP-VK.wsi.xcb.shared_presentable_image.scale_none.rotate_90.pre_multiplied.demand
 dEQP-VK.wsi.xcb.surface.query_protected_capabilities
 dEQP-VK.wsi.xcb.swapchain.create.image_sharing_mode
+dEQP-VK.wsi.xcb.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.xcb.swapchain.render.device_group2
+dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.xlib.colorspace.basic
 dEQP-VK.wsi.xlib.colorspace.extensions
 dEQP-VK.wsi.xlib.colorspace.hdr

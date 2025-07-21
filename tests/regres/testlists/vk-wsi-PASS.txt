@@ -31,7 +31,6 @@ dEQP-VK.wsi.xcb.swapchain.create.composite_alpha
 dEQP-VK.wsi.xcb.swapchain.create.image_array_layers
 dEQP-VK.wsi.xcb.swapchain.create.image_extent
 dEQP-VK.wsi.xcb.swapchain.create.image_format
-dEQP-VK.wsi.xcb.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.xcb.swapchain.create.image_usage
 dEQP-VK.wsi.xcb.swapchain.create.min_image_count
 dEQP-VK.wsi.xcb.swapchain.create.pre_transform
@@ -48,7 +47,6 @@ dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_array_layers
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_extent
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_format
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_sharing_mode
-dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_swapchain_create_info
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.image_usage
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.min_image_count
 dEQP-VK.wsi.xcb.swapchain.simulate_oom.pre_transform
