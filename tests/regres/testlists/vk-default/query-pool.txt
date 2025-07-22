@@ -442,6 +442,8 @@ dEQP-VK.query_pool.occlusion_query.get_results_size_64_stride_8_without_availabi
 dEQP-VK.query_pool.occlusion_query.get_results_size_64_stride_8_without_availability_dstoffset
 dEQP-VK.query_pool.occlusion_query.no_attachments_multisample
 dEQP-VK.query_pool.occlusion_query.no_attachments_single_sample
+dEQP-VK.query_pool.occlusion_query.stride_max
+dEQP-VK.query_pool.occlusion_query.stride_zero
 dEQP-VK.query_pool.performance_query.enumerate_and_validate_compute
 dEQP-VK.query_pool.performance_query.enumerate_and_validate_compute_copy
 dEQP-VK.query_pool.performance_query.enumerate_and_validate_graphic
