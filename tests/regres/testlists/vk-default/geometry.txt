@@ -10,12 +10,13 @@ dEQP-VK.geometry.basic.output_vary_by_texture
 dEQP-VK.geometry.basic.output_vary_by_texture_instancing
 dEQP-VK.geometry.basic.output_vary_by_uniform
 dEQP-VK.geometry.basic.output_vary_by_uniform_instancing
-dEQP-VK.geometry.basic.point_size
-dEQP-VK.geometry.basic.primitive_id
-dEQP-VK.geometry.basic.primitive_id_in
-dEQP-VK.geometry.basic.primitive_id_in_restarted
 dEQP-VK.geometry.basic.side_effect_with_condition
 dEQP-VK.geometry.basic.side_effect_with_degenerate
+dEQP-VK.geometry.builtin_variable.in_block.point_size
+dEQP-VK.geometry.builtin_variable.in_block.primitive_id
+dEQP-VK.geometry.builtin_variable.in_block.primitive_id_in
+dEQP-VK.geometry.builtin_variable.in_block.primitive_id_in_restarted
+dEQP-VK.geometry.builtin_variable.outside_block.position
 dEQP-VK.geometry.emit.line_strip_emit_0_end_0
 dEQP-VK.geometry.emit.line_strip_emit_0_end_1
 dEQP-VK.geometry.emit.line_strip_emit_0_end_2
