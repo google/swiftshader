@@ -1498,6 +1498,7 @@ cc_defaults {
     cflags: [
         "-Wno-ignored-qualifiers",
         "-Wno-implicit-fallthrough",
+        "-Wno-nontrivial-memcall",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
