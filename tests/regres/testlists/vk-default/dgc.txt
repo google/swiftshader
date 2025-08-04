@@ -169,6 +169,8 @@ dEQP-VK.dgc.ext.compute.misc.iubs_with_ies_multiset
 dEQP-VK.dgc.ext.compute.misc.iubs_with_ies_multiset_cq
 dEQP-VK.dgc.ext.compute.misc.many_sequences_1024_compute_queue
 dEQP-VK.dgc.ext.compute.misc.many_sequences_1024_universal_queue
+dEQP-VK.dgc.ext.compute.misc.many_sequences_131072_compute_queue
+dEQP-VK.dgc.ext.compute.misc.many_sequences_131072_universal_queue
 dEQP-VK.dgc.ext.compute.misc.many_sequences_64_compute_queue
 dEQP-VK.dgc.ext.compute.misc.many_sequences_64_universal_queue
 dEQP-VK.dgc.ext.compute.misc.many_sequences_8192_compute_queue
@@ -1744,6 +1746,14 @@ dEQP-VK.dgc.ext.graphics.mesh.conditional_rendering.preprocess.condition_false
 dEQP-VK.dgc.ext.graphics.mesh.conditional_rendering.preprocess.condition_false_inverted_flag
 dEQP-VK.dgc.ext.graphics.mesh.conditional_rendering.preprocess.condition_true
 dEQP-VK.dgc.ext.graphics.mesh.conditional_rendering.preprocess.condition_true_inverted_flag
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_1024
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_1024_task
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_131072
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_131072_task
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_64
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_64_task
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_8192
+dEQP-VK.dgc.ext.graphics.mesh.misc.many_sequences_8192_task
 dEQP-VK.dgc.ext.graphics.mesh.misc.no_frag_shader_gpl_fast
 dEQP-VK.dgc.ext.graphics.mesh.misc.no_frag_shader_gpl_fast_preprocess
 dEQP-VK.dgc.ext.graphics.mesh.misc.no_frag_shader_gpl_fast_with_ies
