@@ -455,15 +455,18 @@ spv_result_t ValidateImageOperands(ValidationState_t& _,
     }
 
     if (!_.options()->before_hlsl_legalization &&
-        spvIsVulkanEnv(_.context()->target_env)) {
+        spvIsVulkanEnv(_.context()->target_env) &&
+        !_.options()->allow_offset_texture_operand) {
       if (opcode != spv::Op::OpImageGather &&
           opcode != spv::Op::OpImageDrefGather &&
           opcode != spv::Op::OpImageSparseGather &&
           opcode != spv::Op::OpImageSparseDrefGather) {
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
-               << _.VkErrorID(4663)
+               << _.VkErrorID(10213)
                << "Image Operand Offset can only be used with "
-                  "OpImage*Gather operations";
+                  "OpImage*Gather operations."
+               << _.MissingFeature("maintenance8 feature",
+                                   "--allow-offset-texture-operand", false);
       }
     }
   }
@@ -994,6 +997,7 @@ bool IsAllowedSampledImageOperand(spv::Op opcode, ValidationState_t& _) {
     case spv::Op::OpImageBlockMatchWindowSSDQCOM:
     case spv::Op::OpImageBlockMatchGatherSADQCOM:
     case spv::Op::OpImageBlockMatchGatherSSDQCOM:
+    case spv::Op::OpImageSampleFootprintNV:
       return true;
     case spv::Op::OpStore:
       if (_.HasCapability(spv::Capability::BindlessTextureNV)) return true;
@@ -1005,7 +1009,8 @@ bool IsAllowedSampledImageOperand(spv::Op opcode, ValidationState_t& _) {
 
 spv_result_t ValidateSampledImage(ValidationState_t& _,
                                   const Instruction* inst) {
-  if (_.GetIdOpcode(inst->type_id()) != spv::Op::OpTypeSampledImage) {
+  auto type_inst = _.FindDef(inst->type_id());
+  if (type_inst->opcode() != spv::Op::OpTypeSampledImage) {
     return _.diag(SPV_ERROR_INVALID_DATA, inst)
            << "Expected Result Type to be OpTypeSampledImage.";
   }
@@ -1022,8 +1027,25 @@ spv_result_t ValidateSampledImage(ValidationState_t& _,
            << "Corrupt image type definition";
   }
 
-  // TODO(atgoo@github.com) Check compatibility of result type and received
-  // image.
+  // Image operands must match except for depth.
+  auto sampled_image_id = type_inst->GetOperandAs<uint32_t>(1);
+  if (sampled_image_id != image_type) {
+    ImageTypeInfo sampled_info;
+    if (!GetImageTypeInfo(_, sampled_image_id, &sampled_info)) {
+      return _.diag(SPV_ERROR_INVALID_DATA, inst)
+             << "Corrupt image type definition";
+    }
+    if (info.sampled_type != sampled_info.sampled_type ||
+        info.dim != sampled_info.dim || info.arrayed != sampled_info.arrayed ||
+        info.multisampled != sampled_info.multisampled ||
+        info.sampled != sampled_info.sampled ||
+        info.format != sampled_info.format ||
+        info.access_qualifier != sampled_info.access_qualifier) {
+      return _.diag(SPV_ERROR_INVALID_DATA, inst)
+             << "Image operands must match result image operands except for "
+                "depth";
+    }
+  }
 
   if (spvIsVulkanEnv(_.context()->target_env)) {
     if (info.sampled != 1) {
@@ -1115,28 +1137,33 @@ spv_result_t ValidateSampledImage(ValidationState_t& _,
 spv_result_t ValidateImageTexelPointer(ValidationState_t& _,
                                        const Instruction* inst) {
   const auto result_type = _.FindDef(inst->type_id());
-  if (result_type->opcode() != spv::Op::OpTypePointer) {
+  if (result_type->opcode() != spv::Op::OpTypePointer &&
+      result_type->opcode() != spv::Op::OpTypeUntypedPointerKHR) {
     return _.diag(SPV_ERROR_INVALID_DATA, inst)
-           << "Expected Result Type to be OpTypePointer";
+           << "Expected Result Type to be a pointer";
   }
 
   const auto storage_class = result_type->GetOperandAs<spv::StorageClass>(1);
   if (storage_class != spv::StorageClass::Image) {
     return _.diag(SPV_ERROR_INVALID_DATA, inst)
-           << "Expected Result Type to be OpTypePointer whose Storage Class "
+           << "Expected Result Type to be a pointer whose Storage Class "
               "operand is Image";
   }
 
-  const auto ptr_type = result_type->GetOperandAs<uint32_t>(2);
-  const auto ptr_opcode = _.GetIdOpcode(ptr_type);
-  if (ptr_opcode != spv::Op::OpTypeInt && ptr_opcode != spv::Op::OpTypeFloat &&
-      ptr_opcode != spv::Op::OpTypeVoid &&
-      !(ptr_opcode == spv::Op::OpTypeVector &&
-        _.HasCapability(spv::Capability::AtomicFloat16VectorNV) &&
-        _.IsFloat16Vector2Or4Type(ptr_type))) {
-    return _.diag(SPV_ERROR_INVALID_DATA, inst)
-           << "Expected Result Type to be OpTypePointer whose Type operand "
-              "must be a scalar numerical type or OpTypeVoid";
+  uint32_t ptr_type = 0;
+  if (result_type->opcode() == spv::Op::OpTypePointer) {
+    ptr_type = result_type->GetOperandAs<uint32_t>(2);
+    const auto ptr_opcode = _.GetIdOpcode(ptr_type);
+    if (ptr_opcode != spv::Op::OpTypeInt &&
+        ptr_opcode != spv::Op::OpTypeFloat &&
+        ptr_opcode != spv::Op::OpTypeVoid &&
+        !(ptr_opcode == spv::Op::OpTypeVector &&
+          _.HasCapability(spv::Capability::AtomicFloat16VectorNV) &&
+          _.IsFloat16Vector2Or4Type(ptr_type))) {
+      return _.diag(SPV_ERROR_INVALID_DATA, inst)
+             << "Expected Result Type to be a pointer whose Type operand "
+                "must be a scalar numerical type or OpTypeVoid";
+    }
   }
 
   const auto image_ptr = _.FindDef(_.GetOperandTypeId(inst, 2));
@@ -1157,7 +1184,8 @@ spv_result_t ValidateImageTexelPointer(ValidationState_t& _,
            << "Corrupt image type definition";
   }
 
-  if (info.sampled_type != ptr_type &&
+  if (result_type->opcode() == spv::Op::OpTypePointer &&
+      info.sampled_type != ptr_type &&
       !(_.HasCapability(spv::Capability::AtomicFloat16VectorNV) &&
         _.IsFloat16Vector2Or4Type(ptr_type) &&
         _.GetIdOpcode(info.sampled_type) == spv::Op::OpTypeFloat &&
@@ -2002,11 +2030,13 @@ spv_result_t ValidateImageQueryLod(ValidationState_t& _,
       ->RegisterExecutionModelLimitation(
           [&](spv::ExecutionModel model, std::string* message) {
             if (model != spv::ExecutionModel::Fragment &&
-                model != spv::ExecutionModel::GLCompute) {
+                model != spv::ExecutionModel::GLCompute &&
+                model != spv::ExecutionModel::MeshEXT &&
+                model != spv::ExecutionModel::TaskEXT) {
               if (message) {
                 *message = std::string(
-                    "OpImageQueryLod requires Fragment or GLCompute execution "
-                    "model");
+                    "OpImageQueryLod requires Fragment, GLCompute, MeshEXT or "
+                    "TaskEXT execution model");
               }
               return false;
             }
@@ -2018,16 +2048,20 @@ spv_result_t ValidateImageQueryLod(ValidationState_t& _,
                               std::string* message) {
         const auto* models = state.GetExecutionModels(entry_point->id());
         const auto* modes = state.GetExecutionModes(entry_point->id());
-        if (models->find(spv::ExecutionModel::GLCompute) != models->end() &&
-            modes->find(spv::ExecutionMode::DerivativeGroupLinearNV) ==
-                modes->end() &&
-            modes->find(spv::ExecutionMode::DerivativeGroupQuadsNV) ==
-                modes->end()) {
+        if (models &&
+            (models->find(spv::ExecutionModel::GLCompute) != models->end() ||
+             models->find(spv::ExecutionModel::MeshEXT) != models->end() ||
+             models->find(spv::ExecutionModel::TaskEXT) != models->end()) &&
+            (!modes ||
+             (modes->find(spv::ExecutionMode::DerivativeGroupLinearKHR) ==
+                  modes->end() &&
+              modes->find(spv::ExecutionMode::DerivativeGroupQuadsKHR) ==
+                  modes->end()))) {
           if (message) {
             *message = std::string(
-                "OpImageQueryLod requires DerivativeGroupQuadsNV "
-                "or DerivativeGroupLinearNV execution mode for GLCompute "
-                "execution model");
+                "OpImageQueryLod requires DerivativeGroupQuadsKHR "
+                "or DerivativeGroupLinearKHR execution mode for GLCompute, "
+                "MeshEXT or TaskEXT execution model");
           }
           return false;
         }
@@ -2296,12 +2330,14 @@ spv_result_t ImagePass(ValidationState_t& _, const Instruction* inst) {
         ->RegisterExecutionModelLimitation([opcode](spv::ExecutionModel model,
                                                     std::string* message) {
           if (model != spv::ExecutionModel::Fragment &&
-              model != spv::ExecutionModel::GLCompute) {
+              model != spv::ExecutionModel::GLCompute &&
+              model != spv::ExecutionModel::MeshEXT &&
+              model != spv::ExecutionModel::TaskEXT) {
             if (message) {
               *message =
                   std::string(
-                      "ImplicitLod instructions require Fragment or GLCompute "
-                      "execution model: ") +
+                      "ImplicitLod instructions require Fragment, GLCompute, "
+                      "MeshEXT or TaskEXT execution model: ") +
                   spvOpcodeString(opcode);
             }
             return false;
@@ -2315,19 +2351,22 @@ spv_result_t ImagePass(ValidationState_t& _, const Instruction* inst) {
           const auto* models = state.GetExecutionModels(entry_point->id());
           const auto* modes = state.GetExecutionModes(entry_point->id());
           if (models &&
-              models->find(spv::ExecutionModel::GLCompute) != models->end() &&
+              (models->find(spv::ExecutionModel::GLCompute) != models->end() ||
+               models->find(spv::ExecutionModel::MeshEXT) != models->end() ||
+               models->find(spv::ExecutionModel::TaskEXT) != models->end()) &&
               (!modes ||
-               (modes->find(spv::ExecutionMode::DerivativeGroupLinearNV) ==
+               (modes->find(spv::ExecutionMode::DerivativeGroupLinearKHR) ==
                     modes->end() &&
-                modes->find(spv::ExecutionMode::DerivativeGroupQuadsNV) ==
+                modes->find(spv::ExecutionMode::DerivativeGroupQuadsKHR) ==
                     modes->end()))) {
             if (message) {
-              *message =
-                  std::string(
-                      "ImplicitLod instructions require DerivativeGroupQuadsNV "
-                      "or DerivativeGroupLinearNV execution mode for GLCompute "
-                      "execution model: ") +
-                  spvOpcodeString(opcode);
+              *message = std::string(
+                             "ImplicitLod instructions require "
+                             "DerivativeGroupQuadsKHR "
+                             "or DerivativeGroupLinearKHR execution mode for "
+                             "GLCompute, "
+                             "MeshEXT or TaskEXT execution model: ") +
+                         spvOpcodeString(opcode);
             }
             return false;
           }

@@ -27,7 +27,6 @@
 #include <vector>
 
 #include "source/assembly_grammar.h"
-#include "source/enum_string_mapping.h"
 #include "source/opt/cfg.h"
 #include "source/opt/constants.h"
 #include "source/opt/debug_info_manager.h"
@@ -44,6 +43,7 @@
 #include "source/opt/struct_cfg_analysis.h"
 #include "source/opt/type_manager.h"
 #include "source/opt/value_number_table.h"
+#include "source/table2.h"
 #include "source/util/make_unique.h"
 #include "source/util/string_utils.h"
 
@@ -202,8 +202,9 @@ class IRContext {
   inline IteratorRange<Module::const_inst_iterator> debugs3() const;
 
   // Iterators for debug info instructions (excluding OpLine & OpNoLine)
-  // contained in this module.  These are OpExtInst for DebugInfo extension
-  // placed between section 9 and 10.
+  // contained in this module.  These are OpExtInst &
+  // OpExtInstWithForwardRefsKHR for DebugInfo extension placed between section
+  // 9 and 10.
   inline Module::inst_iterator ext_inst_debuginfo_begin();
   inline Module::inst_iterator ext_inst_debuginfo_end();
   inline IteratorRange<Module::inst_iterator> ext_inst_debuginfo();

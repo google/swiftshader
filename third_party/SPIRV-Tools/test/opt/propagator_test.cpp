@@ -184,7 +184,7 @@ TEST_F(PropagatorTest, PropagateThroughPhis) {
       }
     } else if (instr->opcode() == spv::Op::OpPhi) {
       phi_instr = instr;
-      SSAPropagator::PropStatus retval;
+      SSAPropagator::PropStatus retval = SSAPropagator::kNotInteresting;
       for (uint32_t i = 2; i < instr->NumOperands(); i += 2) {
         uint32_t phi_arg_id = instr->GetSingleWordOperand(i);
         auto it = values_.find(phi_arg_id);

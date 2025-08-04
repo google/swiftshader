@@ -28,6 +28,7 @@
 #include "source/opt/module.h"
 #include "source/opt/pass.h"
 #include "source/spirv_target_env.h"
+#include "source/table2.h"
 
 namespace spvtools {
 namespace opt {
@@ -74,17 +75,23 @@ class TrimCapabilitiesPass : public Pass {
   // contains unsupported instruction, the pass could yield bad results.
   static constexpr std::array kSupportedCapabilities{
       // clang-format off
-      spv::Capability::ComputeDerivativeGroupLinearNV,
-      spv::Capability::ComputeDerivativeGroupQuadsNV,
+      spv::Capability::ComputeDerivativeGroupLinearKHR,
+      spv::Capability::ComputeDerivativeGroupQuadsKHR,
       spv::Capability::Float16,
       spv::Capability::Float64,
       spv::Capability::FragmentShaderPixelInterlockEXT,
       spv::Capability::FragmentShaderSampleInterlockEXT,
       spv::Capability::FragmentShaderShadingRateInterlockEXT,
+      spv::Capability::GroupNonUniform,
+      spv::Capability::GroupNonUniformArithmetic,
+      spv::Capability::GroupNonUniformClustered,
+      spv::Capability::GroupNonUniformPartitionedNV,
+      spv::Capability::GroupNonUniformVote,
       spv::Capability::Groups,
       spv::Capability::ImageMSArray,
       spv::Capability::Int16,
       spv::Capability::Int64,
+      spv::Capability::InterpolationFunction,
       spv::Capability::Linkage,
       spv::Capability::MinLod,
       spv::Capability::PhysicalStorageBufferAddresses,
@@ -93,13 +100,15 @@ class TrimCapabilitiesPass : public Pass {
       spv::Capability::RayTraversalPrimitiveCullingKHR,
       spv::Capability::Shader,
       spv::Capability::ShaderClockKHR,
+      spv::Capability::StorageBuffer16BitAccess,
       spv::Capability::StorageImageReadWithoutFormat,
+      spv::Capability::StorageImageWriteWithoutFormat,
       spv::Capability::StorageInputOutput16,
       spv::Capability::StoragePushConstant16,
       spv::Capability::StorageUniform16,
       spv::Capability::StorageUniformBufferBlock16,
       spv::Capability::VulkanMemoryModelDeviceScope,
-      spv::Capability::GroupNonUniformPartitionedNV
+      spv::Capability::QuadControlKHR,
       // clang-format on
   };
 
@@ -121,14 +130,11 @@ class TrimCapabilitiesPass : public Pass {
 
  private:
   // Inserts every capability listed by `descriptor` this pass supports into
-  // `output`. Expects a Descriptor like `spv_opcode_desc_t` or
-  // `spv_operand_desc_t`.
-  template <class Descriptor>
-  inline void addSupportedCapabilitiesToSet(const Descriptor* const descriptor,
-                                            CapabilitySet* output) const {
-    const uint32_t capabilityCount = descriptor->numCapabilities;
-    for (uint32_t i = 0; i < capabilityCount; ++i) {
-      const auto capability = descriptor->capabilities[i];
+  // `output`.
+  template <typename Descriptor>
+  void addSupportedCapabilitiesToSet(const Descriptor* const descriptor,
+                                     CapabilitySet* output) const {
+    for (auto capability : descriptor->capabilities()) {
       if (supportedCapabilities_.contains(capability)) {
         output->insert(capability);
       }
@@ -136,8 +142,8 @@ class TrimCapabilitiesPass : public Pass {
   }
 
   // Inserts every extension listed by `descriptor` required by the module into
-  // `output`. Expects a Descriptor like `spv_opcode_desc_t` or
-  // `spv_operand_desc_t`.
+  // `output`. Expects a Descriptor like spvtools::OperandDesc or
+  // spvtools::InstructionDesc.
   template <class Descriptor>
   inline void addSupportedExtensionsToSet(const Descriptor* const descriptor,
                                           ExtensionSet* output) const {
@@ -145,8 +151,8 @@ class TrimCapabilitiesPass : public Pass {
         spvVersionForTargetEnv(context()->GetTargetEnv())) {
       return;
     }
-    output->insert(descriptor->extensions,
-                   descriptor->extensions + descriptor->numExtensions);
+    output->insert(descriptor->extensions().begin(),
+                   descriptor->extensions().end());
   }
 
   void addInstructionRequirementsForOpcode(spv::Op opcode,
@@ -155,6 +161,9 @@ class TrimCapabilitiesPass : public Pass {
   void addInstructionRequirementsForOperand(const Operand& operand,
                                             CapabilitySet* capabilities,
                                             ExtensionSet* extensions) const;
+
+  void addInstructionRequirementsForExtInst(Instruction* instruction,
+                                            CapabilitySet* capabilities) const;
 
   // Given an `instruction`, determines the capabilities it requires, and output
   // them in `capabilities`. The returned capabilities form a subset of

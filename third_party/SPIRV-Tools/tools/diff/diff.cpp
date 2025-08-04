@@ -82,17 +82,18 @@ bool is_assembly(const char* path) {
 std::unique_ptr<spvtools::opt::IRContext> load_module(const char* path) {
   if (is_assembly(path)) {
     std::vector<char> contents;
-    if (!ReadTextFile<char>(path, &contents)) return {};
+    if (!ReadTextFile(path, &contents)) return {};
 
     return spvtools::BuildModule(
         kDefaultEnvironment, spvtools::utils::CLIMessageConsumer,
         std::string(contents.begin(), contents.end()),
-        spvtools::SpirvTools::kDefaultAssembleOption |
+        static_cast<spv_text_to_binary_options_t>(
+            spvtools::SpirvTools::kDefaultAssembleOption) |
             SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   }
 
   std::vector<uint32_t> contents;
-  if (!ReadBinaryFile<uint32_t>(path, &contents)) return {};
+  if (!ReadBinaryFile(path, &contents)) return {};
 
   return spvtools::BuildModule(kDefaultEnvironment,
                                spvtools::utils::CLIMessageConsumer,

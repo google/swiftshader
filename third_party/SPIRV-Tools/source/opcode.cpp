@@ -1,6 +1,6 @@
 // Copyright (c) 2015-2022 The Khronos Group Inc.
-// Modifications Copyright (C) 2020 Advanced Micro Devices, Inc. All rights
-// reserved.
+// Modifications Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All
+// rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,18 +27,10 @@
 #include "source/spirv_constant.h"
 #include "source/spirv_endian.h"
 #include "source/spirv_target_env.h"
+#include "source/table2.h"
 #include "spirv-tools/libspirv.h"
 
 namespace {
-struct OpcodeDescPtrLen {
-  const spv_opcode_desc_t* ptr;
-  uint32_t len;
-};
-
-#include "core.insts-unified1.inc"
-
-static const spv_opcode_table_t kOpcodeTable = {ARRAY_SIZE(kOpcodeTableEntries),
-                                                kOpcodeTableEntries};
 
 // Represents a vendor tool entry in the SPIR-V XML Registry.
 struct VendorTool {
@@ -78,94 +70,6 @@ void spvOpcodeSplit(const uint32_t word, uint16_t* pWordCount,
   }
 }
 
-spv_result_t spvOpcodeTableGet(spv_opcode_table* pInstTable, spv_target_env) {
-  if (!pInstTable) return SPV_ERROR_INVALID_POINTER;
-
-  // Descriptions of each opcode.  Each entry describes the format of the
-  // instruction that follows a particular opcode.
-
-  *pInstTable = &kOpcodeTable;
-  return SPV_SUCCESS;
-}
-
-spv_result_t spvOpcodeTableNameLookup(spv_target_env env,
-                                      const spv_opcode_table table,
-                                      const char* name,
-                                      spv_opcode_desc* pEntry) {
-  if (!name || !pEntry) return SPV_ERROR_INVALID_POINTER;
-  if (!table) return SPV_ERROR_INVALID_TABLE;
-
-  // TODO: This lookup of the Opcode table is suboptimal! Binary sort would be
-  // preferable but the table requires sorting on the Opcode name, but it's
-  // static const initialized and matches the order of the spec.
-  const size_t nameLength = strlen(name);
-  const auto version = spvVersionForTargetEnv(env);
-  for (uint64_t opcodeIndex = 0; opcodeIndex < table->count; ++opcodeIndex) {
-    const spv_opcode_desc_t& entry = table->entries[opcodeIndex];
-    // We considers the current opcode as available as long as
-    // 1. The target environment satisfies the minimal requirement of the
-    //    opcode; or
-    // 2. There is at least one extension enabling this opcode.
-    //
-    // Note that the second rule assumes the extension enabling this instruction
-    // is indeed requested in the SPIR-V code; checking that should be
-    // validator's work.
-    if (((version >= entry.minVersion && version <= entry.lastVersion) ||
-         entry.numExtensions > 0u || entry.numCapabilities > 0u) &&
-        nameLength == strlen(entry.name) &&
-        !strncmp(name, entry.name, nameLength)) {
-      // NOTE: Found out Opcode!
-      *pEntry = &entry;
-      return SPV_SUCCESS;
-    }
-  }
-
-  return SPV_ERROR_INVALID_LOOKUP;
-}
-
-spv_result_t spvOpcodeTableValueLookup(spv_target_env env,
-                                       const spv_opcode_table table,
-                                       const spv::Op opcode,
-                                       spv_opcode_desc* pEntry) {
-  if (!table) return SPV_ERROR_INVALID_TABLE;
-  if (!pEntry) return SPV_ERROR_INVALID_POINTER;
-
-  const auto beg = table->entries;
-  const auto end = table->entries + table->count;
-
-  spv_opcode_desc_t needle = {"",    opcode, 0, nullptr, 0,   {},
-                              false, false,  0, nullptr, ~0u, ~0u};
-
-  auto comp = [](const spv_opcode_desc_t& lhs, const spv_opcode_desc_t& rhs) {
-    return lhs.opcode < rhs.opcode;
-  };
-
-  // We need to loop here because there can exist multiple symbols for the same
-  // opcode value, and they can be introduced in different target environments,
-  // which means they can have different minimal version requirements.
-  // Assumes the underlying table is already sorted ascendingly according to
-  // opcode value.
-  const auto version = spvVersionForTargetEnv(env);
-  for (auto it = std::lower_bound(beg, end, needle, comp);
-       it != end && it->opcode == opcode; ++it) {
-    // We considers the current opcode as available as long as
-    // 1. The target environment satisfies the minimal requirement of the
-    //    opcode; or
-    // 2. There is at least one extension enabling this opcode.
-    //
-    // Note that the second rule assumes the extension enabling this instruction
-    // is indeed requested in the SPIR-V code; checking that should be
-    // validator's work.
-    if ((version >= it->minVersion && version <= it->lastVersion) ||
-        it->numExtensions > 0u || it->numCapabilities > 0u) {
-      *pEntry = it;
-      return SPV_SUCCESS;
-    }
-  }
-
-  return SPV_ERROR_INVALID_LOOKUP;
-}
-
 void spvInstructionCopy(const uint32_t* words, const spv::Op opcode,
                         const uint16_t wordCount, const spv_endianness_t endian,
                         spv_instruction_t* pInst) {
@@ -184,24 +88,13 @@ void spvInstructionCopy(const uint32_t* words, const spv::Op opcode,
 }
 
 const char* spvOpcodeString(const uint32_t opcode) {
-  const auto beg = kOpcodeTableEntries;
-  const auto end = kOpcodeTableEntries + ARRAY_SIZE(kOpcodeTableEntries);
-  spv_opcode_desc_t needle = {"",    static_cast<spv::Op>(opcode),
-                              0,     nullptr,
-                              0,     {},
-                              false, false,
-                              0,     nullptr,
-                              ~0u,   ~0u};
-  auto comp = [](const spv_opcode_desc_t& lhs, const spv_opcode_desc_t& rhs) {
-    return lhs.opcode < rhs.opcode;
-  };
-  auto it = std::lower_bound(beg, end, needle, comp);
-  if (it != end && it->opcode == spv::Op(opcode)) {
-    return it->name;
+  const spvtools::InstructionDesc* desc = nullptr;
+  if (SPV_SUCCESS !=
+      spvtools::LookupOpcode(static_cast<spv::Op>(opcode), &desc)) {
+    assert(0 && "Unreachable!");
+    return "unknown";
   }
-
-  assert(0 && "Unreachable!");
-  return "unknown";
+  return desc->name().data();
 }
 
 const char* spvOpcodeString(const spv::Op opcode) {
@@ -225,6 +118,7 @@ int32_t spvOpcodeIsSpecConstant(const spv::Op opcode) {
     case spv::Op::OpSpecConstantFalse:
     case spv::Op::OpSpecConstant:
     case spv::Op::OpSpecConstantComposite:
+    case spv::Op::OpSpecConstantCompositeReplicateEXT:
     case spv::Op::OpSpecConstantOp:
       return true;
     default:
@@ -238,14 +132,20 @@ int32_t spvOpcodeIsConstant(const spv::Op opcode) {
     case spv::Op::OpConstantFalse:
     case spv::Op::OpConstant:
     case spv::Op::OpConstantComposite:
+    case spv::Op::OpConstantCompositeReplicateEXT:
     case spv::Op::OpConstantSampler:
     case spv::Op::OpConstantNull:
     case spv::Op::OpConstantFunctionPointerINTEL:
+    case spv::Op::OpConstantStringAMDX:
     case spv::Op::OpSpecConstantTrue:
     case spv::Op::OpSpecConstantFalse:
     case spv::Op::OpSpecConstant:
     case spv::Op::OpSpecConstantComposite:
+    case spv::Op::OpSpecConstantCompositeReplicateEXT:
     case spv::Op::OpSpecConstantOp:
+    case spv::Op::OpSpecConstantStringAMDX:
+    case spv::Op::OpAsmTargetINTEL:
+    case spv::Op::OpAsmINTEL:
       return true;
     default:
       return false;
@@ -273,8 +173,10 @@ int32_t spvOpcodeIsComposite(const spv::Op opcode) {
     case spv::Op::OpTypeMatrix:
     case spv::Op::OpTypeArray:
     case spv::Op::OpTypeStruct:
+    case spv::Op::OpTypeRuntimeArray:
     case spv::Op::OpTypeCooperativeMatrixNV:
     case spv::Op::OpTypeCooperativeMatrixKHR:
+    case spv::Op::OpTypeCooperativeVectorNV:
       return true;
     default:
       return false;
@@ -284,15 +186,20 @@ int32_t spvOpcodeIsComposite(const spv::Op opcode) {
 bool spvOpcodeReturnsLogicalVariablePointer(const spv::Op opcode) {
   switch (opcode) {
     case spv::Op::OpVariable:
+    case spv::Op::OpUntypedVariableKHR:
     case spv::Op::OpAccessChain:
     case spv::Op::OpInBoundsAccessChain:
+    case spv::Op::OpUntypedAccessChainKHR:
+    case spv::Op::OpUntypedInBoundsAccessChainKHR:
     case spv::Op::OpFunctionParameter:
     case spv::Op::OpImageTexelPointer:
     case spv::Op::OpCopyObject:
+    case spv::Op::OpAllocateNodePayloadsAMDX:
     case spv::Op::OpSelect:
     case spv::Op::OpPhi:
     case spv::Op::OpFunctionCall:
     case spv::Op::OpPtrAccessChain:
+    case spv::Op::OpUntypedPtrAccessChainKHR:
     case spv::Op::OpLoad:
     case spv::Op::OpConstantNull:
     case spv::Op::OpRawAccessChainNV:
@@ -305,12 +212,16 @@ bool spvOpcodeReturnsLogicalVariablePointer(const spv::Op opcode) {
 int32_t spvOpcodeReturnsLogicalPointer(const spv::Op opcode) {
   switch (opcode) {
     case spv::Op::OpVariable:
+    case spv::Op::OpUntypedVariableKHR:
     case spv::Op::OpAccessChain:
     case spv::Op::OpInBoundsAccessChain:
+    case spv::Op::OpUntypedAccessChainKHR:
+    case spv::Op::OpUntypedInBoundsAccessChainKHR:
     case spv::Op::OpFunctionParameter:
     case spv::Op::OpImageTexelPointer:
     case spv::Op::OpCopyObject:
     case spv::Op::OpRawAccessChainNV:
+    case spv::Op::OpAllocateNodePayloadsAMDX:
       return true;
     default:
       return false;
@@ -344,10 +255,17 @@ int32_t spvOpcodeGeneratesType(spv::Op op) {
     case spv::Op::OpTypeAccelerationStructureNV:
     case spv::Op::OpTypeCooperativeMatrixNV:
     case spv::Op::OpTypeCooperativeMatrixKHR:
+    case spv::Op::OpTypeCooperativeVectorNV:
     // case spv::Op::OpTypeAccelerationStructureKHR: covered by
     // spv::Op::OpTypeAccelerationStructureNV
     case spv::Op::OpTypeRayQueryKHR:
     case spv::Op::OpTypeHitObjectNV:
+    case spv::Op::OpTypeUntypedPointerKHR:
+    case spv::Op::OpTypeNodePayloadArrayAMDX:
+    case spv::Op::OpTypeTensorLayoutNV:
+    case spv::Op::OpTypeTensorViewNV:
+    case spv::Op::OpTypeTensorARM:
+    case spv::Op::OpTypeTaskSequenceINTEL:
       return true;
     default:
       // In particular, OpTypeForwardPointer does not generate a type,
@@ -385,6 +303,7 @@ bool spvOpcodeIsLoad(const spv::Op opcode) {
     case spv::Op::OpImageSampleProjExplicitLod:
     case spv::Op::OpImageSampleProjDrefImplicitLod:
     case spv::Op::OpImageSampleProjDrefExplicitLod:
+    case spv::Op::OpImageSampleFootprintNV:
     case spv::Op::OpImageFetch:
     case spv::Op::OpImageGather:
     case spv::Op::OpImageDrefGather:
@@ -711,6 +630,17 @@ bool spvOpcodeIsImageSample(const spv::Op opcode) {
     case spv::Op::OpImageSparseSampleExplicitLod:
     case spv::Op::OpImageSparseSampleDrefImplicitLod:
     case spv::Op::OpImageSparseSampleDrefExplicitLod:
+    case spv::Op::OpImageSampleFootprintNV:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool spvIsExtendedInstruction(const spv::Op opcode) {
+  switch (opcode) {
+    case spv::Op::OpExtInst:
+    case spv::Op::OpExtInstWithForwardRefsKHR:
       return true;
     default:
       return false;
@@ -774,6 +704,19 @@ bool spvOpcodeIsBit(spv::Op opcode) {
     case spv::Op::OpNot:
     case spv::Op::OpBitReverse:
     case spv::Op::OpBitCount:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool spvOpcodeGeneratesUntypedPointer(spv::Op opcode) {
+  switch (opcode) {
+    case spv::Op::OpUntypedVariableKHR:
+    case spv::Op::OpUntypedAccessChainKHR:
+    case spv::Op::OpUntypedInBoundsAccessChainKHR:
+    case spv::Op::OpUntypedPtrAccessChainKHR:
+    case spv::Op::OpUntypedInBoundsPtrAccessChainKHR:
       return true;
     default:
       return false;

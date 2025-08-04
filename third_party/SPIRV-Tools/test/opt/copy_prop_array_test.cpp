@@ -1977,6 +1977,504 @@ OpFunctionEnd
 
   SinglePassRunAndCheck<CopyPropagateArrays>(text, text, false);
 }
+
+TEST_F(CopyPropArrayPassTest, InterpolateFunctions) {
+  const std::string before = R"(OpCapability InterpolationFunction
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %in_var_COLOR
+OpExecutionMode %main OriginUpperLeft
+OpSource HLSL 680
+OpName %in_var_COLOR "in.var.COLOR"
+OpName %main "main"
+OpName %offset "offset"
+OpDecorate %in_var_COLOR Location 0
+%int = OpTypeInt 32 1
+%int_0 = OpConstant %int 0
+%float = OpTypeFloat 32
+%float_0 = OpConstant %float 0
+%v2float = OpTypeVector %float 2
+%v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%void = OpTypeVoid
+%19 = OpTypeFunction %void
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%main = OpFunction %void None %19
+%20 = OpLabel
+%45 = OpVariable %_ptr_Function_v4float Function
+%25 = OpLoad %v4float %in_var_COLOR
+OpStore %45 %25
+; CHECK: OpExtInst %v4float %1 InterpolateAtCentroid %in_var_COLOR
+%52 = OpExtInst %v4float %1 InterpolateAtCentroid %45
+; CHECK: OpExtInst %v4float %1 InterpolateAtSample %in_var_COLOR %int_0
+%54 = OpExtInst %v4float %1 InterpolateAtSample %45 %int_0
+%offset = OpCompositeConstruct %v2float %float_0 %float_0
+; CHECK: OpExtInst %v4float %1 InterpolateAtOffset %in_var_COLOR %offset
+%56 = OpExtInst %v4float %1 InterpolateAtOffset %45 %offset
+OpReturn
+OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER |
+                        SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, false);
+}
+
+TEST_F(CopyPropArrayPassTest, InterpolateMultiPropagation) {
+  const std::string before = R"(OpCapability InterpolationFunction
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %in_var_COLOR
+OpExecutionMode %main OriginUpperLeft
+OpSource HLSL 680
+OpName %in_var_COLOR "in.var.COLOR"
+OpName %main "main"
+OpName %param_var_color "param.var.color"
+OpDecorate %in_var_COLOR Location 0
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%void = OpTypeVoid
+%19 = OpTypeFunction %void
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%main = OpFunction %void None %19
+%20 = OpLabel
+%45 = OpVariable %_ptr_Function_v4float Function
+%param_var_color = OpVariable %_ptr_Function_v4float Function
+%25 = OpLoad %v4float %in_var_COLOR
+OpStore %param_var_color %25
+; CHECK: OpExtInst %v4float %1 InterpolateAtCentroid %in_var_COLOR
+%52 = OpExtInst %v4float %1 InterpolateAtCentroid %param_var_color
+%49 = OpLoad %v4float %param_var_color
+OpStore %45 %49
+; CHECK: OpExtInst %v4float %1 InterpolateAtCentroid %in_var_COLOR
+%54 = OpExtInst %v4float %1 InterpolateAtCentroid %45
+OpReturn
+OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER |
+                        SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, false);
+}
+
+TEST_F(CopyPropArrayPassTest, PropagateScalar) {
+  const std::string before = R"(OpCapability InterpolationFunction
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %in_var_SV_InstanceID
+OpExecutionMode %main OriginUpperLeft
+OpSource HLSL 680
+OpName %in_var_SV_InstanceID "in.var.SV_InstanceID"
+OpName %main "main"
+OpDecorate %in_var_SV_InstanceID Location 0
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%_ptr_Input_float = OpTypePointer Input %float
+%void = OpTypeVoid
+%19 = OpTypeFunction %void
+%_ptr_Function_float = OpTypePointer Function %float
+%in_var_SV_InstanceID = OpVariable %_ptr_Input_float Input
+%main = OpFunction %void None %19
+%20 = OpLabel
+%45 = OpVariable %_ptr_Function_float Function
+%25 = OpLoad %v4float %in_var_SV_InstanceID
+OpStore %45 %25
+; CHECK: OpExtInst %v4float %1 InterpolateAtCentroid %in_var_SV_InstanceID
+%52 = OpExtInst %v4float %1 InterpolateAtCentroid %45
+OpReturn
+OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER |
+                        SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, false);
+}
+
+TEST_F(CopyPropArrayPassTest, StoreToAccessChain) {
+  const std::string before = R"(OpCapability InterpolationFunction
+OpCapability MeshShadingEXT
+OpExtension "SPV_EXT_mesh_shader"
+OpMemoryModel Logical GLSL450
+OpEntryPoint MeshEXT %1 "main" %2 %3
+OpExecutionMode %1 LocalSize 128 1 1
+OpExecutionMode %1 OutputTrianglesEXT
+OpExecutionMode %1 OutputVertices 64
+OpExecutionMode %1 OutputPrimitivesEXT 126
+OpDecorate %3 Flat
+OpDecorate %3 Location 2
+%uint = OpTypeInt 32 0
+%uint_4 = OpConstant %uint 4
+%uint_32 = OpConstant %uint 32
+%_arr_uint_uint_32 = OpTypeArray %uint %uint_32
+%_struct_8 = OpTypeStruct %_arr_uint_uint_32
+%_ptr_TaskPayloadWorkgroupEXT__struct_8 = OpTypePointer TaskPayloadWorkgroupEXT %_struct_8
+%uint_64 = OpConstant %uint 64
+%_arr_uint_uint_64 = OpTypeArray %uint %uint_64
+%_ptr_Output__arr_uint_uint_64 = OpTypePointer Output %_arr_uint_uint_64
+%void = OpTypeVoid
+%14 = OpTypeFunction %void
+%_ptr_Function_uint = OpTypePointer Function %uint
+%_ptr_Function__arr_uint_uint_32 = OpTypePointer Function %_arr_uint_uint_32
+%_ptr_Output_uint = OpTypePointer Output %uint
+%2 = OpVariable %_ptr_TaskPayloadWorkgroupEXT__struct_8 TaskPayloadWorkgroupEXT
+%3 = OpVariable %_ptr_Output__arr_uint_uint_64 Output
+%1 = OpFunction %void None %14
+%18 = OpLabel
+%19 = OpVariable %_ptr_Function__arr_uint_uint_32 Function
+%20 = OpLoad %_struct_8 %2
+%21 = OpCompositeExtract %_arr_uint_uint_32 %20 0
+; CHECK: %28 = OpAccessChain %_ptr_TaskPayloadWorkgroupEXT__arr_uint_uint_32 %2 %uint_0
+OpStore %19 %21
+; CHECK: %22 = OpAccessChain %_ptr_TaskPayloadWorkgroupEXT_uint %28 %uint_4
+%22 = OpAccessChain %_ptr_Function_uint %19 %uint_4
+%23 = OpLoad %uint %22
+%24 = OpAccessChain %_ptr_Output_uint %3 %uint_4
+OpStore %24 %23
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, true);
+}
+
+TEST_F(CopyPropArrayPassTest, PropCopyLogical) {
+  const std::string before = R"(
+; CHECK: [[v4array_ptr:%\w+]] = OpTypePointer Uniform %14
+; CHECK: [[v4_ptr:%\w+]] = OpTypePointer Uniform %7
+; CHECK: [[ac:%\w+]] = OpAccessChain [[v4array_ptr]] %19 %21 %33
+; CHECK: %47 = OpAccessChain [[v4_ptr]] [[ac]] %37
+      OpCapability Shader
+ %1 = OpExtInstImport "GLSL.std.450"
+      OpMemoryModel Logical GLSL450
+      OpEntryPoint Vertex %4 "main" %19 %30 %32
+      OpSource GLSL 430
+      OpName %4 "main"
+      OpDecorate %14 ArrayStride 16
+      OpDecorate %15 ArrayStride 16
+      OpMemberDecorate %16 0 Offset 0
+      OpMemberDecorate %16 1 Offset 32
+      OpDecorate %17 Block
+      OpMemberDecorate %17 0 Offset 0
+      OpDecorate %19 Binding 0
+      OpDecorate %19 DescriptorSet 0
+      OpDecorate %28 Block
+      OpMemberDecorate %28 0 BuiltIn Position
+      OpMemberDecorate %28 1 BuiltIn PointSize
+      OpMemberDecorate %28 2 BuiltIn ClipDistance
+      OpDecorate %32 Location 0
+ %2 = OpTypeVoid
+ %3 = OpTypeFunction %2
+ %6 = OpTypeFloat 32
+ %7 = OpTypeVector %6 4
+ %8 = OpTypeInt 32 0
+ %9 = OpConstant %8 2
+%10 = OpTypeArray %7 %9
+%11 = OpTypeStruct %10 %10
+%14 = OpTypeArray %7 %9
+%15 = OpTypeArray %7 %9
+%16 = OpTypeStruct %14 %15
+%17 = OpTypeStruct %16
+%18 = OpTypePointer Uniform %17
+%19 = OpVariable %18 Uniform
+%20 = OpTypeInt 32 1
+%21 = OpConstant %20 0
+%22 = OpTypePointer Uniform %16
+%26 = OpConstant %8 1
+%27 = OpTypeArray %6 %26
+%28 = OpTypeStruct %7 %6 %27
+%29 = OpTypePointer Output %28
+%30 = OpVariable %29 Output
+%31 = OpTypePointer Input %7
+%32 = OpVariable %31 Input
+%33 = OpConstant %8 0
+%34 = OpTypePointer Input %6
+%38 = OpTypePointer Function %7
+%41 = OpTypePointer Output %7
+%43 = OpTypePointer Function %10
+ %4 = OpFunction %2 None %3
+ %5 = OpLabel
+%44 = OpVariable %43 Function
+%23 = OpAccessChain %22 %19 %21
+%24 = OpLoad %16 %23
+%25 = OpCopyLogical %11 %24
+%46 = OpCompositeExtract %10 %25 0
+      OpStore %44 %46
+%35 = OpAccessChain %34 %32 %33
+%36 = OpLoad %6 %35
+%37 = OpConvertFToS %20 %36
+%47 = OpAccessChain %38 %44 %37
+%40 = OpLoad %7 %47
+%42 = OpAccessChain %41 %30 %21
+      OpStore %42 %40
+      OpReturn
+      OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_6);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, true);
+}
+
+// Ensure that the use of the global variable in a debug instruction does not
+// stop copy propagation. We expect the image operand to OpImageTexelPointer to
+// be replaced.
+TEST_F(CopyPropArrayPassTest, DebugInstNotStore) {
+  const std::string before = R"(
+               OpCapability Shader
+               OpCapability SampledBuffer
+               OpExtension "SPV_KHR_non_semantic_info"
+              OpExtension "SPV_EXT_descriptor_indexing"
+          %1 = OpExtInstImport "GLSL.std.450"
+          %2 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %3 "maincomp"
+               OpExecutionMode %3 LocalSize 16 16 1
+          %4 = OpString ""
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+     %uint_6 = OpConstant %uint 6
+     %uint_8 = OpConstant %uint 8
+     %uint_2 = OpConstant %uint 2
+     %uint_7 = OpConstant %uint 7
+     %uint_3 = OpConstant %uint 3
+    %uint_32 = OpConstant %uint 32
+    %uint_16 = OpConstant %uint 16
+     %uint_4 = OpConstant %uint 4
+         %16 = OpTypeImage %uint Buffer 2 0 0 2 R32ui
+%_ptr_UniformConstant_16 = OpTypePointer UniformConstant %16
+       %void = OpTypeVoid
+     %uint_5 = OpConstant %uint 5
+    %uint_70 = OpConstant %uint 70
+    %uint_71 = OpConstant %uint 71
+    %uint_72 = OpConstant %uint 72
+    %uint_17 = OpConstant %uint 17
+     %uint_9 = OpConstant %uint 9
+    %uint_25 = OpConstant %uint 25
+    %uint_14 = OpConstant %uint 14
+    %uint_24 = OpConstant %uint 24
+    %uint_13 = OpConstant %uint 13
+         %29 = OpTypeFunction %void
+%_ptr_Function_16 = OpTypePointer Function %16
+%_ptr_Image_uint = OpTypePointer Image %uint
+; CHECK: [[GV:%\w+]] = OpVariable {{%\w+}} UniformConstant
+         %32 = OpVariable %_ptr_UniformConstant_16 UniformConstant
+         %33 = OpExtInst %void %2 DebugInfoNone
+         %34 = OpExtInst %void %2 DebugExpression
+         %35 = OpExtInst %void %2 DebugTypeBasic %4 %uint_32 %uint_3 %uint_0
+         %36 = OpExtInst %void %2 DebugTypeVector %35 %uint_3
+         %37 = OpExtInst %void %2 DebugSource %4 %4
+         %38 = OpExtInst %void %2 DebugCompilationUnit %uint_1 %uint_4 %37 %uint_5
+         %39 = OpExtInst %void %2 DebugTypeTemplateParameter %4 %36 %33 %37 %uint_0 %uint_0
+         %40 = OpExtInst %void %2 DebugTypeBasic %4 %uint_32 %uint_6 %uint_0
+         %41 = OpExtInst %void %2 DebugSource %4 %4
+         %42 = OpExtInst %void %2 DebugCompilationUnit %uint_1 %uint_4 %41 %uint_5
+         %43 = OpExtInst %void %2 DebugTypeComposite %4 %uint_0 %37 %uint_0 %uint_0 %38 %4 %33 %uint_3
+         %44 = OpExtInst %void %2 DebugTypeTemplateParameter %4 %40 %33 %37 %uint_0 %uint_0
+         %45 = OpExtInst %void %2 DebugTypeTemplate %43 %44
+         %46 = OpExtInst %void %2 DebugTypeFunction %uint_3 %void %40
+         %47 = OpExtInst %void %2 DebugFunction %4 %46 %37 %uint_70 %uint_1 %38 %4 %uint_3 %uint_71
+         %48 = OpExtInst %void %2 DebugLexicalBlock %37 %uint_71 %uint_1 %47
+         %49 = OpExtInst %void %2 DebugLocalVariable %4 %45 %37 %uint_72 %uint_17 %48 %uint_4
+         %50 = OpExtInst %void %2 DebugTypeFunction %uint_3 %void
+         %51 = OpExtInst %void %2 DebugSource %4 %4
+         %52 = OpExtInst %void %2 DebugCompilationUnit %uint_1 %uint_4 %51 %uint_5
+         %53 = OpExtInst %void %2 DebugFunction %4 %50 %51 %uint_24 %uint_1 %52 %4 %uint_3 %uint_25
+         %54 = OpExtInst %void %2 DebugGlobalVariable %4 %45 %37 %uint_17 %uint_16 %38 %4 %32 %uint_8
+         %55 = OpExtInst %void %2 DebugTypeMember %4 %40 %37 %uint_14 %uint_7 %uint_0 %uint_32 %uint_3
+         %56 = OpExtInst %void %2 DebugTypeComposite %4 %uint_1 %37 %uint_13 %uint_9 %38 %4 %uint_32 %uint_3 %55
+         %57 = OpExtInst %void %2 DebugEntryPoint %53 %42 %4 %4
+          %3 = OpFunction %void None %29
+         %58 = OpLabel
+         %59 = OpVariable %_ptr_Function_16 Function
+         %60 = OpLoad %16 %32
+               OpStore %59 %60
+         %61 = OpExtInst %void %2 DebugDeclare %49 %59 %34
+         %62 = OpExtInst %void %2 DebugLine %37 %uint_0 %uint_0 %uint_2 %uint_2
+; CHECK: OpImageTexelPointer %_ptr_Image_uint [[GV]] %uint_0 %uint_0
+         %63 = OpImageTexelPointer %_ptr_Image_uint %59 %uint_0 %uint_0
+         %64 = OpAtomicIAdd %uint %63 %uint_1 %uint_0 %uint_1
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_1);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, false);
+}
+
+TEST_F(CopyPropArrayPassTest, DebugInstNotDominatingStore) {
+  // Move the debug value to after the new access chain instruction.
+  const std::string before = R"(
+               OpCapability Shader
+               OpCapability MeshShadingEXT
+               OpExtension "SPV_EXT_mesh_shader"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint MeshEXT %2 "main" %3
+               OpExecutionMode %2 LocalSize 1 1 1
+               OpExecutionMode %2 OutputTrianglesEXT
+               OpExecutionMode %2 OutputVertices 64
+               OpExecutionMode %2 OutputPrimitivesEXT 124
+          %4 = OpString ""
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+%_arr_uint_uint_32 = OpTypeArray %uint %uint_32
+ %_struct_10 = OpTypeStruct %_arr_uint_uint_32
+%_ptr_TaskPayloadWorkgroupEXT__struct_10 = OpTypePointer TaskPayloadWorkgroupEXT %_struct_10
+   %uint_124 = OpConstant %uint 124
+    %uint_64 = OpConstant %uint 64
+       %void = OpTypeVoid
+     %uint_6 = OpConstant %uint 6
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+  %uint_1024 = OpConstant %uint 1024
+     %uint_7 = OpConstant %uint 7
+     %uint_8 = OpConstant %uint 8
+     %uint_3 = OpConstant %uint 3
+    %uint_96 = OpConstant %uint 96
+    %uint_11 = OpConstant %uint 11
+    %uint_12 = OpConstant %uint 12
+    %uint_10 = OpConstant %uint 10
+    %uint_16 = OpConstant %uint 16
+    %uint_21 = OpConstant %uint 21
+    %uint_17 = OpConstant %uint 17
+    %uint_26 = OpConstant %uint 26
+         %32 = OpTypeFunction %void
+%_ptr_Function__arr_uint_uint_32 = OpTypePointer Function %_arr_uint_uint_32
+          %3 = OpVariable %_ptr_TaskPayloadWorkgroupEXT__struct_10 TaskPayloadWorkgroupEXT
+         %34 = OpExtInst %void %1 DebugOperation %uint_0
+         %35 = OpExtInst %void %1 DebugTypeBasic %4 %uint_32 %uint_6 %uint_0
+         %36 = OpExtInst %void %1 DebugSource %4 %4
+         %37 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %36 %uint_5
+         %38 = OpExtInst %void %1 DebugTypeArray %35 %uint_32
+         %39 = OpExtInst %void %1 DebugTypeMember %4 %38 %36 %uint_7 %uint_8 %uint_0 %uint_1024 %uint_3
+         %40 = OpExtInst %void %1 DebugTypeComposite %4 %uint_1 %36 %uint_6 %uint_8 %37 %4 %uint_1024 %uint_3 %39
+         %41 = OpExtInst %void %1 DebugTypeVector %35 %uint_3
+         %42 = OpExtInst %void %1 DebugTypeArray %41 %uint_124
+         %43 = OpExtInst %void %1 DebugTypeBasic %4 %uint_32 %uint_3 %uint_0
+         %44 = OpExtInst %void %1 DebugTypeVector %43 %uint_3
+         %45 = OpExtInst %void %1 DebugTypeMember %4 %44 %36 %uint_11 %uint_12 %uint_0 %uint_96 %uint_3
+         %46 = OpExtInst %void %1 DebugTypeComposite %4 %uint_1 %36 %uint_10 %uint_8 %37 %4 %uint_96 %uint_3 %45
+         %47 = OpExtInst %void %1 DebugTypeArray %46 %uint_64
+         %48 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void %40 %35 %42 %47
+         %49 = OpExtInst %void %1 DebugFunction %4 %48 %36 %uint_16 %uint_1 %37 %4 %uint_3 %uint_21
+         %50 = OpExtInst %void %1 DebugLocalVariable %4 %40 %36 %uint_17 %uint_26 %49 %uint_4 %uint_1
+         %51 = OpExtInst %void %1 DebugExpression %34
+; CHECK: OpFunction
+          %2 = OpFunction %void None %32
+         %52 = OpLabel
+         %53 = OpVariable %_ptr_Function__arr_uint_uint_32 Function
+; CHECK: [[new_ptr:%\w+]] = OpAccessChain %_ptr_TaskPayloadWorkgroupEXT__arr_uint_uint_32
+; CHECK: OpExtInst %void %1 DebugValue {{%\w+}} [[new_ptr]]
+         %54 = OpExtInst %void %1 DebugValue %50 %53 %51 %int_0
+         %55 = OpLoad %_struct_10 %3
+         %56 = OpCompositeExtract %_arr_uint_uint_32 %55 0
+               OpStore %53 %56
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_1);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, false);
+}
+
+TEST_F(CopyPropArrayPassTest, DebugInstNotDominatingStoreInDifferentBB) {
+  // Move the debug value to after the new access chain instruction.
+  const std::string before = R"(
+               OpCapability Shader
+               OpCapability MeshShadingEXT
+               OpExtension "SPV_EXT_mesh_shader"
+          %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint MeshEXT %2 "main" %3
+               OpExecutionMode %2 LocalSize 1 1 1
+               OpExecutionMode %2 OutputTrianglesEXT
+               OpExecutionMode %2 OutputVertices 64
+               OpExecutionMode %2 OutputPrimitivesEXT 124
+          %4 = OpString ""
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+%_arr_uint_uint_32 = OpTypeArray %uint %uint_32
+ %_struct_10 = OpTypeStruct %_arr_uint_uint_32
+%_ptr_TaskPayloadWorkgroupEXT__struct_10 = OpTypePointer TaskPayloadWorkgroupEXT %_struct_10
+   %uint_124 = OpConstant %uint 124
+    %uint_64 = OpConstant %uint 64
+       %void = OpTypeVoid
+     %uint_6 = OpConstant %uint 6
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+     %uint_4 = OpConstant %uint 4
+     %uint_5 = OpConstant %uint 5
+  %uint_1024 = OpConstant %uint 1024
+     %uint_7 = OpConstant %uint 7
+     %uint_8 = OpConstant %uint 8
+     %uint_3 = OpConstant %uint 3
+    %uint_96 = OpConstant %uint 96
+    %uint_11 = OpConstant %uint 11
+    %uint_12 = OpConstant %uint 12
+    %uint_10 = OpConstant %uint 10
+    %uint_16 = OpConstant %uint 16
+    %uint_21 = OpConstant %uint 21
+    %uint_17 = OpConstant %uint 17
+    %uint_26 = OpConstant %uint 26
+         %32 = OpTypeFunction %void
+%_ptr_Function__arr_uint_uint_32 = OpTypePointer Function %_arr_uint_uint_32
+          %3 = OpVariable %_ptr_TaskPayloadWorkgroupEXT__struct_10 TaskPayloadWorkgroupEXT
+         %34 = OpExtInst %void %1 DebugOperation %uint_0
+         %35 = OpExtInst %void %1 DebugTypeBasic %4 %uint_32 %uint_6 %uint_0
+         %36 = OpExtInst %void %1 DebugSource %4 %4
+         %37 = OpExtInst %void %1 DebugCompilationUnit %uint_1 %uint_4 %36 %uint_5
+         %38 = OpExtInst %void %1 DebugTypeArray %35 %uint_32
+         %39 = OpExtInst %void %1 DebugTypeMember %4 %38 %36 %uint_7 %uint_8 %uint_0 %uint_1024 %uint_3
+         %40 = OpExtInst %void %1 DebugTypeComposite %4 %uint_1 %36 %uint_6 %uint_8 %37 %4 %uint_1024 %uint_3 %39
+         %41 = OpExtInst %void %1 DebugTypeVector %35 %uint_3
+         %42 = OpExtInst %void %1 DebugTypeArray %41 %uint_124
+         %43 = OpExtInst %void %1 DebugTypeBasic %4 %uint_32 %uint_3 %uint_0
+         %44 = OpExtInst %void %1 DebugTypeVector %43 %uint_3
+         %45 = OpExtInst %void %1 DebugTypeMember %4 %44 %36 %uint_11 %uint_12 %uint_0 %uint_96 %uint_3
+         %46 = OpExtInst %void %1 DebugTypeComposite %4 %uint_1 %36 %uint_10 %uint_8 %37 %4 %uint_96 %uint_3 %45
+         %47 = OpExtInst %void %1 DebugTypeArray %46 %uint_64
+         %48 = OpExtInst %void %1 DebugTypeFunction %uint_3 %void %40 %35 %42 %47
+         %49 = OpExtInst %void %1 DebugFunction %4 %48 %36 %uint_16 %uint_1 %37 %4 %uint_3 %uint_21
+         %50 = OpExtInst %void %1 DebugLocalVariable %4 %40 %36 %uint_17 %uint_26 %49 %uint_4 %uint_1
+         %51 = OpExtInst %void %1 DebugExpression %34
+; CHECK: OpFunction
+          %2 = OpFunction %void None %32
+         %52 = OpLabel
+         %53 = OpVariable %_ptr_Function__arr_uint_uint_32 Function
+; CHECK: [[new_ptr:%\w+]] = OpAccessChain %_ptr_TaskPayloadWorkgroupEXT__arr_uint_uint_32
+; CHECK: OpExtInst %void %1 DebugValue {{%\w+}} [[new_ptr]]
+         %54 = OpExtInst %void %1 DebugValue %50 %53 %51 %int_0
+         %55 = OpLoad %_struct_10 %3
+         %56 = OpCompositeExtract %_arr_uint_uint_32 %55 0
+               OpBranch %57
+         %57 = OpLabel
+               OpStore %53 %56
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_VULKAN_1_1);
+  SinglePassRunAndMatch<CopyPropagateArrays>(before, false);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

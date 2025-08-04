@@ -1,33 +1,15 @@
-// Copyright (c) 2014-2024 The Khronos Group Inc.
+// SPDX-FileCopyrightText: 2014-2024 The Khronos Group Inc.
+// SPDX-License-Identifier: MIT
 // 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and/or associated documentation files (the "Materials"),
-// to deal in the Materials without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Materials, and to permit persons to whom the
-// Materials are furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Materials.
-// 
-// MODIFICATIONS TO THIS FILE MAY MEAN IT NO LONGER ACCURATELY REFLECTS KHRONOS
-// STANDARDS. THE UNMODIFIED, NORMATIVE VERSIONS OF KHRONOS SPECIFICATIONS AND
-// HEADER INFORMATION ARE LOCATED AT https://www.khronos.org/registry/ 
-// 
-// THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM,OUT OF OR IN CONNECTION WITH THE MATERIALS OR THE USE OR OTHER DEALINGS
-// IN THE MATERIALS.
+// MODIFICATIONS TO THIS FILE MAY MEAN IT NO LONGER ACCURATELY REFLECTS
+// KHRONOS STANDARDS. THE UNMODIFIED, NORMATIVE VERSIONS OF KHRONOS
+// SPECIFICATIONS AND HEADER INFORMATION ARE LOCATED AT
+//    https://www.khronos.org/registry/
 
 #include <assert.h>
 #include <string.h>
-#include <algorithm>
 #include <cstdlib>
 #include <iostream>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <fstream>
@@ -268,12 +250,20 @@ EnumValues PackedVectorFormatParams;
 EnumValues CooperativeMatrixOperandsParams;
 EnumValues CooperativeMatrixLayoutParams;
 EnumValues CooperativeMatrixUseParams;
+EnumValues CooperativeMatrixReduceParams;
+EnumValues TensorClampModeParams;
+EnumValues TensorAddressingOperandsParams;
+EnumValues TensorOperandsParams;
 EnumValues InitializationModeQualifierParams;
 EnumValues HostAccessQualifierParams;
 EnumValues LoadCacheControlParams;
 EnumValues StoreCacheControlParams;
 EnumValues NamedMaximumNumberOfRegistersParams;
+EnumValues MatrixMultiplyAccumulateOperandsParams;
 EnumValues RawAccessChainOperandsParams;
+EnumValues FPEncodingParams;
+EnumValues CooperativeVectorMatrixLayoutParams;
+EnumValues ComponentTypeParams;
 
 std::pair<bool, std::string> ReadFile(const std::string& path)
 {
@@ -424,10 +414,18 @@ ClassOptionality ToOperandClassAndOptionality(const std::string& operandKind, co
             type = OperandPackedVectorFormat;
         } else if (operandKind == "CooperativeMatrixOperands") {
             type = OperandCooperativeMatrixOperands;
+        } else if (operandKind == "TensorAddressingOperands") {
+            type = OperandTensorAddressingOperands;
         } else if (operandKind == "CooperativeMatrixLayout") {
             type = OperandCooperativeMatrixLayout;
         } else if (operandKind == "CooperativeMatrixUse") {
             type = OperandCooperativeMatrixUse;
+        } else if (operandKind == "CooperativeMatrixReduce") {
+            type = OperandCooperativeMatrixReduce;
+        } else if (operandKind == "TensorClampMode") {
+            type = OperandTensorClampMode;
+        } else if (operandKind == "TensorOperands") {
+            type = OperandTensorOperands;
         } else if (operandKind == "InitializationModeQualifier") {
             type = OperandInitializationModeQualifier;
         } else if (operandKind == "HostAccessQualifier") {
@@ -438,8 +436,16 @@ ClassOptionality ToOperandClassAndOptionality(const std::string& operandKind, co
             type = OperandStoreCacheControl;
         } else if (operandKind == "NamedMaximumNumberOfRegisters") {
             type = OperandNamedMaximumNumberOfRegisters;
+        } else if (operandKind == "MatrixMultiplyAccumulateOperands") {
+            type = OperandMatrixMultiplyAccumulateOperands;
         } else if (operandKind == "RawAccessChainOperands") {
             type = OperandRawAccessChainOperands;
+        } else if (operandKind == "FPEncoding") {
+            type = OperandFPEncoding;
+        } else if (operandKind == "CooperativeVectorMatrixLayout") {
+            type = OperandCooperativeVectorMatrixLayout;
+        } else if (operandKind == "ComponentType") {
+            type = OperandComponentType;
         }
 
         if (type == OperandNone) {
@@ -528,6 +534,18 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
         return result;
     };
 
+    const auto getAliases = [](const Json::Value& object) {
+        Aliases result;
+        const auto& aliases = object["aliases"];
+        if (!aliases.empty()) {
+            assert(aliases.isArray());
+            for (const auto& alias : aliases) {
+                result.emplace_back(alias.asString());
+            }
+        }
+        return result;
+    };
+
     // set up the printing classes
     std::unordered_set<std::string> tags;  // short-lived local for error checking below
     const Json::Value printingClasses = root["instruction_printing_class"];
@@ -547,6 +565,8 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
     // process the instructions
     const Json::Value insts = root["instructions"];
     unsigned maxOpcode = 0;
+    std::string maxName = "";
+    bool maxCore = false;
     bool firstOpcode = true;
     for (const auto& inst : insts) {
         const auto printingClass = inst["class"].asString();
@@ -565,8 +585,11 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
         }
         const auto opcode = inst["opcode"].asUInt();
         const std::string name = inst["opname"].asString();
+        std::string version = inst["version"].asString();
         if (firstOpcode) {
           maxOpcode = opcode;
+          maxName = name;
+          maxCore = version != "None";
           firstOpcode = false;
         } else {
           if (maxOpcode > opcode) {
@@ -574,12 +597,18 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
                       << " is out of order. It follows the instruction with opcode " << maxOpcode
                       << std::endl;
             std::exit(1);
+          } else if (maxOpcode == opcode) {
+            std::cerr << "Error: " << name << " is an alias of " << maxName
+            << ". Use \"aliases\" instead." << std::endl;
+            std::exit(1);
           } else {
             maxOpcode = opcode;
+            maxName = name;
+            maxCore = version != "None";
           }
         }
+        Aliases aliases = getAliases(inst);
         EnumCaps caps = getCaps(inst);
-        std::string version = inst["version"].asString();
         std::string lastVersion = inst["lastVersion"].asString();
         Extensions exts = getExts(inst);
         OperandParameters operands;
@@ -595,7 +624,7 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
             }
         }
         InstructionDesc.emplace_back(
-            std::move(EnumValue(opcode, name,
+            std::move(EnumValue(opcode, name, std::move(aliases),
                                 std::move(caps), std::move(version), std::move(lastVersion), std::move(exts),
                                 std::move(operands))),
              printingClass, defTypeId, defResultId);
@@ -607,7 +636,7 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
     // Specific additional context-dependent operands
 
     // Populate dest with EnumValue objects constructed from source.
-    const auto populateEnumValues = [&getCaps,&getExts,&errorCount](EnumValues* dest, const Json::Value& source, bool bitEnum) {
+    const auto populateEnumValues = [&getCaps,&getAliases,&getExts,&errorCount](EnumValues* dest, const Json::Value& source, bool bitEnum) {
         // A lambda for determining the numeric value to be used for a given
         // enumerant in JSON form, and whether that value is a 0 in a bitfield.
         auto getValue = [&bitEnum](const Json::Value& enumerant) {
@@ -625,28 +654,40 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
         };
 
         unsigned maxValue = 0;
+        std::string maxName = "";
+        bool maxCore = false;
         bool firstValue = true;
         for (const auto& enumerant : source["enumerants"]) {
             unsigned value;
             bool skip_zero_in_bitfield;
             std::tie(value, skip_zero_in_bitfield) = getValue(enumerant);
+            std::string name = enumerant["enumerant"].asString();
+            std::string version = enumerant["version"].asString();
             if (skip_zero_in_bitfield)
                 continue;
             if (firstValue) {
               maxValue = value;
+              maxName = name;
+              maxCore = version != "None";
               firstValue = false;
             } else {
               if (maxValue > value) {
-                std::cerr << "Error: " << source["kind"] << " enumerant " << enumerant["enumerant"]
+                std::cerr << "Error: " << source["kind"] << " enumerant " << name
                           << " is out of order. It has value " <<  value
                           << " but follows the enumerant with value " << maxValue << std::endl;
                 std::exit(1);
+              } else if (maxValue == value ) {
+                std::cerr << "Error: " << source["kind"] << " enumerant " << name
+                          << " is an alias of " << maxName << ". Use \"aliases\" instead." << std::endl;
+                std::exit(1);
               } else {
                 maxValue = value;
+                maxName = name;
+                maxCore = version != "None";
               }
             }
+            Aliases aliases = getAliases(enumerant);
             EnumCaps caps(getCaps(enumerant));
-            std::string version = enumerant["version"].asString();
             std::string lastVersion = enumerant["lastVersion"].asString();
             Extensions exts(getExts(enumerant));
             OperandParameters params;
@@ -661,7 +702,7 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
                 }
             }
             dest->emplace_back(
-                value, enumerant["enumerant"].asString(),
+                value, enumerant["enumerant"].asString(), std::move(aliases),
                 std::move(caps), std::move(version), std::move(lastVersion), std::move(exts), std::move(params));
         }
     };
@@ -771,10 +812,18 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
             establishOperandClass(enumName, OperandPackedVectorFormat, &PackedVectorFormatParams, operandEnum, category);
         } else if (enumName == "CooperativeMatrixOperands") {
             establishOperandClass(enumName, OperandCooperativeMatrixOperands, &CooperativeMatrixOperandsParams, operandEnum, category);
+        } else if (enumName == "TensorAddressingOperands") {
+            establishOperandClass(enumName, OperandTensorAddressingOperands, &TensorAddressingOperandsParams, operandEnum, category);
         } else if (enumName == "CooperativeMatrixLayout") {
             establishOperandClass(enumName, OperandCooperativeMatrixLayout, &CooperativeMatrixLayoutParams, operandEnum, category);
         } else if (enumName == "CooperativeMatrixUse") {
             establishOperandClass(enumName, OperandCooperativeMatrixUse, &CooperativeMatrixUseParams, operandEnum, category);
+        } else if (enumName == "CooperativeMatrixReduce") {
+            establishOperandClass(enumName, OperandCooperativeMatrixReduce, &CooperativeMatrixReduceParams, operandEnum, category);
+        } else if (enumName == "TensorClampMode") {
+            establishOperandClass(enumName, OperandTensorClampMode, &TensorClampModeParams, operandEnum, category);
+        } else if (enumName == "TensorOperands") {
+            establishOperandClass(enumName, OperandTensorOperands, &TensorOperandsParams, operandEnum, category);
         } else if (enumName == "InitializationModeQualifier") {
             establishOperandClass(enumName, OperandInitializationModeQualifier, &InitializationModeQualifierParams, operandEnum, category);
         } else if (enumName == "HostAccessQualifier") {
@@ -785,8 +834,16 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
             establishOperandClass(enumName, OperandStoreCacheControl, &StoreCacheControlParams, operandEnum, category);
         } else if (enumName == "NamedMaximumNumberOfRegisters") {
             establishOperandClass(enumName, OperandNamedMaximumNumberOfRegisters, &NamedMaximumNumberOfRegistersParams, operandEnum, category);
+        } else if (enumName == "MatrixMultiplyAccumulateOperands") {
+            establishOperandClass(enumName, OperandMatrixMultiplyAccumulateOperands, &MatrixMultiplyAccumulateOperandsParams, operandEnum, category);
         } else if (enumName == "RawAccessChainOperands") {
             establishOperandClass(enumName, OperandRawAccessChainOperands, &RawAccessChainOperandsParams, operandEnum, category);
+        } else if (enumName == "FPEncoding") {
+            establishOperandClass(enumName, OperandFPEncoding, &FPEncodingParams, operandEnum, category);
+        } else if (enumName == "CooperativeVectorMatrixLayout") {
+            establishOperandClass(enumName, OperandCooperativeVectorMatrixLayout, &CooperativeVectorMatrixLayoutParams, operandEnum, category);
+        } else if (enumName == "ComponentType") {
+            establishOperandClass(enumName, OperandComponentType, &ComponentTypeParams, operandEnum, category);
         }
     }
 

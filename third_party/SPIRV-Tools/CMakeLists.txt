@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.17.2)
+cmake_minimum_required(VERSION 3.22.1)
 
 project(spirv-tools)
 
@@ -49,37 +49,13 @@ option(ENABLE_RTTI "Enables RTTI" OFF)
 option(SPIRV_ALLOW_TIMERS "Allow timers via clock_gettime on supported platforms" ON)
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-  add_definitions(-DSPIRV_LINUX)
   set(SPIRV_TIMER_ENABLED ${SPIRV_ALLOW_TIMERS})
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
-    add_definitions(-DSPIRV_EMSCRIPTEN)
 elseif("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
   add_definitions(-DSPIRV_WINDOWS)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "CYGWIN")
   add_definitions(-DSPIRV_WINDOWS)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-  add_definitions(-DSPIRV_MAC)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
-  add_definitions(-DSPIRV_IOS)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "tvOS")
-  add_definitions(-DSPIRV_TVOS)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "visionOS")
-  add_definitions(-DSPIRV_VISIONOS)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
-  add_definitions(-DSPIRV_ANDROID)
   set(SPIRV_TIMER_ENABLED ${SPIRV_ALLOW_TIMERS})
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
-  add_definitions(-DSPIRV_FREEBSD)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD")
-  add_definitions(-DSPIRV_OPENBSD)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Fuchsia")
-  add_definitions(-DSPIRV_FUCHSIA)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "GNU")
-  add_definitions(-DSPIRV_GNU)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "QNX")
-  add_definitions(-DSPIRV_QNX)
-else()
-  message(FATAL_ERROR "Your platform '${CMAKE_SYSTEM_NAME}' is not supported!")
 endif()
 
 if (${SPIRV_TIMER_ENABLED})
@@ -264,6 +240,20 @@ endif()
 # Tests require Python3
 find_host_package(Python3 REQUIRED)
 
+# Check type annotations in Perl code. Assumes mypy.
+add_custom_target(spirv-tools-check-python-types
+	COMMAND mypy Table
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/utils
+)
+set_target_properties(spirv-tools-check-python-types
+  PROPERTIES EXCLUDE_FROM_ALL ON)
+
+# Run Python unit tests
+add_custom_target(spirv-tools-check-python-tests
+	COMMAND Python3::Interpreter -m unittest discover -v -p "*test.py"
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/utils
+)
+
 # Check for symbol exports on Linux.
 # At the moment, this check will fail on the OSX build machines for the Android NDK.
 # It appears they don't have objdump.
@@ -371,7 +361,6 @@ if(ENABLE_SPIRV_TOOLS_INSTALL)
       ${CMAKE_CURRENT_SOURCE_DIR}/include/spirv-tools/libspirv.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/include/spirv-tools/optimizer.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/include/spirv-tools/linker.hpp
-      ${CMAKE_CURRENT_SOURCE_DIR}/include/spirv-tools/instrument.hpp
     DESTINATION
       ${CMAKE_INSTALL_INCLUDEDIR}/spirv-tools/)
 endif(ENABLE_SPIRV_TOOLS_INSTALL)

@@ -78,7 +78,7 @@ def git_executable():
       minor=None
       try:
         version_info = subprocess.check_output([git, '--version']).decode('utf-8')
-        match = re.search("^git version (\d+)\.(\d+)",version_info)
+        match = re.search(r"^git version (\d+)\.(\d+)",version_info)
         print("Using {}".format(version_info))
         if match:
           major = int(match.group(1))

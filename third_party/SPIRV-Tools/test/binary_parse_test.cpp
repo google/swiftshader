@@ -1157,7 +1157,7 @@ INSTANTIATE_TEST_SUITE_P(
         {"OpSource !9999 100",
          "Invalid source language operand: 9999, if you are creating a new "
          "source language please use value 0 (Unknown) and when ready, add "
-         "your source language to SPRIV-Headers"},
+         "your source language to SPIRV-Headers"},
         {"OpEntryPoint !9999", "Invalid execution model operand: 9999"},
         {"OpMemoryModel !9999", "Invalid addressing model operand: 9999"},
         {"OpMemoryModel Logical !9999", "Invalid memory model operand: 9999"},

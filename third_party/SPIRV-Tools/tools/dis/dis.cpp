@@ -33,44 +33,57 @@ Usage: %s [options] [<filename>]
 The SPIR-V binary is read from <filename>. If no file is specified,
 or if the filename is "-", then the binary is read from standard input.
 
+A text-based hex stream is also accepted as binary input, which should either
+consist of 32-bit words or 8-bit bytes.  The 0x or x prefix is optional, but
+should be consistently present in the stream.
+
 Options:
 
-  -h, --help      Print this help.
-  --version       Display disassembler version information.
+  -h, --help        Print this help.
+  --version         Display disassembler version information.
 
-  -o <filename>   Set the output filename.
-                  Output goes to standard output if this option is
-                  not specified, or if the filename is "-".
+  -o <filename>     Set the output filename.
+                    Output goes to standard output if this option is
+                    not specified, or if the filename is "-".
 
-  --color         Force color output.  The default when printing to a terminal.
-                  Overrides a previous --no-color option.
-  --no-color      Don't print in color.  Overrides a previous --color option.
-                  The default when output goes to something other than a
-                  terminal (e.g. a file, a pipe, or a shell redirection).
+  --color           Force color output.  The default when printing to a terminal.
+                    Overrides a previous --no-color option.
+  --no-color        Don't print in color.  Overrides a previous --color option.
+                    The default when output goes to something other than a
+                    terminal (e.g. a file, a pipe, or a shell redirection).
 
-  --no-indent     Don't indent instructions.
+  --no-indent       Don't indent instructions.
 
-  --no-header     Don't output the header as leading comments.
+  --no-header       Don't output the header as leading comments.
 
-  --raw-id        Show raw Id values instead of friendly names.
+  --raw-id          Show raw Id values instead of friendly names.
 
-  --offsets       Show byte offsets for each instruction.
+  --nested-indent   Indentation is adjusted to indicate nesting in structured
+                    control flow.
 
-  --comment       Add comments to make reading easier
+  --reorder-blocks  Reorder blocks to match the structured control flow of SPIR-V.
+                    With this option, the order of instructions will no longer
+                    match the input binary, but the result will be more readable.
+
+  --offsets         Show byte offsets for each instruction.
+
+  --comment         Add comments to make reading easier
 )";
 
 // clang-format off
-FLAG_SHORT_bool  (h,         /* default_value= */ false, /* required= */ false);
-FLAG_SHORT_string(o,         /* default_value= */ "-",   /* required= */ false);
-FLAG_LONG_bool   (help,      /* default_value= */ false, /* required= */false);
-FLAG_LONG_bool   (version,   /* default_value= */ false, /* required= */ false);
-FLAG_LONG_bool   (color,     /* default_value= */ false, /* required= */ false);
-FLAG_LONG_bool   (no_color,  /* default_value= */ false, /* required= */ false);
-FLAG_LONG_bool   (no_indent, /* default_value= */ false, /* required= */ false);
-FLAG_LONG_bool   (no_header, /* default_value= */ false, /* required= */ false);
-FLAG_LONG_bool   (raw_id,    /* default_value= */ false, /* required= */ false);
-FLAG_LONG_bool   (offsets,   /* default_value= */ false, /* required= */ false);
-FLAG_LONG_bool   (comment,   /* default_value= */ false, /* required= */ false);
+FLAG_SHORT_bool  (h,              /* default_value= */ false, /* required= */ false);
+FLAG_SHORT_string(o,              /* default_value= */ "-",   /* required= */ false);
+FLAG_LONG_bool   (help,           /* default_value= */ false, /* required= */false);
+FLAG_LONG_bool   (version,        /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (color,          /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (no_color,       /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (no_indent,      /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (no_header,      /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (raw_id,         /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (nested_indent,  /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (reorder_blocks, /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (offsets,        /* default_value= */ false, /* required= */ false);
+FLAG_LONG_bool   (comment,        /* default_value= */ false, /* required= */ false);
 // clang-format on
 
 static const auto kDefaultEnvironment = SPV_ENV_UNIVERSAL_1_5;
@@ -120,6 +133,12 @@ int main(int, const char** argv) {
   if (!flags::raw_id.value())
     options |= SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES;
 
+  if (flags::nested_indent.value())
+    options |= SPV_BINARY_TO_TEXT_OPTION_NESTED_INDENT;
+
+  if (flags::reorder_blocks.value())
+    options |= SPV_BINARY_TO_TEXT_OPTION_REORDER_BLOCKS;
+
   if (flags::comment.value()) options |= SPV_BINARY_TO_TEXT_OPTION_COMMENT;
 
   if (flags::o.value() == "-") {
@@ -138,7 +157,7 @@ int main(int, const char** argv) {
 
   // Read the input binary.
   std::vector<uint32_t> contents;
-  if (!ReadBinaryFile<uint32_t>(inFile.c_str(), &contents)) return 1;
+  if (!ReadBinaryFile(inFile.c_str(), &contents)) return 1;
 
   // If printing to standard output, then spvBinaryToText should
   // do the printing.  In particular, colour printing on Windows is

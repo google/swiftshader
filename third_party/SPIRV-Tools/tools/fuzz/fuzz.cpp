@@ -584,8 +584,7 @@ bool Fuzz(const spv_target_env& target_env,
         [donor_filename, message_consumer,
          target_env]() -> std::unique_ptr<spvtools::opt::IRContext> {
           std::vector<uint32_t> donor_binary;
-          if (!ReadBinaryFile<uint32_t>(donor_filename.c_str(),
-                                        &donor_binary)) {
+          if (!ReadBinaryFile(donor_filename.c_str(), &donor_binary)) {
             return nullptr;
           }
           return spvtools::BuildModule(target_env, message_consumer,
@@ -673,7 +672,7 @@ void DumpTransformationsJson(
     const spvtools::fuzz::protobufs::TransformationSequence& transformations,
     const char* filename) {
   std::string json_string;
-  auto json_options = google::protobuf::util::JsonOptions();
+  auto json_options = google::protobuf::util::JsonPrintOptions();
   json_options.add_whitespace = true;
   auto json_generation_status = google::protobuf::util::MessageToJsonString(
       transformations, &json_string, json_options);
@@ -712,7 +711,7 @@ int main(int argc, const char** argv) {
   }
 
   std::vector<uint32_t> binary_in;
-  if (!ReadBinaryFile<uint32_t>(in_binary_file.c_str(), &binary_in)) {
+  if (!ReadBinaryFile(in_binary_file.c_str(), &binary_in)) {
     return 1;
   }
 
@@ -801,7 +800,7 @@ int main(int argc, const char** argv) {
     }
 
     std::string json_string;
-    auto json_options = google::protobuf::util::JsonOptions();
+    auto json_options = google::protobuf::util::JsonPrintOptions();
     json_options.add_whitespace = true;
     auto json_generation_status = google::protobuf::util::MessageToJsonString(
         transformations_applied, &json_string, json_options);

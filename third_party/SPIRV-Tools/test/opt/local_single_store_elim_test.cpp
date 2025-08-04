@@ -24,6 +24,56 @@ namespace {
 
 using LocalSingleStoreElimTest = PassTest<::testing::Test>;
 
+TEST_F(LocalSingleStoreElimTest, DoSomethingWithExtensions) {
+  const std::string capabilities_and_extensions =
+      R"(OpCapability Shader
+OpExtension "SPV_EXT_fragment_shader_interlock"
+OpExtension "SPV_NV_compute_shader_derivatives"
+OpExtension "SPV_KHR_ray_query"
+OpExtension "SPV_NV_shader_subgroup_partitioned"
+OpExtension "SPV_KHR_ray_tracing"
+OpExtension "SPV_EXT_descriptor_indexing"
+)";
+
+  const std::string before = capabilities_and_extensions +
+                             R"(%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %2 "main"
+OpExecutionMode %2 OriginUpperLeft
+OpSource GLSL 140
+%void = OpTypeVoid
+%4 = OpTypeFunction %void
+%float = OpTypeFloat 32
+%_ptr_Function_float = OpTypePointer Function %float
+%float_0 = OpConstant %float 0
+%2 = OpFunction %void None %4
+%8 = OpLabel
+%9 = OpVariable %_ptr_Function_float Function
+OpStore %9 %float_0
+%10 = OpLoad %float %9
+OpReturn
+OpFunctionEnd
+)";
+  const std::string after = capabilities_and_extensions +
+                            R"(%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %2 "main"
+OpExecutionMode %2 OriginUpperLeft
+OpSource GLSL 140
+%void = OpTypeVoid
+%4 = OpTypeFunction %void
+%float = OpTypeFloat 32
+%_ptr_Function_float = OpTypePointer Function %float
+%float_0 = OpConstant %float 0
+%2 = OpFunction %void None %4
+%8 = OpLabel
+%9 = OpVariable %_ptr_Function_float Function
+OpStore %9 %float_0
+OpReturn
+OpFunctionEnd
+)";
+  SinglePassRunAndCheck<LocalSingleStoreElimPass>(before, after, true, true);
+}
 TEST_F(LocalSingleStoreElimTest, PositiveAndNegative) {
   // Single store to v is optimized. Multiple store to
   // f is not optimized.

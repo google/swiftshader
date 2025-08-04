@@ -20,14 +20,12 @@ Vulkan SDK.
 
 Download the latest builds of the [main](https://github.com/KhronosGroup/SPIRV-Tools/tree/main) branch.
 
-### Release build
-| Windows | Linux | MacOS |
-| --- | --- | --- |
-| [MSVC 2017](https://storage.googleapis.com/spirv-tools/badges/build_link_windows_vs2017_release.html) | [clang](https://storage.googleapis.com/spirv-tools/badges/build_link_linux_clang_release.html) | [clang](https://storage.googleapis.com/spirv-tools/badges/build_link_macos_clang_release.html) |
-| | [gcc](https://storage.googleapis.com/spirv-tools/badges/build_link_linux_gcc_release.html) | |
+| Platform | Processor | Compiler | Release build | Debug build |
+| --- | --- | --- | --- | --- |
+| Windows | x86-64 | VisualStudio 2022 (MSVC v143) | Download: <a href="https://storage.googleapis.com/spirv-tools/badges/build_link_windows_vs2022_release.html"> <img src="https://storage.googleapis.com/spirv-tools/badges/build_status_windows_vs2022_release.svg" alt="status of VS 2022 release build"></a> | Download: <a href="https://storage.googleapis.com/spirv-tools/badges/build_link_windows_vs2022_debug.html"> <img src="https://storage.googleapis.com/spirv-tools/badges/build_status_windows_vs2022_debug.svg" alt="status of VS 2022 debug build"></a> |
+| Linux | x86-64 | GCC 9.4 | Download: <a href="https://storage.googleapis.com/spirv-tools/badges/build_link_linux_gcc_release.html"> <img src="https://storage.googleapis.com/spirv-tools/badges/build_status_linux_gcc_release.svg" alt="status of Linux GCC build"></a> | Download: <a href="https://storage.googleapis.com/spirv-tools/badges/build_link_linux_gcc_debug.html"> <img src="https://storage.googleapis.com/spirv-tools/badges/build_status_linux_gcc_debug.svg" alt="status of Linux GCC debug build"></a> |
+| macOS | x86-64 | Clang 15 | Download: <a href="https://storage.googleapis.com/spirv-tools/badges/build_link_macos_clang_release.html"> <img src="https://storage.googleapis.com/spirv-tools/badges/build_status_macos_clang_release.svg" alt="status of macOS Clang build"></a> | Download: <a href="https://storage.googleapis.com/spirv-tools/badges/build_link_macos_clang_debug.html"> <img src="https://storage.googleapis.com/spirv-tools/badges/build_status_macos_clang_debug.svg" alt="status of macOS Clang build"></a> |
 
-### Debug build
-| Windows | Linux | MacOS |
-| --- | --- | --- |
-| [MSVC 2017](https://storage.googleapis.com/spirv-tools/badges/build_link_windows_vs2017_debug.html) | [clang](https://storage.googleapis.com/spirv-tools/badges/build_link_linux_clang_debug.html) | [clang](https://storage.googleapis.com/spirv-tools/badges/build_link_macos_clang_debug.html) |
-| | [gcc](https://storage.googleapis.com/spirv-tools/badges/build_link_linux_gcc_debug.html) | |
+Note: If you suspect something is wrong with the compiler versions mentioned,
+check the scripts and configurations in the [kokoro](../kokoro) source tree,
+or the results of the checks on the latest commits on the `main` branch.

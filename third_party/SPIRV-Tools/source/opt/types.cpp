@@ -1,4 +1,6 @@
 // Copyright (c) 2016 Google Inc.
+// Modifications Copyright (C) 2024 Advanced Micro Devices, Inc. All rights
+// reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -90,6 +92,7 @@ bool Type::IsUniqueType() const {
     case kStruct:
     case kArray:
     case kRuntimeArray:
+    case kNodePayloadArrayAMDX:
       return false;
     default:
       return true;
@@ -129,8 +132,10 @@ std::unique_ptr<Type> Type::Clone() const {
     DeclareKindCase(AccelerationStructureNV);
     DeclareKindCase(CooperativeMatrixNV);
     DeclareKindCase(CooperativeMatrixKHR);
+    DeclareKindCase(CooperativeVectorNV);
     DeclareKindCase(RayQueryKHR);
     DeclareKindCase(HitObjectNV);
+    DeclareKindCase(TensorARM);
 #undef DeclareKindCase
     default:
       assert(false && "Unhandled type");
@@ -162,6 +167,7 @@ bool Type::operator==(const Type& other) const {
     DeclareKindCase(SampledImage);
     DeclareKindCase(Array);
     DeclareKindCase(RuntimeArray);
+    DeclareKindCase(NodePayloadArrayAMDX);
     DeclareKindCase(Struct);
     DeclareKindCase(Opaque);
     DeclareKindCase(Pointer);
@@ -177,8 +183,12 @@ bool Type::operator==(const Type& other) const {
     DeclareKindCase(AccelerationStructureNV);
     DeclareKindCase(CooperativeMatrixNV);
     DeclareKindCase(CooperativeMatrixKHR);
+    DeclareKindCase(CooperativeVectorNV);
     DeclareKindCase(RayQueryKHR);
     DeclareKindCase(HitObjectNV);
+    DeclareKindCase(TensorLayoutNV);
+    DeclareKindCase(TensorViewNV);
+    DeclareKindCase(TensorARM);
 #undef DeclareKindCase
     default:
       assert(false && "Unhandled type");
@@ -218,6 +228,7 @@ size_t Type::ComputeHashValue(size_t hash, SeenTypes* seen) const {
     DeclareKindCase(SampledImage);
     DeclareKindCase(Array);
     DeclareKindCase(RuntimeArray);
+    DeclareKindCase(NodePayloadArrayAMDX);
     DeclareKindCase(Struct);
     DeclareKindCase(Opaque);
     DeclareKindCase(Pointer);
@@ -233,8 +244,12 @@ size_t Type::ComputeHashValue(size_t hash, SeenTypes* seen) const {
     DeclareKindCase(AccelerationStructureNV);
     DeclareKindCase(CooperativeMatrixNV);
     DeclareKindCase(CooperativeMatrixKHR);
+    DeclareKindCase(CooperativeVectorNV);
     DeclareKindCase(RayQueryKHR);
     DeclareKindCase(HitObjectNV);
+    DeclareKindCase(TensorLayoutNV);
+    DeclareKindCase(TensorViewNV);
+    DeclareKindCase(TensorARM);
 #undef DeclareKindCase
     default:
       assert(false && "Unhandled type");
@@ -297,17 +312,34 @@ size_t Integer::ComputeExtraStateHash(size_t hash, SeenTypes*) const {
 
 bool Float::IsSameImpl(const Type* that, IsSameCache*) const {
   const Float* ft = that->AsFloat();
-  return ft && width_ == ft->width_ && HasSameDecorations(that);
+  return ft && width_ == ft->width_ && encoding_ == ft->encoding_ &&
+         HasSameDecorations(that);
 }
 
 std::string Float::str() const {
   std::ostringstream oss;
-  oss << "float" << width_;
+  switch (encoding_) {
+    case spv::FPEncoding::BFloat16KHR:
+      assert(width_ == 16);
+      oss << "bfloat16";
+      break;
+    case spv::FPEncoding::Float8E4M3EXT:
+      assert(width_ == 8);
+      oss << "fp8e4m3";
+      break;
+    case spv::FPEncoding::Float8E5M2EXT:
+      assert(width_ == 8);
+      oss << "fp8e5m2";
+      break;
+    default:
+      oss << "float" << width_;
+      break;
+  }
   return oss.str();
 }
 
 size_t Float::ComputeExtraStateHash(size_t hash, SeenTypes*) const {
-  return hash_combine(hash, width_);
+  return hash_combine(hash, width_, encoding_);
 }
 
 Vector::Vector(const Type* type, uint32_t count)
@@ -485,6 +517,34 @@ void RuntimeArray::ReplaceElementType(const Type* type) {
   element_type_ = type;
 }
 
+NodePayloadArrayAMDX::NodePayloadArrayAMDX(const Type* type)
+    : Type(kNodePayloadArrayAMDX), element_type_(type) {
+  assert(!type->AsVoid());
+}
+
+bool NodePayloadArrayAMDX::IsSameImpl(const Type* that,
+                                      IsSameCache* seen) const {
+  const NodePayloadArrayAMDX* rat = that->AsNodePayloadArrayAMDX();
+  if (!rat) return false;
+  return element_type_->IsSameImpl(rat->element_type_, seen) &&
+         HasSameDecorations(that);
+}
+
+std::string NodePayloadArrayAMDX::str() const {
+  std::ostringstream oss;
+  oss << "[" << element_type_->str() << "]";
+  return oss.str();
+}
+
+size_t NodePayloadArrayAMDX::ComputeExtraStateHash(size_t hash,
+                                                   SeenTypes* seen) const {
+  return element_type_->ComputeHashValue(hash, seen);
+}
+
+void NodePayloadArrayAMDX::ReplaceElementType(const Type* type) {
+  element_type_ = type;
+}
+
 Struct::Struct(const std::vector<const Type*>& types)
     : Type(kStruct), element_types_(types) {
   for (const auto* t : types) {
@@ -572,24 +632,39 @@ bool Pointer::IsSameImpl(const Type* that, IsSameCache* seen) const {
   if (!p.second) {
     return true;
   }
-  bool same_pointee = pointee_type_->IsSameImpl(pt->pointee_type_, seen);
-  seen->erase(p.first);
-  if (!same_pointee) {
-    return false;
+  if (pointee_type_ != nullptr && pt->pointee_type_ != nullptr) {
+    bool same_pointee = pointee_type_->IsSameImpl(pt->pointee_type_, seen);
+    seen->erase(p.first);
+    if (!same_pointee) {
+      return false;
+    }
+  } else {
+    seen->erase(p.first);
+    // Either both are untyped or it is mixed typed and untyped.
+    if (pointee_type_ != pt->pointee_type_) {
+      return false;
+    }
   }
   return HasSameDecorations(that);
 }
 
 std::string Pointer::str() const {
   std::ostringstream os;
-  os << pointee_type_->str() << " " << static_cast<uint32_t>(storage_class_)
-     << "*";
+  if (pointee_type_) {
+    os << pointee_type_->str();
+  } else {
+    os << "untyped_ptr";
+  }
+  os << " " << static_cast<uint32_t>(storage_class_) << "*";
   return os.str();
 }
 
 size_t Pointer::ComputeExtraStateHash(size_t hash, SeenTypes* seen) const {
   hash = hash_combine(hash, uint32_t(storage_class_));
-  return pointee_type_->ComputeHashValue(hash, seen);
+  if (pointee_type_) {
+    hash = pointee_type_->ComputeHashValue(hash, seen);
+  }
+  return hash;
 }
 
 void Pointer::SetPointeeType(const Type* type) { pointee_type_ = type; }
@@ -747,7 +822,114 @@ bool CooperativeMatrixKHR::IsSameImpl(const Type* that,
   if (!mt) return false;
   return component_type_->IsSameImpl(mt->component_type_, seen) &&
          scope_id_ == mt->scope_id_ && rows_id_ == mt->rows_id_ &&
-         columns_id_ == mt->columns_id_ && HasSameDecorations(that);
+         columns_id_ == mt->columns_id_ && use_id_ == mt->use_id_ &&
+         HasSameDecorations(that);
+}
+
+TensorLayoutNV::TensorLayoutNV(const uint32_t dim, const uint32_t clamp_mode)
+    : Type(kTensorLayoutNV), dim_id_(dim), clamp_mode_id_(clamp_mode) {}
+
+std::string TensorLayoutNV::str() const {
+  std::ostringstream oss;
+  oss << "<" << dim_id_ << ", " << clamp_mode_id_ << ">";
+  return oss.str();
+}
+
+size_t TensorLayoutNV::ComputeExtraStateHash(size_t hash, SeenTypes*) const {
+  return hash_combine(hash, dim_id_, clamp_mode_id_);
+}
+
+bool TensorLayoutNV::IsSameImpl(const Type* that, IsSameCache*) const {
+  const TensorLayoutNV* tl = that->AsTensorLayoutNV();
+  if (!tl) return false;
+  return dim_id_ == tl->dim_id_ && clamp_mode_id_ == tl->clamp_mode_id_;
+}
+
+TensorViewNV::TensorViewNV(const uint32_t dim, const uint32_t clamp_mode,
+                           const std::vector<uint32_t>& perm)
+    : Type(kTensorViewNV),
+      dim_id_(dim),
+      has_dimensions_id_(clamp_mode),
+      perm_(perm) {}
+
+std::string TensorViewNV::str() const {
+  std::ostringstream oss;
+  oss << "<" << dim_id_ << ", " << has_dimensions_id_;
+  for (auto p : perm_) {
+    oss << ", " << p;
+  }
+  oss << ">";
+  return oss.str();
+}
+
+size_t TensorViewNV::ComputeExtraStateHash(size_t hash, SeenTypes*) const {
+  return hash_combine(hash, dim_id_, has_dimensions_id_, perm_);
+}
+
+bool TensorViewNV::IsSameImpl(const Type* that, IsSameCache*) const {
+  const TensorViewNV* tv = that->AsTensorViewNV();
+  if (!tv) return false;
+  return dim_id_ == tv->dim_id_ &&
+         has_dimensions_id_ == tv->has_dimensions_id_ && perm_ == tv->perm_;
+}
+
+CooperativeVectorNV::CooperativeVectorNV(const Type* type,
+                                         const uint32_t components)
+    : Type(kCooperativeVectorNV),
+      component_type_(type),
+      components_(components) {
+  assert(type != nullptr);
+  assert(components != 0);
+}
+
+std::string CooperativeVectorNV::str() const {
+  std::ostringstream oss;
+  oss << "<" << component_type_->str() << ", " << components_ << ">";
+  return oss.str();
+}
+
+size_t CooperativeVectorNV::ComputeExtraStateHash(size_t hash,
+                                                  SeenTypes* seen) const {
+  hash = hash_combine(hash, components_);
+  return component_type_->ComputeHashValue(hash, seen);
+}
+
+bool CooperativeVectorNV::IsSameImpl(const Type* that,
+                                     IsSameCache* seen) const {
+  const CooperativeVectorNV* mt = that->AsCooperativeVectorNV();
+  if (!mt) return false;
+  return component_type_->IsSameImpl(mt->component_type_, seen) &&
+         components_ == mt->components_ && HasSameDecorations(that);
+}
+
+TensorARM::TensorARM(const Type* elty, const uint32_t rank,
+                     const uint32_t shape)
+    : Type(kTensorARM), element_type_(elty), rank_id_(rank), shape_id_(shape) {
+  assert(elty != nullptr);
+  if (shape != 0) {
+    assert(rank != 0);
+  }
+}
+
+std::string TensorARM::str() const {
+  std::ostringstream oss;
+  oss << "tensor<" << element_type_->str() << ", id(" << rank_id_ << "), id("
+      << shape_id_ << ")>";
+  return oss.str();
+}
+
+size_t TensorARM::ComputeExtraStateHash(size_t hash, SeenTypes* seen) const {
+  hash = hash_combine(hash, rank_id_);
+  hash = hash_combine(hash, shape_id_);
+  return element_type_->ComputeHashValue(hash, seen);
+}
+
+bool TensorARM::IsSameImpl(const Type* that, IsSameCache* seen) const {
+  const TensorARM* tt = that->AsTensorARM();
+  if (!tt) return false;
+  return element_type_->IsSameImpl(tt->element_type_, seen) &&
+         rank_id_ == tt->rank_id_ && shape_id_ == tt->shape_id_ &&
+         HasSameDecorations(that);
 }
 
 }  // namespace analysis

@@ -28,6 +28,9 @@ constexpr uint32_t kStoreObjectInOperand = 1;
 constexpr uint32_t kCompositeExtractObjectInOperand = 0;
 constexpr uint32_t kTypePointerStorageClassInIdx = 0;
 constexpr uint32_t kTypePointerPointeeInIdx = 1;
+constexpr uint32_t kExtInstSetInIdx = 0;
+constexpr uint32_t kExtInstOpInIdx = 1;
+constexpr uint32_t kInterpolantInIdx = 2;
 
 bool IsDebugDeclareOrValue(Instruction* di) {
   auto dbg_opcode = di->GetCommonDebugOpcode();
@@ -74,28 +77,40 @@ Pass::Status CopyPropagateArrays::Process() {
 
     for (auto var_inst = entry_bb->begin();
          var_inst->opcode() == spv::Op::OpVariable; ++var_inst) {
-      if (!IsPointerToArrayType(var_inst->type_id())) {
-        continue;
-      }
-
-      // Find the only store to the entire memory location, if it exists.
-      Instruction* store_inst = FindStoreInstruction(&*var_inst);
-
-      if (!store_inst) {
-        continue;
-      }
-
-      std::unique_ptr<MemoryObject> source_object =
-          FindSourceObjectIfPossible(&*var_inst, store_inst);
-
-      if (source_object != nullptr) {
-        if (CanUpdateUses(&*var_inst, source_object->GetPointerTypeId(this))) {
-          modified = true;
-          PropagateObject(&*var_inst, source_object.get(), store_inst);
-        }
-      }
+      worklist_.push(&*var_inst);
     }
   }
+
+  while (!worklist_.empty()) {
+    Instruction* var_inst = worklist_.front();
+    worklist_.pop();
+
+    // Find the only store to the entire memory location, if it exists.
+    Instruction* store_inst = FindStoreInstruction(&*var_inst);
+
+    if (!store_inst) {
+      continue;
+    }
+
+    std::unique_ptr<MemoryObject> source_object =
+        FindSourceObjectIfPossible(&*var_inst, store_inst);
+
+    if (source_object == nullptr) {
+      continue;
+    }
+
+    if (!IsPointerToArrayType(var_inst->type_id()) &&
+        source_object->GetStorageClass() != spv::StorageClass::Input) {
+      continue;
+    }
+
+    if (CanUpdateUses(&*var_inst, source_object->GetPointerTypeId(this))) {
+      modified = true;
+
+      PropagateObject(&*var_inst, source_object.get(), store_inst);
+    }
+  }
+
   return (modified ? Status::SuccessWithChange : Status::SuccessWithoutChange);
 }
 
@@ -204,6 +219,10 @@ bool CopyPropagateArrays::HasNoStores(Instruction* ptr_inst) {
       return true;
     } else if (use->opcode() == spv::Op::OpEntryPoint) {
       return true;
+    } else if (IsInterpolationInstruction(use)) {
+      return true;
+    } else if (use->IsCommonDebugInstr()) {
+      return true;
     }
     // Some other instruction.  Be conservative.
     return false;
@@ -225,16 +244,26 @@ bool CopyPropagateArrays::HasValidReferencesOnly(Instruction* ptr_inst,
           // time to do the multiple traverses can add up.  Consider collecting
           // those loads and doing a single traversal.
           return dominator_analysis->Dominates(store_inst, use);
+        } else if (IsInterpolationInstruction(use)) {
+          // GLSL InterpolateAt* instructions work similarly to loads
+          uint32_t interpolant = use->GetSingleWordInOperand(kInterpolantInIdx);
+          if (interpolant !=
+              store_inst->GetSingleWordInOperand(kStorePointerInOperand))
+            return false;
+          return dominator_analysis->Dominates(store_inst, use);
         } else if (use->opcode() == spv::Op::OpAccessChain) {
           return HasValidReferencesOnly(use, store_inst);
         } else if (use->IsDecoration() || use->opcode() == spv::Op::OpName) {
           return true;
         } else if (use->opcode() == spv::Op::OpStore) {
-          // If we are storing to part of the object it is not an candidate.
+          // If we are storing to part of the object it is not a candidate.
           return ptr_inst->opcode() == spv::Op::OpVariable &&
                  store_inst->GetSingleWordInOperand(kStorePointerInOperand) ==
                      ptr_inst->result_id();
         } else if (IsDebugDeclareOrValue(use)) {
+          // The store does not have to dominate debug instructions. We do not
+          // want debugging info to stop the transformation. It will be fixed
+          // up later.
           return true;
         }
         // Some other instruction.  Be conservative.
@@ -254,6 +283,7 @@ CopyPropagateArrays::GetSourceObjectIfAny(uint32_t result) {
     case spv::Op::OpCompositeConstruct:
       return BuildMemoryObjectFromCompositeConstruct(result_inst);
     case spv::Op::OpCopyObject:
+    case spv::Op::OpCopyLogical:
       return GetSourceObjectIfAny(result_inst->GetSingleWordInOperand(0));
     case spv::Op::OpCompositeInsert:
       return BuildMemoryObjectFromInsert(result_inst);
@@ -489,6 +519,21 @@ bool CopyPropagateArrays::IsPointerToArrayType(uint32_t type_id) {
   return false;
 }
 
+bool CopyPropagateArrays::IsInterpolationInstruction(Instruction* inst) {
+  if (inst->opcode() == spv::Op::OpExtInst &&
+      inst->GetSingleWordInOperand(kExtInstSetInIdx) ==
+          context()->get_feature_mgr()->GetExtInstImportId_GLSLstd450()) {
+    uint32_t ext_inst = inst->GetSingleWordInOperand(kExtInstOpInIdx);
+    switch (ext_inst) {
+      case GLSLstd450InterpolateAtCentroid:
+      case GLSLstd450InterpolateAtOffset:
+      case GLSLstd450InterpolateAtSample:
+        return true;
+    }
+  }
+  return false;
+}
+
 bool CopyPropagateArrays::CanUpdateUses(Instruction* original_ptr_inst,
                                         uint32_t type_id) {
   analysis::TypeManager* type_mgr = context()->get_type_mgr();
@@ -522,6 +567,11 @@ bool CopyPropagateArrays::CanUpdateUses(Instruction* original_ptr_inst,
         }
         return true;
       }
+      case spv::Op::OpExtInst:
+        if (IsInterpolationInstruction(use)) {
+          return true;
+        }
+        return false;
       case spv::Op::OpAccessChain: {
         analysis::Pointer* pointer_type = type->AsPointer();
         const analysis::Type* pointee_type = pointer_type->pointee_type();
@@ -609,6 +659,22 @@ void CopyPropagateArrays::UpdateUses(Instruction* original_ptr_inst,
     uint32_t index = pair.second;
 
     if (use->IsCommonDebugInstr()) {
+      // It is possible that the debug instructions are not dominated by
+      // `new_ptr_inst`. If not, move the debug instruction to just after
+      // `new_ptr_inst`.
+      BasicBlock* store_block = context()->get_instr_block(new_ptr_inst);
+      if (store_block) {
+        Function* function = store_block->GetParent();
+        DominatorAnalysis* dominator_analysis =
+            context()->GetDominatorAnalysis(function);
+        if (!dominator_analysis->Dominates(new_ptr_inst, use)) {
+          assert(dominator_analysis->Dominates(use, new_ptr_inst));
+          use->InsertAfter(new_ptr_inst);
+          context()->set_instr_block(use,
+                                     context()->get_instr_block(new_ptr_inst));
+        }
+      }
+
       switch (use->GetCommonDebugOpcode()) {
         case CommonDebugInfoDebugDeclare: {
           if (new_ptr_inst->opcode() == spv::Op::OpVariable ||
@@ -669,6 +735,18 @@ void CopyPropagateArrays::UpdateUses(Instruction* original_ptr_inst,
           UpdateUses(use, use);
         } else {
           context()->AnalyzeUses(use);
+        }
+
+        AddUsesToWorklist(use);
+      } break;
+      case spv::Op::OpExtInst: {
+        if (IsInterpolationInstruction(use)) {
+          // Replace the actual use.
+          context()->ForgetUses(use);
+          use->SetOperand(index, {new_ptr_inst->result_id()});
+          context()->AnalyzeUses(use);
+        } else {
+          assert(false && "Don't know how to rewrite instruction");
         }
       } break;
       case spv::Op::OpAccessChain: {
@@ -751,6 +829,8 @@ void CopyPropagateArrays::UpdateUses(Instruction* original_ptr_inst,
           uint32_t pointee_type_id =
               pointer_type->GetSingleWordInOperand(kTypePointerPointeeInIdx);
           uint32_t copy = GenerateCopy(original_ptr_inst, pointee_type_id, use);
+          assert(copy != 0 &&
+                 "Should not be updating uses unless we know it can be done.");
 
           context()->ForgetUses(use);
           use->SetInOperand(index, {copy});
@@ -797,6 +877,22 @@ uint32_t CopyPropagateArrays::GetMemberTypeId(
   return id;
 }
 
+void CopyPropagateArrays::AddUsesToWorklist(Instruction* inst) {
+  analysis::DefUseManager* def_use_mgr = context()->get_def_use_mgr();
+
+  def_use_mgr->ForEachUse(inst, [this](Instruction* use, uint32_t) {
+    if (use->opcode() == spv::Op::OpStore) {
+      uint32_t var_id;
+      Instruction* target_pointer = GetPtr(use, &var_id);
+      if (target_pointer->opcode() != spv::Op::OpVariable) {
+        return;
+      }
+
+      worklist_.push(target_pointer);
+    }
+  });
+}
+
 void CopyPropagateArrays::MemoryObject::PushIndirection(
     const std::vector<AccessChainEntry>& access_chain) {
   access_chain_.insert(access_chain_.end(), access_chain.begin(),
@@ -820,9 +916,7 @@ CopyPropagateArrays::MemoryObject::MemoryObject(Instruction* var_inst,
                                                 iterator begin, iterator end)
     : variable_inst_(var_inst) {
   std::transform(begin, end, std::back_inserter(access_chain_),
-                 [](uint32_t id) {
-                   return AccessChainEntry{true, {id}};
-                 });
+                 [](uint32_t id) { return AccessChainEntry{true, {id}}; });
 }
 
 std::vector<uint32_t> CopyPropagateArrays::MemoryObject::GetAccessIds() const {

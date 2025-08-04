@@ -70,8 +70,8 @@ build() {
 }
 
 if [ ! -d external/spirv-headers ] ; then
-    echo "Fetching SPIRV-headers"
-    git clone https://github.com/KhronosGroup/SPIRV-Headers.git external/spirv-headers
+    echo "Fetching deps"
+    utils/git-sync-deps
 fi
 
 echo Building ${BASH_REMATCH[1]}

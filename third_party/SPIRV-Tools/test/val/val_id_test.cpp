@@ -1,4 +1,6 @@
 // Copyright (c) 2015-2016 The Khronos Group Inc.
+// Modifications Copyright (C) 2024 Advanced Micro Devices, Inc. All rights
+// reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -77,8 +79,7 @@ std::string kOpVariablePtrSetUp = R"(
      OpExtension "SPV_KHR_variable_pointers"
 )";
 
-std::string kGLSL450MemoryModel =
-    kOpCapabilitySetup + kOpVariablePtrSetUp + R"(
+std::string kGLSL450MemoryModel = kOpCapabilitySetup + kOpVariablePtrSetUp + R"(
      OpMemoryModel Logical GLSL450
 )";
 
@@ -578,9 +579,8 @@ TEST_P(ValidateIdWithMessage, OpEntryPointInterfaceIsNotVariableTypeBad) {
   CompileSuccessfully(spirv);
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr(make_message(
-                  "Interfaces passed to OpEntryPoint must be of type "
-                  "OpTypeVariable. Found OpTypePointer.")));
+              HasSubstr("Interfaces passed to OpEntryPoint must be variables. "
+                        "Found OpTypePointer."));
 }
 
 TEST_P(ValidateIdWithMessage, OpEntryPointInterfaceStorageClassBad) {
@@ -706,6 +706,24 @@ TEST_P(ValidateIdWithMessage, OpTypeVectorComponentTypeBad) {
               HasSubstr(make_message(
                   "OpTypeVector Component Type <id> "
                   "'2[%_ptr_UniformConstant_float]' is not a scalar type.")));
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeVectorComponentTypeCanBePointerType) {
+  std::string spirv = R"(
+OpCapability Addresses
+OpCapability Linkage
+OpCapability Kernel
+OpCapability Int64
+OpCapability GenericPointer
+OpCapability MaskedGatherScatterINTEL
+OpExtension "SPV_INTEL_masked_gather_scatter"
+OpMemoryModel Physical64 OpenCL
+
+%2 = OpTypeInt 32 0
+%3 = OpTypePointer Generic %2
+%4 = OpTypeVector %3 4)";
+  CompileSuccessfully(spirv.c_str());
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
 }
 
 TEST_P(ValidateIdWithMessage, OpTypeVectorColumnCountLessThanTwoBad) {
@@ -1165,6 +1183,160 @@ TEST_P(ValidateIdWithMessage, OpTypePointerBad) {
       getDiagnosticString(),
       HasSubstr(make_message("OpTypePointer Type <id> '2[%uint_0]' is not a "
                              "type.")));
+}
+
+TEST_P(ValidateIdWithMessage, OpTypePointerCanHaveUntypedPointer) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpCapability WorkgroupMemoryExplicitLayoutKHR
+OpExtension "SPV_KHR_workgroup_memory_explicit_layout"
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical OpenCL
+%ptr = OpTypeUntypedPointerKHR Workgroup
+%ptr2 = OpTypePointer Private %ptr
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_4);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_4));
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeUntypedPointerWorkgroupGood) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpCapability WorkgroupMemoryExplicitLayoutKHR
+OpExtension "SPV_KHR_workgroup_memory_explicit_layout"
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical GLSL450
+%ptr = OpTypeUntypedPointerKHR Workgroup
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_4);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_4));
+}
+
+TEST_P(ValidateIdWithMessage,
+       OpTypeUntypedPointerWorkgroupMissingExplicitLayout) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main"
+OpExecutionMode %main LocalSize 1 1 1
+%ptr = OpTypeUntypedPointerKHR Workgroup
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_VULKAN_1_1);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_1));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr("Workgroup storage class untyped pointers in Vulkan require "
+                "WorkgroupMemoryExplicitLayoutKHR be declared"));
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeUntypedPointerWorkgroupGoodAll) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical GLSL450
+%ptr = OpTypeUntypedPointerKHR Workgroup
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeUntypedPointerStorageBufferGood) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_storage_buffer_storage_class"
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical GLSL450
+%ptr = OpTypeUntypedPointerKHR StorageBuffer
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeUntypedPointerUniformGood) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical GLSL450
+%ptr = OpTypeUntypedPointerKHR Uniform
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeUntypedPointerPushConstantGood) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical GLSL450
+%ptr = OpTypeUntypedPointerKHR PushConstant
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeUntypedPointerCrossWorkgroupGood) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical OpenCL
+%ptr = OpTypeUntypedPointerKHR CrossWorkgroup
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_P(ValidateIdWithMessage, OpTypeUntypedPointerVulkanInvalidStorageClass) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_untyped_pointers"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main"
+OpExecutionMode %main LocalSize 1 1 1
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%ptr = OpTypeUntypedPointerKHR Private
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_VULKAN_1_0);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_0));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("In Vulkan, untyped pointers can only be used in an "
+                        "explicitly laid out storage class"));
 }
 
 TEST_P(ValidateIdWithMessage, OpTypeFunctionGood) {
@@ -2270,9 +2442,8 @@ OpFunctionEnd
   CompileSuccessfully(spirv.c_str());
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr(make_message(
-                  "OpVariable Initializer <id> '8[%8]' is not a constant "
-                  "or module-scope variable")));
+              HasSubstr("Variable Initializer <id> '8[%8]' is not a constant "
+                        "or module-scope variable"));
 }
 
 TEST_P(ValidateIdWithMessage, OpVariableInitializerIsModuleVarGood) {
@@ -2317,7 +2488,8 @@ OpFunctionEnd
           "be used with non-externally visible shader Storage Classes: "
           "Workgroup, CrossWorkgroup, Private, Function, Input, Output, "
           "RayPayloadKHR, IncomingRayPayloadKHR, HitAttributeKHR, "
-          "CallableDataKHR, IncomingCallableDataKHR, or UniformConstant")));
+          "CallableDataKHR, IncomingCallableDataKHR, NodePayloadAMDX, or "
+          "UniformConstant")));
 }
 
 TEST_P(ValidateIdWithMessage, OpVariableContainsBoolPrivateGood) {
@@ -3869,8 +4041,7 @@ TEST_P(AccessChainInstructionTest, AccessChainResultTypeBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%float_entry = )" +
-                      instr +
+%float_entry = )" + instr +
                       R"( %float %my_matrix )" + elem +
                       R"(%int_0 %int_1
 OpReturn
@@ -3890,8 +4061,8 @@ TEST_P(AccessChainInstructionTest, AccessChainBaseTypeVoidBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%float_entry = )" +
-                      instr + " %_ptr_Private_float %void " + elem +
+%float_entry = )" + instr +
+                      " %_ptr_Private_float %void " + elem +
                       R"(%int_0 %int_1
 OpReturn
 OpFunctionEnd
@@ -3907,8 +4078,7 @@ TEST_P(AccessChainInstructionTest, AccessChainBaseTypeNonPtrVariableBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Private_float %_ptr_Private_float )" +
+%entry = )" + instr + R"( %_ptr_Private_float %_ptr_Private_float )" +
                       elem +
                       R"(%int_0 %int_1
 OpReturn
@@ -3926,8 +4096,8 @@ TEST_P(AccessChainInstructionTest,
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Function_float %my_matrix )" + elem +
+%entry = )" + instr + R"( %_ptr_Function_float %my_matrix )" +
+                      elem +
                       R"(%int_0 %int_1
 OpReturn
 OpFunctionEnd
@@ -3947,8 +4117,8 @@ TEST_P(AccessChainInstructionTest,
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Private_float %my_float_var )" + elem +
+%entry = )" + instr + R"( %_ptr_Private_float %my_float_var )" +
+                      elem +
                       R"(%int_0
 OpReturn
 OpFunctionEnd
@@ -3967,8 +4137,8 @@ TEST_P(AccessChainInstructionTest, AccessChainNoIndexesGood) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Private_float %my_float_var )" + elem +
+%entry = )" + instr + R"( %_ptr_Private_float %my_float_var )" +
+                      elem +
                       R"(
 OpReturn
 OpFunctionEnd
@@ -3983,8 +4153,8 @@ TEST_P(AccessChainInstructionTest, AccessChainNoIndexesBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Private_mat4x3 %my_float_var )" + elem +
+%entry = )" + instr + R"( %_ptr_Private_mat4x3 %my_float_var )" +
+                      elem +
                       R"(
 OpReturn
 OpFunctionEnd
@@ -4140,8 +4310,8 @@ TEST_P(AccessChainInstructionTest, AccessChainUndefinedIndexBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Private_float %my_matrix )" + elem +
+%entry = )" + instr + R"( %_ptr_Private_float %my_matrix )" +
+                      elem +
                       R"(%float_0 %int_1
 OpReturn
 OpFunctionEnd
@@ -4159,18 +4329,17 @@ TEST_P(AccessChainInstructionTest, AccessChainStructIndexNotConstantBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%f = )" +
-                      instr + R"( %_ptr_Uniform_float %blockName_var )" + elem +
+%f = )" + instr + R"( %_ptr_Uniform_float %blockName_var )" +
+                      elem +
                       R"(%int_0 %spec_int %int_2
 OpReturn
 OpFunctionEnd
   )";
-  const std::string expected_err =
-      "The <id> passed to " + instr +
-      " to index into a structure must be an OpConstant.";
   CompileSuccessfully(spirv);
   EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
-  EXPECT_THAT(getDiagnosticString(), HasSubstr(expected_err));
+  EXPECT_THAT(getDiagnosticString(), HasSubstr("The <id> passed to " + instr));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("into a structure must be an OpConstant"));
 }
 
 // Invalid: Indexing up to a vec4 granularity, but result type expected float.
@@ -4179,8 +4348,8 @@ TEST_P(AccessChainInstructionTest,
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Uniform_float %blockName_var )" + elem +
+%entry = )" + instr + R"( %_ptr_Uniform_float %blockName_var )" +
+                      elem +
                       R"(%int_0 %int_1 %int_2
 OpReturn
 OpFunctionEnd
@@ -4199,8 +4368,8 @@ TEST_P(AccessChainInstructionTest, AccessChainStructTooManyIndexesBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Uniform_float %blockName_var )" + elem +
+%entry = )" + instr + R"( %_ptr_Uniform_float %blockName_var )" +
+                      elem +
                       R"(%int_0 %int_2 %int_2
 OpReturn
 OpFunctionEnd
@@ -4218,13 +4387,13 @@ TEST_P(AccessChainInstructionTest, AccessChainStructIndexOutOfBoundBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Uniform_float %blockName_var )" + elem +
+%entry = )" + instr + R"( %_ptr_Uniform_float %blockName_var )" +
+                      elem +
                       R"(%int_3 %int_2 %int_2
 OpReturn
 OpFunctionEnd
   )";
-  const std::string expected_err = "Index is out of bounds: " + instr +
+  const std::string expected_err = "is out of bounds: " + instr +
                                    " cannot find index 3 into the structure "
                                    "<id> '25[%_struct_25]'. This structure "
                                    "has 3 members. Largest valid index is 2.";
@@ -4274,8 +4443,8 @@ TEST_P(AccessChainInstructionTest, AccessChainIndexIntoRuntimeArrayGood) {
       " OpDecorate %_ptr_Uniform_blockName ArrayStride 8 ";
   std::string spirv = kGLSL450MemoryModel + arrayStride +
                       kDeeplyNestedStructureSetup + R"(
-%runtime_arr_entry = )" + instr +
-                      R"( %_ptr_Uniform_float %blockName_var )" + elem +
+%runtime_arr_entry = )" +
+                      instr + R"( %_ptr_Uniform_float %blockName_var )" + elem +
                       R"(%int_2 %int_0
 OpReturn
 OpFunctionEnd
@@ -4309,8 +4478,8 @@ TEST_P(AccessChainInstructionTest, AccessChainMatrixMoreArgsThanNeededBad) {
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Private_float %my_matrix )" + elem +
+%entry = )" + instr + R"( %_ptr_Private_float %my_matrix )" +
+                      elem +
                       R"(%int_0 %int_1 %int_0
 OpReturn
 OpFunctionEnd
@@ -4329,8 +4498,8 @@ TEST_P(AccessChainInstructionTest,
   const std::string instr = GetParam();
   const std::string elem = AccessChainRequiresElemId(instr) ? "%int_0 " : "";
   std::string spirv = kGLSL450MemoryModel + kDeeplyNestedStructureSetup + R"(
-%entry = )" +
-                      instr + R"( %_ptr_Private_mat4x3 %my_matrix )" + elem +
+%entry = )" + instr + R"( %_ptr_Private_mat4x3 %my_matrix )" +
+                      elem +
                       R"(%int_0 %int_1
 OpReturn
 OpFunctionEnd
@@ -5610,7 +5779,7 @@ TEST_P(ValidateIdWithMessage,
  %2 = OpFunction %8 None %11
  %4 = OpFunctionParameter %10
 %15 = OpLabel
-%16 = OpLoad %6 %3 Aligned 0
+%16 = OpLoad %6 %3 Aligned 1
 %17 = OpCompositeExtract %5 %16 0
 %18 = OpInBoundsPtrAccessChain %13 %4 %17 %12
       OpStore %18 %14 Aligned 4
@@ -5644,7 +5813,7 @@ TEST_P(ValidateIdWithMessage, OpPtrAccessChainGood) {
  %2 = OpFunction %8 None %12
  %4 = OpFunctionParameter %11
 %17 = OpLabel
-%18 = OpLoad %6 %3 Aligned 0
+%18 = OpLoad %6 %3 Aligned 1
 %19 = OpCompositeExtract %5 %18 0
 %20 = OpBitwiseAnd %5 %19 %13
 %21 = OpPtrAccessChain %15 %4 %20 %14
@@ -6404,9 +6573,10 @@ OpMemoryModel Logical VulkanKHR
 %7 = OpConstant %2 2
 %8 = OpConstant %2 5
 %9 = OpTypeFunction %1
+%12 = OpConstant %2 4
 %10 = OpFunction %1 None %9
 %11 = OpLabel
-OpCopyMemorySized %4 %6 %7 NonPrivatePointerKHR|MakePointerAvailableKHR %7
+OpCopyMemorySized %4 %6 %12 NonPrivatePointerKHR|MakePointerAvailableKHR %7
 OpReturn
 OpFunctionEnd
 )";
@@ -6431,10 +6601,11 @@ OpMemoryModel Logical VulkanKHR
 %6 = OpVariable %5 Uniform
 %7 = OpConstant %2 2
 %8 = OpConstant %2 5
+%12 = OpConstant %2 4
 %9 = OpTypeFunction %1
 %10 = OpFunction %1 None %9
 %11 = OpLabel
-OpCopyMemorySized %4 %6 %7 NonPrivatePointerKHR|MakePointerVisibleKHR %8
+OpCopyMemorySized %4 %6 %12 NonPrivatePointerKHR|MakePointerVisibleKHR %8
 OpReturn
 OpFunctionEnd
 )";
@@ -6460,10 +6631,11 @@ OpMemoryModel Logical VulkanKHR
 %6 = OpVariable %5 Uniform
 %7 = OpConstant %2 2
 %8 = OpConstant %2 5
+%12 = OpConstant %2 4
 %9 = OpTypeFunction %1
 %10 = OpFunction %1 None %9
 %11 = OpLabel
-OpCopyMemorySized %4 %6 %7 NonPrivatePointerKHR|MakePointerAvailableKHR|MakePointerVisibleKHR %7 %8
+OpCopyMemorySized %4 %6 %12 NonPrivatePointerKHR|MakePointerAvailableKHR|MakePointerVisibleKHR %7 %8
 OpReturn
 OpFunctionEnd
 )";
@@ -6489,10 +6661,11 @@ OpMemoryModel Logical VulkanKHR
 %6 = OpVariable %5 Uniform
 %7 = OpConstant %2 2
 %8 = OpConstant %2 5
+%12 = OpConstant %2 4
 %9 = OpTypeFunction %1
 %10 = OpFunction %1 None %9
 %11 = OpLabel
-OpCopyMemorySized %4 %6 %7 MakePointerAvailableKHR %7
+OpCopyMemorySized %4 %6 %12 MakePointerAvailableKHR %7
 OpReturn
 OpFunctionEnd
 )";
@@ -6522,10 +6695,11 @@ OpMemoryModel Logical VulkanKHR
 %6 = OpVariable %5 Uniform
 %7 = OpConstant %2 2
 %8 = OpConstant %2 5
+%12 = OpConstant %2 4
 %9 = OpTypeFunction %1
 %10 = OpFunction %1 None %9
 %11 = OpLabel
-OpCopyMemorySized %4 %6 %7 MakePointerVisibleKHR %8
+OpCopyMemorySized %4 %6 %12 MakePointerVisibleKHR %8
 OpReturn
 OpFunctionEnd
 )";
@@ -6555,10 +6729,11 @@ OpMemoryModel Logical VulkanKHR
 %6 = OpVariable %5 Uniform
 %7 = OpConstant %2 2
 %8 = OpConstant %2 5
+%12 = OpConstant %2 4
 %9 = OpTypeFunction %1
 %10 = OpFunction %1 None %9
 %11 = OpLabel
-OpCopyMemorySized %4 %6 %7 NonPrivatePointerKHR
+OpCopyMemorySized %4 %6 %12 NonPrivatePointerKHR
 OpReturn
 OpFunctionEnd
 )";
@@ -6589,10 +6764,11 @@ OpMemoryModel Logical VulkanKHR
 %6 = OpVariable %5 Input
 %7 = OpConstant %2 2
 %8 = OpConstant %2 5
+%12 = OpConstant %2 4
 %9 = OpTypeFunction %1
 %10 = OpFunction %1 None %9
 %11 = OpLabel
-OpCopyMemorySized %4 %6 %7 NonPrivatePointerKHR
+OpCopyMemorySized %4 %6 %12 NonPrivatePointerKHR
 OpReturn
 OpFunctionEnd
 )";
@@ -6905,6 +7081,114 @@ TEST_P(ValidateIdWithMessage, NVBindlessSamplerInStruct) {
 
   CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_3);
   EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+}
+
+TEST_P(ValidateIdWithMessage,
+       OpExtInstWithForwardRefsKHRDisallowedNoForwardRef) {
+  std::string spirv = R"(
+             OpCapability Shader
+             OpExtension "SPV_KHR_non_semantic_info"
+             OpExtension "SPV_KHR_relaxed_extended_instruction"
+        %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+             OpMemoryModel Logical GLSL450
+             OpEntryPoint GLCompute %main "main"
+             OpExecutionMode %main LocalSize 1 1 1
+     %void = OpTypeVoid
+%main_type = OpTypeFunction %void
+        %4 = OpExtInstWithForwardRefsKHR %void %1 DebugInfoNone
+     %main = OpFunction %void None %main_type
+        %5 = OpLabel
+             OpReturn
+             OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_6);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_UNIVERSAL_1_6));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(make_message("Opcode OpExtInstWithForwardRefsKHR must have at "
+                             "least one forward declared ID.")));
+}
+
+TEST_P(ValidateIdWithMessage, OpExtInstNoForwardRef) {
+  std::string spirv = R"(
+             OpCapability Shader
+             OpExtension "SPV_KHR_non_semantic_info"
+             OpExtension "SPV_KHR_relaxed_extended_instruction"
+        %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+             OpMemoryModel Logical GLSL450
+             OpEntryPoint GLCompute %main "main"
+             OpExecutionMode %main LocalSize 1 1 1
+     %void = OpTypeVoid
+%main_type = OpTypeFunction %void
+        %4 = OpExtInst %void %1 DebugInfoNone
+     %main = OpFunction %void None %main_type
+        %5 = OpLabel
+             OpReturn
+             OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_6);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_6));
+}
+
+TEST_P(ValidateIdWithMessage,
+       OpExtInstWithForwardRefsKHRAllowedForwardReferenceInNonSemantic) {
+  std::string spirv = R"(
+             OpCapability Shader
+             OpExtension "SPV_KHR_non_semantic_info"
+             OpExtension "SPV_KHR_relaxed_extended_instruction"
+        %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+             OpMemoryModel Logical GLSL450
+             OpEntryPoint GLCompute %2 "main"
+             OpExecutionMode %2 LocalSize 1 1 1
+        %3 = OpString "sample"
+     %void = OpTypeVoid
+     %uint = OpTypeInt 32 0
+   %uint_0 = OpConstant %uint 0
+        %7 = OpTypeFunction %void
+        %8 = OpExtInst %void %1 DebugSource %3 %3
+        %9 = OpExtInst %void %1 DebugCompilationUnit %uint_0 %uint_0 %8 %uint_0
+       %10 = OpExtInstWithForwardRefsKHR %void %1 DebugTypeFunction %uint_0 %11
+       %12 = OpExtInstWithForwardRefsKHR %void %1 DebugFunction %3 %10 %8 %uint_0 %uint_0 %11 %3 %uint_0 %uint_0
+       %11 = OpExtInst %void %1 DebugTypeComposite %3 %uint_0 %8 %uint_0 %uint_0 %9 %3 %uint_0 %uint_0 %12
+        %2 = OpFunction %void None %7
+       %13 = OpLabel
+             OpReturn
+             OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_6);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_6));
+}
+
+TEST_P(ValidateIdWithMessage, OpExtInstNoForwardDeclAllowed) {
+  std::string spirv = R"(
+             OpCapability Shader
+        %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+             OpMemoryModel Logical GLSL450
+             OpEntryPoint GLCompute %2 "main"
+             OpExecutionMode %2 LocalSize 1 1 1
+        %3 = OpString "sample"
+     %void = OpTypeVoid
+     %uint = OpTypeInt 32 0
+   %uint_0 = OpConstant %uint 0
+        %7 = OpTypeFunction %void
+        %8 = OpExtInst %void %1 DebugSource %3 %3
+        %9 = OpExtInst %void %1 DebugCompilationUnit %uint_0 %uint_0 %8 %uint_0
+       %10 = OpExtInst %void %1 DebugTypeFunction %uint_0 %11
+       %12 = OpExtInst %void %1 DebugFunction %3 %10 %8 %uint_0 %uint_0 %11 %3 %uint_0 %uint_0
+       %11 = OpExtInst %void %1 DebugTypeComposite %3 %uint_0 %8 %uint_0 %uint_0 %9 %3 %uint_0 %uint_0 %12
+        %2 = OpFunction %void None %7
+       %13 = OpLabel
+             OpReturn
+             OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_6);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_UNIVERSAL_1_6));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr(make_message("ID '11[%11]' has not been defined")));
 }
 
 INSTANTIATE_TEST_SUITE_P(, ValidateIdWithMessage, ::testing::Bool());

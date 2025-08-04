@@ -175,6 +175,7 @@ typedef enum spv_operand_type_t {
   SPV_OPERAND_TYPE_KERNEL_ENQ_FLAGS,              // SPIR-V Sec 3.29
   SPV_OPERAND_TYPE_KERNEL_PROFILING_INFO,         // SPIR-V Sec 3.30
   SPV_OPERAND_TYPE_CAPABILITY,                    // SPIR-V Sec 3.31
+  SPV_OPERAND_TYPE_FPENCODING,                    // SPIR-V Sec 3.51
 
   // NOTE: New concrete enum values should be added at the end.
 
@@ -188,36 +189,24 @@ typedef enum spv_operand_type_t {
   SPV_OPERAND_TYPE_MEMORY_ACCESS,          // SPIR-V Sec 3.26
   SPV_OPERAND_TYPE_FRAGMENT_SHADING_RATE,  // SPIR-V Sec 3.FSR
 
-// NOTE: New concrete enum values should be added at the end.
+  // NOTE: New concrete enum values should be added at the end.
 
-// The "optional" and "variable"  operand types are only used internally by
-// the assembler and the binary parser.
-// There are two categories:
-//    Optional : expands to 0 or 1 operand, like ? in regular expressions.
-//    Variable : expands to 0, 1 or many operands or pairs of operands.
-//               This is similar to * in regular expressions.
+  // The "optional" and "variable"  operand types are only used internally by
+  // the assembler and the binary parser.
+  // There are two categories:
+  //    Optional : expands to 0 or 1 operand, like ? in regular expressions.
+  //    Variable : expands to 0, 1 or many operands or pairs of operands.
+  //               This is similar to * in regular expressions.
 
-// NOTE: These FIRST_* and LAST_* enum values are DEPRECATED.
-// The concept of "optional" and "variable" operand types are only intended
-// for use as an implementation detail of parsing SPIR-V, either in text or
-// binary form.  Instead of using enum ranges, use characteristic function
-// spvOperandIsConcrete.
-// The use of enum value ranges in a public API makes it difficult to insert
-// new values into a range without also breaking binary compatibility.
-//
-// Macros for defining bounds on optional and variable operand types.
-// Any variable operand type is also optional.
-// TODO(dneto): Remove SPV_OPERAND_TYPE_FIRST_* and SPV_OPERAND_TYPE_LAST_*
-#define FIRST_OPTIONAL(ENUM) ENUM, SPV_OPERAND_TYPE_FIRST_OPTIONAL_TYPE = ENUM
-#define FIRST_VARIABLE(ENUM) ENUM, SPV_OPERAND_TYPE_FIRST_VARIABLE_TYPE = ENUM
-#define LAST_VARIABLE(ENUM)                         \
-  ENUM, SPV_OPERAND_TYPE_LAST_VARIABLE_TYPE = ENUM, \
-        SPV_OPERAND_TYPE_LAST_OPTIONAL_TYPE = ENUM
+  // Use characteristic function spvOperandIsConcrete to classify the
+  // operand types; when it returns false, the operand is optional or variable.
+  //
+  // Any variable operand type is also optional.
 
   // An optional operand represents zero or one logical operands.
   // In an instruction definition, this may only appear at the end of the
   // operand types.
-  FIRST_OPTIONAL(SPV_OPERAND_TYPE_OPTIONAL_ID),
+  SPV_OPERAND_TYPE_OPTIONAL_ID,
   // An optional image operand type.
   SPV_OPERAND_TYPE_OPTIONAL_IMAGE,
   // An optional memory access type.
@@ -236,11 +225,13 @@ typedef enum spv_operand_type_t {
   // assemble regardless of where they occur -- literals, IDs, immediate
   // integers, etc.
   SPV_OPERAND_TYPE_OPTIONAL_CIV,
+  // An optional floating point encoding enum
+  SPV_OPERAND_TYPE_OPTIONAL_FPENCODING,
 
   // A variable operand represents zero or more logical operands.
   // In an instruction definition, this may only appear at the end of the
   // operand types.
-  FIRST_VARIABLE(SPV_OPERAND_TYPE_VARIABLE_ID),
+  SPV_OPERAND_TYPE_VARIABLE_ID,
   SPV_OPERAND_TYPE_VARIABLE_LITERAL_INTEGER,
   // A sequence of zero or more pairs of (typed literal integer, Id).
   // Expands to zero or more:
@@ -248,7 +239,7 @@ typedef enum spv_operand_type_t {
   // where the literal number must always be an integer of some sort.
   SPV_OPERAND_TYPE_VARIABLE_LITERAL_INTEGER_ID,
   // A sequence of zero or more pairs of (Id, Literal integer)
-  LAST_VARIABLE(SPV_OPERAND_TYPE_VARIABLE_ID_LITERAL_INTEGER),
+  SPV_OPERAND_TYPE_VARIABLE_ID_LITERAL_INTEGER,
 
   // The following are concrete enum types from the DebugInfo extended
   // instruction set.
@@ -311,6 +302,38 @@ typedef enum spv_operand_type_t {
   SPV_OPERAND_TYPE_RAW_ACCESS_CHAIN_OPERANDS,
   // Optional enum type from SPV_NV_raw_access_chains
   SPV_OPERAND_TYPE_OPTIONAL_RAW_ACCESS_CHAIN_OPERANDS,
+  // Enum type from SPV_NV_tensor_addressing
+  SPV_OPERAND_TYPE_TENSOR_CLAMP_MODE,
+  // Enum type from SPV_NV_cooperative_matrix2
+  SPV_OPERAND_TYPE_COOPERATIVE_MATRIX_REDUCE,
+  // Enum type from SPV_NV_cooperative_matrix2
+  SPV_OPERAND_TYPE_TENSOR_ADDRESSING_OPERANDS,
+  // Optional types from SPV_INTEL_subgroup_matrix_multiply_accumulate
+  SPV_OPERAND_TYPE_MATRIX_MULTIPLY_ACCUMULATE_OPERANDS,
+  SPV_OPERAND_TYPE_OPTIONAL_MATRIX_MULTIPLY_ACCUMULATE_OPERANDS,
+
+  SPV_OPERAND_TYPE_COOPERATIVE_VECTOR_MATRIX_LAYOUT,
+  SPV_OPERAND_TYPE_COMPONENT_TYPE,
+
+  // From nonesmantic.clspvreflection
+  SPV_OPERAND_TYPE_KERNEL_PROPERTY_FLAGS,
+
+  // From nonesmantic.shader.debuginfo.100
+  SPV_OPERAND_TYPE_SHDEBUG100_BUILD_IDENTIFIER_FLAGS,
+  SPV_OPERAND_TYPE_SHDEBUG100_DEBUG_BASE_TYPE_ATTRIBUTE_ENCODING,
+  SPV_OPERAND_TYPE_SHDEBUG100_DEBUG_COMPOSITE_TYPE,
+  SPV_OPERAND_TYPE_SHDEBUG100_DEBUG_IMPORTED_ENTITY,
+  SPV_OPERAND_TYPE_SHDEBUG100_DEBUG_INFO_FLAGS,
+  SPV_OPERAND_TYPE_SHDEBUG100_DEBUG_OPERATION,
+  SPV_OPERAND_TYPE_SHDEBUG100_DEBUG_TYPE_QUALIFIER,
+
+  // SPV_ARM_tensors
+  SPV_OPERAND_TYPE_TENSOR_OPERANDS,
+  SPV_OPERAND_TYPE_OPTIONAL_TENSOR_OPERANDS,
+
+  // SPV_INTEL_function_variants
+  SPV_OPERAND_TYPE_OPTIONAL_CAPABILITY,
+  SPV_OPERAND_TYPE_VARIABLE_CAPABILITY,
 
   // This is a sentinel value, and does not represent an operand type.
   // It should come last.
@@ -338,6 +361,7 @@ typedef enum spv_ext_inst_type_t {
   SPV_EXT_INST_TYPE_NONSEMANTIC_CLSPVREFLECTION,
   SPV_EXT_INST_TYPE_NONSEMANTIC_SHADER_DEBUGINFO_100,
   SPV_EXT_INST_TYPE_NONSEMANTIC_VKSPREFLECTION,
+  SPV_EXT_INST_TYPE_TOSA_001000_1,
 
   // Multiple distinct extended instruction set types could return this
   // value, if they are prefixed with NonSemantic. and are otherwise
@@ -358,6 +382,18 @@ typedef enum spv_number_kind_t {
   SPV_NUMBER_SIGNED_INT,
   SPV_NUMBER_FLOATING,
 } spv_number_kind_t;
+
+// Represent the encoding of floating point values
+typedef enum spv_fp_encoding_t {
+  SPV_FP_ENCODING_UNKNOWN =
+      0,  // The encoding is not specified. Has to be deduced from bitwidth
+  SPV_FP_ENCODING_IEEE754_BINARY16,  // half float
+  SPV_FP_ENCODING_IEEE754_BINARY32,  // single float
+  SPV_FP_ENCODING_IEEE754_BINARY64,  // double float
+  SPV_FP_ENCODING_BFLOAT16,
+  SPV_FP_ENCODING_FLOAT8_E4M3,
+  SPV_FP_ENCODING_FLOAT8_E5M2,
+} spv_fp_encoding_t;
 
 typedef enum spv_text_to_binary_options_t {
   SPV_TEXT_TO_BINARY_OPTION_NONE = SPV_BIT(0),
@@ -382,6 +418,11 @@ typedef enum spv_binary_to_text_options_t {
   SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES = SPV_BIT(6),
   // Add some comments to the generated assembly
   SPV_BINARY_TO_TEXT_OPTION_COMMENT = SPV_BIT(7),
+  // Use nested indentation for more readable SPIR-V
+  SPV_BINARY_TO_TEXT_OPTION_NESTED_INDENT = SPV_BIT(8),
+  // Reorder blocks to match the structured control flow of SPIR-V to increase
+  // readability.
+  SPV_BINARY_TO_TEXT_OPTION_REORDER_BLOCKS = SPV_BIT(9),
   SPV_FORCE_32_BIT_ENUM(spv_binary_to_text_options_t)
 } spv_binary_to_text_options_t;
 
@@ -409,6 +450,8 @@ typedef struct spv_parsed_operand_t {
   spv_number_kind_t number_kind;
   // The number of bits for a literal number type.
   uint32_t number_bit_width;
+  // The encoding used for floating point values
+  spv_fp_encoding_t fp_encoding;
 } spv_parsed_operand_t;
 
 // An instruction parsed from a binary SPIR-V module.
@@ -526,6 +569,7 @@ SPIRV_TOOLS_EXPORT const char* spvSoftwareVersionDetailsString(void);
 //    SPV_ENV_VULKAN_1_1_SPIRV_1_4 ->  SPIR-V 1.4
 //    SPV_ENV_VULKAN_1_2           ->  SPIR-V 1.5
 //    SPV_ENV_VULKAN_1_3           ->  SPIR-V 1.6
+//    SPV_ENV_VULKAN_1_4           ->  SPIR-V 1.6
 // Consult the description of API entry points for specific rules.
 typedef enum {
   SPV_ENV_UNIVERSAL_1_0,  // SPIR-V 1.0 latest revision, no other restrictions.
@@ -563,6 +607,7 @@ typedef enum {
 
   SPV_ENV_UNIVERSAL_1_6,  // SPIR-V 1.6 latest revision, no other restrictions.
   SPV_ENV_VULKAN_1_3,     // Vulkan 1.3 latest revision.
+  SPV_ENV_VULKAN_1_4,     // Vulkan 1.4 latest revision.
 
   SPV_ENV_MAX  // Keep this as the last enum value.
 } spv_target_env;
@@ -711,6 +756,16 @@ SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetSkipBlockLayout(
 // Records whether or not the validator should allow the LocalSizeId
 // decoration where the environment otherwise would not allow it.
 SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetAllowLocalSizeId(
+    spv_validator_options options, bool val);
+
+// Allow Offset (in addition to ConstOffset) for texture operations.
+// Was added for VK_KHR_maintenance8
+SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetAllowOffsetTextureOperand(
+    spv_validator_options options, bool val);
+
+// Allow base operands of some bit operations to be non-32-bit wide.
+// Was added for VK_KHR_maintenance9
+SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetAllowVulkan32BitBitwise(
     spv_validator_options options, bool val);
 
 // Whether friendly names should be used in validation error messages.

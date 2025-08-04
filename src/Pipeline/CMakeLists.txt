@@ -72,7 +72,6 @@ if (NOT TARGET SPIRV-Tools)
 endif()
 
 set_target_properties(core_tables PROPERTIES FOLDER "SPIRV-Tools build")
-set_target_properties(enum_string_mapping PROPERTIES FOLDER "SPIRV-Tools build")
 set_target_properties(extinst_tables PROPERTIES FOLDER "SPIRV-Tools build")
 
 set_target_properties(vk_pipeline PROPERTIES

@@ -1,4 +1,6 @@
 // Copyright (c) 2016 Google Inc.
+// Modifications Copyright (C) 2024 Advanced Micro Devices, Inc. All rights
+// reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -245,6 +247,7 @@ uint32_t TypeManager::GetTypeInstruction(const Type* type) {
                {(type->AsInteger()->IsSigned() ? 1u : 0u)}}});
       break;
     case Type::kFloat:
+      // TODO: Handle FP encoding enums once actually used.
       typeInst = MakeUnique<Instruction>(
           context(), spv::Op::OpTypeFloat, 0, id,
           std::initializer_list<Operand>{
@@ -334,6 +337,17 @@ uint32_t TypeManager::GetTypeInstruction(const Type* type) {
           std::initializer_list<Operand>{{SPV_OPERAND_TYPE_ID, {subtype}}});
       break;
     }
+    case Type::kNodePayloadArrayAMDX: {
+      uint32_t subtype =
+          GetTypeInstruction(type->AsNodePayloadArrayAMDX()->element_type());
+      if (subtype == 0) {
+        return 0;
+      }
+      typeInst = MakeUnique<Instruction>(
+          context(), spv::Op::OpTypeNodePayloadArrayAMDX, 0, id,
+          std::initializer_list<Operand>{{SPV_OPERAND_TYPE_ID, {subtype}}});
+      break;
+    }
     case Type::kStruct: {
       std::vector<Operand> ops;
       const Struct* structTy = type->AsStruct();
@@ -360,16 +374,21 @@ uint32_t TypeManager::GetTypeInstruction(const Type* type) {
     }
     case Type::kPointer: {
       const Pointer* pointer = type->AsPointer();
-      uint32_t subtype = GetTypeInstruction(pointer->pointee_type());
-      if (subtype == 0) {
-        return 0;
+      if (pointer->is_untyped()) {
+        typeInst = MakeUnique<Instruction>(
+            context(), spv::Op::OpTypeUntypedPointerKHR, 0, id,
+            std::initializer_list<Operand>{
+                {SPV_OPERAND_TYPE_STORAGE_CLASS,
+                 {static_cast<uint32_t>(pointer->storage_class())}}});
+      } else {
+        uint32_t subtype = GetTypeInstruction(pointer->pointee_type());
+        typeInst = MakeUnique<Instruction>(
+            context(), spv::Op::OpTypePointer, 0, id,
+            std::initializer_list<Operand>{
+                {SPV_OPERAND_TYPE_STORAGE_CLASS,
+                 {static_cast<uint32_t>(pointer->storage_class())}},
+                {SPV_OPERAND_TYPE_ID, {subtype}}});
       }
-      typeInst = MakeUnique<Instruction>(
-          context(), spv::Op::OpTypePointer, 0, id,
-          std::initializer_list<Operand>{
-              {SPV_OPERAND_TYPE_STORAGE_CLASS,
-               {static_cast<uint32_t>(pointer->storage_class())}},
-              {SPV_OPERAND_TYPE_ID, {subtype}}});
       break;
     }
     case Type::kFunction: {
@@ -440,11 +459,79 @@ uint32_t TypeManager::GetTypeInstruction(const Type* type) {
               {SPV_OPERAND_TYPE_ID, {coop_mat->use_id()}}});
       break;
     }
+    case Type::kTensorLayoutNV: {
+      auto tensor_layout = type->AsTensorLayoutNV();
+      typeInst = MakeUnique<Instruction>(
+          context(), spv::Op::OpTypeTensorLayoutNV, 0, id,
+          std::initializer_list<Operand>{
+              {SPV_OPERAND_TYPE_ID, {tensor_layout->dim_id()}},
+              {SPV_OPERAND_TYPE_ID, {tensor_layout->clamp_mode_id()}}});
+      break;
+    }
+    case Type::kTensorViewNV: {
+      auto tensor_view = type->AsTensorViewNV();
+      std::vector<Operand> operands;
+      operands.push_back(Operand{SPV_OPERAND_TYPE_ID, {tensor_view->dim_id()}});
+      operands.push_back(
+          Operand{SPV_OPERAND_TYPE_ID, {tensor_view->has_dimensions_id()}});
+      for (auto p : tensor_view->perm()) {
+        operands.push_back(Operand{SPV_OPERAND_TYPE_ID, {p}});
+      }
+      typeInst = MakeUnique<Instruction>(context(), spv::Op::OpTypeTensorViewNV,
+                                         0, id, operands);
+      break;
+    }
+    case Type::kCooperativeVectorNV: {
+      auto coop_vec = type->AsCooperativeVectorNV();
+      uint32_t const component_type =
+          GetTypeInstruction(coop_vec->component_type());
+      if (component_type == 0) {
+        return 0;
+      }
+      typeInst = MakeUnique<Instruction>(
+          context(), spv::Op::OpTypeCooperativeVectorNV, 0, id,
+          std::initializer_list<Operand>{
+              {SPV_OPERAND_TYPE_ID, {component_type}},
+              {SPV_OPERAND_TYPE_ID, {coop_vec->components()}}});
+      break;
+    }
+    case Type::kTensorARM: {
+      auto tensor_type = type->AsTensorARM();
+      uint32_t const element_type =
+          GetTypeInstruction(tensor_type->element_type());
+      if (element_type == 0) {
+        return 0;
+      }
+      if (tensor_type->rank_id() != 0) {
+        if (tensor_type->shape_id() != 0) {
+          typeInst = MakeUnique<Instruction>(
+              context(), spv::Op::OpTypeTensorARM, 0, id,
+              std::initializer_list<Operand>{
+                  {SPV_OPERAND_TYPE_ID, {element_type}},
+                  {SPV_OPERAND_TYPE_ID, {tensor_type->rank_id()}},
+                  {SPV_OPERAND_TYPE_ID, {tensor_type->shape_id()}}});
+        } else {
+          typeInst = MakeUnique<Instruction>(
+              context(), spv::Op::OpTypeTensorARM, 0, id,
+              std::initializer_list<Operand>{
+                  {SPV_OPERAND_TYPE_ID, {element_type}},
+                  {SPV_OPERAND_TYPE_ID, {tensor_type->rank_id()}}});
+        }
+      } else {
+        typeInst =
+            MakeUnique<Instruction>(context(), spv::Op::OpTypeTensorARM, 0, id,
+                                    std::initializer_list<Operand>{
+                                        {SPV_OPERAND_TYPE_ID, {element_type}}});
+      }
+      break;
+    }
     default:
       assert(false && "Unexpected type");
       break;
   }
   context()->AddType(std::move(typeInst));
+  // TODO(dneto): This next call to AnalyzeDefUse is redundant becaues
+  // IRContext::AddType already does it.
   context()->AnalyzeDefUse(&*--context()->types_values_end());
   AttachDecorations(id, type);
   return id;
@@ -454,12 +541,7 @@ uint32_t TypeManager::FindPointerToType(uint32_t type_id,
                                         spv::StorageClass storage_class) {
   Type* pointeeTy = GetType(type_id);
   Pointer pointerTy(pointeeTy, storage_class);
-  if (pointeeTy->IsUniqueType()) {
-    // Non-ambiguous type. Get the pointer type through the type manager.
-    return GetTypeInstruction(&pointerTy);
-  }
 
-  // Ambiguous type, do a linear search.
   Module::inst_iterator type_itr = context()->module()->types_values_begin();
   for (; type_itr != context()->module()->types_values_end(); ++type_itr) {
     const Instruction* type_inst = &*type_itr;
@@ -472,8 +554,10 @@ uint32_t TypeManager::FindPointerToType(uint32_t type_id,
   }
 
   // Must create the pointer type.
-  // TODO(1841): Handle id overflow.
   uint32_t resultId = context()->TakeNextId();
+  if (resultId == 0) {
+    return 0;
+  }
   std::unique_ptr<Instruction> type_inst(
       new Instruction(context(), spv::Op::OpTypePointer, 0, resultId,
                       {{spv_operand_type_t::SPV_OPERAND_TYPE_STORAGE_CLASS,
@@ -603,6 +687,13 @@ Type* TypeManager::RebuildType(uint32_t type_id, const Type& type) {
           MakeUnique<RuntimeArray>(RebuildType(GetId(ele_ty), *ele_ty));
       break;
     }
+    case Type::kNodePayloadArrayAMDX: {
+      const NodePayloadArrayAMDX* array_ty = type.AsNodePayloadArrayAMDX();
+      const Type* ele_ty = array_ty->element_type();
+      rebuilt_ty =
+          MakeUnique<NodePayloadArrayAMDX>(RebuildType(GetId(ele_ty), *ele_ty));
+      break;
+    }
     case Type::kStruct: {
       const Struct* struct_ty = type.AsStruct();
       std::vector<const Type*> subtypes;
@@ -624,9 +715,13 @@ Type* TypeManager::RebuildType(uint32_t type_id, const Type& type) {
     }
     case Type::kPointer: {
       const Pointer* pointer_ty = type.AsPointer();
-      const Type* ele_ty = pointer_ty->pointee_type();
-      rebuilt_ty = MakeUnique<Pointer>(RebuildType(GetId(ele_ty), *ele_ty),
-                                       pointer_ty->storage_class());
+      if (pointer_ty->pointee_type()) {
+        const Type* ele_ty = pointer_ty->pointee_type();
+        rebuilt_ty = MakeUnique<Pointer>(RebuildType(GetId(ele_ty), *ele_ty),
+                                         pointer_ty->storage_class());
+      } else {
+        rebuilt_ty = MakeUnique<Pointer>(nullptr, pointer_ty->storage_class());
+      }
       break;
     }
     case Type::kFunction: {
@@ -667,6 +762,34 @@ Type* TypeManager::RebuildType(uint32_t type_id, const Type& type) {
           RebuildType(GetId(component_type), *component_type),
           cm_type->scope_id(), cm_type->rows_id(), cm_type->columns_id(),
           cm_type->use_id());
+      break;
+    }
+    case Type::kTensorLayoutNV: {
+      const TensorLayoutNV* tl_type = type.AsTensorLayoutNV();
+      rebuilt_ty = MakeUnique<TensorLayoutNV>(tl_type->dim_id(),
+                                              tl_type->clamp_mode_id());
+      break;
+    }
+    case Type::kTensorViewNV: {
+      const TensorViewNV* tv_type = type.AsTensorViewNV();
+      rebuilt_ty = MakeUnique<TensorViewNV>(
+          tv_type->dim_id(), tv_type->has_dimensions_id(), tv_type->perm());
+      break;
+    }
+    case Type::kCooperativeVectorNV: {
+      const CooperativeVectorNV* cv_type = type.AsCooperativeVectorNV();
+      const Type* component_type = cv_type->component_type();
+      rebuilt_ty = MakeUnique<CooperativeVectorNV>(
+          RebuildType(GetId(component_type), *component_type),
+          cv_type->components());
+      break;
+    }
+    case Type::kTensorARM: {
+      const TensorARM* tensor_type = type.AsTensorARM();
+      const Type* element_type = tensor_type->element_type();
+      rebuilt_ty = MakeUnique<TensorARM>(
+          RebuildType(GetId(element_type), *element_type),
+          tensor_type->rank_id(), tensor_type->shape_id());
       break;
     }
     default:
@@ -716,9 +839,13 @@ Type* TypeManager::RecordIfTypeDefinition(const Instruction& inst) {
       type = new Integer(inst.GetSingleWordInOperand(0),
                          inst.GetSingleWordInOperand(1));
       break;
-    case spv::Op::OpTypeFloat:
-      type = new Float(inst.GetSingleWordInOperand(0));
-      break;
+    case spv::Op::OpTypeFloat: {
+      const spv::FPEncoding encoding =
+          inst.NumInOperands() > 1
+              ? static_cast<spv::FPEncoding>(inst.GetSingleWordInOperand(1))
+              : spv::FPEncoding::Max;
+      type = new Float(inst.GetSingleWordInOperand(0), encoding);
+    } break;
     case spv::Op::OpTypeVector:
       type = new Vector(GetType(inst.GetSingleWordInOperand(0)),
                         inst.GetSingleWordInOperand(1));
@@ -805,6 +932,14 @@ Type* TypeManager::RecordIfTypeDefinition(const Instruction& inst) {
         return type;
       }
       break;
+    case spv::Op::OpTypeNodePayloadArrayAMDX:
+      type = new NodePayloadArrayAMDX(GetType(inst.GetSingleWordInOperand(0)));
+      if (id_to_incomplete_type_.count(inst.GetSingleWordInOperand(0))) {
+        incomplete_types_.emplace_back(inst.result_id(), type);
+        id_to_incomplete_type_[inst.result_id()] = type;
+        return type;
+      }
+      break;
     case spv::Op::OpTypeStruct: {
       std::vector<const Type*> element_types;
       bool incomplete_type = false;
@@ -839,6 +974,11 @@ Type* TypeManager::RecordIfTypeDefinition(const Instruction& inst) {
       }
       id_to_incomplete_type_.erase(inst.result_id());
 
+    } break;
+    case spv::Op::OpTypeUntypedPointerKHR: {
+      type = new Pointer(nullptr, static_cast<spv::StorageClass>(
+                                      inst.GetSingleWordInOperand(0)));
+      id_to_incomplete_type_.erase(inst.result_id());
     } break;
     case spv::Op::OpTypeFunction: {
       bool incomplete_type = false;
@@ -910,12 +1050,47 @@ Type* TypeManager::RecordIfTypeDefinition(const Instruction& inst) {
           inst.GetSingleWordInOperand(1), inst.GetSingleWordInOperand(2),
           inst.GetSingleWordInOperand(3), inst.GetSingleWordInOperand(4));
       break;
+    case spv::Op::OpTypeCooperativeVectorNV:
+      type = new CooperativeVectorNV(GetType(inst.GetSingleWordInOperand(0)),
+                                     inst.GetSingleWordInOperand(1));
+      break;
     case spv::Op::OpTypeRayQueryKHR:
       type = new RayQueryKHR();
       break;
     case spv::Op::OpTypeHitObjectNV:
       type = new HitObjectNV();
       break;
+    case spv::Op::OpTypeTensorLayoutNV:
+      type = new TensorLayoutNV(inst.GetSingleWordInOperand(0),
+                                inst.GetSingleWordInOperand(1));
+      break;
+    case spv::Op::OpTypeTensorViewNV: {
+      const auto count = inst.NumOperands();
+      std::vector<uint32_t> perm;
+      for (uint32_t i = 2; i < count; ++i) {
+        perm.push_back(inst.GetSingleWordOperand(i));
+      }
+      type = new TensorViewNV(inst.GetSingleWordInOperand(0),
+                              inst.GetSingleWordInOperand(1), perm);
+      break;
+    }
+    case spv::Op::OpTypeTensorARM: {
+      switch (inst.NumInOperands()) {
+        case 1:
+          type = new TensorARM(GetType(inst.GetSingleWordInOperand(0)));
+          break;
+        case 2:
+          type = new TensorARM(GetType(inst.GetSingleWordInOperand(0)),
+                               inst.GetSingleWordInOperand(1));
+          break;
+        case 3:
+          type = new TensorARM(GetType(inst.GetSingleWordInOperand(0)),
+                               inst.GetSingleWordInOperand(1),
+                               inst.GetSingleWordInOperand(2));
+          break;
+      }
+      break;
+    }
     default:
       assert(false && "Type not handled by the type manager.");
       break;
@@ -942,11 +1117,16 @@ void TypeManager::AttachDecoration(const Instruction& inst, Type* type) {
   if (!IsAnnotationInst(opcode)) return;
 
   switch (opcode) {
-    case spv::Op::OpDecorate: {
+    case spv::Op::OpDecorate:
+    case spv::Op::OpDecorateId: {
       const auto count = inst.NumOperands();
       std::vector<uint32_t> data;
       for (uint32_t i = 1; i < count; ++i) {
-        data.push_back(inst.GetSingleWordOperand(i));
+        // LinkageAttributes has a literal string as an operand, which is a
+        // varible length word. We cannot assume that all operands are single
+        // word.
+        const Operand::OperandData& words = inst.GetOperand(i).words;
+        data.insert(data.end(), words.begin(), words.end());
       }
       type->AddDecoration(std::move(data));
     } break;

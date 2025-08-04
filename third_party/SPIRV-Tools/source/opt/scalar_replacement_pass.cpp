@@ -1,4 +1,6 @@
 // Copyright (c) 2017 Google Inc.
+// Modifications Copyright (C) 2024 Advanced Micro Devices, Inc. All rights
+// reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -184,7 +186,7 @@ bool ScalarReplacementPass::ReplaceWholeDebugDeclare(
     Instruction* added_dbg_value =
         context()->get_debug_info_mgr()->AddDebugValueForDecl(
             dbg_decl, /*value_id=*/var->result_id(),
-            /*insert_before=*/insert_before, /*scope_and_line=*/dbg_decl);
+            /*insert_before=*/insert_before, /*line=*/dbg_decl);
 
     if (added_dbg_value == nullptr) return false;
     added_dbg_value->AddOperand(
@@ -671,7 +673,8 @@ bool ScalarReplacementPass::CheckTypeAnnotations(
   for (auto inst :
        get_decoration_mgr()->GetDecorationsFor(typeInst->result_id(), false)) {
     uint32_t decoration;
-    if (inst->opcode() == spv::Op::OpDecorate) {
+    if (inst->opcode() == spv::Op::OpDecorate ||
+        inst->opcode() == spv::Op::OpDecorateId) {
       decoration = inst->GetSingleWordInOperand(1u);
     } else {
       assert(inst->opcode() == spv::Op::OpMemberDecorate);

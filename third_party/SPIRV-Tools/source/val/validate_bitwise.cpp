@@ -30,18 +30,20 @@ spv_result_t ValidateBaseType(ValidationState_t& _, const Instruction* inst,
 
   if (!_.IsIntScalarType(base_type) && !_.IsIntVectorType(base_type)) {
     return _.diag(SPV_ERROR_INVALID_DATA, inst)
-           << _.VkErrorID(4781)
            << "Expected int scalar or vector type for Base operand: "
            << spvOpcodeString(opcode);
   }
 
   // Vulkan has a restriction to 32 bit for base
   if (spvIsVulkanEnv(_.context()->target_env)) {
-    if (_.GetBitWidth(base_type) != 32) {
+    if (_.GetBitWidth(base_type) != 32 &&
+        !_.options()->allow_vulkan_32_bit_bitwise) {
       return _.diag(SPV_ERROR_INVALID_DATA, inst)
-             << _.VkErrorID(4781)
+             << _.VkErrorID(10824)
              << "Expected 32-bit int type for Base operand: "
-             << spvOpcodeString(opcode);
+             << spvOpcodeString(opcode)
+             << _.MissingFeature("maintenance9 feature",
+                                 "--allow-vulkan-32-bit-bitwise", false);
     }
   }
 
@@ -64,7 +66,8 @@ spv_result_t BitwisePass(ValidationState_t& _, const Instruction* inst) {
     case spv::Op::OpShiftRightLogical:
     case spv::Op::OpShiftRightArithmetic:
     case spv::Op::OpShiftLeftLogical: {
-      if (!_.IsIntScalarType(result_type) && !_.IsIntVectorType(result_type))
+      if (!_.IsIntScalarType(result_type) && !_.IsIntVectorType(result_type) &&
+          !_.IsIntCooperativeVectorNVType(result_type))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected int scalar or vector type as Result Type: "
                << spvOpcodeString(opcode);
@@ -74,7 +77,8 @@ spv_result_t BitwisePass(ValidationState_t& _, const Instruction* inst) {
       const uint32_t shift_type = _.GetOperandTypeId(inst, 3);
 
       if (!base_type ||
-          (!_.IsIntScalarType(base_type) && !_.IsIntVectorType(base_type)))
+          (!_.IsIntScalarType(base_type) && !_.IsIntVectorType(base_type) &&
+           !_.IsIntCooperativeVectorNVType(base_type)))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected Base to be int scalar or vector: "
                << spvOpcodeString(opcode);
@@ -90,7 +94,8 @@ spv_result_t BitwisePass(ValidationState_t& _, const Instruction* inst) {
                << "as Result Type: " << spvOpcodeString(opcode);
 
       if (!shift_type ||
-          (!_.IsIntScalarType(shift_type) && !_.IsIntVectorType(shift_type)))
+          (!_.IsIntScalarType(shift_type) && !_.IsIntVectorType(shift_type) &&
+           !_.IsIntCooperativeVectorNVType(shift_type)))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected Shift to be int scalar or vector: "
                << spvOpcodeString(opcode);
@@ -106,7 +111,8 @@ spv_result_t BitwisePass(ValidationState_t& _, const Instruction* inst) {
     case spv::Op::OpBitwiseXor:
     case spv::Op::OpBitwiseAnd:
     case spv::Op::OpNot: {
-      if (!_.IsIntScalarType(result_type) && !_.IsIntVectorType(result_type))
+      if (!_.IsIntScalarType(result_type) && !_.IsIntVectorType(result_type) &&
+          !_.IsIntCooperativeVectorNVType(result_type))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected int scalar or vector type as Result Type: "
                << spvOpcodeString(opcode);
@@ -118,7 +124,8 @@ spv_result_t BitwisePass(ValidationState_t& _, const Instruction* inst) {
            ++operand_index) {
         const uint32_t type_id = _.GetOperandTypeId(inst, operand_index);
         if (!type_id ||
-            (!_.IsIntScalarType(type_id) && !_.IsIntVectorType(type_id)))
+            (!_.IsIntScalarType(type_id) && !_.IsIntVectorType(type_id) &&
+             !_.IsIntCooperativeVectorNVType(type_id)))
           return _.diag(SPV_ERROR_INVALID_DATA, inst)
                  << "Expected int scalar or vector as operand: "
                  << spvOpcodeString(opcode) << " operand index "

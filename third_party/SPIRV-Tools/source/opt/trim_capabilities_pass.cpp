@@ -26,10 +26,11 @@
 #include <vector>
 
 #include "source/enum_set.h"
-#include "source/enum_string_mapping.h"
+#include "source/ext_inst.h"
 #include "source/opt/ir_context.h"
 #include "source/opt/reflect.h"
 #include "source/spirv_target_env.h"
+#include "source/table2.h"
 #include "source/util/string_utils.h"
 
 namespace spvtools {
@@ -48,7 +49,11 @@ constexpr uint32_t kOpTypeImageMSIndex = kOpTypeImageArrayedIndex + 1;
 constexpr uint32_t kOpTypeImageSampledIndex = kOpTypeImageMSIndex + 1;
 constexpr uint32_t kOpTypeImageFormatIndex = kOpTypeImageSampledIndex + 1;
 constexpr uint32_t kOpImageReadImageIndex = 0;
+constexpr uint32_t kOpImageWriteImageIndex = 0;
 constexpr uint32_t kOpImageSparseReadImageIndex = 0;
+constexpr uint32_t kOpExtInstSetInIndex = 0;
+constexpr uint32_t kOpExtInstInstructionInIndex = 1;
+constexpr uint32_t kOpExtInstImportNameInIndex = 0;
 
 // DFS visit of the type defined by `instruction`.
 // If `condition` is true, children of the current node are visited.
@@ -56,12 +61,18 @@ constexpr uint32_t kOpImageSparseReadImageIndex = 0;
 template <class UnaryPredicate>
 static void DFSWhile(const Instruction* instruction, UnaryPredicate condition) {
   std::stack<uint32_t> instructions_to_visit;
+  std::unordered_set<uint32_t> visited_instructions;
   instructions_to_visit.push(instruction->result_id());
   const auto* def_use_mgr = instruction->context()->get_def_use_mgr();
 
   while (!instructions_to_visit.empty()) {
     const Instruction* item = def_use_mgr->GetDef(instructions_to_visit.top());
     instructions_to_visit.pop();
+
+    // Forward references can be allowed, meaning we can have cycles
+    // between ID uses. Need to keep track of this.
+    if (visited_instructions.count(item->result_id())) continue;
+    visited_instructions.insert(item->result_id());
 
     if (!condition(item)) {
       continue;
@@ -236,6 +247,37 @@ Handler_OpTypePointer_StorageUniformBufferBlock16(
              : std::nullopt;
 }
 
+static std::optional<spv::Capability>
+Handler_OpTypePointer_StorageBuffer16BitAccess(const Instruction* instruction) {
+  assert(instruction->opcode() == spv::Op::OpTypePointer &&
+         "This handler only support OpTypePointer opcodes.");
+
+  // Requires StorageBuffer, ShaderRecordBufferKHR or PhysicalStorageBuffer
+  // storage classes.
+  spv::StorageClass storage_class = spv::StorageClass(
+      instruction->GetSingleWordInOperand(kOpTypePointerStorageClassIndex));
+  if (storage_class != spv::StorageClass::StorageBuffer &&
+      storage_class != spv::StorageClass::ShaderRecordBufferKHR &&
+      storage_class != spv::StorageClass::PhysicalStorageBuffer) {
+    return std::nullopt;
+  }
+
+  const auto* decoration_mgr = instruction->context()->get_decoration_mgr();
+  const bool matchesCondition =
+      AnyTypeOf(instruction, [decoration_mgr](const Instruction* item) {
+        if (!decoration_mgr->HasDecoration(item->result_id(),
+                                           spv::Decoration::Block)) {
+          return false;
+        }
+
+        return AnyTypeOf(item, is16bitType);
+      });
+
+  return matchesCondition
+             ? std::optional(spv::Capability::StorageBuffer16BitAccess)
+             : std::nullopt;
+}
+
 static std::optional<spv::Capability> Handler_OpTypePointer_StorageUniform16(
     const Instruction* instruction) {
   assert(instruction->opcode() == spv::Op::OpTypePointer &&
@@ -334,11 +376,33 @@ Handler_OpImageRead_StorageImageReadWithoutFormat(
   const uint32_t dim = type->GetSingleWordInOperand(kOpTypeImageDimIndex);
   const uint32_t format = type->GetSingleWordInOperand(kOpTypeImageFormatIndex);
 
+  // If the Image Format is Unknown and Dim is SubpassData,
+  // StorageImageReadWithoutFormat is required.
   const bool is_unknown = spv::ImageFormat(format) == spv::ImageFormat::Unknown;
   const bool requires_capability_for_unknown =
       spv::Dim(dim) != spv::Dim::SubpassData;
   return is_unknown && requires_capability_for_unknown
              ? std::optional(spv::Capability::StorageImageReadWithoutFormat)
+             : std::nullopt;
+}
+
+static std::optional<spv::Capability>
+Handler_OpImageWrite_StorageImageWriteWithoutFormat(
+    const Instruction* instruction) {
+  assert(instruction->opcode() == spv::Op::OpImageWrite &&
+         "This handler only support OpImageWrite opcodes.");
+  const auto* def_use_mgr = instruction->context()->get_def_use_mgr();
+
+  const uint32_t image_index =
+      instruction->GetSingleWordInOperand(kOpImageWriteImageIndex);
+  const uint32_t type_index = def_use_mgr->GetDef(image_index)->type_id();
+
+  // If the Image Format is Unknown, StorageImageWriteWithoutFormat is required.
+  const Instruction* type = def_use_mgr->GetDef(type_index);
+  const uint32_t format = type->GetSingleWordInOperand(kOpTypeImageFormatIndex);
+  const bool is_unknown = spv::ImageFormat(format) == spv::ImageFormat::Unknown;
+  return is_unknown
+             ? std::optional(spv::Capability::StorageImageWriteWithoutFormat)
              : std::nullopt;
 }
 
@@ -361,9 +425,10 @@ Handler_OpImageSparseRead_StorageImageReadWithoutFormat(
 }
 
 // Opcode of interest to determine capabilities requirements.
-constexpr std::array<std::pair<spv::Op, OpcodeHandler>, 12> kOpcodeHandlers{{
+constexpr std::array<std::pair<spv::Op, OpcodeHandler>, 14> kOpcodeHandlers{{
     // clang-format off
     {spv::Op::OpImageRead,         Handler_OpImageRead_StorageImageReadWithoutFormat},
+    {spv::Op::OpImageWrite,        Handler_OpImageWrite_StorageImageWriteWithoutFormat},
     {spv::Op::OpImageSparseRead,   Handler_OpImageSparseRead_StorageImageReadWithoutFormat},
     {spv::Op::OpTypeFloat,         Handler_OpTypeFloat_Float16 },
     {spv::Op::OpTypeFloat,         Handler_OpTypeFloat_Float64 },
@@ -375,30 +440,57 @@ constexpr std::array<std::pair<spv::Op, OpcodeHandler>, 12> kOpcodeHandlers{{
     {spv::Op::OpTypePointer,       Handler_OpTypePointer_StorageUniform16},
     {spv::Op::OpTypePointer,       Handler_OpTypePointer_StorageUniform16},
     {spv::Op::OpTypePointer,       Handler_OpTypePointer_StorageUniformBufferBlock16},
+    {spv::Op::OpTypePointer,       Handler_OpTypePointer_StorageBuffer16BitAccess},
     // clang-format on
 }};
 
 // ==============  End opcode handler implementations.  =======================
 
 namespace {
-ExtensionSet getExtensionsRelatedTo(const CapabilitySet& capabilities,
-                                    const AssemblyGrammar& grammar) {
+ExtensionSet getExtensionsRelatedTo(const CapabilitySet& capabilities) {
   ExtensionSet output;
-  const spv_operand_desc_t* desc = nullptr;
+  const spvtools::OperandDesc* desc = nullptr;
   for (auto capability : capabilities) {
-    if (SPV_SUCCESS != grammar.lookupOperand(SPV_OPERAND_TYPE_CAPABILITY,
-                                             static_cast<uint32_t>(capability),
-                                             &desc)) {
+    if (SPV_SUCCESS !=
+        spvtools::LookupOperand(SPV_OPERAND_TYPE_CAPABILITY,
+                                static_cast<uint32_t>(capability), &desc)) {
       continue;
     }
 
-    for (uint32_t i = 0; i < desc->numExtensions; ++i) {
-      output.insert(desc->extensions[i]);
+    for (auto extension : desc->extensions()) {
+      output.insert(extension);
     }
   }
 
   return output;
 }
+
+bool hasOpcodeConflictingCapabilities(spv::Op opcode) {
+  switch (opcode) {
+    case spv::Op::OpBeginInvocationInterlockEXT:
+    case spv::Op::OpEndInvocationInterlockEXT:
+    case spv::Op::OpGroupNonUniformIAdd:
+    case spv::Op::OpGroupNonUniformFAdd:
+    case spv::Op::OpGroupNonUniformIMul:
+    case spv::Op::OpGroupNonUniformFMul:
+    case spv::Op::OpGroupNonUniformSMin:
+    case spv::Op::OpGroupNonUniformUMin:
+    case spv::Op::OpGroupNonUniformFMin:
+    case spv::Op::OpGroupNonUniformSMax:
+    case spv::Op::OpGroupNonUniformUMax:
+    case spv::Op::OpGroupNonUniformFMax:
+    case spv::Op::OpGroupNonUniformBitwiseAnd:
+    case spv::Op::OpGroupNonUniformBitwiseOr:
+    case spv::Op::OpGroupNonUniformBitwiseXor:
+    case spv::Op::OpGroupNonUniformLogicalAnd:
+    case spv::Op::OpGroupNonUniformLogicalOr:
+    case spv::Op::OpGroupNonUniformLogicalXor:
+      return true;
+    default:
+      return false;
+  }
+}
+
 }  // namespace
 
 TrimCapabilitiesPass::TrimCapabilitiesPass()
@@ -416,15 +508,12 @@ TrimCapabilitiesPass::TrimCapabilitiesPass()
 void TrimCapabilitiesPass::addInstructionRequirementsForOpcode(
     spv::Op opcode, CapabilitySet* capabilities,
     ExtensionSet* extensions) const {
-  // Ignoring OpBeginInvocationInterlockEXT and OpEndInvocationInterlockEXT
-  // because they have three possible capabilities, only one of which is needed
-  if (opcode == spv::Op::OpBeginInvocationInterlockEXT ||
-      opcode == spv::Op::OpEndInvocationInterlockEXT) {
+  if (hasOpcodeConflictingCapabilities(opcode)) {
     return;
   }
 
-  const spv_opcode_desc_t* desc = {};
-  auto result = context()->grammar().lookupOpcode(opcode, &desc);
+  const spvtools::InstructionDesc* desc;
+  auto result = spvtools::LookupOpcode(opcode, &desc);
   if (result != SPV_SUCCESS) {
     return;
   }
@@ -461,9 +550,9 @@ void TrimCapabilitiesPass::addInstructionRequirementsForOperand(
 
   // case 1: Operand is a single value, can directly lookup.
   if (!spvOperandIsConcreteMask(operand.type)) {
-    const spv_operand_desc_t* desc = {};
-    auto result = context()->grammar().lookupOperand(operand.type,
-                                                     operand.words[0], &desc);
+    const spvtools::OperandDesc* desc = nullptr;
+    auto result =
+        spvtools::LookupOperand(operand.type, operand.words[0], &desc);
     if (result != SPV_SUCCESS) {
       return;
     }
@@ -479,8 +568,8 @@ void TrimCapabilitiesPass::addInstructionRequirementsForOperand(
       continue;
     }
 
-    const spv_operand_desc_t* desc = {};
-    auto result = context()->grammar().lookupOperand(operand.type, mask, &desc);
+    const spvtools::OperandDesc* desc = nullptr;
+    auto result = spvtools::LookupOperand(operand.type, mask, &desc);
     if (result != SPV_SUCCESS) {
       continue;
     }
@@ -488,6 +577,34 @@ void TrimCapabilitiesPass::addInstructionRequirementsForOperand(
     addSupportedCapabilitiesToSet(desc, capabilities);
     addSupportedExtensionsToSet(desc, extensions);
   }
+}
+
+void TrimCapabilitiesPass::addInstructionRequirementsForExtInst(
+    Instruction* instruction, CapabilitySet* capabilities) const {
+  assert(instruction->opcode() == spv::Op::OpExtInst &&
+         "addInstructionRequirementsForExtInst must be passed an OpExtInst "
+         "instruction");
+
+  const auto* def_use_mgr = context()->get_def_use_mgr();
+
+  const Instruction* extInstImport = def_use_mgr->GetDef(
+      instruction->GetSingleWordInOperand(kOpExtInstSetInIndex));
+  uint32_t extInstruction =
+      instruction->GetSingleWordInOperand(kOpExtInstInstructionInIndex);
+
+  const Operand& extInstSet =
+      extInstImport->GetInOperand(kOpExtInstImportNameInIndex);
+
+  spv_ext_inst_type_t instructionSet =
+      spvExtInstImportTypeGet(extInstSet.AsString().c_str());
+
+  const ExtInstDesc* desc = nullptr;
+  auto result = LookupExtInst(instructionSet, extInstruction, &desc);
+  if (result != SPV_SUCCESS) {
+    return;
+  }
+
+  addSupportedCapabilitiesToSet(desc, capabilities);
 }
 
 void TrimCapabilitiesPass::addInstructionRequirements(
@@ -499,8 +616,12 @@ void TrimCapabilitiesPass::addInstructionRequirements(
     return;
   }
 
-  addInstructionRequirementsForOpcode(instruction->opcode(), capabilities,
-                                      extensions);
+  if (instruction->opcode() == spv::Op::OpExtInst) {
+    addInstructionRequirementsForExtInst(instruction, capabilities);
+  } else {
+    addInstructionRequirementsForOpcode(instruction->opcode(), capabilities,
+                                        extensions);
+  }
 
   // Second case: one of the opcode operand is gated by a capability.
   const uint32_t operandCount = instruction->NumOperands();
@@ -525,8 +646,8 @@ void TrimCapabilitiesPass::addInstructionRequirements(
 void TrimCapabilitiesPass::AddExtensionsForOperand(
     const spv_operand_type_t type, const uint32_t value,
     ExtensionSet* extensions) const {
-  const spv_operand_desc_t* desc = nullptr;
-  spv_result_t result = context()->grammar().lookupOperand(type, value, &desc);
+  const spvtools::OperandDesc* desc = nullptr;
+  spv_result_t result = spvtools::LookupOperand(type, value, &desc);
   if (result != SPV_SUCCESS) {
     return;
   }
@@ -601,7 +722,7 @@ Pass::Status TrimCapabilitiesPass::TrimUnrequiredCapabilities(
 Pass::Status TrimCapabilitiesPass::TrimUnrequiredExtensions(
     const ExtensionSet& required_extensions) const {
   const auto supported_extensions =
-      getExtensionsRelatedTo(supportedCapabilities_, context()->grammar());
+      getExtensionsRelatedTo(supportedCapabilities_);
 
   bool modified_module = false;
   for (auto extension : supported_extensions) {

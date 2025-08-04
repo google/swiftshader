@@ -1,5 +1,138 @@
 Revision history for SPIRV-Tools
 
+v2025.3 2025-06-23
+  - General
+    - Add mimalloc to improve multithreaded performance (#6188)
+    - python: Use type annotations compatible with python 3.8 (#6119)
+    - fix clang-20 build issue (#6103)
+  - Optimizer
+    - Add --canonicalize-ids pass (#6174)
+    - Keep instructions used by the DebugBuildIdentifier (#6189)
+    - opt: Pass DebugDeclare scope to DebugValue (#6178)
+    - Add SPV_NV_linear_swept_spheres to allow list. (#6168)
+    - Add initial support for SPV_EXT_float8 (#6170)
+    - Keep DebugBuildIdentifier during dce (#6166)
+    - Add SPV_NV_cluster_acceleration_structure to allow lists (#6163)
+    - [OPT] prevent private_to_local_pass optimizing double pointer (#6161)
+    - [OPT] Use conservative default case for `GetPtr` (#6158)
+    - [OPT] Set the BB for the debug instruction when moved. (#6153)
+    - Add support for SPV_ARM_tensors (#6134)
+    - [opt] Move debug instruction when neccessary in copy prop arrays. (#6142)
+    - [OPT] Remove recursion from redundancy_elimination (#6141)
+    - opt: add SPV_NV_shader_invocation_reorder to allowlist (#6122)
+  - Validator
+    - spirv-val: tidy up validation of type constraints for IDs (#6185)
+    - Add validation support for MeshEXT based on the spec update PR https://github.com/KhronosGroup/Vulkan-Docs/pull/2475 (#6171)
+    - spirv-val: Label maintenance9 new VUID (#6176)
+    - spirv-val: add positive test for FP8 cooperative matrices (#6175)
+    - spirv-val: Give hints when user is forgetting feature bit (#6164)
+    - val: Fix CullPrimitiveEXT array of bool (#6155)
+    - [spirv-val] Add the validation checks for SPV_QCOM_tile_shading (#6130)
+    - spirv-val: allow Float16 in OpenCL environments (#6110)
+    - spirv-val: Update 1.4.312 VUID churn (#6082)
+  - Assembler
+    - Add minimal as/dis support for TOSA.001000.1 extended instruction set (#6183)
+  - Disassembler
+    - spirv-dis: Set a hard limit on last_instruction_comment_alignment_ (#6149)
+
+v2025.2 2025-04-22
+  - General
+    - Add SPV_KHR_bfloat16 support (#6057)
+  - Optimizer
+    - Fold bitwise operator and arithmetic with 0 (#6013)
+    - Support scalar replacement of large structs (#6019)
+    - Support optimization of OpCopyLogical (#6016)
+    - add pass to split combined image samplers (#6035)
+    - value numbering: preserve loads of image, sampler, sampled image (#6059)
+    - Delete decoration for OpPhi when unrolling (#6064)
+    - Add QuadControlKHR to trim pass and allow lists (#6068)
+    - In copy propagate arrays, debug instructions are not stores. (#6078)
+    - Minimal opt support for SPV_KHR_untyped_pointers (#6087)
+  - Validator
+    - Add validation for invalid layout decoration usage (#6012, #6020)
+    - Add Vulkan Aligned PowerOfTwo check (#6027)
+    - Validate PhysicalStorageBuffer Stage Interface (#6000)
+    - Update location/component conflict validation (#5993)
+    - add resolve-binding-conflicts pass (#6044)
+    - Check that layouts match runtime array requirement (#6048)
+    - Validation for relaxed control barrier with storage class semantics (#5984)
+    - Validate version requirement for Vulkan Memory Model (#6042)
+    - Add support for pointer types in vector when using extension SPV_INTEL_masked_gather_scatter (#6041)
+    - Restrict VUID 09557 to Vulkan environments (#6080)
+    - Add Vulkan 1.3 and 1.4 capability checks (#6063)
+  - Assembler
+    - Add OpUnknown pseudo-instruction (#6024)
+  - Diff
+    - Try to pair functions by their complete type. (#6021)
+
+v2025.1 2025-02-28
+  - General
+    - diff: Fix crash in OpString matching (#5988)
+    - Add SPV_AMDX_shader_enqueue version 2 support (#5838)
+    - add support for SPV_INTEL_subgroup_matrix_multiply_accumulate (#5928)
+    - update cmake_minimum_required to 3.22.1 (#5925)
+    - Add OpImageSampleFootprintNV to IsAllowedSampledImageOperand (#5914)
+    - assembler: ensure progress when seeking the version string (#5910)
+  - Optimizer
+    - opt: keep all OpSource instructions (#5901)
+    - [opt] Fix bug opt::InstructionBuilder::AddVariable (#6007)
+    - [OPT] Add SPV_KHR_ray_tracing to allow list (#5941)
+    - opt: keep all OpSource instructions (#5901)
+  - Validator
+    - spirv-val: Add AllowVulkan32BitBitwise option (#6001)
+    - Fix untyped pointer comparison validation (#6004)
+    - spirv-val: Update VUIDs for 308 header (#5990)
+    - spirv-val: fix env parsing for vk1.1spv1.4 (#5985)
+    - Add validation for SPV_NV_linear_swept_spheres. (#5975)
+    - Add validation SPV_NV_cluster_acceleration_structure. (#5974)
+    - Improve the instruction diagnostic for some access chain errors (#5978)
+    - Update physical storage buffer validation to match SPIR-V 1.6.5 (#5977)
+    - Validate SPV_NV_cooperative_vector (#5972)
+    - Fix layout checks with untyped pointers (#5970)
+    - spirv-val: Update mislabeled VUIDs (#5964)
+    - More explicit layout validation (#5958)
+    - spirv-val: Add VK_KHR_maintenance8 support (#5951)
+    - Add EXT_mesh_shader validation support (#5640)
+    - spirv-val: Remove OpenCL ivec3 req (#5940)
+    - spirv-val: Validate zero product workgroup size (#5407)
+    - Relax DebugLine validation (#5916)
+  - Linker
+    - linker: remove LinkOnceODR decorations when linking executables (#5979)
+    - fix: handle LinkOnceODR correctly (#5938)
+
+v2024.4 2024-12-04
+  - General
+    - Add FPEncoding operand type. (#5726)
+    - Support SPV_KHR_untyped_pointers (#5736)
+    - add support for SPV_INTEL_global_variable_host_access (#5786)
+    - Add support for SPV_KHR_compute_shader_derivative (#5817)
+    - Accept hex representation as binary input (#5870)
+    - Vulkan 1.4 support (#5899)
+  - Optimizer
+    - Add knowledge of cooperative matrices (#5720)
+    - Add struct-packing pass and unit test. (#5778)
+  - Validator
+    - Validate presence of Stride operand to OpCooperativeMatrix{Load,Store}KHR (#5777)
+    - Update sampled image validation (#5789)
+    - Disallow stores according to VUID 06924 (#5368)
+    - Add validation for SPV_NV_tensor_addressing and SPV_NV_cooperative_matrix2 (#5865)
+  - Linker
+    - allow linking functions with different pointer arguments (#5534)
+
+v2024.3 2024-06-20
+  - General
+  - Optimizer
+    - Do not fold mul and adds to generate fmas (#5682)
+    - add OpExtInst forward ref fixup pass (#5708)
+  - Validator
+    - Separate Location check for tess patch (#5654)
+    - Validate MemoryAccessMask of OpCooperativeMatrixStoreKHR (#5668)
+    - OpSampledImage extra validation (#5695)
+    - add support for OpExtInstWithForwardRefs (#5698)A
+  - Disassembler
+    - add decorations to comments (#5675)
+    - Add --nested-indent and --reorder-blocks (#5671)
+
 v2024.2 2024-04-22
   - General
     - Add SPIRV_TOOLS_EXPORT to public C++ API (#5591)

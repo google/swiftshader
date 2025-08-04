@@ -115,20 +115,72 @@ spv_result_t CheckIdDefinitionDominateUse(ValidationState_t& _) {
   return SPV_SUCCESS;
 }
 
+bool InstructionCanHaveTypeOperand(const Instruction* inst) {
+  static std::unordered_set<spv::Op> instruction_allow_set{
+      spv::Op::OpSizeOf,
+      spv::Op::OpCooperativeMatrixLengthNV,
+      spv::Op::OpCooperativeMatrixLengthKHR,
+      spv::Op::OpUntypedArrayLengthKHR,
+      spv::Op::OpFunction,
+      spv::Op::OpAsmINTEL,
+  };
+  const auto opcode = inst->opcode();
+  bool type_instruction = spvOpcodeGeneratesType(opcode);
+  bool debug_instruction = spvOpcodeIsDebug(opcode) || inst->IsDebugInfo();
+  bool coop_matrix_spec_constant_op_length =
+      (opcode == spv::Op::OpSpecConstantOp) &&
+      (spv::Op(inst->word(3)) == spv::Op::OpCooperativeMatrixLengthNV ||
+       spv::Op(inst->word(3)) == spv::Op::OpCooperativeMatrixLengthKHR);
+  return type_instruction || debug_instruction || inst->IsNonSemantic() ||
+         spvOpcodeIsDecoration(opcode) || instruction_allow_set.count(opcode) ||
+         spvOpcodeGeneratesUntypedPointer(opcode) ||
+         coop_matrix_spec_constant_op_length;
+}
+
+bool InstructionRequiresTypeOperand(const Instruction* inst) {
+  static std::unordered_set<spv::Op> instruction_deny_set{
+      spv::Op::OpExtInst,
+      spv::Op::OpExtInstWithForwardRefsKHR,
+      spv::Op::OpExtInstImport,
+      spv::Op::OpSelectionMerge,
+      spv::Op::OpLoopMerge,
+      spv::Op::OpFunction,
+      spv::Op::OpSizeOf,
+      spv::Op::OpCooperativeMatrixLengthNV,
+      spv::Op::OpCooperativeMatrixLengthKHR,
+      spv::Op::OpPhi,
+      spv::Op::OpUntypedArrayLengthKHR,
+      spv::Op::OpAsmINTEL,
+  };
+  const auto opcode = inst->opcode();
+  bool debug_instruction = spvOpcodeIsDebug(opcode) || inst->IsDebugInfo();
+  bool coop_matrix_spec_constant_op_length =
+      opcode == spv::Op::OpSpecConstantOp &&
+      (spv::Op(inst->word(3)) == spv::Op::OpCooperativeMatrixLengthNV ||
+       spv::Op(inst->word(3)) == spv::Op::OpCooperativeMatrixLengthKHR);
+
+  return !debug_instruction && !inst->IsNonSemantic() &&
+         !spvOpcodeIsDecoration(opcode) && !spvOpcodeIsBranch(opcode) &&
+         !instruction_deny_set.count(opcode) &&
+         !spvOpcodeGeneratesUntypedPointer(opcode) &&
+         !coop_matrix_spec_constant_op_length;
+}
+
 // Performs SSA validation on the IDs of an instruction. The
 // can_have_forward_declared_ids  functor should return true if the
 // instruction operand's ID can be forward referenced.
 spv_result_t IdPass(ValidationState_t& _, Instruction* inst) {
   auto can_have_forward_declared_ids =
-      inst->opcode() == spv::Op::OpExtInst &&
+      spvIsExtendedInstruction(inst->opcode()) &&
               spvExtInstIsDebugInfo(inst->ext_inst_type())
           ? spvDbgInfoExtOperandCanBeForwardDeclaredFunction(
-                inst->ext_inst_type(), inst->word(4))
+                inst->opcode(), inst->ext_inst_type(), inst->word(4))
           : spvOperandCanBeForwardDeclaredFunction(inst->opcode());
 
   // Keep track of a result id defined by this instruction.  0 means it
   // does not define an id.
   uint32_t result_id = 0;
+  bool has_forward_declared_ids = false;
 
   for (unsigned i = 0; i < inst->operands().size(); i++) {
     const spv_parsed_operand_t& operand = inst->operand(i);
@@ -157,37 +209,14 @@ spv_result_t IdPass(ValidationState_t& _, Instruction* inst) {
       case SPV_OPERAND_TYPE_MEMORY_SEMANTICS_ID:
       case SPV_OPERAND_TYPE_SCOPE_ID:
         if (const auto def = _.FindDef(operand_word)) {
-          const auto opcode = inst->opcode();
           if (spvOpcodeGeneratesType(def->opcode()) &&
-              !spvOpcodeGeneratesType(opcode) && !spvOpcodeIsDebug(opcode) &&
-              !inst->IsDebugInfo() && !inst->IsNonSemantic() &&
-              !spvOpcodeIsDecoration(opcode) && opcode != spv::Op::OpFunction &&
-              opcode != spv::Op::OpCooperativeMatrixLengthNV &&
-              opcode != spv::Op::OpCooperativeMatrixLengthKHR &&
-              !(opcode == spv::Op::OpSpecConstantOp &&
-                (spv::Op(inst->word(3)) ==
-                     spv::Op::OpCooperativeMatrixLengthNV ||
-                 spv::Op(inst->word(3)) ==
-                     spv::Op::OpCooperativeMatrixLengthKHR))) {
+              !InstructionCanHaveTypeOperand(inst)) {
             return _.diag(SPV_ERROR_INVALID_ID, inst)
                    << "Operand " << _.getIdName(operand_word)
                    << " cannot be a type";
-          } else if (def->type_id() == 0 && !spvOpcodeGeneratesType(opcode) &&
-                     !spvOpcodeIsDebug(opcode) && !inst->IsDebugInfo() &&
-                     !inst->IsNonSemantic() && !spvOpcodeIsDecoration(opcode) &&
-                     !spvOpcodeIsBranch(opcode) && opcode != spv::Op::OpPhi &&
-                     opcode != spv::Op::OpExtInst &&
-                     opcode != spv::Op::OpExtInstImport &&
-                     opcode != spv::Op::OpSelectionMerge &&
-                     opcode != spv::Op::OpLoopMerge &&
-                     opcode != spv::Op::OpFunction &&
-                     opcode != spv::Op::OpCooperativeMatrixLengthNV &&
-                     opcode != spv::Op::OpCooperativeMatrixLengthKHR &&
-                     !(opcode == spv::Op::OpSpecConstantOp &&
-                       (spv::Op(inst->word(3)) ==
-                            spv::Op::OpCooperativeMatrixLengthNV ||
-                        spv::Op(inst->word(3)) ==
-                            spv::Op::OpCooperativeMatrixLengthKHR))) {
+          } else if (def->type_id() == 0 &&
+                     !spvOpcodeGeneratesType(def->opcode()) &&
+                     InstructionRequiresTypeOperand(inst)) {
             return _.diag(SPV_ERROR_INVALID_ID, inst)
                    << "Operand " << _.getIdName(operand_word)
                    << " requires a type";
@@ -200,6 +229,7 @@ spv_result_t IdPass(ValidationState_t& _, Instruction* inst) {
             ret = SPV_SUCCESS;
           }
         } else if (can_have_forward_declared_ids(i)) {
+          has_forward_declared_ids = true;
           if (spvOpcodeGeneratesType(inst->opcode()) &&
               !_.IsForwardPointer(operand_word)) {
             ret = _.diag(SPV_ERROR_INVALID_ID, inst)
@@ -229,12 +259,35 @@ spv_result_t IdPass(ValidationState_t& _, Instruction* inst) {
                 << " has not been defined";
         }
         break;
+      case SPV_OPERAND_TYPE_EXTENSION_INSTRUCTION_NUMBER:
+        // Ideally, this check would live in validate_extensions.cpp. But since
+        // forward references are only allowed on non-semantic instructions, and
+        // ID validation is done first, we would fail with a "ID had not been
+        // defined" error before we could give a more helpful message. For this
+        // reason, this test is done here, so we can be more helpful to the
+        // user.
+        if (inst->opcode() == spv::Op::OpExtInstWithForwardRefsKHR &&
+            !inst->IsNonSemantic())
+          return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                 << "OpExtInstWithForwardRefsKHR is only allowed with "
+                    "non-semantic instructions.";
+        ret = SPV_SUCCESS;
+        break;
       default:
         ret = SPV_SUCCESS;
         break;
     }
     if (SPV_SUCCESS != ret) return ret;
   }
+  const bool must_have_forward_declared_ids =
+      inst->opcode() == spv::Op::OpExtInstWithForwardRefsKHR;
+  if (must_have_forward_declared_ids && !has_forward_declared_ids) {
+    return _.diag(SPV_ERROR_INVALID_ID, inst)
+           << "Opcode OpExtInstWithForwardRefsKHR must have at least one "
+              "forward "
+              "declared ID.";
+  }
+
   if (result_id) _.RemoveIfForwardDeclared(result_id);
 
   return SPV_SUCCESS;

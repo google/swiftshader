@@ -32,6 +32,7 @@
 #include "source/name_mapper.h"
 #include "source/spirv_definition.h"
 #include "source/spirv_validator_options.h"
+#include "source/table2.h"
 #include "source/val/decoration.h"
 #include "source/val/function.h"
 #include "source/val/instruction.h"
@@ -67,6 +68,7 @@ class ValidationState_t {
   struct Feature {
     bool declare_int16_type = false;     // Allow OpTypeInt with 16 bit width?
     bool declare_float16_type = false;   // Allow OpTypeFloat with 16 bit width?
+    bool declare_float8_type = false;    // Allow OpTypeFloat with 8 bit width?
     bool free_fp_rounding_mode = false;  // Allow the FPRoundingMode decoration
                                          // and its values to be used without
                                          // requiring any capability
@@ -238,6 +240,39 @@ class ValidationState_t {
   void RegisterExecutionModeForEntryPoint(uint32_t entry_point,
                                           spv::ExecutionMode execution_mode) {
     entry_point_to_execution_modes_[entry_point].insert(execution_mode);
+  }
+
+  /// Registers that the entry point declares its local size
+  void RegisterEntryPointLocalSize(uint32_t entry_point,
+                                   const Instruction* inst) {
+    entry_point_to_local_size_or_id_[entry_point] = inst;
+  }
+
+  /// Registers that the entry point maximum number of primitives
+  /// mesh shader will ever emit
+  void RegisterEntryPointOutputPrimitivesEXT(uint32_t entry_point,
+                                             const Instruction* inst) {
+    entry_point_to_output_primitives_[entry_point] = inst;
+  }
+
+  /// Returns the maximum number of primitives mesh shader can emit
+  uint32_t GetOutputPrimitivesEXT(uint32_t entry_point) {
+    auto entry = entry_point_to_output_primitives_.find(entry_point);
+    if (entry != entry_point_to_output_primitives_.end()) {
+      auto inst = entry->second;
+      return inst->GetOperandAs<uint32_t>(2);
+    }
+    return 0;
+  }
+
+  /// Returns whether the entry point declares its local size
+  bool EntryPointHasLocalSizeOrId(uint32_t entry_point) const {
+    return entry_point_to_local_size_or_id_.find(entry_point) !=
+           entry_point_to_local_size_or_id_.end();
+  }
+  /// Returns the id of the local size
+  const Instruction* EntryPointLocalSizeOrId(uint32_t entry_point) const {
+    return entry_point_to_local_size_or_id_.find(entry_point)->second;
   }
 
   /// Returns the interface descriptions of a given entry point.
@@ -600,12 +635,23 @@ class ValidationState_t {
   // Returns true iff |id| is a type corresponding to the name of the function.
   // Only works for types not for objects.
   bool IsVoidType(uint32_t id) const;
+  bool IsScalarType(uint32_t id) const;
+  bool IsBfloat16ScalarType(uint32_t id) const;
+  bool IsBfloat16VectorType(uint32_t id) const;
+  bool IsBfloat16CoopMatType(uint32_t id) const;
+  bool IsBfloat16Type(uint32_t id) const;
+  bool IsFP8ScalarType(uint32_t id) const;
+  bool IsFP8VectorType(uint32_t id) const;
+  bool IsFP8CoopMatType(uint32_t id) const;
+  bool IsFP8Type(uint32_t id) const;
   bool IsFloatScalarType(uint32_t id) const;
+  bool IsFloatArrayType(uint32_t id) const;
   bool IsFloatVectorType(uint32_t id) const;
   bool IsFloat16Vector2Or4Type(uint32_t id) const;
   bool IsFloatScalarOrVectorType(uint32_t id) const;
   bool IsFloatMatrixType(uint32_t id) const;
   bool IsIntScalarType(uint32_t id) const;
+  bool IsIntArrayType(uint32_t id, uint64_t length = 0) const;
   bool IsIntVectorType(uint32_t id) const;
   bool IsIntScalarOrVectorType(uint32_t id) const;
   bool IsUnsignedIntScalarType(uint32_t id) const;
@@ -628,6 +674,10 @@ class ValidationState_t {
   bool IsIntCooperativeMatrixType(uint32_t id) const;
   bool IsUnsignedIntCooperativeMatrixType(uint32_t id) const;
   bool IsUnsigned64BitHandle(uint32_t id) const;
+  bool IsCooperativeVectorNVType(uint32_t id) const;
+  bool IsFloatCooperativeVectorNVType(uint32_t id) const;
+  bool IsIntCooperativeVectorNVType(uint32_t id) const;
+  bool IsUnsignedIntCooperativeVectorNVType(uint32_t id) const;
 
   // Returns true if |id| is a type id that contains |type| (or integer or
   // floating point type) of |width| bits.
@@ -647,6 +697,9 @@ class ValidationState_t {
   bool ContainsType(uint32_t id,
                     const std::function<bool(const Instruction*)>& f,
                     bool traverse_all_types = true) const;
+
+  // Returns true if |id| is type id that contains an untyped pointer.
+  bool ContainsUntypedPointer(uint32_t id) const;
 
   // Returns type_id if id has type or zero otherwise.
   uint32_t GetTypeId(uint32_t id) const;
@@ -722,6 +775,16 @@ class ValidationState_t {
     pointer_to_storage_image_.insert(type_id);
   }
 
+  // Is the ID the type of a pointer to a tensor?  That is, the pointee
+  // type is a tensor type.
+  bool IsPointerToTensor(uint32_t type_id) const {
+    return pointer_to_tensor_.find(type_id) != pointer_to_tensor_.cend();
+  }
+  // Save the ID of a pointer to a tensor.
+  void RegisterPointerToTensor(uint32_t type_id) {
+    pointer_to_tensor_.insert(type_id);
+  }
+
   // Tries to evaluate a any scalar integer OpConstant as uint64.
   // OpConstantNull is defined as zero for scalar int (will return true)
   // OpSpecConstant* return false since their values cannot be relied upon
@@ -744,22 +807,28 @@ class ValidationState_t {
 
   // Returns the string name for |decoration|.
   std::string SpvDecorationString(uint32_t decoration) {
-    spv_operand_desc desc = nullptr;
-    if (grammar_.lookupOperand(SPV_OPERAND_TYPE_DECORATION, decoration,
-                               &desc) != SPV_SUCCESS) {
+    const spvtools::OperandDesc* desc = nullptr;
+    if (spvtools::LookupOperand(SPV_OPERAND_TYPE_DECORATION, decoration,
+                                &desc) != SPV_SUCCESS) {
       return std::string("Unknown");
     }
-    return std::string(desc->name);
+    return std::string(desc->name().data());
   }
   std::string SpvDecorationString(spv::Decoration decoration) {
     return SpvDecorationString(uint32_t(decoration));
   }
 
-  // Returns whether type m1 and type m2 are cooperative matrices with
-  // the same "shape" (matching scope, rows, cols). If any are specialization
-  // constants, we assume they can match because we can't prove they don't.
+  // Returns whether type result_type_id and type m2 are cooperative matrices
+  // with the same "shape" (matching scope, rows, cols). If any are
+  // specialization constants, we assume they can match because we can't prove
+  // they don't.
   spv_result_t CooperativeMatrixShapesMatch(const Instruction* inst,
-                                            uint32_t m1, uint32_t m2);
+                                            uint32_t result_type_id,
+                                            uint32_t m2, bool is_conversion,
+                                            bool swap_row_col = false);
+
+  spv_result_t CooperativeVectorDimensionsMatch(const Instruction* inst,
+                                                uint32_t v1, uint32_t v2);
 
   // Returns true if |lhs| and |rhs| logically match and, if the decorations of
   // |rhs| are a subset of |lhs|.
@@ -787,6 +856,12 @@ class ValidationState_t {
 
   // Validates the storage class for the target environment.
   bool IsValidStorageClass(spv::StorageClass storage_class) const;
+
+  // Helps formulate a mesesage to user that setting one of the validator
+  // options might make their SPIR-V actually valid The |hint| option is because
+  // some checks are intertwined with each other, so hard to give confirmation
+  std::string MissingFeature(const std::string& feature,
+                             const std::string& cmdline, bool hint) const;
 
   // Takes a Vulkan Valid Usage ID (VUID) as |id| and optional |reference| and
   // will return a non-empty string only if ID is known and targeting Vulkan.
@@ -945,6 +1020,14 @@ class ValidationState_t {
   std::unordered_map<uint32_t, std::set<spv::ExecutionMode>>
       entry_point_to_execution_modes_;
 
+  // Mapping entry point -> local size execution mode instruction
+  std::unordered_map<uint32_t, const Instruction*>
+      entry_point_to_local_size_or_id_;
+
+  // Mapping entry point -> OutputPrimitivesEXT execution mode instruction
+  std::unordered_map<uint32_t, const Instruction*>
+      entry_point_to_output_primitives_;
+
   /// Mapping function -> array of entry points inside this
   /// module which can (indirectly) call the function.
   std::unordered_map<uint32_t, std::vector<uint32_t>> function_to_entry_points_;
@@ -966,6 +1049,9 @@ class ValidationState_t {
   // The IDs of types of pointers to storage images.  This is populated in the
   // TypePass.
   std::unordered_set<uint32_t> pointer_to_storage_image_;
+  // The IDs of types of pointers to tensors.  This is populated in the
+  // TypePass.
+  std::unordered_set<uint32_t> pointer_to_tensor_;
 
   /// Maps ids to friendly names.
   std::unique_ptr<spvtools::FriendlyNameMapper> friendly_mapper_;

@@ -52,6 +52,7 @@ spv_result_t ValidateAdjacency(ValidationState_t& _) {
             adjacency_status == IN_NEW_FUNCTION ? IN_ENTRY_BLOCK : PHI_VALID;
         break;
       case spv::Op::OpExtInst:
+      case spv::Op::OpExtInstWithForwardRefsKHR:
         // If it is a debug info instruction, we do not change the status to
         // allow debug info instructions before OpVariable in a function.
         // TODO(https://gitlab.khronos.org/spirv/SPIR-V/issues/533): We need
@@ -114,6 +115,15 @@ spv_result_t ValidateAdjacency(ValidationState_t& _) {
           return _.diag(SPV_ERROR_INVALID_DATA, &inst)
                  << "All OpVariable instructions in a function must be the "
                     "first instructions in the first block.";
+        }
+        break;
+      case spv::Op::OpUntypedVariableKHR:
+        if (inst.GetOperandAs<spv::StorageClass>(2) ==
+                spv::StorageClass::Function &&
+            adjacency_status != IN_ENTRY_BLOCK) {
+          return _.diag(SPV_ERROR_INVALID_DATA, &inst)
+                 << "All OpUntypedVariableKHR instructions in a function must "
+                    "be the first instructions in the first block.";
         }
         break;
       default:

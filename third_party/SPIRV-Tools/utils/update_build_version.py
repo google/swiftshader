@@ -24,9 +24,10 @@
 #  - The software version deduced from the given CHANGES file.
 #  - A longer string with the project name, the software version number, and
 #    git commit information for the CHANGES file's directory.  The commit
-#    information is the output of "git describe" if that succeeds, or "git
-#    rev-parse HEAD" if that succeeds, or otherwise a message containing the
-#    phrase "unknown hash".
+#    information is the content of the FORCED_BUILD_VERSION_DESCRIPTION
+#    environement variable is it exists, else the output of "git describe" if
+#    that succeeds, or "git rev-parse HEAD" if that succeeds, or otherwise a
+#    message containing the phrase "unknown hash".
 # The string contents are escaped as necessary.
 
 import datetime
@@ -150,7 +151,7 @@ def main():
       sys.exit(1)
 
     repo_path = os.path.dirname(changes_file_path)
-    description = describe(repo_path)
+    description = os.getenv("FORCED_BUILD_VERSION_DESCRIPTION", describe(repo_path))
     content = OUTPUT_FORMAT.format(version_tag=version, description=description)
 
     # Escape file content.

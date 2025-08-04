@@ -40,19 +40,34 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
       bool supportsCoopMat =
           (opcode != spv::Op::OpFMul && opcode != spv::Op::OpFRem &&
            opcode != spv::Op::OpFMod);
+      bool supportsCoopVec =
+          (opcode != spv::Op::OpFRem && opcode != spv::Op::OpFMod);
       if (!_.IsFloatScalarType(result_type) &&
           !_.IsFloatVectorType(result_type) &&
           !(supportsCoopMat && _.IsFloatCooperativeMatrixType(result_type)) &&
           !(opcode == spv::Op::OpFMul &&
             _.IsCooperativeMatrixKHRType(result_type) &&
-            _.IsFloatCooperativeMatrixType(result_type)))
+            _.IsFloatCooperativeMatrixType(result_type)) &&
+          !(supportsCoopVec && _.IsFloatCooperativeVectorNVType(result_type)))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected floating scalar or vector type as Result Type: "
                << spvOpcodeString(opcode);
 
       for (size_t operand_index = 2; operand_index < inst->operands().size();
            ++operand_index) {
-        if (supportsCoopMat && _.IsCooperativeMatrixKHRType(result_type)) {
+        if (supportsCoopVec && _.IsCooperativeVectorNVType(result_type)) {
+          const uint32_t type_id = _.GetOperandTypeId(inst, operand_index);
+          if (!_.IsCooperativeVectorNVType(type_id)) {
+            return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                   << "Expected arithmetic operands to be of Result Type: "
+                   << spvOpcodeString(opcode) << " operand index "
+                   << operand_index;
+          }
+          spv_result_t ret =
+              _.CooperativeVectorDimensionsMatch(inst, type_id, result_type);
+          if (ret != SPV_SUCCESS) return ret;
+        } else if (supportsCoopMat &&
+                   _.IsCooperativeMatrixKHRType(result_type)) {
           const uint32_t type_id = _.GetOperandTypeId(inst, operand_index);
           if (!_.IsCooperativeMatrixKHRType(type_id) ||
               !_.IsFloatCooperativeMatrixType(type_id)) {
@@ -62,7 +77,7 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
                    << operand_index;
           }
           spv_result_t ret =
-              _.CooperativeMatrixShapesMatch(inst, type_id, result_type);
+              _.CooperativeMatrixShapesMatch(inst, result_type, type_id, false);
           if (ret != SPV_SUCCESS) return ret;
         } else if (_.GetOperandTypeId(inst, operand_index) != result_type)
           return _.diag(SPV_ERROR_INVALID_DATA, inst)
@@ -76,17 +91,32 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
     case spv::Op::OpUDiv:
     case spv::Op::OpUMod: {
       bool supportsCoopMat = (opcode == spv::Op::OpUDiv);
+      bool supportsCoopVec = (opcode == spv::Op::OpUDiv);
       if (!_.IsUnsignedIntScalarType(result_type) &&
           !_.IsUnsignedIntVectorType(result_type) &&
           !(supportsCoopMat &&
-            _.IsUnsignedIntCooperativeMatrixType(result_type)))
+            _.IsUnsignedIntCooperativeMatrixType(result_type)) &&
+          !(supportsCoopVec &&
+            _.IsUnsignedIntCooperativeVectorNVType(result_type)))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected unsigned int scalar or vector type as Result Type: "
                << spvOpcodeString(opcode);
 
       for (size_t operand_index = 2; operand_index < inst->operands().size();
            ++operand_index) {
-        if (supportsCoopMat && _.IsCooperativeMatrixKHRType(result_type)) {
+        if (supportsCoopVec && _.IsCooperativeVectorNVType(result_type)) {
+          const uint32_t type_id = _.GetOperandTypeId(inst, operand_index);
+          if (!_.IsCooperativeVectorNVType(type_id)) {
+            return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                   << "Expected arithmetic operands to be of Result Type: "
+                   << spvOpcodeString(opcode) << " operand index "
+                   << operand_index;
+          }
+          spv_result_t ret =
+              _.CooperativeVectorDimensionsMatch(inst, type_id, result_type);
+          if (ret != SPV_SUCCESS) return ret;
+        } else if (supportsCoopMat &&
+                   _.IsCooperativeMatrixKHRType(result_type)) {
           const uint32_t type_id = _.GetOperandTypeId(inst, operand_index);
           if (!_.IsCooperativeMatrixKHRType(type_id) ||
               !_.IsUnsignedIntCooperativeMatrixType(type_id)) {
@@ -96,7 +126,7 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
                    << operand_index;
           }
           spv_result_t ret =
-              _.CooperativeMatrixShapesMatch(inst, type_id, result_type);
+              _.CooperativeMatrixShapesMatch(inst, result_type, type_id, false);
           if (ret != SPV_SUCCESS) return ret;
         } else if (_.GetOperandTypeId(inst, operand_index) != result_type)
           return _.diag(SPV_ERROR_INVALID_DATA, inst)
@@ -117,11 +147,14 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
       bool supportsCoopMat =
           (opcode != spv::Op::OpIMul && opcode != spv::Op::OpSRem &&
            opcode != spv::Op::OpSMod);
+      bool supportsCoopVec =
+          (opcode != spv::Op::OpSRem && opcode != spv::Op::OpSMod);
       if (!_.IsIntScalarType(result_type) && !_.IsIntVectorType(result_type) &&
           !(supportsCoopMat && _.IsIntCooperativeMatrixType(result_type)) &&
           !(opcode == spv::Op::OpIMul &&
             _.IsCooperativeMatrixKHRType(result_type) &&
-            _.IsIntCooperativeMatrixType(result_type)))
+            _.IsIntCooperativeMatrixType(result_type)) &&
+          !(supportsCoopVec && _.IsIntCooperativeVectorNVType(result_type)))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected int scalar or vector type as Result Type: "
                << spvOpcodeString(opcode);
@@ -133,6 +166,18 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
            ++operand_index) {
         const uint32_t type_id = _.GetOperandTypeId(inst, operand_index);
 
+        if (supportsCoopVec && _.IsCooperativeVectorNVType(result_type)) {
+          if (!_.IsCooperativeVectorNVType(type_id)) {
+            return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                   << "Expected arithmetic operands to be of Result Type: "
+                   << spvOpcodeString(opcode) << " operand index "
+                   << operand_index;
+          }
+          spv_result_t ret =
+              _.CooperativeVectorDimensionsMatch(inst, type_id, result_type);
+          if (ret != SPV_SUCCESS) return ret;
+        }
+
         if (supportsCoopMat && _.IsCooperativeMatrixKHRType(result_type)) {
           if (!_.IsCooperativeMatrixKHRType(type_id) ||
               !_.IsIntCooperativeMatrixType(type_id)) {
@@ -142,7 +187,7 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
                    << operand_index;
           }
           spv_result_t ret =
-              _.CooperativeMatrixShapesMatch(inst, type_id, result_type);
+              _.CooperativeMatrixShapesMatch(inst, result_type, type_id, false);
           if (ret != SPV_SUCCESS) return ret;
         }
 
@@ -151,7 +196,8 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
              !(supportsCoopMat && _.IsIntCooperativeMatrixType(result_type)) &&
              !(opcode == spv::Op::OpIMul &&
                _.IsCooperativeMatrixKHRType(result_type) &&
-               _.IsIntCooperativeMatrixType(result_type))))
+               _.IsIntCooperativeMatrixType(result_type)) &&
+             !(supportsCoopVec && _.IsIntCooperativeVectorNVType(result_type))))
           return _.diag(SPV_ERROR_INVALID_DATA, inst)
                  << "Expected int scalar or vector type as operand: "
                  << spvOpcodeString(opcode) << " operand index "
@@ -177,6 +223,14 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected float scalar type as Result Type: "
                << spvOpcodeString(opcode);
+
+      if (_.IsBfloat16ScalarType(result_type)) {
+        if (!_.HasCapability(spv::Capability::BFloat16DotProductKHR)) {
+          return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                 << "OpDot Result Type <id> " << _.getIdName(result_type)
+                 << "requires BFloat16DotProductKHR be declared.";
+        }
+      }
 
       uint32_t first_vector_num_components = 0;
 
@@ -210,7 +264,8 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
     }
 
     case spv::Op::OpVectorTimesScalar: {
-      if (!_.IsFloatVectorType(result_type))
+      if (!_.IsFloatVectorType(result_type) &&
+          !_.IsFloatCooperativeVectorNVType(result_type))
         return _.diag(SPV_ERROR_INVALID_DATA, inst)
                << "Expected float vector type as Result Type: "
                << spvOpcodeString(opcode);
@@ -669,6 +724,128 @@ spv_result_t ArithmeticsPass(ValidationState_t& _, const Instruction* inst) {
                << "Cooperative matrix 'K' mismatch: "
                << spvOpcodeString(opcode);
       }
+      break;
+    }
+
+    case spv::Op::OpCooperativeMatrixReduceNV: {
+      if (!_.IsCooperativeMatrixKHRType(result_type)) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "Result Type must be a cooperative matrix type: "
+               << spvOpcodeString(opcode);
+      }
+
+      const auto result_comp_type_id =
+          _.FindDef(result_type)->GetOperandAs<uint32_t>(1);
+
+      const auto matrix_id = inst->GetOperandAs<uint32_t>(2);
+      const auto matrix = _.FindDef(matrix_id);
+      const auto matrix_type_id = matrix->type_id();
+      if (!_.IsCooperativeMatrixKHRType(matrix_type_id)) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "Matrix must have a cooperative matrix type: "
+               << spvOpcodeString(opcode);
+      }
+      const auto matrix_type = _.FindDef(matrix_type_id);
+      const auto matrix_comp_type_id = matrix_type->GetOperandAs<uint32_t>(1);
+      if (matrix_comp_type_id != result_comp_type_id) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "Result Type and Matrix type must have the same component "
+                  "type: "
+               << spvOpcodeString(opcode);
+      }
+      if (_.FindDef(result_type)->GetOperandAs<uint32_t>(2) !=
+          matrix_type->GetOperandAs<uint32_t>(2)) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "Result Type and Matrix type must have the same scope: "
+               << spvOpcodeString(opcode);
+      }
+
+      if (!_.IsCooperativeMatrixAccType(result_type)) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "Result Type must have UseAccumulator: "
+               << spvOpcodeString(opcode);
+      }
+      if (!_.IsCooperativeMatrixAccType(matrix_type_id)) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "Matrix type must have UseAccumulator: "
+               << spvOpcodeString(opcode);
+      }
+
+      const auto reduce_value = inst->GetOperandAs<uint32_t>(3);
+
+      if ((reduce_value &
+           uint32_t(
+               spv::CooperativeMatrixReduceMask::CooperativeMatrixReduce2x2)) &&
+          (reduce_value & uint32_t(spv::CooperativeMatrixReduceMask::Row |
+                                   spv::CooperativeMatrixReduceMask::Column))) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "Reduce 2x2 must not be used with Row/Column: "
+               << spvOpcodeString(opcode);
+      }
+
+      std::tuple<bool, bool, uint32_t> result_rows, result_cols, matrix_rows,
+          matrix_cols;
+      result_rows =
+          _.EvalInt32IfConst(_.FindDef(result_type)->GetOperandAs<uint32_t>(3));
+      result_cols =
+          _.EvalInt32IfConst(_.FindDef(result_type)->GetOperandAs<uint32_t>(4));
+      matrix_rows = _.EvalInt32IfConst(matrix_type->GetOperandAs<uint32_t>(3));
+      matrix_cols = _.EvalInt32IfConst(matrix_type->GetOperandAs<uint32_t>(4));
+
+      if (reduce_value &
+          uint32_t(
+              spv::CooperativeMatrixReduceMask::CooperativeMatrixReduce2x2)) {
+        if (std::get<1>(result_rows) && std::get<1>(result_cols) &&
+            std::get<1>(matrix_rows) && std::get<1>(matrix_cols) &&
+            (std::get<2>(result_rows) != std::get<2>(matrix_rows) / 2 ||
+             std::get<2>(result_cols) != std::get<2>(matrix_cols) / 2)) {
+          return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                 << "For Reduce2x2, result rows/cols must be half of matrix "
+                    "rows/cols: "
+                 << spvOpcodeString(opcode);
+        }
+      }
+      if (reduce_value == uint32_t(spv::CooperativeMatrixReduceMask::Row)) {
+        if (std::get<1>(result_rows) && std::get<1>(matrix_rows) &&
+            std::get<2>(result_rows) != std::get<2>(matrix_rows)) {
+          return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                 << "For ReduceRow, result rows must match matrix rows: "
+                 << spvOpcodeString(opcode);
+        }
+      }
+      if (reduce_value == uint32_t(spv::CooperativeMatrixReduceMask::Column)) {
+        if (std::get<1>(result_cols) && std::get<1>(matrix_cols) &&
+            std::get<2>(result_cols) != std::get<2>(matrix_cols)) {
+          return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                 << "For ReduceColumn, result cols must match matrix cols: "
+                 << spvOpcodeString(opcode);
+        }
+      }
+
+      const auto combine_func_id = inst->GetOperandAs<uint32_t>(4);
+      const auto combine_func = _.FindDef(combine_func_id);
+      if (!combine_func || combine_func->opcode() != spv::Op::OpFunction) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "CombineFunc must be a function: " << spvOpcodeString(opcode);
+      }
+      const auto function_type_id = combine_func->GetOperandAs<uint32_t>(3);
+      const auto function_type = _.FindDef(function_type_id);
+      if (function_type->operands().size() != 4) {
+        return _.diag(SPV_ERROR_INVALID_DATA, inst)
+               << "CombineFunc must have two parameters: "
+               << spvOpcodeString(opcode);
+      }
+      for (uint32_t i = 0; i < 3; ++i) {
+        // checks return type and two params
+        const auto param_type_id = function_type->GetOperandAs<uint32_t>(i + 1);
+        if (param_type_id != matrix_comp_type_id) {
+          return _.diag(SPV_ERROR_INVALID_DATA, inst)
+                 << "CombineFunc return type and parameters must match matrix "
+                    "component type: "
+                 << spvOpcodeString(opcode);
+        }
+      }
+
       break;
     }
 

@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 
+#include "gmock/gmock.h"
 #include "test/opt/assembly_builder.h"
 #include "test/opt/pass_fixture.h"
 #include "test/opt/pass_utils.h"
@@ -25,6 +26,8 @@ namespace opt {
 namespace {
 
 using AggressiveDCETest = PassTest<::testing::Test>;
+
+using ::testing::HasSubstr;
 
 TEST_F(AggressiveDCETest, EliminateExtendedInst) {
   //  #version 140
@@ -7568,7 +7571,7 @@ TEST_F(AggressiveDCETest, PreserveInterface) {
 OpExtension "SPV_KHR_ray_tracing"
 %1 = OpExtInstImport "GLSL.std.450"
 OpMemoryModel Logical GLSL450
-OpEntryPoint RayGenerationNV %2 "main" %3 %4
+OpEntryPoint RayGenerationKHR %2 "main" %3 %4
 OpDecorate %3 Location 0
 OpDecorate %4 DescriptorSet 2
 OpDecorate %4 Binding 0
@@ -7577,8 +7580,8 @@ OpDecorate %4 Binding 0
 %uint = OpTypeInt 32 0
 %uint_0 = OpConstant %uint 0
 %float = OpTypeFloat 32
-%_ptr_CallableDataNV_float = OpTypePointer CallableDataNV %float
-%3 = OpVariable %_ptr_CallableDataNV_float CallableDataNV
+%_ptr_CallableDataKHR_float = OpTypePointer CallableDataKHR %float
+%3 = OpVariable %_ptr_CallableDataKHR_float CallableDataKHR
 %13 = OpTypeAccelerationStructureKHR
 %_ptr_UniformConstant_13 = OpTypePointer UniformConstant %13
 %4 = OpVariable %_ptr_UniformConstant_13 UniformConstant
@@ -7990,6 +7993,489 @@ OpFunctionEnd
 )";
 
   SinglePassRunAndCheck<AggressiveDCEPass>(test, test, true, true);
+}
+
+TEST_F(AggressiveDCETest, StoringAPointer) {
+  // A store that stores a pointer should not be kept live because the value
+  // being stored is eventually loaded from.
+
+  const std::string text = R"(
+               OpCapability CooperativeMatrixKHR
+               OpCapability Shader
+               OpCapability VulkanMemoryModelKHR
+               OpExtension "SPV_KHR_cooperative_matrix"
+               OpExtension "SPV_KHR_vulkan_memory_model"
+               OpMemoryModel Logical VulkanKHR
+               OpEntryPoint GLCompute %1 "main" %2
+               OpExecutionMode %1 LocalSize 64 1 1
+               OpSource HLSL 600
+               OpDecorate %2 DescriptorSet 0
+               OpDecorate %2 Binding 0
+               OpDecorate %_runtimearr_int ArrayStride 4
+               OpMemberDecorate %_struct_4 0 Offset 0
+               OpDecorate %_struct_4 Block
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+    %uint_64 = OpConstant %uint 64
+     %uint_3 = OpConstant %uint 3
+    %uint_16 = OpConstant %uint 16
+     %uint_4 = OpConstant %uint 4
+%coop_stride = OpConstant %int 42
+%_runtimearr_int = OpTypeRuntimeArray %int
+  %_struct_4 = OpTypeStruct %_runtimearr_int
+%_ptr_StorageBuffer__struct_4 = OpTypePointer StorageBuffer %_struct_4
+       %void = OpTypeVoid
+         %16 = OpTypeFunction %void
+; CHECK: [[mat:%\w+]] = OpTypeCooperativeMatrixKHR %int %uint_3 %uint_16 %uint_4 %uint_0
+         %17 = OpTypeCooperativeMatrixKHR %int %uint_3 %uint_16 %uint_4 %uint_0
+; CHECK: [[struct:%\w+]] = OpTypeStruct [[mat]]
+ %_struct_18 = OpTypeStruct %17
+; CHECK: [[ptr:%\w+]] = OpTypePointer Function [[struct]]
+%_ptr_Function__struct_18 = OpTypePointer Function %_struct_18
+%_ptr_StorageBuffer_int = OpTypePointer StorageBuffer %int
+%_ptr_Function_17 = OpTypePointer Function %17
+%_ptr_Function_int = OpTypePointer Function %int
+%_ptr_Function__ptr_Function_int = OpTypePointer Function %_ptr_Function_int
+          %2 = OpVariable %_ptr_StorageBuffer__struct_4 StorageBuffer
+
+; The stored to the fist two variables should be removed and the variables
+; as well. The only function scope variable should be the cooperative matrix.
+; CHECK: OpFunction
+; CHECK-NOT: OpVariable %_ptr_Function__ptr_Function_int Function
+; CHECK: OpVariable [[ptr]] Function
+; CHECK-NOT: OpVariable
+          %1 = OpFunction %void None %16
+         %24 = OpLabel
+         %25 = OpVariable %_ptr_Function__ptr_Function_int Function
+         %26 = OpVariable %_ptr_Function__ptr_Function_int Function
+         %27 = OpVariable %_ptr_Function__struct_18 Function
+         %28 = OpAccessChain %_ptr_StorageBuffer_int %2 %int_0 %uint_0
+         %29 = OpCooperativeMatrixLoadKHR %17 %28 %int_1 %coop_stride
+         %30 = OpCompositeConstruct %_struct_18 %29
+               OpStore %27 %30
+         %31 = OpAccessChain %_ptr_Function_17 %27 %int_0
+         %32 = OpAccessChain %_ptr_Function_int %27 %int_0 %uint_0
+               OpStore %26 %32
+         %33 = OpLoad %int %32
+         %34 = OpIAdd %int %33 %int_1
+               OpStore %25 %32
+               OpStore %32 %34
+         %35 = OpAccessChain %_ptr_StorageBuffer_int %2 %int_0 %uint_64
+         %36 = OpLoad %17 %31
+               OpCooperativeMatrixStoreKHR %35 %36 %int_0 %coop_stride
+               OpReturn
+               OpFunctionEnd
+)";
+
+  // For physical storage buffer support
+  SetTargetEnv(SPV_ENV_VULKAN_1_2);
+  SinglePassRunAndMatch<AggressiveDCEPass>(text, true);
+}
+
+TEST_F(AggressiveDCETest, FunctionDeclaration) {
+  // Ensure the optimizer can handle traversing over a function declaration
+  // 'myfunc' which has no blocks
+
+  const std::string text = R"(OpCapability Linkage
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %PSMain "main" %entryPointParam_PSMain
+OpExecutionMode %PSMain OriginUpperLeft
+OpSource Slang 1
+OpName %myfunc "myfunc"
+OpName %entryPointParam_PSMain "entryPointParam_PSMain"
+OpName %PSMain "PSMain"
+OpDecorate %myfunc LinkageAttributes "_S6myfuncp0pv4f" Import
+OpDecorate %entryPointParam_PSMain Location 0
+%void = OpTypeVoid
+%5 = OpTypeFunction %void
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%8 = OpTypeFunction %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%entryPointParam_PSMain = OpVariable %_ptr_Output_v4float Output
+%myfunc = OpFunction %v4float None %8
+OpFunctionEnd
+%PSMain = OpFunction %void None %5
+%10 = OpLabel
+%11 = OpFunctionCall %v4float %myfunc
+OpStore %entryPointParam_PSMain %11
+OpReturn
+OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndCheck<AggressiveDCEPass>(text, text, true, true);
+}
+
+TEST_F(AggressiveDCETest, MarkCentroidInterpolantLive) {
+  const std::string spirv =
+      R"(OpCapability InterpolationFunction
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %in_var_COLOR %out_var_SV_Target
+OpExecutionMode %main OriginUpperLeft
+OpSource HLSL 680
+OpName %in_var_COLOR "in.var.COLOR"
+OpName %out_var_SV_Target "out.var.SV_Target"
+OpName %main "main"
+OpName %param_var_p1 "param.var.p1"
+OpDecorate %in_var_COLOR Location 0
+OpDecorate %out_var_SV_Target Location 0
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%void = OpTypeVoid
+%11 = OpTypeFunction %void
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+%main = OpFunction %void None %11
+%13 = OpLabel
+%14 = OpVariable %_ptr_Function_v4float Function
+%param_var_p1 = OpVariable %_ptr_Function_v4float Function
+%15 = OpLoad %v4float %in_var_COLOR
+OpStore %param_var_p1 %15
+%16 = OpExtInst %v4float %1 InterpolateAtCentroid %param_var_p1
+OpStore %14 %16
+%17 = OpLoad %v4float %14
+OpStore %out_var_SV_Target %17
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<AggressiveDCEPass>(spirv, spirv, true, false);
+}
+
+TEST_F(AggressiveDCETest, MarkSampleInterpolantLive) {
+  const std::string spirv =
+      R"(OpCapability InterpolationFunction
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %in_var_COLOR %out_var_SV_Target
+OpExecutionMode %main OriginUpperLeft
+OpSource HLSL 680
+OpName %in_var_COLOR "in.var.COLOR"
+OpName %out_var_SV_Target "out.var.SV_Target"
+OpName %main "main"
+OpName %param_var_p1 "param.var.p1"
+OpDecorate %in_var_COLOR Location 0
+OpDecorate %out_var_SV_Target Location 0
+%float = OpTypeFloat 32
+%int = OpTypeInt 32 1
+%v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%void = OpTypeVoid
+%12 = OpTypeFunction %void
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+%int_123 = OpConstant %int 123
+%main = OpFunction %void None %12
+%15 = OpLabel
+%16 = OpVariable %_ptr_Function_v4float Function
+%param_var_p1 = OpVariable %_ptr_Function_v4float Function
+%17 = OpLoad %v4float %in_var_COLOR
+OpStore %param_var_p1 %17
+%18 = OpExtInst %v4float %1 InterpolateAtSample %param_var_p1 %int_123
+OpStore %16 %18
+%19 = OpLoad %v4float %16
+OpStore %out_var_SV_Target %19
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<AggressiveDCEPass>(spirv, spirv, true, false);
+}
+
+TEST_F(AggressiveDCETest, MarkOffsetInterpolantLive) {
+  const std::string spirv =
+      R"(OpCapability InterpolationFunction
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %in_var_COLOR %out_var_SV_Target
+OpExecutionMode %main OriginUpperLeft
+OpSource HLSL 680
+OpName %in_var_COLOR "in.var.COLOR"
+OpName %out_var_SV_Target "out.var.SV_Target"
+OpName %main "main"
+OpName %param_var_p1 "param.var.p1"
+OpDecorate %in_var_COLOR Location 0
+OpDecorate %out_var_SV_Target Location 0
+%float = OpTypeFloat 32
+%int = OpTypeInt 32 1
+%v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%void = OpTypeVoid
+%12 = OpTypeFunction %void
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target = OpVariable %_ptr_Output_v4float Output
+%int_123 = OpConstant %int 123
+%main = OpFunction %void None %12
+%15 = OpLabel
+%16 = OpVariable %_ptr_Function_v4float Function
+%param_var_p1 = OpVariable %_ptr_Function_v4float Function
+%17 = OpLoad %v4float %in_var_COLOR
+OpStore %param_var_p1 %17
+%18 = OpExtInst %v4float %1 InterpolateAtOffset %param_var_p1 %int_123
+OpStore %16 %18
+%19 = OpLoad %v4float %16
+OpStore %out_var_SV_Target %19
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<AggressiveDCEPass>(spirv, spirv, true, false);
+}
+
+TEST_F(AggressiveDCETest, NoEliminateOpSource) {
+  // Should not eliminate OpSource
+
+  const std::string text =
+      R"(OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %in_var_COLOR %out_var_SV_TARGET
+OpExecutionMode %main OriginUpperLeft
+%4 = OpString "D:\\directxshadercompiler\\tools\\clang\\test\\CodeGenSPIRV\\spirv.debug.opsource.include.hlsl"
+%5 = OpString "D:\\directxshadercompiler\\tools\\clang\\test\\CodeGenSPIRV/spirv.debug.opsource.include-file.hlsli"
+OpSource HLSL 600 %4 "// RUN: %dxc -T ps_6_0 -E main -Zi %s -spirv | FileCheck %s
+#include \"spirv.debug.opsource.include-file.hlsli\"
+
+struct ColorType
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+float4 main(UBER_TYPE(Color) input) : SV_TARGET
+{
+    return input.color;
+}
+"
+OpSource HLSL 600 %5 "#define UBER_TYPE(x) x ## Type
+"
+OpName %in_var_COLOR "in.var.COLOR"
+OpName %out_var_SV_TARGET "out.var.SV_TARGET"
+OpName %main "main"
+OpDecorate %in_var_COLOR Location 0
+OpDecorate %out_var_SV_TARGET Location 0
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%void = OpTypeVoid
+%11 = OpTypeFunction %void
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_TARGET = OpVariable %_ptr_Output_v4float Output
+OpLine %4 22 1
+%main = OpFunction %void None %11
+OpNoLine
+%12 = OpLabel
+OpLine %4 22 1
+%13 = OpLoad %v4float %in_var_COLOR
+OpStore %out_var_SV_TARGET %13
+OpLine %4 25 1
+OpReturn
+OpFunctionEnd
+)";
+
+  auto result = SinglePassRunAndDisassemble<AggressiveDCEPass>(
+      text, /* skip_nop = */ true, /* skip_validation = */ false);
+
+  EXPECT_EQ(Pass::Status::SuccessWithoutChange, std::get<1>(result));
+  const std::string& output = std::get<0>(result);
+  EXPECT_THAT(
+      output,
+      HasSubstr("OpSource HLSL 600 %5 \"#define UBER_TYPE(x) x ## Type"));
+}
+
+TEST_F(AggressiveDCETest, EliminateCopyLogical) {
+  const std::string before = R"(
+; CHECK: [[float32:%\w+]] = OpTypeFloat 32
+; CHECK: [[v4float:%\w+]] = OpTypeVector [[float32]] 4
+; CHECK-NOT: %10 = OpTypeArray [[v4float]] %9
+; CHECK-NOT: %11 = OpTypeStruct %10 %10
+; CHECK-NOT: %22 = OpTypePointer Uniform %16
+; CHECK-NOT: %38 = OpTypePointer Function [[v4float]]
+; CHECK-NOT: %43 = OpTypePointer Function %10
+; CHECK-NOT: %44 = OpVariable %42 Function
+; CHECK-NOT: %23 = OpAccessChain %22 %19 %21
+; CHECK-NOT: %24 = OpLoad %16 %23
+; CHECK-NOT: %25 = OpCopyLogical %11 %24
+; CHECK-NOT: %46 = OpCompositeExtract %10 %25 0
+; CHECK-NOT:       OpStore %44 %46
+      OpCapability Shader
+ %1 = OpExtInstImport "GLSL.std.450"
+      OpMemoryModel Logical GLSL450
+      OpEntryPoint Vertex %4 "main" %19 %30 %32
+      OpSource GLSL 430
+      OpName %4 "main"
+      OpDecorate %14 ArrayStride 16
+      OpDecorate %15 ArrayStride 16
+      OpMemberDecorate %16 0 Offset 0
+      OpMemberDecorate %16 1 Offset 32
+      OpDecorate %17 Block
+      OpMemberDecorate %17 0 Offset 0
+      OpDecorate %19 Binding 0
+      OpDecorate %19 DescriptorSet 0
+      OpDecorate %28 Block
+      OpMemberDecorate %28 0 BuiltIn Position
+      OpMemberDecorate %28 1 BuiltIn PointSize
+      OpMemberDecorate %28 2 BuiltIn ClipDistance
+      OpDecorate %32 Location 0
+ %2 = OpTypeVoid
+ %3 = OpTypeFunction %2
+ %6 = OpTypeFloat 32
+ %7 = OpTypeVector %6 4
+ %8 = OpTypeInt 32 0
+ %9 = OpConstant %8 2
+%10 = OpTypeArray %7 %9
+%11 = OpTypeStruct %10 %10
+%14 = OpTypeArray %7 %9
+%15 = OpTypeArray %7 %9
+%16 = OpTypeStruct %14 %15
+%17 = OpTypeStruct %16
+%18 = OpTypePointer Uniform %17
+%19 = OpVariable %18 Uniform
+%20 = OpTypeInt 32 1
+%21 = OpConstant %20 0
+%22 = OpTypePointer Uniform %16
+%26 = OpConstant %8 1
+%27 = OpTypeArray %6 %26
+%28 = OpTypeStruct %7 %6 %27
+%29 = OpTypePointer Output %28
+%30 = OpVariable %29 Output
+%31 = OpTypePointer Input %7
+%32 = OpVariable %31 Input
+%33 = OpConstant %8 0
+%34 = OpTypePointer Input %6
+%38 = OpTypePointer Function %7
+%41 = OpTypePointer Output %7
+%43 = OpTypePointer Function %10
+%48 = OpTypePointer Uniform %14
+%49 = OpTypePointer Uniform %7
+ %4 = OpFunction %2 None %3
+ %5 = OpLabel
+%44 = OpVariable %43 Function
+%23 = OpAccessChain %22 %19 %21
+%24 = OpLoad %16 %23
+%25 = OpCopyLogical %11 %24
+%46 = OpCompositeExtract %10 %25 0
+%50 = OpAccessChain %48 %19 %21 %33
+      OpStore %44 %46
+%35 = OpAccessChain %34 %32 %33
+%36 = OpLoad %6 %35
+%37 = OpConvertFToS %20 %36
+%47 = OpAccessChain %49 %50 %37
+%40 = OpLoad %7 %47
+%42 = OpAccessChain %41 %30 %21
+      OpStore %42 %40
+      OpReturn
+      OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_6);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+  SinglePassRunAndMatch<AggressiveDCEPass>(before, true);
+}
+
+TEST_F(AggressiveDCETest, KeepCopyLogical) {
+  const std::string before = R"(
+; CHECK: OpCopyLogical
+      OpCapability Shader
+ %1 = OpExtInstImport "GLSL.std.450"
+      OpMemoryModel Logical GLSL450
+      OpEntryPoint GLCompute %4 "main" %15 %23 %38
+      OpExecutionMode %4 LocalSize 32 32 1
+      OpSource GLSL 430
+      OpName %4 "main"
+      OpDecorate %10 ArrayStride 16
+      OpDecorate %11 ArrayStride 16
+      OpMemberDecorate %12 0 Offset 0
+      OpMemberDecorate %12 1 Offset 2048
+      OpDecorate %13 Block
+      OpMemberDecorate %13 0 NonReadable
+      OpMemberDecorate %13 0 Offset 0
+      OpDecorate %15 NonReadable
+      OpDecorate %15 Binding 1
+      OpDecorate %15 DescriptorSet 0
+      OpDecorate %18 ArrayStride 16
+      OpDecorate %19 ArrayStride 16
+      OpMemberDecorate %20 0 Offset 0
+      OpMemberDecorate %20 1 Offset 2048
+      OpDecorate %21 Block
+      OpMemberDecorate %21 0 NonWritable
+      OpMemberDecorate %21 0 Offset 0
+      OpDecorate %23 NonWritable
+      OpDecorate %23 Binding 0
+      OpDecorate %23 DescriptorSet 0
+      OpDecorate %30 ArrayStride 16
+      OpDecorate %31 ArrayStride 16
+      OpMemberDecorate %32 0 Offset 0
+      OpMemberDecorate %32 1 Offset 2048
+      OpDecorate %34 ArrayStride 4096
+      OpMemberDecorate %35 0 Offset 0
+      OpDecorate %36 Block
+      OpMemberDecorate %36 0 Offset 0
+      OpDecorate %38 Binding 0
+      OpDecorate %38 DescriptorSet 0
+ %2 = OpTypeVoid
+ %3 = OpTypeFunction %2
+ %6 = OpTypeFloat 32
+ %7 = OpTypeVector %6 4
+ %8 = OpTypeInt 32 0
+ %9 = OpConstant %8 128
+%10 = OpTypeArray %7 %9
+%11 = OpTypeArray %7 %9
+%12 = OpTypeStruct %10 %11
+%13 = OpTypeStruct %12
+%14 = OpTypePointer StorageBuffer %13
+%15 = OpVariable %14 StorageBuffer
+%16 = OpTypeInt 32 1
+%17 = OpConstant %16 0
+%18 = OpTypeArray %7 %9
+%19 = OpTypeArray %7 %9
+%20 = OpTypeStruct %18 %19
+%21 = OpTypeStruct %20
+%22 = OpTypePointer StorageBuffer %21
+%23 = OpVariable %22 StorageBuffer
+%24 = OpTypePointer StorageBuffer %20
+%27 = OpTypePointer StorageBuffer %12
+%30 = OpTypeArray %7 %9
+%31 = OpTypeArray %7 %9
+%32 = OpTypeStruct %30 %31
+%33 = OpConstant %8 8
+%34 = OpTypeArray %32 %33
+%35 = OpTypeStruct %34
+%36 = OpTypeStruct %35
+%37 = OpTypePointer Uniform %36
+%38 = OpVariable %37 Uniform
+ %4 = OpFunction %2 None %3
+ %5 = OpLabel
+%25 = OpAccessChain %24 %23 %17
+%26 = OpLoad %20 %25
+%28 = OpAccessChain %27 %15 %17
+%29 = OpCopyLogical %12 %26
+      OpStore %28 %29
+      OpReturn
+      OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_6);
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+  SinglePassRunAndMatch<AggressiveDCEPass>(before, true);
 }
 
 }  // namespace

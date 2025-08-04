@@ -61,7 +61,8 @@ INSTANTIATE_TEST_SUITE_P(
         "SPV_AMD_shader_image_load_store_lod", "SPV_AMD_shader_fragment_mask",
         "SPV_GOOGLE_decorate_string", "SPV_GOOGLE_hlsl_functionality1",
         "SPV_NV_shader_subgroup_partitioned", "SPV_EXT_descriptor_indexing",
-        "SPV_KHR_terminate_invocation"));
+        "SPV_KHR_terminate_invocation", "SPV_KHR_relaxed_extended_instruction",
+        "SPV_EXT_float8"));
 
 INSTANTIATE_TEST_SUITE_P(FailSilently, ValidateUnknownExtensions,
                          Values("ERROR_unknown_extension", "SPV_KHR_",
@@ -549,6 +550,44 @@ INSTANTIATE_TEST_SUITE_P(
         {"SPV_KHR_device_group", "DeviceGroup", "DeviceIndex", SPV_ENV_VULKAN_1_0, false},
     }));
 // clang-format on
+
+using ValidateRelaxedExtendedInstructionExt = spvtest::ValidateBase<bool>;
+
+TEST_F(ValidateRelaxedExtendedInstructionExt, RequiresExtension) {
+  const std::string str = R"(
+             OpCapability Shader
+             OpExtension "SPV_KHR_non_semantic_info"
+        %1 = OpExtInstImport "NonSemantic.Shader.DebugInfo.100"
+             OpMemoryModel Logical GLSL450
+             OpEntryPoint GLCompute %2 "main"
+             OpExecutionMode %2 LocalSize 1 1 1
+        %3 = OpString "sample"
+     %void = OpTypeVoid
+     %uint = OpTypeInt 32 0
+   %uint_0 = OpConstant %uint 0
+        %7 = OpTypeFunction %void
+        %8 = OpExtInst %void %1 DebugSource %3 %3
+        %9 = OpExtInst %void %1 DebugCompilationUnit %uint_0 %uint_0 %8 %uint_0
+       %10 = OpExtInstWithForwardRefsKHR %void %1 DebugTypeFunction %uint_0 %11
+       %12 = OpExtInstWithForwardRefsKHR %void %1 DebugFunction %3 %10 %8 %uint_0 %uint_0 %11 %3 %uint_0 %uint_0
+       %11 = OpExtInst %void %1 DebugTypeComposite %3 %uint_0 %8 %uint_0 %uint_0 %9 %3 %uint_0 %uint_0 %12
+        %2 = OpFunction %void None %7
+       %13 = OpLabel
+             OpReturn
+             OpFunctionEnd
+)";
+
+  CompileSuccessfully(str.c_str());
+  EXPECT_NE(SPV_SUCCESS, ValidateInstructions());
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "ExtInstWithForwardRefsKHR requires one of the following extensions:"
+          " SPV_KHR_relaxed_extended_instruction \n"
+          "  %10 = OpExtInstWithForwardRefsKHR %void %1 DebugTypeFunction "
+          "%uint_0 "
+          "%11\n"));
+}
 
 }  // namespace
 }  // namespace val

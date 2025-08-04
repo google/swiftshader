@@ -38,6 +38,16 @@ jobs:
           ./bin/makeHeaders
       - name: Check generated headers
         run: git diff --exit-code
+      - name: Check for legacy asciidoc in JSON
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          grep \"\'".*"\'\" include/spirv/unified1/*.json >build/bad-asciidoc.txt || true
+          if [ 0 -lt $(cat build/bad-asciidoc.txt | wc -l) ]; then
+            echo "Legacy asciidoc italics detected, like \"'foo'\". Text formating aren't used anymore. Please use \"foo\" instead."
+            head -10 build/bad-asciidoc.txt
+            exit 1
+          fi
+
 
   test_cmake_min_required:
     runs-on: ubuntu-latest
@@ -121,3 +131,16 @@ jobs:
         run: |
           cmake -S tests/pkg_config -B tests/pkg_config/build/ -D CMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/build/install
           cmake --build tests/pkg_config/build/
+
+  license-check:
+    name: Verify repository license compliance
+    runs-on: ubuntu-latest
+    # We now refer to the container by its SHA instead of the name, to prevent
+    # caching problems when updating the image.
+    # container: khronosgroup/docker-images:asciidoctor-spec.20240726
+    container: khronosgroup/docker-images@sha256:724f67d8562445523644abf017d5d192b369fafc122de75e9d26792c649821a0
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: REUSE license checker
+        run: reuse lint

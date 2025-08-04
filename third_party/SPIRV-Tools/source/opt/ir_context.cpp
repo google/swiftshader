@@ -1,4 +1,6 @@
 // Copyright (c) 2017 Google Inc.
+// Modifications Copyright (C) 2024 Advanced Micro Devices, Inc. All rights
+// reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -539,6 +541,7 @@ void IRContext::AddCombinatorsForCapability(uint32_t capability) {
          (uint32_t)spv::Op::OpTypeHitObjectNV,
          (uint32_t)spv::Op::OpTypeArray,
          (uint32_t)spv::Op::OpTypeRuntimeArray,
+         (uint32_t)spv::Op::OpTypeNodePayloadArrayAMDX,
          (uint32_t)spv::Op::OpTypeStruct,
          (uint32_t)spv::Op::OpTypeOpaque,
          (uint32_t)spv::Op::OpTypePointer,
@@ -561,6 +564,7 @@ void IRContext::AddCombinatorsForCapability(uint32_t capability) {
          (uint32_t)spv::Op::OpCompositeConstruct,
          (uint32_t)spv::Op::OpCompositeExtract,
          (uint32_t)spv::Op::OpCompositeInsert,
+         (uint32_t)spv::Op::OpCopyLogical,
          (uint32_t)spv::Op::OpCopyObject,
          (uint32_t)spv::Op::OpTranspose,
          (uint32_t)spv::Op::OpSampledImage,
@@ -926,9 +930,35 @@ uint32_t IRContext::GetBuiltinInputVarId(uint32_t builtin) {
 
 void IRContext::AddCalls(const Function* func, std::queue<uint32_t>* todo) {
   for (auto bi = func->begin(); bi != func->end(); ++bi)
-    for (auto ii = bi->begin(); ii != bi->end(); ++ii)
+    for (auto ii = bi->begin(); ii != bi->end(); ++ii) {
       if (ii->opcode() == spv::Op::OpFunctionCall)
         todo->push(ii->GetSingleWordInOperand(0));
+      if (ii->opcode() == spv::Op::OpCooperativeMatrixPerElementOpNV)
+        todo->push(ii->GetSingleWordInOperand(1));
+      if (ii->opcode() == spv::Op::OpCooperativeMatrixReduceNV)
+        todo->push(ii->GetSingleWordInOperand(2));
+      if (ii->opcode() == spv::Op::OpCooperativeMatrixLoadTensorNV) {
+        const auto memory_operands_index = 3;
+        auto mask = ii->GetSingleWordInOperand(memory_operands_index);
+
+        uint32_t count = 1;
+        if (mask & uint32_t(spv::MemoryAccessMask::Aligned)) ++count;
+        if (mask & uint32_t(spv::MemoryAccessMask::MakePointerAvailableKHR))
+          ++count;
+        if (mask & uint32_t(spv::MemoryAccessMask::MakePointerVisibleKHR))
+          ++count;
+
+        const auto tensor_operands_index = memory_operands_index + count;
+        mask = ii->GetSingleWordInOperand(tensor_operands_index);
+        count = 1;
+        if (mask & uint32_t(spv::TensorAddressingOperandsMask::TensorView))
+          ++count;
+
+        if (mask & uint32_t(spv::TensorAddressingOperandsMask::DecodeFunc)) {
+          todo->push(ii->GetSingleWordInOperand(tensor_operands_index + count));
+        }
+      }
+    }
 }
 
 bool IRContext::ProcessEntryPointCallTree(ProcessFunction& pfn) {

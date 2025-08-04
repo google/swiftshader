@@ -1,4 +1,6 @@
 // Copyright (c) 2016 Google Inc.
+// Modifications Copyright (C) 2024 Advanced Micro Devices, Inc. All rights
+// reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,23 +27,15 @@
 #include "source/binary.h"
 #include "source/latest_version_spirv_header.h"
 #include "source/parsed_operand.h"
+#include "source/table2.h"
+#include "source/to_string.h"
 #include "spirv-tools/libspirv.h"
 
 namespace spvtools {
-namespace {
 
-// Converts a uint32_t to its string decimal representation.
-std::string to_string(uint32_t id) {
-  // Use stringstream, since some versions of Android compilers lack
-  // std::to_string.
-  std::stringstream os;
-  os << id;
-  return os.str();
+NameMapper GetTrivialNameMapper() {
+  return [](uint32_t i) { return spvtools::to_string(i); };
 }
-
-}  // anonymous namespace
-
-NameMapper GetTrivialNameMapper() { return to_string; }
 
 FriendlyNameMapper::FriendlyNameMapper(const spv_const_context context,
                                        const uint32_t* code,
@@ -218,6 +212,20 @@ spv_result_t FriendlyNameMapper::ParseInstruction(
     } break;
     case spv::Op::OpTypeFloat: {
       const auto bit_width = inst.words[2];
+      if (inst.num_words > 3) {
+        if (spv::FPEncoding(inst.words[3]) == spv::FPEncoding::BFloat16KHR) {
+          SaveName(result_id, "bfloat16");
+          break;
+        }
+        if (spv::FPEncoding(inst.words[3]) == spv::FPEncoding::Float8E4M3EXT) {
+          SaveName(result_id, "fp8e4m3");
+          break;
+        }
+        if (spv::FPEncoding(inst.words[3]) == spv::FPEncoding::Float8E5M2EXT) {
+          SaveName(result_id, "fp8e5m2");
+          break;
+        }
+      }
       switch (bit_width) {
         case 16:
           SaveName(result_id, "half");
@@ -249,11 +257,20 @@ spv_result_t FriendlyNameMapper::ParseInstruction(
       SaveName(result_id,
                std::string("_runtimearr_") + NameForId(inst.words[2]));
       break;
+    case spv::Op::OpTypeNodePayloadArrayAMDX:
+      SaveName(result_id,
+               std::string("_payloadarr_") + NameForId(inst.words[2]));
+      break;
     case spv::Op::OpTypePointer:
       SaveName(result_id, std::string("_ptr_") +
                               NameForEnumOperand(SPV_OPERAND_TYPE_STORAGE_CLASS,
                                                  inst.words[2]) +
                               "_" + NameForId(inst.words[3]));
+      break;
+    case spv::Op::OpTypeUntypedPointerKHR:
+      SaveName(result_id, std::string("_ptr_") +
+                              NameForEnumOperand(SPV_OPERAND_TYPE_STORAGE_CLASS,
+                                                 inst.words[2]));
       break;
     case spv::Op::OpTypePipe:
       SaveName(result_id,
@@ -319,9 +336,9 @@ spv_result_t FriendlyNameMapper::ParseInstruction(
 
 std::string FriendlyNameMapper::NameForEnumOperand(spv_operand_type_t type,
                                                    uint32_t word) {
-  spv_operand_desc desc = nullptr;
-  if (SPV_SUCCESS == grammar_.lookupOperand(type, word, &desc)) {
-    return desc->name;
+  const spvtools::OperandDesc* desc = nullptr;
+  if (SPV_SUCCESS == spvtools::LookupOperand(type, word, &desc)) {
+    return desc->name().data();
   } else {
     // Invalid input.  Just give something.
     return std::string("StorageClass") + to_string(word);

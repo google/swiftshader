@@ -88,6 +88,7 @@ endfunction()
 set(TEST_SOURCES
   test_fixture.h
   unit_spirv.h
+  ${spirv-tools_SOURCE_DIR}/tools/io.h
 
   assembly_context_test.cpp
   assembly_format_test.cpp
@@ -107,18 +108,23 @@ set(TEST_SOURCES
   ext_inst.glsl_test.cpp
   ext_inst.non_semantic_test.cpp
   ext_inst.opencl_test.cpp
+  ext_inst.tosa_test.cpp
+  ext_inst_lookup_test.cpp
   fix_word_test.cpp
   generator_magic_number_test.cpp
   hex_float_test.cpp
+  hex_to_text_test.cpp
   immediate_int_test.cpp
   libspirv_macros_test.cpp
   named_id_test.cpp
   name_mapper_test.cpp
+  op_unknown_test.cpp
+  opcode_lookup_test.cpp
   opcode_make_test.cpp
   opcode_require_capabilities_test.cpp
   opcode_split_test.cpp
-  opcode_table_get_test.cpp
   operand_capabilities_test.cpp
+  operand_lookup_test.cpp
   operand_test.cpp
   operand_pattern_test.cpp
   parse_number_test.cpp
@@ -151,8 +157,10 @@ set(TEST_SOURCES
   text_to_binary.subgroup_dispatch_test.cpp
   text_to_binary.reserved_sampling_test.cpp
   text_word_get_test.cpp
+  to_string_test.cpp
 
   unit_spirv.cpp
+  ${spirv-tools_SOURCE_DIR}/tools/io.cpp
 )
 
 spvtools_pch(TEST_SOURCES pch_test)

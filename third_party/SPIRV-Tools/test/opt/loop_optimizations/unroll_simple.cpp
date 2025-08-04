@@ -510,36 +510,36 @@ OpBranch %24
 %24 = OpLabel
 %35 = OpPhi %8 %10 %23 %34 %26
 %s1 = OpExtInst %6 %ext DebugScope %dbg_main
-%d10 = OpExtInst %6 %ext DebugLine %file_name %uint_1 %uint_1 %uint_0 %uint_0
+%d10 = OpExtInst %6 %ext DebugLine %src %uint_1 %uint_1 %uint_0 %uint_0
 %value0 = OpExtInst %6 %ext DebugValue %dbg_f %35 %null_expr
 OpLoopMerge %25 %26 Unroll
 OpBranch %27
 %27 = OpLabel
 %s2 = OpExtInst %6 %ext DebugScope %dbg_main
-%d1 = OpExtInst %6 %ext DebugLine %file_name %uint_1 %uint_1 %uint_1 %uint_1
+%d1 = OpExtInst %6 %ext DebugLine %src %uint_1 %uint_1 %uint_1 %uint_1
 %29 = OpSLessThan %12 %35 %11
-%d2 = OpExtInst %6 %ext DebugLine %file_name %uint_2 %uint_2 %uint_0 %uint_0
+%d2 = OpExtInst %6 %ext DebugLine %src %uint_2 %uint_2 %uint_0 %uint_0
 OpBranchConditional %29 %30 %25
 %30 = OpLabel
 %s3 = OpExtInst %6 %ext DebugScope %bb
 %decl0 = OpExtInst %6 %ext DebugDeclare %dbg_f %5 %null_expr
 %decl1 = OpExtInst %6 %ext DebugValue %dbg_i %5 %deref_expr
-%d3 = OpExtInst %6 %ext DebugLine %file_name %uint_3 %uint_3 %uint_0 %uint_0
+%d3 = OpExtInst %6 %ext DebugLine %src %uint_3 %uint_3 %uint_0 %uint_0
 %32 = OpAccessChain %19 %5 %35
-%d4 = OpExtInst %6 %ext DebugLine %file_name %uint_4 %uint_4 %uint_0 %uint_0
+%d4 = OpExtInst %6 %ext DebugLine %src %uint_4 %uint_4 %uint_0 %uint_0
 OpStore %32 %18
-%d5 = OpExtInst %6 %ext DebugLine %file_name %uint_5 %uint_5 %uint_0 %uint_0
+%d5 = OpExtInst %6 %ext DebugLine %src %uint_5 %uint_5 %uint_0 %uint_0
 OpBranch %26
 %26 = OpLabel
 %s4 = OpExtInst %6 %ext DebugScope %dbg_main
-%d6 = OpExtInst %6 %ext DebugLine %file_name %uint_6 %uint_6 %uint_0 %uint_0
+%d6 = OpExtInst %6 %ext DebugLine %src %uint_6 %uint_6 %uint_0 %uint_0
 %34 = OpIAdd %8 %35 %20
 %value1 = OpExtInst %6 %ext DebugValue %dbg_f %34 %null_expr
-%d7 = OpExtInst %6 %ext DebugLine %file_name %uint_7 %uint_7 %uint_0 %uint_0
+%d7 = OpExtInst %6 %ext DebugLine %src %uint_7 %uint_7 %uint_0 %uint_0
 OpBranch %24
 %25 = OpLabel
 %s5 = OpExtInst %6 %ext DebugScope %dbg_main
-%d8 = OpExtInst %6 %ext DebugLine %file_name %uint_8 %uint_8 %uint_0 %uint_0
+%d8 = OpExtInst %6 %ext DebugLine %src %uint_8 %uint_8 %uint_0 %uint_0
 OpReturn
 OpFunctionEnd)";
 
@@ -3786,6 +3786,48 @@ TEST_F(PassClassTest, PartialUnrollWithPhiReferencesPhi) {
   LoopUnroller loop_unroller;
   SetDisassembleOptions(SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
   SinglePassRunAndMatch<PartialUnrollerTestPass<2>>(text, true);
+}
+
+TEST_F(PassClassTest, UnrollWithDecorationOnPhi) {
+  // With LocalMultiStoreElimPass
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %2 "main"
+               OpExecutionMode %2 LocalSize 16 16 1
+; CHECK-NOT: OpDecorate {{%\w+}} RelaxedPrecision
+               OpDecorate %4 RelaxedPrecision
+      %float = OpTypeFloat 32
+%float_0_000122070312 = OpConstant %float 0.000122070312
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %int_1 = OpConstant %int 1
+       %bool = OpTypeBool
+       %void = OpTypeVoid
+         %12 = OpTypeFunction %void
+          %2 = OpFunction %void None %12
+         %13 = OpLabel
+               OpBranch %14
+         %14 = OpLabel
+          %4 = OpPhi %float %float_0_000122070312 %13 %3 %15
+         %16 = OpPhi %int %int_0 %13 %17 %15
+         %18 = OpSLessThan %bool %16 %int_1
+               OpLoopMerge %19 %15 Unroll
+               OpBranchConditional %18 %15 %19
+         %15 = OpLabel
+; CHECK: [[v:%\w+]] = OpExtInst %float
+          %3 = OpExtInst %float %1 NMax %float_0_000122070312 %float_0_000122070312
+         %17 = OpIAdd %int %16 %int_1
+               OpBranch %14
+         %19 = OpLabel
+; CHECK: OpCopyObject %float [[v]]
+         %20 = OpCopyObject %float %4
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<LoopUnroller>(text, true);
 }
 
 TEST_F(PassClassTest, DontUnrollInfiteLoop) {

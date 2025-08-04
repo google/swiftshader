@@ -230,6 +230,49 @@ OpFunctionEnd
           "FPFastMathMode and NoContraction cannot decorate the same target"));
 }
 
+TEST_F(DecorationTest, RestrictOnUntypedPointer) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpCapability SampleRateShading
+OpCapability TransformFeedback
+OpCapability GeometryStreams
+OpCapability Tessellation
+OpExtension "SPV_KHR_untyped_pointers"
+OpExtension "SPV_KHR_storage_buffer_storage_class"
+OpMemoryModel Logical GLSL450
+OpDecorate %param Restrict
+%ptr = OpTypeUntypedPointerKHR StorageBuffer
+%void = OpTypeVoid
+%f_ty = OpTypeFunction %void %ptr
+%f = OpFunction %void None %f_ty
+%param = OpFunctionParameter %ptr
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(DecorationTest, ArrayStrideUntypedPointerKHR) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UntypedPointersKHR
+OpExtension "SPV_KHR_untyped_pointers"
+OpExtension "SPV_KHR_storage_buffer_storage_class"
+OpMemoryModel Logical GLSL450
+OpDecorate %ptr ArrayStride 4
+%ptr = OpTypeUntypedPointerKHR StorageBuffer
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
 using MemberOnlyDecorations = spvtest::ValidateBase<std::string>;
 
 TEST_P(MemberOnlyDecorations, MemberDecoration) {

@@ -240,7 +240,7 @@ class SPIRV_TOOLS_EXPORT Optimizer {
 
  private:
   struct SPIRV_TOOLS_LOCAL Impl;  // Opaque struct for holding internal data.
-  std::unique_ptr<Impl> impl_;  // Unique pointer to internal data.
+  std::unique_ptr<Impl> impl_;    // Unique pointer to internal data.
 };
 
 // Creates a null pass.
@@ -655,7 +655,7 @@ Optimizer::PassToken CreateRedundancyEliminationPass();
 // element if those elements are accessed individually.  The parameter is a
 // limit on the number of members in the composite variable that the pass will
 // consider replacing.
-Optimizer::PassToken CreateScalarReplacementPass(uint32_t size_limit = 100);
+Optimizer::PassToken CreateScalarReplacementPass(uint32_t size_limit = 0);
 
 // Create a private to local pass.
 // This pass looks for variables declared in the private storage class that are
@@ -747,65 +747,6 @@ Optimizer::PassToken CreateReduceLoadSizePass(
 // them into a single instruction where possible.
 Optimizer::PassToken CreateCombineAccessChainsPass();
 
-// Create a pass to instrument bindless descriptor checking
-// This pass instruments all bindless references to check that descriptor
-// array indices are inbounds, and if the descriptor indexing extension is
-// enabled, that the descriptor has been initialized. If the reference is
-// invalid, a record is written to the debug output buffer (if space allows)
-// and a null value is returned. This pass is designed to support bindless
-// validation in the Vulkan validation layers.
-//
-// TODO(greg-lunarg): Add support for buffer references. Currently only does
-// checking for image references.
-//
-// Dead code elimination should be run after this pass as the original,
-// potentially invalid code is not removed and could cause undefined behavior,
-// including crashes. It may also be beneficial to run Simplification
-// (ie Constant Propagation), DeadBranchElim and BlockMerge after this pass to
-// optimize instrument code involving the testing of compile-time constants.
-// It is also generally recommended that this pass (and all
-// instrumentation passes) be run after any legalization and optimization
-// passes. This will give better analysis for the instrumentation and avoid
-// potentially de-optimizing the instrument code, for example, inlining
-// the debug record output function throughout the module.
-//
-// The instrumentation will write |shader_id| in each output record
-// to identify the shader module which generated the record.
-Optimizer::PassToken CreateInstBindlessCheckPass(uint32_t shader_id);
-
-// Create a pass to instrument physical buffer address checking
-// This pass instruments all physical buffer address references to check that
-// all referenced bytes fall in a valid buffer. If the reference is
-// invalid, a record is written to the debug output buffer (if space allows)
-// and a null value is returned. This pass is designed to support buffer
-// address validation in the Vulkan validation layers.
-//
-// Dead code elimination should be run after this pass as the original,
-// potentially invalid code is not removed and could cause undefined behavior,
-// including crashes. Instruction simplification would likely also be
-// beneficial. It is also generally recommended that this pass (and all
-// instrumentation passes) be run after any legalization and optimization
-// passes. This will give better analysis for the instrumentation and avoid
-// potentially de-optimizing the instrument code, for example, inlining
-// the debug record output function throughout the module.
-//
-// The instrumentation will read and write buffers in debug
-// descriptor set |desc_set|. It will write |shader_id| in each output record
-// to identify the shader module which generated the record.
-Optimizer::PassToken CreateInstBuffAddrCheckPass(uint32_t shader_id);
-
-// Create a pass to instrument OpDebugPrintf instructions.
-// This pass replaces all OpDebugPrintf instructions with instructions to write
-// a record containing the string id and the all specified values into a special
-// printf output buffer (if space allows). This pass is designed to support
-// the printf validation in the Vulkan validation layers.
-//
-// The instrumentation will write buffers in debug descriptor set |desc_set|.
-// It will write |shader_id| in each output record to identify the shader
-// module which generated the record.
-Optimizer::PassToken CreateInstDebugPrintfPass(uint32_t desc_set,
-                                               uint32_t shader_id);
-
 // Create a pass to upgrade to the VulkanKHR memory model.
 // This pass upgrades the Logical GLSL450 memory model to Logical VulkanKHR.
 // Additionally, it modifies memory, image, atomic and barrier operations to
@@ -874,14 +815,19 @@ Optimizer::PassToken CreateReplaceDescArrayAccessUsingVarIndexPass();
 
 // Create descriptor scalar replacement pass.
 // This pass replaces every array variable |desc| that has a DescriptorSet and
-// Binding decorations with a new variable for each element of the array.
-// Suppose |desc| was bound at binding |b|.  Then the variable corresponding to
-// |desc[i]| will have binding |b+i|.  The descriptor set will be the same.  It
-// is assumed that no other variable already has a binding that will used by one
-// of the new variables.  If not, the pass will generate invalid Spir-V.  All
-// accesses to |desc| must be OpAccessChain instructions with a literal index
-// for the first index.
+// Binding decorations with a new variable for each element of the
+// array/composite. Suppose |desc| was bound at binding |b|.  Then the variable
+// corresponding to |desc[i]| will have binding |b+i|.  The descriptor set will
+// be the same.  It is assumed that no other variable already has a binding that
+// will used by one of the new variables.  If not, the pass will generate
+// invalid Spir-V.  All accesses to |desc| must be OpAccessChain instructions
+// with a literal index for the first index. This variant flattens both
+// composites and arrays.
 Optimizer::PassToken CreateDescriptorScalarReplacementPass();
+// This variant flattens only composites.
+Optimizer::PassToken CreateDescriptorCompositeScalarReplacementPass();
+// This variant flattens only arrays.
+Optimizer::PassToken CreateDescriptorArrayScalarReplacementPass();
 
 // Create a pass to replace each OpKill instruction with a function call to a
 // function that has a single OpKill.  Also replace each OpTerminateInvocation
@@ -902,6 +848,12 @@ Optimizer::PassToken CreateAmdExtToKhrPass();
 // of HLSL legalization and should be called after interpolants have been
 // propagated into their final positions.
 Optimizer::PassToken CreateInterpolateFixupPass();
+
+// Replace OpExtInst instructions with OpExtInstWithForwardRefsKHR when
+// the instruction contains a forward reference to another debug instuction.
+// Replace OpExtInstWithForwardRefsKHR with OpExtInst when there are no forward
+// reference to another debug instruction.
+Optimizer::PassToken CreateOpExtInstWithForwardReferenceFixupPass();
 
 // Removes unused components from composite input variables. Current
 // implementation just removes trailing unused components from input arrays
@@ -992,6 +944,15 @@ Optimizer::PassToken CreateFixFuncCallArgumentsPass();
 // the unknown capability interacts with one of the trimmed capabilities.
 Optimizer::PassToken CreateTrimCapabilitiesPass();
 
+// Creates a struct-packing pass.
+// This pass re-assigns all offset layout decorators to tightly pack
+// the struct with OpName matching `structToPack` according to the given packing
+// rule. Accepted packing rules are: std140, std140EnhancedLayout, std430,
+// std430EnhancedLayout, hlslCbuffer, hlslCbufferPackOffset, scalar,
+// scalarEnhancedLayout.
+Optimizer::PassToken CreateStructPackingPass(const char* structToPack,
+                                             const char* packingRule);
+
 // Creates a switch-descriptorset pass.
 // This pass changes any DescriptorSet decorations with the value |ds_from| to
 // use the new value |ds_to|.
@@ -1007,6 +968,70 @@ Optimizer::PassToken CreateInvocationInterlockPlacementPass();
 // Creates a pass to add/remove maximal reconvergence execution mode.
 // This pass either adds or removes maximal reconvergence from all entry points.
 Optimizer::PassToken CreateModifyMaximalReconvergencePass(bool add);
+
+// Creates a pass to split combined image+sampler variables and function
+// parameters into separate image and sampler parts. Binding numbers and
+// other decorations are copied.
+Optimizer::PassToken CreateSplitCombinedImageSamplerPass();
+
+// Creates a pass to remap bindings to avoid conflicts, assuming the module
+// is valid for Vulkan.  A conflict exits when an entry point uses two distinct
+// variables with the same descriptor set and binding.  Vulkan allows one kind
+// of conflict: when one varible is an image (or array of images), and the
+// other is a sampler (or an array of samplers).
+
+// Conflicts are eliminated by incrementing the binding number of the sampler
+// part, and then propagating that increment through variables with
+// higher-numbered bindings until no conflict remains. This handles the case
+// when multiple shaders may share the same resource variables; this can
+// introduce holes in binding slots.
+//
+// Here's an example where shaders Alpha, Beta, Gamma, Delta collectively use
+// resource variables %100, %101, %102, %103, %104 all with the same
+// DescriptorSet and with Bindings as in the following table:
+//
+// Before:
+//
+//   Binding:   0          1        2        3
+//   Alpha:    %100,%101
+//   Beta:     %100       %102
+//   Gamma:               %102     %103
+//   Delta:                        %103     %104
+//
+// The Alpha shader has a conflict where variables %100, %101 have the same
+// descriptor set and binding.  If %100 is a sampler resource variable, then
+// the conflict is resolved by incrementing the binding number on %100 from 0
+// to 1.  But this causes a new confict for shader Beta because it now uses
+// both %100 and %102 with binding number 1.  That conflict is resolved by
+// incrementing the binding number on its variable that originally appeared
+// second (i.e. %102), so %102 gets binding 2. This now produces a conflict
+// for Gamma between %102 and %103 using binding number 2. Since %103 originally
+// appeared second (in the view from Gamma), the algorithm bumps %103 to binding
+// number %103. Now Delta has a conflict between %103 and %104, resulting in
+// %104 getting the next binding number, 4.  The picture afterward is:
+//
+// After:
+//
+//   Binding:   0          1        2        3        4
+//   Alpha:    %101       %100
+//   Beta:                %100     %102
+//   Gamma:                        %102     %103
+//   Delta:                                 %103     %104
+//
+//
+// This pass assumes binding numbers are not applid via decoration groups
+// (OpDecorationGroup).
+Optimizer::PassToken CreateResolveBindingConflictsPass();
+
+// Create a pass to canonicalize IDs to improve compression of SPIR-V binary
+// files. The resulting modules have an increased ID range (IDs are not as
+// tightly packed around zero), but will compress better when multiple modules
+// are compressed together, since the compressor's dictionary can find better
+// cross module commonality. This pass should be run after most optimization
+// passes except for
+// --strip-debug because this pass will use OpName to canonicalize IDs. i.e. Run
+// --strip-debug after this pass.
+Optimizer::PassToken CreateCanonicalizeIdsPass();
 }  // namespace spvtools
 
 #endif  // INCLUDE_SPIRV_TOOLS_OPTIMIZER_HPP_
