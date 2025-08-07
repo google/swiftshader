@@ -20,7 +20,7 @@ set PATH=c:\cmake-3.31.2\bin;%PATH%
 cmake --version
 
 rem To use ninja with CMake requires VC env vars
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat"
 rem That batch file turned echo off, so turn it back on
 @echo on
 
