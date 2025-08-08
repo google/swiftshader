@@ -611,6 +611,12 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPresentCapabilitiesKHR),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupSurfacePresentModesKHR),
 	    } },
+	// VK_KHR_swapchain_maintenance1
+	{
+	    VK_KHR_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkReleaseSwapchainImagesKHR),
+	    } },
 	// VK_EXT_swapchain_maintenance1
 	{
 	    VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME,

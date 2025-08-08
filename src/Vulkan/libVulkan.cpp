@@ -324,6 +324,7 @@ static const ExtensionProperties instanceExtensionProperties[] = {
 	{ { VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME, VK_EXT_HEADLESS_SURFACE_SPEC_VERSION } },
 #ifndef __ANDROID__
 	{ { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_SPEC_VERSION } },
+	{ { VK_KHR_SURFACE_MAINTENANCE_1_EXTENSION_NAME, VK_KHR_SURFACE_MAINTENANCE_1_SPEC_VERSION } },
 	{ { VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME, VK_EXT_SURFACE_MAINTENANCE_1_SPEC_VERSION } },
 	{ { VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, VK_KHR_GET_SURFACE_CAPABILITIES_2_SPEC_VERSION } },
 	// Used by ANGLE to properly advertise the supported list of EGL configs.
@@ -460,6 +461,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_KHR_UNIFIED_IMAGE_LAYOUTS_EXTENSION_NAME, VK_KHR_UNIFIED_IMAGE_LAYOUTS_SPEC_VERSION } },
 #ifndef __ANDROID__
 	{ { VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME, VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_SPEC_VERSION } },
+	{ { VK_KHR_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME, VK_KHR_SWAPCHAIN_MAINTENANCE_1_SPEC_VERSION } },
 	{ { VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME, VK_EXT_SWAPCHAIN_MAINTENANCE_1_SPEC_VERSION } },
 #endif
 	{ { VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME, VK_EXT_GRAPHICS_PIPELINE_LIBRARY_SPEC_VERSION } },
@@ -4925,6 +4927,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAcquireNextImage2KHR(VkDevice device, const VkA
 	      device, pAcquireInfo, pImageIndex);
 
 	return vk::Cast(pAcquireInfo->swapchain)->getNextImage(pAcquireInfo->timeout, vk::DynamicCast<vk::BinarySemaphore>(pAcquireInfo->semaphore), vk::Cast(pAcquireInfo->fence), pImageIndex);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkReleaseSwapchainImagesKHR(VkDevice device, const VkReleaseSwapchainImagesInfoKHR *pReleaseInfo)
+{
+	TRACE("(VkDevice device = %p, const VkReleaseSwapchainImagesInfoKHR *pReleaseInfo = %p",
+	      device, pReleaseInfo);
+
+	return vk::Cast(pReleaseInfo->swapchain)->releaseImages(pReleaseInfo->imageIndexCount, pReleaseInfo->pImageIndices);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkReleaseSwapchainImagesEXT(VkDevice device, const VkReleaseSwapchainImagesInfoEXT *pReleaseInfo)

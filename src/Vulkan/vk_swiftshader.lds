@@ -152,6 +152,9 @@ global:
 	vkGetPhysicalDeviceSurfaceCapabilities2KHR;
 	vkGetPhysicalDeviceSurfaceFormats2KHR;
 
+	# VK_KHR_swapchain_maintenance1
+	vkReleaseSwapchainImagesKHR;
+
 	# VK_EXT_swapchain_maintenance1
 	vkReleaseSwapchainImagesEXT;
 
