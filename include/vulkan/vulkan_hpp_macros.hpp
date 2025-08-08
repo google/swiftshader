@@ -1,10 +1,9 @@
 // Copyright 2015-2025 The Khronos Group Inc.
-// 
+//
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 
 // This header is generated from the Khronos Vulkan XML API Registry.
-
 
 #ifndef VULKAN_HPP_MACROS_HPP
 #define VULKAN_HPP_MACROS_HPP
@@ -93,11 +92,12 @@
 #endif
 
 #ifndef VK_USE_64_BIT_PTR_DEFINES
-    #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__) || (defined(__riscv) && __riscv_xlen == 64)
-        #define VK_USE_64_BIT_PTR_DEFINES 1
-    #else
-        #define VK_USE_64_BIT_PTR_DEFINES 0
-    #endif
+#  if defined( __LP64__ ) || defined( _WIN64 ) || ( defined( __x86_64__ ) && !defined( __ILP32__ ) ) || defined( _M_X64 ) || defined( __ia64 ) || \
+    defined( _M_IA64 ) || defined( __aarch64__ ) || defined( __powerpc64__ ) || ( defined( __riscv ) && __riscv_xlen == 64 )
+#    define VK_USE_64_BIT_PTR_DEFINES 1
+#  else
+#    define VK_USE_64_BIT_PTR_DEFINES 0
+#  endif
 #endif
 
 // 32-bit vulkan is not typesafe for non-dispatchable handles, so don't allow copy constructors on this platform by default.
@@ -259,7 +259,7 @@ namespace VULKAN_HPP_NAMESPACE
 {
   namespace detail
   {
-	  class DispatchLoaderDynamic;
+    class DispatchLoaderDynamic;
 
 #if !defined( VULKAN_HPP_DEFAULT_DISPATCHER )
 #  if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
@@ -322,6 +322,5 @@ namespace VULKAN_HPP_NAMESPACE
 #else
 #  define VULKAN_HPP_RAII_CREATE_NOEXCEPT
 #endif
-
 
 #endif

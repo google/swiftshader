@@ -64,9 +64,9 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR *requested) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR *requested) const;
-	bool hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *requested) const;
-	bool hasExtendedFeatures(const VkPhysicalDeviceHostImageCopyFeaturesEXT *requested) const;
-	bool hasExtendedFeatures(const VkPhysicalDeviceIndexTypeUint8FeaturesEXT *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceHostImageCopyFeatures *requested) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceIndexTypeUint8Features *requested) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
 	void getProperties(VkPhysicalDeviceIDProperties *properties) const;

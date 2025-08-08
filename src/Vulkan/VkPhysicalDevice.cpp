@@ -689,14 +689,14 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR:
 			getPhysicalDeviceUnifiedImageLayoutsFeatures(reinterpret_cast<struct VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR *>(curExtension));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT:
-			getPhysicalDeviceSwapchainMaintenance1FeaturesKHR(reinterpret_cast<struct VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *>(curExtension));
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR:
+			getPhysicalDeviceSwapchainMaintenance1FeaturesKHR(reinterpret_cast<struct VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES:
 			getPhysicalDeviceHostImageCopyFeatures(reinterpret_cast<struct VkPhysicalDeviceHostImageCopyFeatures *>(curExtension));
 			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT:
-			getPhysicalDeviceIndexTypeUint8Features(reinterpret_cast<VkPhysicalDeviceIndexTypeUint8FeaturesEXT *>(curExtension));
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES:
+			getPhysicalDeviceIndexTypeUint8Features(reinterpret_cast<VkPhysicalDeviceIndexTypeUint8Features *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_MAX_ENUM:  // TODO(b/176893525): This may not be legal. dEQP tests that this value is ignored.
 			break;
@@ -1797,21 +1797,21 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceUnifiedImageLayou
 	       CheckFeature(requested, supported, unifiedImageLayoutsVideo);
 }
 
-bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT *requested) const
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR *requested) const
 {
 	auto supported = getSupportedFeatures(requested);
 
 	return CheckFeature(requested, supported, swapchainMaintenance1);
 }
 
-bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceHostImageCopyFeaturesEXT *requested) const
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceHostImageCopyFeatures *requested) const
 {
 	auto supported = getSupportedFeatures(requested);
 
 	return CheckFeature(requested, supported, hostImageCopy);
 }
 
-bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceIndexTypeUint8FeaturesEXT *requested) const
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceIndexTypeUint8Features *requested) const
 {
 	auto supported = getSupportedFeatures(requested);
 
