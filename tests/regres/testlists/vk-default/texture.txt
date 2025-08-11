@@ -5102,6 +5102,7 @@ dEQP-VK.texture.mipmap.cubemap.min_lod.linear_linear
 dEQP-VK.texture.mipmap.cubemap.min_lod.linear_nearest
 dEQP-VK.texture.mipmap.cubemap.min_lod.nearest_linear
 dEQP-VK.texture.mipmap.cubemap.min_lod.nearest_nearest
+dEQP-VK.texture.mipmap.cubemap.misc.projected_derivatives
 dEQP-VK.texture.mipmap.cubemap.projected.linear_linear_linear_clamp
 dEQP-VK.texture.mipmap.cubemap.projected.linear_linear_linear_mirror
 dEQP-VK.texture.mipmap.cubemap.projected.linear_linear_linear_repeat
