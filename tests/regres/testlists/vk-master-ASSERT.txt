@@ -1938,4 +1938,3 @@ dEQP-VK.image.mutable.2d_array.r8g8b8a8_unorm_r8g8b8a8_srgb_draw_copy_resolve_mu
 dEQP-VK.image.mutable.2d_array.r8g8b8a8_unorm_r8g8b8a8_uint_draw_copy_resolve_mutable_color_att
 dEQP-VK.image.mutable.2d_array.r8g8b8a8_unorm_r8g8b8a8_uint_draw_copy_resolve_mutable_resolve_att
 dEQP-VK.query_pool.occlusion_query.stride_max
-dEQP-VK.spirv_assembly.instruction.spirv1p4.hlsl_functionality1.counter_buffer
