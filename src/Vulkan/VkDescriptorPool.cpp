@@ -74,7 +74,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
 	{
 		pDescriptorSets[i] = VK_NULL_HANDLE;
-		layoutSizes[i] = vk::Cast(pSetLayouts[i])->getDescriptorSetAllocationSize(variableDescriptorCounts ? variableDescriptorCounts[i] : 0);
+		layoutSizes[i] = vk::Cast(pSetLayouts[i])->getDescriptorSetAllocationSize(variableDescriptorCounts ? &variableDescriptorCounts[i] : nullptr);
 	}
 
 	VkResult result = allocateSets(&(layoutSizes[0]), descriptorSetCount, pDescriptorSets);
@@ -82,7 +82,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	{
 		for(uint32_t i = 0; i < descriptorSetCount; i++)
 		{
-			vk::Cast(pSetLayouts[i])->initialize(vk::Cast(pDescriptorSets[i]), variableDescriptorCounts ? variableDescriptorCounts[i] : 0);
+			vk::Cast(pSetLayouts[i])->initialize(vk::Cast(pDescriptorSets[i]), variableDescriptorCounts ? &variableDescriptorCounts[i] : nullptr);
 		}
 	}
 	return result;

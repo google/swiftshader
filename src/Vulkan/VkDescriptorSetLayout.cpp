@@ -143,22 +143,22 @@ bool DescriptorSetLayout::IsDescriptorDynamic(VkDescriptorType type)
 	       type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 }
 
-size_t DescriptorSetLayout::getDescriptorSetAllocationSize(uint32_t variableDescriptorCount) const
+size_t DescriptorSetLayout::getDescriptorSetAllocationSize(const uint32_t *variableDescriptorCount) const
 {
 	// vk::DescriptorSet has a header with a pointer to the layout.
 	return sw::align<alignof(DescriptorSet)>(sizeof(DescriptorSetHeader) + getDescriptorSetDataSize(variableDescriptorCount));
 }
 
-size_t DescriptorSetLayout::getDescriptorSetDataSize(uint32_t variableDescriptorCount) const
+size_t DescriptorSetLayout::getDescriptorSetDataSize(const uint32_t *variableDescriptorCount) const
 {
 	size_t size = 0;
 	for(uint32_t i = 0; i < bindingsArraySize; i++)
 	{
 		uint32_t descriptorCount = bindings[i].descriptorCount;
 
-		if((i == (bindingsArraySize - 1)) && (variableDescriptorCount > 0))
+		if((i == (bindingsArraySize - 1)) && variableDescriptorCount)
 		{
-			descriptorCount = variableDescriptorCount;
+			descriptorCount = *variableDescriptorCount;
 		}
 
 		size += descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
@@ -167,7 +167,7 @@ size_t DescriptorSetLayout::getDescriptorSetDataSize(uint32_t variableDescriptor
 	return size;
 }
 
-void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet, uint32_t variableDescriptorCount)
+void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet, const uint32_t *variableDescriptorCount)
 {
 	ASSERT(descriptorSet->header.layout == nullptr);
 
@@ -181,9 +181,9 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet, uint32_t vari
 
 		uint32_t descriptorCount = bindings[i].descriptorCount;
 
-		if((i == (bindingsArraySize - 1)) && (variableDescriptorCount > 0))
+		if((i == (bindingsArraySize - 1)) && variableDescriptorCount)
 		{
-			descriptorCount = variableDescriptorCount;
+			descriptorCount = *variableDescriptorCount;
 		}
 
 		if(bindings[i].immutableSamplers)
