@@ -3847,6 +3847,10 @@ dEQP-VK.reconvergence.subgroup_uniform_control_flow_elect.compute.nesting4.7.6
 dEQP-VK.reconvergence.subgroup_uniform_control_flow_elect.compute.nesting4.7.7
 dEQP-VK.reconvergence.subgroup_uniform_control_flow_elect.compute.nesting4.7.8
 dEQP-VK.reconvergence.subgroup_uniform_control_flow_elect.compute.nesting4.7.9
+dEQP-VK.reconvergence.terminate_invocation.bit_count
+dEQP-VK.reconvergence.terminate_invocation.oob_read
+dEQP-VK.reconvergence.terminate_invocation.quad_any
+dEQP-VK.reconvergence.terminate_invocation.terminate_helpers
 dEQP-VK.reconvergence.workgroup_uniform_control_flow_ballot.compute.nesting2.0.0
 dEQP-VK.reconvergence.workgroup_uniform_control_flow_ballot.compute.nesting2.0.1
 dEQP-VK.reconvergence.workgroup_uniform_control_flow_ballot.compute.nesting2.0.10

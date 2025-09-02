@@ -10,7 +10,6 @@ vk-default/device-group.txt
 vk-default/dgc.txt
 vk-default/draw.txt
 vk-default/drm-format-modifiers.txt
-vk-default/dynamic-rendering.txt
 vk-default/dynamic-state.txt
 vk-default/fragment-operations.txt
 vk-default/fragment-shader-interlock.txt
@@ -70,8 +69,7 @@ vk-default/rasterization.txt
 vk-default/ray-query.txt
 vk-default/ray-tracing-pipeline.txt
 vk-default/reconvergence.txt
-vk-default/renderpass.txt
-vk-default/renderpass2.txt
+vk-default/renderpasses.txt
 vk-default/robustness.txt
 vk-default/shader-object/api.txt
 vk-default/shader-object/binary.txt
