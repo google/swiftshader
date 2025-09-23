@@ -275,6 +275,7 @@ dEQP-VK.dgc.ext.compute.misc.multiple_sets
 dEQP-VK.dgc.ext.compute.misc.multiple_sets_cq
 dEQP-VK.dgc.ext.compute.misc.multiple_sets_preprocess
 dEQP-VK.dgc.ext.compute.misc.multiple_sets_preprocess_cq
+dEQP-VK.dgc.ext.compute.misc.null_set_layouts_info
 dEQP-VK.dgc.ext.compute.misc.scratch_space
 dEQP-VK.dgc.ext.compute.misc.two_cmd_buffers
 dEQP-VK.dgc.ext.compute.misc.two_cmd_buffers_cq
