@@ -12,6 +12,7 @@ dEQP-VK.glsl.builtin.precision_fconvert.f32_to_u32_size_4
 dEQP-VK.image.general_layout.memory_barrier.fragment.read_write.sampled_read_storage_write
 dEQP-VK.image.general_layout.memory_barrier.fragment.read_write.shader_read_write
 dEQP-VK.image.general_layout.memory_barrier.fragment.read_write.storage_read_storage_write
+dEQP-VK.image.host_image_copy.properties.properties
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.sampler_bias
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.sampler_minlod
 dEQP-VK.pipeline.fast_linked_library.sampler.max_sampler_lod_bias.shader_bias

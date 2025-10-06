@@ -251,6 +251,10 @@ dEQP-VK.sparse_resources.buffer.indirect_buffer.sparse_binding_aliased
 dEQP-VK.sparse_resources.buffer.indirect_buffer.sparse_residency
 dEQP-VK.sparse_resources.buffer.indirect_buffer.sparse_residency_aliased
 dEQP-VK.sparse_resources.buffer.indirect_dispatch.sparse_residency
+dEQP-VK.sparse_resources.buffer.memory_copy_indirect.sparse_binding
+dEQP-VK.sparse_resources.buffer.memory_copy_indirect.sparse_binding_aliased
+dEQP-VK.sparse_resources.buffer.memory_copy_indirect.sparse_residency
+dEQP-VK.sparse_resources.buffer.memory_copy_indirect.sparse_residency_aliased
 dEQP-VK.sparse_resources.buffer.misc.null_address_read
 dEQP-VK.sparse_resources.buffer.misc.null_address_read_descriptors
 dEQP-VK.sparse_resources.buffer.misc.null_address_read_local_inv_idx
