@@ -27,6 +27,7 @@
 #include <functional>
 #include <iterator>
 #include <string>
+#include <utility>
 
 namespace llvm {
 
@@ -388,7 +389,7 @@ public:
 
   /// Return the absolute path tot the file.
   std::string getAbsolutePath() const;
-  
+
   const Function &getFunction() const { return Fn; }
   DiagnosticLocation getLocation() const { return Loc; }
 
@@ -529,75 +530,47 @@ protected:
 /// common base class.  This allows returning the result of the insertion
 /// directly by value, e.g. return OptimizationRemarkAnalysis(...) << "blah".
 template <class RemarkT>
-RemarkT &
-operator<<(RemarkT &R,
-           typename std::enable_if<
-               std::is_base_of<DiagnosticInfoOptimizationBase, RemarkT>::value,
-               StringRef>::type S) {
+decltype(auto)
+operator<<(RemarkT &&R,
+           std::enable_if_t<std::is_base_of_v<DiagnosticInfoOptimizationBase,
+                                              std::remove_reference_t<RemarkT>>,
+                            StringRef>
+               S) {
   R.insert(S);
-  return R;
+  return std::forward<RemarkT>(R);
 }
 
-/// Also allow r-value for the remark to allow insertion into a
-/// temporarily-constructed remark.
 template <class RemarkT>
-RemarkT &
+decltype(auto)
 operator<<(RemarkT &&R,
-           typename std::enable_if<
-               std::is_base_of<DiagnosticInfoOptimizationBase, RemarkT>::value,
-               StringRef>::type S) {
-  R.insert(S);
-  return R;
-}
-
-template <class RemarkT>
-RemarkT &
-operator<<(RemarkT &R,
-           typename std::enable_if<
-               std::is_base_of<DiagnosticInfoOptimizationBase, RemarkT>::value,
-               DiagnosticInfoOptimizationBase::Argument>::type A) {
+           std::enable_if_t<std::is_base_of_v<DiagnosticInfoOptimizationBase,
+                                              std::remove_reference_t<RemarkT>>,
+                            DiagnosticInfoOptimizationBase::Argument>
+               A) {
   R.insert(A);
-  return R;
+  return std::forward<RemarkT>(R);
 }
 
 template <class RemarkT>
-RemarkT &
+decltype(auto)
 operator<<(RemarkT &&R,
-           typename std::enable_if<
-               std::is_base_of<DiagnosticInfoOptimizationBase, RemarkT>::value,
-               DiagnosticInfoOptimizationBase::Argument>::type A) {
-  R.insert(A);
-  return R;
-}
-
-template <class RemarkT>
-RemarkT &
-operator<<(RemarkT &R,
-           typename std::enable_if<
-               std::is_base_of<DiagnosticInfoOptimizationBase, RemarkT>::value,
-               DiagnosticInfoOptimizationBase::setIsVerbose>::type V) {
+           std::enable_if_t<std::is_base_of_v<DiagnosticInfoOptimizationBase,
+                                              std::remove_reference_t<RemarkT>>,
+                            DiagnosticInfoOptimizationBase::setIsVerbose>
+               V) {
   R.insert(V);
-  return R;
+  return std::forward<RemarkT>(R);
 }
 
 template <class RemarkT>
-RemarkT &
+decltype(auto)
 operator<<(RemarkT &&R,
-           typename std::enable_if<
-               std::is_base_of<DiagnosticInfoOptimizationBase, RemarkT>::value,
-               DiagnosticInfoOptimizationBase::setIsVerbose>::type V) {
-  R.insert(V);
-  return R;
-}
-
-template <class RemarkT>
-RemarkT &
-operator<<(RemarkT &R,
-           typename std::enable_if<
-               std::is_base_of<DiagnosticInfoOptimizationBase, RemarkT>::value,
-               DiagnosticInfoOptimizationBase::setExtraArgs>::type EA) {
+           std::enable_if_t<std::is_base_of_v<DiagnosticInfoOptimizationBase,
+                                              std::remove_reference_t<RemarkT>>,
+                            DiagnosticInfoOptimizationBase::setExtraArgs>
+               EA) {
   R.insert(EA);
-  return R;
+  return std::forward<RemarkT>(R);
 }
 
 /// Common features for diagnostics dealing with optimization remarks

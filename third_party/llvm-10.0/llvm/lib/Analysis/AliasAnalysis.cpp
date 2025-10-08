@@ -61,6 +61,8 @@ using namespace llvm;
 static cl::opt<bool> DisableBasicAA("disable-basicaa", cl::Hidden,
                                     cl::init(false));
 
+AAResults::AAResults(const TargetLibraryInfo &TLI) : TLI(TLI) {}
+
 AAResults::AAResults(AAResults &&Arg)
     : TLI(Arg.TLI), AAs(std::move(Arg.AAs)), AADeps(std::move(Arg.AADeps)) {
   for (auto &AA : AAs)

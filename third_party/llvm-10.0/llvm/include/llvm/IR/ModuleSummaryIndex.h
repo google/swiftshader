@@ -143,7 +143,7 @@ struct alignas(8) GlobalValueSummaryInfo {
     StringRef Name;
   } U;
 
-  GlobalValueSummaryInfo(bool HaveGVs) : U(HaveGVs) {}
+  inline GlobalValueSummaryInfo(bool HaveGVs);
 
   /// List of global value summary structures for a particular value held
   /// in the GlobalValueMap. Requires a vector in the case of multiple
@@ -422,6 +422,8 @@ public:
 
   friend class ModuleSummaryIndex;
 };
+
+GlobalValueSummaryInfo::GlobalValueSummaryInfo(bool HaveGVs) : U(HaveGVs) {}
 
 /// Alias summary information.
 class AliasSummary : public GlobalValueSummary {
