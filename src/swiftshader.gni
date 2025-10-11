@@ -25,6 +25,9 @@ declare_args() {
   # If enabled, debug builds on Windows will pop up a dialog when the
   # SwiftShader DLL gets loaded, to facilitate attaching a debugger.
   swiftshader_startup_dialog = false
+
+  # Enable the ASTC codec sources from ARM
+  swiftshader_enable_astc = true
 }
 
 configs_to_add = []
