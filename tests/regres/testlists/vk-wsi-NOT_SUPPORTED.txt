@@ -3860,7 +3860,6 @@ dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.horizontal_mirror_rotate_90.
 dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.identity.inherit.incremental_present
 dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.identity.inherit.reference
 dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.identity.opaque.incremental_present
-dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.identity.opaque.reference
 dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.identity.post_multiplied.incremental_present
 dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.identity.post_multiplied.reference
 dEQP-VK.wsi.xcb.incremental_present.scale_none.fifo.identity.pre_multiplied.incremental_present
@@ -4076,7 +4075,6 @@ dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.horizontal_mirror_rotate_
 dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.identity.inherit.incremental_present
 dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.identity.inherit.reference
 dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.identity.opaque.incremental_present
-dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.identity.opaque.reference
 dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.identity.post_multiplied.incremental_present
 dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.identity.post_multiplied.reference
 dEQP-VK.wsi.xcb.incremental_present.scale_none.mailbox.identity.pre_multiplied.incremental_present

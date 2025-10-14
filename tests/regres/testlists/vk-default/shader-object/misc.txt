@@ -710,6 +710,8 @@ dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.sample_locations.en
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.sample_locations.used
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.stencil.disabled
 dEQP-VK.shader_object.misc.state.shaders.vert_tess_geom_frag.stencil.enabled
+dEQP-VK.shader_object.misc.tess_patch_non_match.reverse
+dEQP-VK.shader_object.misc.tess_patch_non_match.standard
 dEQP-VK.shader_object.misc.tessellation_modes.one.equal
 dEQP-VK.shader_object.misc.tessellation_modes.one.even
 dEQP-VK.shader_object.misc.tessellation_modes.one.odd
