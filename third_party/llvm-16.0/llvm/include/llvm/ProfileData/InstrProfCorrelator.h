@@ -13,6 +13,7 @@
 #define LLVM_PROFILEDATA_INSTRPROFCORRELATOR_H
 
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/DebugInfo/DWARF/DWARFContext.h"
 #include "llvm/ProfileData/InstrProf.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MemoryBuffer.h"

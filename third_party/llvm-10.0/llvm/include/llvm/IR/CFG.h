@@ -56,9 +56,9 @@ class PredIterator {
 
 public:
   using iterator_category = std::forward_iterator_tag;
-  using value_type = Ptr;
+  using value_type = Ptr*;
   using difference_type = ptrdiff_t;
-  using pointer = Ptr*;
+  using pointer = Ptr**;
   using reference = Ptr*;
 
   PredIterator() = default;
@@ -138,7 +138,8 @@ class SuccIterator
                                   std::random_access_iterator_tag, BlockT, int,
                                   BlockT *, BlockT *> {
 public:
-  using difference_type = int;
+  using value_type = BlockT *;
+  using difference_type = std::ptrdiff_t;
   using pointer = BlockT *;
   using reference = BlockT *;
 

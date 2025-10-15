@@ -646,9 +646,9 @@ public:
   bool needsCleanup() const { return Floats != nullptr; }
 
   inline APFloat &getFirst();
-  inline const APFloat &getFirst();
+  inline const APFloat &getFirst() const;
   inline APFloat &getSecond();
-  inline const APFloat &getSecond();
+  inline const APFloat &getSecond() const;
 
   opStatus add(const DoubleAPFloat &RHS, roundingMode RM);
   opStatus subtract(const DoubleAPFloat &RHS, roundingMode RM);

@@ -82,6 +82,15 @@ static Error parseRecord(BitstreamMetaParserHelper &Parser, unsigned Code) {
   return Error::success();
 }
 
+BitstreamRemarkParser::BitstreamRemarkParser(StringRef Buf)
+    : RemarkParser(Format::Bitstream), ParserHelper(Buf) {}
+
+BitstreamRemarkParser::BitstreamRemarkParser(StringRef Buf,
+                                             ParsedStringTable StrTab)
+    : RemarkParser(Format::Bitstream),
+      ParserHelper(Buf),
+      StrTab(std::move(StrTab)) {}
+
 BitstreamRemarkParserHelper::BitstreamRemarkParserHelper(
     BitstreamCursor &Stream)
     : Stream(Stream) {}

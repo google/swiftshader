@@ -440,9 +440,9 @@ static void discoverAndMapSubloop(LoopT *L, ArrayRef<BlockT *> Backedges,
       if (PredBB == L->getHeader())
         continue;
       // Push all block predecessors on the worklist.
-      for (auto it = InvBlockTraits::child_begin(PredBB); it != InvBlockTraits::child_end(PredBB); it++) {
-        ReverseCFGWorklist.push_back(*it);
-      }
+      ReverseCFGWorklist.insert(ReverseCFGWorklist.end(),
+                                InvBlockTraits::child_begin(PredBB),
+                                InvBlockTraits::child_end(PredBB));
     } else {
       // This is a discovered block. Find its outermost discovered loop.
       while (LoopT *Parent = Subloop->getParentLoop())

@@ -45,13 +45,10 @@ struct BitstreamRemarkParser : public RemarkParser {
 
   /// Create a parser that expects to find a string table embedded in the
   /// stream.
-  explicit BitstreamRemarkParser(StringRef Buf)
-      : RemarkParser(Format::Bitstream), ParserHelper(Buf) {}
+  explicit BitstreamRemarkParser(StringRef Buf);
 
   /// Create a parser that uses a pre-parsed string table.
-  BitstreamRemarkParser(StringRef Buf, ParsedStringTable StrTab)
-      : RemarkParser(Format::Bitstream), ParserHelper(Buf),
-        StrTab(std::move(StrTab)) {}
+  BitstreamRemarkParser(StringRef Buf, ParsedStringTable StrTab);
 
   Expected<std::unique_ptr<Remark>> next() override;
 
