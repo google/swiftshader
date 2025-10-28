@@ -21,6 +21,7 @@ dEQP-VK.descriptor_indexing.input_attachment
 dEQP-VK.descriptor_indexing.input_attachment_in_loop
 dEQP-VK.descriptor_indexing.input_attachment_in_loop_lifetime
 dEQP-VK.descriptor_indexing.input_attachment_lifetime
+dEQP-VK.descriptor_indexing.non_uniform_atomics
 dEQP-VK.descriptor_indexing.sampled_image
 dEQP-VK.descriptor_indexing.sampled_image_after_bind
 dEQP-VK.descriptor_indexing.sampled_image_after_bind_in_loop

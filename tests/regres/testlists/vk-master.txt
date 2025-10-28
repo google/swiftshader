@@ -79,6 +79,7 @@ vk-default/shader-object/link.txt
 vk-default/shader-object/misc.txt
 vk-default/shader-object/pipeline-interaction.txt
 vk-default/shader-object/rendering.txt
+vk-default/shader-object/tessellation.txt
 vk-default/sparse-resources.txt
 vk-default/spirv-assembly.txt
 vk-default/ssbo.txt
