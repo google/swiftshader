@@ -18,6 +18,7 @@
 #include "System/Linux/MemFd.hpp"
 #include "System/Memory.hpp"
 
+#include <atomic>
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>
@@ -142,7 +143,7 @@ public:
 		const size_t size = sw::memoryPageSize();
 		// To be exportable, the PosixSemaphore must be stored in a shared
 		// memory region.
-		static int counter = 0;
+		static std::atomic<int> counter = 0;
 		char name[40];
 		snprintf(name, sizeof(name), "SwiftShader.Semaphore.%d", ++counter);
 		if(!memfd.allocate(name, size))
