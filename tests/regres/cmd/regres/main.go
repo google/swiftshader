@@ -80,7 +80,7 @@ const (
 )
 
 var (
-	numParallelTests = runtime.NumCPU()
+	numParallelTests = (runtime.NumCPU() + 1) / 2
 	llvmVersion      = llvm.Version{Major: 17, Point: 6}
 
 	cacheDir        = flag.String("cache", "cache", "path to the output cache directory")
