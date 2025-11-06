@@ -49,6 +49,7 @@ vk-default/image/store.txt
 vk-default/image/subresource-layout.txt
 vk-default/image/swapchain-mutable.txt
 vk-default/image/texel-view-compatible.txt
+vk-default/image-processing.txt
 vk-default/imageless-framebuffer.txt
 vk-default/info.txt
 vk-default/memory.txt
