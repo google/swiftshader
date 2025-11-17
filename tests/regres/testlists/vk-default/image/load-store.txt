@@ -1548,6 +1548,7 @@ dEQP-VK.image.load_store.without_any_format.2d.r8g8b8a8_uint
 dEQP-VK.image.load_store.without_any_format.2d.r8g8b8a8_uint_linear
 dEQP-VK.image.load_store.without_any_format.2d.r8g8b8a8_unorm
 dEQP-VK.image.load_store.without_any_format.2d.r8g8b8a8_unorm_linear
+dEQP-VK.image.load_store.without_any_format.2d.x8_d24_unorm_pack32
 dEQP-VK.image.load_store.without_any_format.2d_array.a1b5g5r5_unorm_pack16
 dEQP-VK.image.load_store.without_any_format.2d_array.a1b5g5r5_unorm_pack16_linear
 dEQP-VK.image.load_store.without_any_format.2d_array.a1r5g5b5_unorm_pack16
@@ -1702,6 +1703,7 @@ dEQP-VK.image.load_store.without_any_format.2d_array.r8g8b8a8_uint
 dEQP-VK.image.load_store.without_any_format.2d_array.r8g8b8a8_uint_linear
 dEQP-VK.image.load_store.without_any_format.2d_array.r8g8b8a8_unorm
 dEQP-VK.image.load_store.without_any_format.2d_array.r8g8b8a8_unorm_linear
+dEQP-VK.image.load_store.without_any_format.2d_array.x8_d24_unorm_pack32
 dEQP-VK.image.load_store.without_any_format.3d.a1b5g5r5_unorm_pack16
 dEQP-VK.image.load_store.without_any_format.3d.a1b5g5r5_unorm_pack16_linear
 dEQP-VK.image.load_store.without_any_format.3d.a1r5g5b5_unorm_pack16
