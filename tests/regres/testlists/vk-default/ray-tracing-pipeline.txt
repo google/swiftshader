@@ -12338,6 +12338,8 @@ dEQP-VK.ray_tracing_pipeline.large_shader_set.gpu.1024
 dEQP-VK.ray_tracing_pipeline.large_shader_set.gpu.256
 dEQP-VK.ray_tracing_pipeline.large_shader_set.gpu.4096
 dEQP-VK.ray_tracing_pipeline.large_shader_set.gpu.64
+dEQP-VK.ray_tracing_pipeline.limits.accel_struct_props
+dEQP-VK.ray_tracing_pipeline.limits.ray_tracing_props
 dEQP-VK.ray_tracing_pipeline.linear_swept_spheres.lss.indexing_mode_list.blascopy.endcaps.no_use_ray_query.no_use_hit_object.float2.float
 dEQP-VK.ray_tracing_pipeline.linear_swept_spheres.lss.indexing_mode_list.blascopy.endcaps.no_use_ray_query.no_use_hit_object.float2.half
 dEQP-VK.ray_tracing_pipeline.linear_swept_spheres.lss.indexing_mode_list.blascopy.endcaps.no_use_ray_query.no_use_hit_object.float3.float

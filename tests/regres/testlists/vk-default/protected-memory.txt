@@ -744,6 +744,17 @@ dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.min_image_coun
 dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.pre_transform
 dEQP-VK.protected_memory.interaction.wsi.android.swapchain.create.present_mode
 dEQP-VK.protected_memory.interaction.wsi.android.swapchain.render.basic
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.clipped
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.composite_alpha
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.image_array_layers
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.image_extent
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.image_format
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.image_sharing_mode
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.image_usage
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.min_image_count
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.pre_transform
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.create.present_mode
+dEQP-VK.protected_memory.interaction.wsi.direct.swapchain.render.basic
 dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.clipped
 dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.composite_alpha
 dEQP-VK.protected_memory.interaction.wsi.direct_drm.swapchain.create.image_array_layers
