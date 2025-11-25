@@ -1502,6 +1502,8 @@ cc_defaults {
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
+        // This warning can be re-enabled after updating to newer llvm version.
+        "-Wno-unnecessary-virtual-specifier",
         "-DBLAKE3_NO_AVX512",
         "-DBLAKE3_NO_AVX2",
         "-DBLAKE3_NO_SSE41",

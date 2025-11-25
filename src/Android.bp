@@ -48,6 +48,8 @@ cc_defaults {
         "-DREACTOR_ANONYMOUS_MMAP_NAME=swiftshader_jit",
         "-Wno-unused-parameter",
         "-Wno-implicit-fallthrough",
+        // This warning can be re-enabled after updating to newer llvm version.
+        "-Wno-unnecessary-virtual-specifier",
     ],
 
     static_libs: [
