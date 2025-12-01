@@ -19,3 +19,4 @@ dEQP-VK.pipeline.pipeline_library.no_position.explicit_declarations.ssbo_writes.
 dEQP-VK.pipeline.pipeline_library.no_position.explicit_declarations.ssbo_writes.device_index_as_view_index.v1
 dEQP-VK.pipeline.pipeline_library.no_position.implicit_declarations.ssbo_writes.device_index_as_view_index.v0
 dEQP-VK.pipeline.pipeline_library.no_position.implicit_declarations.ssbo_writes.device_index_as_view_index.v1
+dEQP-VK.wsi.xcb.present_timing.basic.surface_capabilities
