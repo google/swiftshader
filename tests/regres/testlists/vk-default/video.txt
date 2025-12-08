@@ -207,6 +207,10 @@ dEQP-VK.video.decode.h265.inline_session_params_layered_dpb_general_layout
 dEQP-VK.video.decode.h265.inline_session_params_layered_dpb_video_layout
 dEQP-VK.video.decode.h265.inline_session_params_separated_dpb_general_layout
 dEQP-VK.video.decode.h265.inline_session_params_separated_dpb_video_layout
+dEQP-VK.video.decode.h265.long_term_reference_layered_dpb_general_layout
+dEQP-VK.video.decode.h265.long_term_reference_layered_dpb_video_layout
+dEQP-VK.video.decode.h265.long_term_reference_separated_dpb_general_layout
+dEQP-VK.video.decode.h265.long_term_reference_separated_dpb_video_layout
 dEQP-VK.video.decode.h265.query_with_status_layered_dpb_general_layout
 dEQP-VK.video.decode.h265.query_with_status_layered_dpb_video_layout
 dEQP-VK.video.decode.h265.query_with_status_separated_dpb_general_layout

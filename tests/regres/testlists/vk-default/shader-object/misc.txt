@@ -126,6 +126,14 @@ dEQP-VK.shader_object.misc.on.on.before.null.40.destroyed
 dEQP-VK.shader_object.misc.on.on.before.null.40.set
 dEQP-VK.shader_object.misc.on.on.before.null.48.destroyed
 dEQP-VK.shader_object.misc.on.on.before.null.48.set
+dEQP-VK.shader_object.misc.push_const.17_37
+dEQP-VK.shader_object.misc.push_const.17_37_all
+dEQP-VK.shader_object.misc.push_const.17_64
+dEQP-VK.shader_object.misc.push_const.36_37
+dEQP-VK.shader_object.misc.push_const.36_37_all
+dEQP-VK.shader_object.misc.push_const.57_64_all
+dEQP-VK.shader_object.misc.push_const.63_64
+dEQP-VK.shader_object.misc.push_const.63_64_all
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.alphaToOne.disabled
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.alphaToOne.enabled
 dEQP-VK.shader_object.misc.state.pipeline.mesh_frag.color_blend.disabled

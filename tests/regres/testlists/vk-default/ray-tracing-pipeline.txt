@@ -12892,6 +12892,7 @@ dEQP-VK.ray_tracing_pipeline.non_uniform_args.miss_cause_3
 dEQP-VK.ray_tracing_pipeline.non_uniform_args.miss_cause_4
 dEQP-VK.ray_tracing_pipeline.non_uniform_args.miss_cause_5
 dEQP-VK.ray_tracing_pipeline.non_uniform_args.miss_cause_6
+dEQP-VK.ray_tracing_pipeline.null_as.mixed_dispatches
 dEQP-VK.ray_tracing_pipeline.null_as.test
 dEQP-VK.ray_tracing_pipeline.opacity_micromap.NoFlags.map_value.2.level_0
 dEQP-VK.ray_tracing_pipeline.opacity_micromap.NoFlags.map_value.2.level_0_non_zero_base
