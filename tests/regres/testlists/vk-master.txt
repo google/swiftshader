@@ -4,6 +4,7 @@ vk-default/clipping.txt
 vk-default/compute.txt
 vk-default/conditional-rendering.txt
 vk-default/cooperative-vector.txt
+vk-default/data-graph.txt
 vk-default/depth.txt
 vk-default/descriptor-indexing.txt
 vk-default/device-group.txt
@@ -87,6 +88,7 @@ vk-default/ssbo.txt
 vk-default/subgroups.txt
 vk-default/synchronization.txt
 vk-default/synchronization2.txt
+vk-default/tensor.txt
 vk-default/tessellation.txt
 vk-default/texture.txt
 vk-default/transform-feedback.txt
