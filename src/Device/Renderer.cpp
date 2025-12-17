@@ -925,12 +925,31 @@ bool DrawCall::setupLine(vk::Device *device, Primitive &primitive, Triangle &tri
 		return false;
 	}
 
-	const float4 &P0 = v0.position;
-	const float4 &P1 = v1.position;
+	float4 P0 = v0.position;
+	float4 P1 = v1.position;
 
 	if(P0.w <= 0 && P1.w <= 0)
 	{
 		return false;
+	}
+
+	// Clip line endpoints to w > 0 before perspective division
+	constexpr float epsilon = 0.0001f;
+	if(P0.w < epsilon && P1.w > epsilon)
+	{
+		float t = (epsilon - P0.w) / (P1.w - P0.w);
+		P0.x = P0.x + t * (P1.x - P0.x);
+		P0.y = P0.y + t * (P1.y - P0.y);
+		P0.z = P0.z + t * (P1.z - P0.z);
+		P0.w = epsilon;
+	}
+	else if(P1.w < epsilon && P0.w > epsilon)
+	{
+		float t = (epsilon - P1.w) / (P0.w - P1.w);
+		P1.x = P1.x + t * (P0.x - P1.x);
+		P1.y = P1.y + t * (P0.y - P1.y);
+		P1.z = P1.z + t * (P0.z - P1.z);
+		P1.w = epsilon;
 	}
 
 	const DrawData &data = *draw.data;
