@@ -104,6 +104,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Analysis/PtrUseVisitor.cpp
     ${LLVM_DIR}/lib/Analysis/RegionInfo.cpp
     ${LLVM_DIR}/lib/Analysis/RegionPass.cpp
+    ${LLVM_DIR}/lib/Analysis/RegionPrinter.cpp
     ${LLVM_DIR}/lib/Analysis/ReplayInlineAdvisor.cpp
     ${LLVM_DIR}/lib/Analysis/ScalarEvolution.cpp
     ${LLVM_DIR}/lib/Analysis/ScalarEvolutionAliasAnalysis.cpp
@@ -606,6 +607,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/MC/MCContext.cpp
     ${LLVM_DIR}/lib/MC/MCDXContainerStreamer.cpp
     ${LLVM_DIR}/lib/MC/MCDXContainerWriter.cpp
+    ${LLVM_DIR}/lib/MC/MCDisassembler/MCDisassembler.cpp
     ${LLVM_DIR}/lib/MC/MCDisassembler/MCRelocationInfo.cpp
     ${LLVM_DIR}/lib/MC/MCDwarf.cpp
     ${LLVM_DIR}/lib/MC/MCELFObjectTargetWriter.cpp
