@@ -2600,7 +2600,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorSetLayout(VkDevice device, cons
 		switch(extensionCreateInfo->sType)
 		{
 		case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT:
-			ASSERT(!vk::Cast(device)->hasExtension(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME));
 			break;
 		default:
 			UNSUPPORTED("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
