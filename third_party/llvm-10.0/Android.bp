@@ -1061,6 +1061,10 @@ cc_defaults {
         // b/193198227
         hwaddress: false,
     },
+
+    // Pinning the repo to C++20 because LLVM 10 has many forward declarations
+    // without full type being defined which causes issues with C++23
+    cpp_std: "c++20",
 }
 
 cc_library_static {
