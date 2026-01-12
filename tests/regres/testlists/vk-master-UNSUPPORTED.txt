@@ -1,6 +1,5 @@
 dEQP-VK.binding_model.unused_invalid_descriptor.write.invalid.combined_image_sampler
 dEQP-VK.binding_model.unused_invalid_descriptor.write.invalid.sampled_image
-dEQP-VK.memory.concurrent_access.shader_and_host
 dEQP-VK.pipeline.fast_linked_library.no_position.explicit_declarations.ssbo_writes.device_index_as_view_index.v0
 dEQP-VK.pipeline.fast_linked_library.no_position.explicit_declarations.ssbo_writes.device_index_as_view_index.v1
 dEQP-VK.pipeline.fast_linked_library.no_position.implicit_declarations.ssbo_writes.device_index_as_view_index.v0

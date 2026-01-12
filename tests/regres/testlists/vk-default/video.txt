@@ -71,6 +71,10 @@ dEQP-VK.video.decode.av1.globalmotion_8_layered_dpb_general_layout
 dEQP-VK.video.decode.av1.globalmotion_8_layered_dpb_video_layout
 dEQP-VK.video.decode.av1.globalmotion_8_separated_dpb_general_layout
 dEQP-VK.video.decode.av1.globalmotion_8_separated_dpb_video_layout
+dEQP-VK.video.decode.av1.golden_frame_layered_dpb_general_layout
+dEQP-VK.video.decode.av1.golden_frame_layered_dpb_video_layout
+dEQP-VK.video.decode.av1.golden_frame_separated_dpb_general_layout
+dEQP-VK.video.decode.av1.golden_frame_separated_dpb_video_layout
 dEQP-VK.video.decode.av1.i_layered_dpb_general_layout
 dEQP-VK.video.decode.av1.i_layered_dpb_video_layout
 dEQP-VK.video.decode.av1.i_p_layered_dpb_general_layout
