@@ -899,6 +899,9 @@ dEQP-VK.memory.device_memory_report.external_memory.import_and_unimport_opaque_f
 dEQP-VK.memory.device_memory_report.external_memory.import_and_unimport_opaque_win32
 dEQP-VK.memory.device_memory_report.external_memory.import_and_unimport_opaque_win32_kmt
 dEQP-VK.memory.device_memory_report.vk_device_memory.allocate_and_free
+dEQP-VK.memory.dma_heap_memory.allocate_and_bind
+dEQP-VK.memory.dma_heap_memory.shader_access
+dEQP-VK.memory.dma_heap_memory.shader_access_offset
 dEQP-VK.memory.external_memory_acquire_unmodified.android_hardware_buffer.b8g8r8a8_unorm
 dEQP-VK.memory.external_memory_acquire_unmodified.android_hardware_buffer.r16g16b16a16_sfloat
 dEQP-VK.memory.external_memory_acquire_unmodified.android_hardware_buffer.r16g16b16a16_unorm
