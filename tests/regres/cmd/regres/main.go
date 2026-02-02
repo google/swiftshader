@@ -923,6 +923,15 @@ func (r *regres) postDailyResults(
 		return err
 	}
 
+	if change == nil {
+		log.Println("Couldn't find pushed commit on Gerrit, waiting 1 minute")
+		time.Sleep(time.Minute)
+		change, err = r.findTestListChange(client)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err := r.postMostCommonFailures(client, change, results); err != nil {
 		return err
 	}
