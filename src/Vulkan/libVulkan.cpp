@@ -1526,7 +1526,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryHostPointerPropertiesEXT(VkDevice devi
 		UNSUPPORTED("handleType %u", handleType);
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
-	pMemoryHostPointerProperties->memoryTypeBits = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+	const VkPhysicalDeviceMemoryProperties &memoryProperties =
+	    vk::PhysicalDevice::GetMemoryProperties();
+
+	// All SwiftShader memory types support this!
+	pMemoryHostPointerProperties->memoryTypeBits = (1U << memoryProperties.memoryTypeCount) - 1U;
 
 	return VK_SUCCESS;
 }
