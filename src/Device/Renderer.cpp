@@ -254,6 +254,12 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 	unsigned int numPrimitivesPerBatch = MaxBatchSize / ms;
 
+	const VkPolygonMode polygonMode = preRasterizationState.getPolygonMode();
+	if(vertexInputInterfaceState.isDrawTriangle(false, polygonMode) && (polygonMode == VK_POLYGON_MODE_LINE || polygonMode == VK_POLYGON_MODE_POINT))
+	{
+		numPrimitivesPerBatch /= 3;
+	}
+
 	DrawData *data = draw->data;
 	draw->occlusionQuery = occlusionQuery;
 	draw->batchDataPool = &batchDataPool;
@@ -340,26 +346,22 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 
 	if(!hasRasterizerDiscard)
 	{
-		const VkPolygonMode polygonMode = preRasterizationState.getPolygonMode();
-
 		DrawCall::SetupFunction setupPrimitives = nullptr;
 		if(vertexInputInterfaceState.isDrawTriangle(false, polygonMode))
 		{
-			switch(preRasterizationState.getPolygonMode())
+			switch(polygonMode)
 			{
 			case VK_POLYGON_MODE_FILL:
 				setupPrimitives = &DrawCall::setupSolidTriangles;
 				break;
 			case VK_POLYGON_MODE_LINE:
 				setupPrimitives = &DrawCall::setupWireframeTriangles;
-				numPrimitivesPerBatch /= 3;
 				break;
 			case VK_POLYGON_MODE_POINT:
 				setupPrimitives = &DrawCall::setupPointTriangles;
-				numPrimitivesPerBatch /= 3;
 				break;
 			default:
-				UNSUPPORTED("polygon mode: %d", int(preRasterizationState.getPolygonMode()));
+				UNSUPPORTED("polygon mode: %d", int(polygonMode));
 				return;
 			}
 		}
