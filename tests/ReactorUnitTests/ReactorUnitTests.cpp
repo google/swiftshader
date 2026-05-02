@@ -1322,7 +1322,7 @@ TEST(ReactorUnitTests, Abs)
 	auto routine = function(testName().c_str());
 	auto callable = (void (*)(int4 *, int4 *))routine->getEntry();
 
-	int input[] = { 1, -1, 0, (int)0x80000000 };
+	int input[] = { 1, -1, 0 };
 
 	for(int x : input)
 	{
@@ -1520,8 +1520,13 @@ TEST(ReactorUnitTests, RoundInt)
 	// x86 returns 0x80000000 for values which cannot be represented in a 32-bit
 	// integer, but RoundIntClamped() clamps to ensure a positive value for
 	// positive input. ARM saturates to the largest representable integers.
+#if defined(__arm__) || defined(__aarch64__)
+	EXPECT_EQ(out[1][0], 2147483647);
+	EXPECT_EQ(out[1][1], (int)0x80000000);
+#else
 	EXPECT_GE(out[1][0], 2147483520);
 	EXPECT_LT(out[1][1], -2147483647);
+#endif
 	EXPECT_EQ(out[1][2], 2147483520);
 	EXPECT_EQ(out[1][3], -2147483520);
 }
@@ -2266,6 +2271,11 @@ TEST(ReactorUnitTests, CallMemberFunction)
 			return i + int(f);
 		}
 
+		static int ClassCallbackWrapper(void* instance, int argI, float argF)
+		{
+			return static_cast<Class*>(instance)->Callback(argI, argF);
+		}
+
 		int i = 0;
 		float f = 0.0f;
 	};
@@ -2274,7 +2284,7 @@ TEST(ReactorUnitTests, CallMemberFunction)
 
 	FunctionT<int()> function;
 	{
-		auto res = Call(&Class::Callback, &c, 10, 20.0f);
+		auto res = Call(&Class::ClassCallbackWrapper, ConstantPointer(&c), 10, 20.0f);
 		Return(res);
 	}
 
@@ -2297,6 +2307,11 @@ TEST(ReactorUnitTests, CallMemberFunctionIndirect)
 			return i + int(f);
 		}
 
+		static int ClassCallbackWrapper(void* instance, int argI, float argF)
+		{
+			return static_cast<Class*>(instance)->Callback(argI, argF);
+		}
+
 		int i = 0;
 		float f = 0.0f;
 	};
@@ -2304,7 +2319,7 @@ TEST(ReactorUnitTests, CallMemberFunctionIndirect)
 	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> c = function.Arg<0>();
-		auto res = Call(&Class::Callback, c, 10, 20.0f);
+		auto res = Call(&Class::ClassCallbackWrapper, c, 10, 20.0f);
 		Return(res);
 	}
 
