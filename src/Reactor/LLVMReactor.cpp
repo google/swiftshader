@@ -23,6 +23,7 @@
 #include "SIMD.hpp"
 #include "x86.hpp"
 
+#include "llvm/Config/llvm-config.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/IntrinsicsX86.h"
 #include "llvm/Support/Alignment.h"
