@@ -608,7 +608,9 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/MC/MCDXContainerStreamer.cpp
     ${LLVM_DIR}/lib/MC/MCDXContainerWriter.cpp
     ${LLVM_DIR}/lib/MC/MCDisassembler/MCDisassembler.cpp
+    ${LLVM_DIR}/lib/MC/MCDisassembler/MCExternalSymbolizer.cpp
     ${LLVM_DIR}/lib/MC/MCDisassembler/MCRelocationInfo.cpp
+    ${LLVM_DIR}/lib/MC/MCDisassembler/MCSymbolizer.cpp
     ${LLVM_DIR}/lib/MC/MCDwarf.cpp
     ${LLVM_DIR}/lib/MC/MCELFObjectTargetWriter.cpp
     ${LLVM_DIR}/lib/MC/MCELFStreamer.cpp
