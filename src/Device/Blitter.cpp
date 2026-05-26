@@ -2017,7 +2017,7 @@ static void resolveStencil(const vk::ImageView *src, vk::ImageView *dst, const V
 void Blitter::resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, VkResolveModeFlagBits depthResolveMode, VkResolveModeFlagBits stencilResolveMode)
 {
 	VkImageSubresourceRange srcRange = src->getSubresourceRange();
-	VkImageSubresourceRange dstRange = src->getSubresourceRange();
+	VkImageSubresourceRange dstRange = dst->getSubresourceRange();
 	ASSERT(src->getFormat() == dst->getFormat());
 	ASSERT(srcRange.layerCount == 1 && dstRange.layerCount == 1);
 	ASSERT(srcRange.aspectMask == dstRange.aspectMask);
