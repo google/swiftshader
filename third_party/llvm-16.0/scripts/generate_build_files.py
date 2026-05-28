@@ -247,7 +247,6 @@ prefixes_of_files_not_needed_by_llvm = [
     "/lib/MC/MCAsmInfoWasm.cpp",
     "/lib/MC/MCAsmInfoXCOFF.cpp",
     "/lib/MC/MCDisassembler/Disassembler.cpp",
-    "/lib/MC/MCDisassembler/MCDisassembler.cpp",
     "/lib/MC/MCDisassembler/MCExternalSymbolizer.cpp",
     "/lib/MC/MCDisassembler/MCSymbolizer.cpp",
     "/lib/MC/MCInstrInfo.cpp",
@@ -361,7 +360,6 @@ files_llvm.extend(files_to_add_back_for_llvm)
 
 files_llvm_debug = [
     "/lib/Analysis/RegionPrinter.cpp",
-    "/lib/MC/MCDisassembler/MCDisassembler.cpp",
 ]
 
 files_to_add_back_for_llvm_arm = [
