@@ -92,6 +92,18 @@ using LLVMOptLevel = llvm::CodeGenOptLevel;
 #	if __has_feature(memory_sanitizer) || __has_feature(address_sanitizer)
 #		include <dlfcn.h>  // dlsym()
 #	endif
+#	if __has_feature(address_sanitizer)
+// Google3 static linking configurations map mocks via linkopt wraps
+// (-Wl,--wrap), which strips unused internal ASan tracking symbols from the
+// dynamic symbol table. This prevents dynamic runtime dlsym(RTLD_DEFAULT)
+// lookups from finding them, leading to materialization failures during ORC JIT
+// shader compilation. Declaring them here as weak externs forces static
+// resolution from the host binary when compiled with ASan, while reverting to
+// nullptr safely in standard or non-ASan configurations.
+extern "C" __attribute__((weak)) char __start_asan_globals;
+extern "C" __attribute__((weak)) char __stop_asan_globals;
+extern "C" __attribute__((weak)) char ___asan_globals_registered;
+#	endif
 #else
 #	define ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED false
 #endif
@@ -704,6 +716,28 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 				symbols[name] = toSymbol(it->second);
 				continue;
 			}
+
+#if __has_feature(address_sanitizer)
+			// Under static linking configurations, compiler-builtin ASan symbols
+			// are stripped from the dynamic symbol table, causing dlsym to fail.
+			// We statically resolve them using the weak references declared at
+			// the head of the file.
+			if (unmangled == "__start_asan_globals" &&
+			    &__start_asan_globals != nullptr) {
+				symbols[name] = toSymbol(&__start_asan_globals);
+				continue;
+			}
+			if (unmangled == "__stop_asan_globals" &&
+			    &__stop_asan_globals != nullptr) {
+				symbols[name] = toSymbol(&__stop_asan_globals);
+				continue;
+			}
+			if (unmangled == "___asan_globals_registered" &&
+			    &___asan_globals_registered != nullptr) {
+				symbols[name] = toSymbol(&___asan_globals_registered);
+				continue;
+			}
+#endif
 
 #if __has_feature(memory_sanitizer) || (__has_feature(address_sanitizer) && ADDRESS_SANITIZER_INSTRUMENTATION_SUPPORTED)
 			// Sanitizers use a dynamically linked runtime. Instrumented routines reference some
