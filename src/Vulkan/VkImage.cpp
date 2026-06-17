@@ -819,6 +819,10 @@ VkExtent3D Image::getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLe
 			mipLevelExtent.width /= 2;
 			mipLevelExtent.height /= 2;
 			break;
+		case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
+			ASSERT(mipLevelExtent.width % 2 == 0);
+			mipLevelExtent.width /= 2;
+			break;
 		default:
 			UNSUPPORTED("format %d", int(format));
 		}
@@ -920,6 +924,7 @@ VkDeviceSize Image::getAspectOffset(VkImageAspectFlagBits aspect) const
 		// Fall through to 2PLANE case:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
 		if(aspect == VK_IMAGE_ASPECT_PLANE_1_BIT)
 		{
 			return getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);

@@ -57,6 +57,8 @@ uint32_t GetAHBFormatFromVkFormat(VkFormat format)
 		return AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420;
 	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
 		return AHARDWAREBUFFER_FORMAT_YCbCr_P010;
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
+		return AHARDWAREBUFFER_FORMAT_YCbCr_P210;
 	case VK_FORMAT_B8G8R8A8_UNORM:
 		return AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM;
 	default:
@@ -390,6 +392,8 @@ VkFormat AHardwareBufferExternalMemory::GetVkFormatFromAHBFormat(uint32_t ahbFor
 		return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
 	case AHARDWAREBUFFER_FORMAT_YCbCr_P010:
 		return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
+	case AHARDWAREBUFFER_FORMAT_YCbCr_P210:
+		return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16;
 	case AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM:
 		return VK_FORMAT_B8G8R8A8_UNORM;
 	default:
@@ -414,7 +418,8 @@ VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferFormatProperties
 	// YUV formats are not listed in the AHardwareBuffer Format Equivalence table in the Vulkan spec.
 	// Clients must use VkExternalFormatANDROID.
 	if(pFormat->format == VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM ||
-	   pFormat->format == VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16)
+	   pFormat->format == VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16 ||
+	   pFormat->format == VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16)
 	{
 		pFormat->format = VK_FORMAT_UNDEFINED;
 	}
@@ -486,6 +491,7 @@ int AHardwareBufferExternalMemory::externalImageRowPitchBytes(VkImageAspectFlagB
 	case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
 	case AHARDWAREBUFFER_FORMAT_YV12:
 	case AHARDWAREBUFFER_FORMAT_YCbCr_P010:
+	case AHARDWAREBUFFER_FORMAT_YCbCr_P210:
 		switch(aspect)
 		{
 		case VK_IMAGE_ASPECT_PLANE_0_BIT:
@@ -515,6 +521,7 @@ VkDeviceSize AHardwareBufferExternalMemory::externalImageMemoryOffset(VkImageAsp
 	case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
 	case AHARDWAREBUFFER_FORMAT_YV12:
 	case AHARDWAREBUFFER_FORMAT_YCbCr_P010:
+	case AHARDWAREBUFFER_FORMAT_YCbCr_P210:
 		switch(aspect)
 		{
 		case VK_IMAGE_ASPECT_PLANE_0_BIT:

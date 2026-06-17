@@ -693,6 +693,7 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 			chromaBits = 8;
 			break;
 		case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+		case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
 			lumaBits = 10;
 			chromaBits = 10;
 			break;
@@ -2001,6 +2002,7 @@ void SamplerCore::sampleLumaTexel(Vector4f &output, Short4 &uuuu, Short4 &vvvv, 
 		}
 		break;
 	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
 		{
 			Y = Insert(Y, Pointer<UShort>(lumaBuffer)[index[0]], 0);
 			Y = Insert(Y, Pointer<UShort>(lumaBuffer)[index[1]], 1);
@@ -2056,6 +2058,7 @@ void SamplerCore::sampleChromaTexel(Vector4f &output, Short4 &uuuu, Short4 &vvvv
 		}
 		break;
 	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
 		{
 			UInt4 UV;
 			UV = Insert(UV, Pointer<UInt>(bufferU)[index[0]], 0);
@@ -2761,6 +2764,7 @@ sw::float4 SamplerCore::getComponentScale() const
 	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
 		return sw::float4(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
 	default:
 		break;
