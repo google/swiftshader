@@ -72,6 +72,7 @@ cc_defaults {
 
     cflags: [
         "-Wno-implicit-fallthrough",
+        "-Wno-unnecessary-virtual-specifier",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
