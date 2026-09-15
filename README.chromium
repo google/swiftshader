@@ -1,0 +1,17 @@
+Name: SwiftShader
+URL: https://swiftshader.googlesource.com/SwiftShader
+Version: N/A
+Revision: DEPS
+Update Mechanism: Autoroll
+License: Apache-2.0
+License File: LICENSE.txt
+Shipped: yes
+Security Critical: no
+
+Description:
+SwiftShader is a high-performance CPU-based implementation of the Vulkan 1.3
+graphics API. Its goal is to provide hardware independence for advanced 3D
+graphics.
+
+Local Modifications:
+None
