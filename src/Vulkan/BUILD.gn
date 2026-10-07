@@ -64,7 +64,8 @@ config("swiftshader_libvulkan_private_config") {
   ]
 
   if (build_with_chromium) {
-    # Chromium requires higher precision filtering to pass the layout tests with SwiftShader.
+    # Chromium requires higher precision filtering to pass the layout tests with
+    # SwiftShader.
     # http://crbug.com/726075
     defines += [ "SWIFTSHADER_HIGH_PRECISION_FILTERING" ]
   }

@@ -16,23 +16,21 @@ import("//testing/test.gni")
 
 test("swiftshader_system_unittests") {
   deps = [
+    "../../src/System",
+    "../../third_party/marl:Marl",
     "//base",
     "//base/test:test_support",
     "//testing/gmock",
     "//testing/gtest",
-    "../../src/System",
-    "../../third_party/marl:Marl",
   ]
 
   sources = [
     "//gpu/swiftshader_tests_main.cc",
     "ConfiguratorTests.cpp",
     "LRUCacheTests.cpp",
-    "unittests.cpp",
     "SynchronizationTests.cpp",
+    "unittests.cpp",
   ]
 
-  include_dirs = [
-    "../../src"
-  ]
+  include_dirs = [ "../../src" ]
 }

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("../swiftshader.gni")
-import("//build_overrides/wayland.gni")
 import("//build/config/ozone.gni")
+import("//build_overrides/wayland.gni")
+import("../swiftshader.gni")
 
 config("WSI_metal_weak_framework") {
   if (is_mac) {

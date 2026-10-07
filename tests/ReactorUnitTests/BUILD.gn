@@ -33,9 +33,7 @@ if (supports_llvm) {
       "ReactorUnitTests.cpp",
     ]
 
-    include_dirs = [
-      "../../src/Reactor"
-    ]
+    include_dirs = [ "../../src/Reactor" ]
   }
 }
 
@@ -57,8 +55,6 @@ if (supports_subzero) {
       "ReactorUnitTests.cpp",
     ]
 
-    include_dirs = [
-      "../../src/Reactor"
-    ]
+    include_dirs = [ "../../src/Reactor" ]
   }
 }

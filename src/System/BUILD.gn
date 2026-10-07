@@ -30,9 +30,7 @@ swiftshader_source_set("System_headers") {
     "Timer.hpp",
   ]
   if (is_linux || is_chromeos || is_android) {
-    sources += [
-      "Linux/MemFd.hpp",
-    ]
+    sources += [ "Linux/MemFd.hpp" ]
   }
 }
 
@@ -49,18 +47,12 @@ swiftshader_source_set("System") {
     "Timer.cpp",
   ]
   if (is_linux || is_chromeos || is_android) {
-    sources += [
-      "Linux/MemFd.cpp",
-    ]
+    sources += [ "Linux/MemFd.cpp" ]
   }
 
   include_dirs = [ ".." ]
 
-  deps = [
-    "../../third_party/marl:Marl",
-  ]
+  deps = [ "../../third_party/marl:Marl" ]
 
-  public_deps = [
-    ":System_headers",
-  ]
+  public_deps = [ ":System_headers" ]
 }

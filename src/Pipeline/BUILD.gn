@@ -66,7 +66,7 @@ swiftshader_source_set("Pipeline") {
   ]
 
   defines = [
-     "SWIFTSHADER_LEGACY_PRECISION=true",  # TODO(chromium:1299047)
+    "SWIFTSHADER_LEGACY_PRECISION=true",  # TODO(chromium:1299047)
   ]
 
   deps = [
@@ -77,7 +77,5 @@ swiftshader_source_set("Pipeline") {
     "../Vulkan:swiftshader_libvulkan_headers",
   ]
 
-  public_deps = [
-    ":Pipeline_headers",
-  ]
+  public_deps = [ ":Pipeline_headers" ]
 }

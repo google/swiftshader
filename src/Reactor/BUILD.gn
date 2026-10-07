@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("reactor.gni")
 import("../swiftshader.gni")
+import("reactor.gni")
 
 config("swiftshader_llvm_reactor_private_config") {
   if (is_win) {
@@ -31,9 +31,7 @@ config("swiftshader_llvm_reactor_private_config") {
 }
 
 config("swiftshader_reactor_base_private_config") {
-  defines = [
-    "REACTOR_ANONYMOUS_MMAP_NAME=swiftshader_jit",
-  ]
+  defines = [ "REACTOR_ANONYMOUS_MMAP_NAME=swiftshader_jit" ]
 }
 
 swiftshader_source_set("swiftshader_reactor_base") {
@@ -46,9 +44,7 @@ swiftshader_source_set("swiftshader_reactor_base") {
     "SIMD.cpp",
   ]
 
-  configs = [
-      ":swiftshader_reactor_base_private_config",
-  ]
+  configs = [ ":swiftshader_reactor_base_private_config" ]
 }
 
 if (supports_subzero) {
@@ -144,7 +140,7 @@ if (supports_subzero) {
     if (is_clang) {
       cflags += [
         "-Wno-header-hygiene",
-        "-Wno-deprecated-declarations", # (llvm)
+        "-Wno-deprecated-declarations",  # (llvm)
         "-Wno-enum-compare-switch",
         "-Wno-unused-lambda-capture",
         "-Wno-unused-function",
@@ -182,7 +178,7 @@ if (supports_subzero) {
     if (is_clang) {
       cflags += [
         "-Wno-header-hygiene",
-        "-Wno-deprecated-declarations", # (llvm)
+        "-Wno-deprecated-declarations",  # (llvm)
       ]
     }
   }
@@ -288,9 +284,9 @@ if (supports_subzero) {
 
   swiftshader_source_set("swiftshader_subzero_reactor") {
     deps = [
-      "../../third_party/marl:Marl",
       ":swiftshader_reactor_base",
       ":swiftshader_subzero",
+      "../../third_party/marl:Marl",
     ]
 
     sources = [
@@ -345,12 +341,8 @@ if (supports_llvm) {
 
 swiftshader_source_set("swiftshader_reactor") {
   if (use_swiftshader_with_subzero) {
-    deps = [
-      ":swiftshader_subzero_reactor",
-    ]
+    deps = [ ":swiftshader_subzero_reactor" ]
   } else {
-    deps = [
-      ":swiftshader_llvm_reactor",
-    ]
+    deps = [ ":swiftshader_llvm_reactor" ]
   }
 }

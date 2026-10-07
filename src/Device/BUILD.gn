@@ -36,18 +36,18 @@ swiftshader_source_set("astc_encoder") {
   sources = [
     # TODO: Write Build.gn for third_party/astc-encoder
     "../../third_party/astc-encoder/Source/astc_block_sizes2.cpp",
+    "../../third_party/astc-encoder/Source/astc_codec_internals.h",
     "../../third_party/astc-encoder/Source/astc_color_unquantize.cpp",
     "../../third_party/astc-encoder/Source/astc_decompress_symbolic.cpp",
     "../../third_party/astc-encoder/Source/astc_image_load_store.cpp",
     "../../third_party/astc-encoder/Source/astc_integer_sequence.cpp",
     "../../third_party/astc-encoder/Source/astc_mathlib.cpp",
+    "../../third_party/astc-encoder/Source/astc_mathlib.h",
     "../../third_party/astc-encoder/Source/astc_mathlib_softfloat.cpp",
     "../../third_party/astc-encoder/Source/astc_partition_tables.cpp",
     "../../third_party/astc-encoder/Source/astc_quantization.cpp",
     "../../third_party/astc-encoder/Source/astc_symbolic_physical.cpp",
     "../../third_party/astc-encoder/Source/astc_weight_quant_xfer_tables.cpp",
-    "../../third_party/astc-encoder/Source/astc_codec_internals.h",
-    "../../third_party/astc-encoder/Source/astc_mathlib.h",
   ]
 }
 
@@ -72,9 +72,8 @@ swiftshader_source_set("Device") {
     "../../third_party/SPIRV-Headers/include",
   ]
 
-
   defines = [
-     "SWIFTSHADER_LEGACY_PRECISION=true",  # TODO(b/226657516)
+    "SWIFTSHADER_LEGACY_PRECISION=true",  # TODO(b/226657516)
   ]
 
   deps = [
@@ -87,17 +86,11 @@ swiftshader_source_set("Device") {
 
   if (swiftshader_enable_astc) {
     defines += [
-     "SWIFTSHADER_ENABLE_ASTC",  # TODO(b/150130101)
+      "SWIFTSHADER_ENABLE_ASTC",  # TODO(b/150130101)
     ]
-    deps += [
-      ":astc_encoder"
-    ]
-    include_dirs += [
-      "../../third_party/astc-encoder/Source"
-    ]
+    deps += [ ":astc_encoder" ]
+    include_dirs += [ "../../third_party/astc-encoder/Source" ]
   }
 
-  public_deps = [
-    ":Device_headers",
-  ]
+  public_deps = [ ":Device_headers" ]
 }
