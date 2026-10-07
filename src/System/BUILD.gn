@@ -52,7 +52,10 @@ swiftshader_source_set("System") {
 
   include_dirs = [ ".." ]
 
-  deps = [ "../../third_party/marl:Marl" ]
+  deps = [
+    "../../third_party/marl:Marl",
+    "../../third_party/marl:Marl_headers",
+  ]
 
   public_deps = [ ":System_headers" ]
 }

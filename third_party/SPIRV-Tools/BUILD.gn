@@ -174,10 +174,12 @@ spvtools_language_header("debuginfo") {
   grammar_file =
       "${spirv_headers}/include/spirv/unified1/extinst.debuginfo.grammar.json"
 }
+
 spvtools_language_header("cldebuginfo100") {
   name = "OpenCLDebugInfo100"
   grammar_file = "${spirv_headers}/include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"
 }
+
 spvtools_language_header("vkdebuginfo100") {
   name = "NonSemanticShaderDebugInfo100"
   grammar_file = "${spirv_headers}/include/spirv/unified1/extinst.nonsemantic.shader.debuginfo.100.grammar.json"
@@ -246,7 +248,6 @@ group("spvtools_language_headers") {
 
 static_library("spvtools") {
   deps = [
-    ":spvtools_core_tables",
     ":spvtools_generators_inc",
     ":spvtools_language_header_cldebuginfo100",
     ":spvtools_language_header_debuginfo",
@@ -329,6 +330,7 @@ static_library("spvtools") {
   ]
 
   public_deps = [
+    ":spvtools_core_tables",
     ":spvtools_headers",
     "${spirv_headers}:spv_headers",
   ]
@@ -400,12 +402,15 @@ static_library("spvtools_val") {
   ]
 
   deps = [
-    ":spvtools",
     ":spvtools_language_header_cldebuginfo100",
     ":spvtools_language_header_debuginfo",
     ":spvtools_language_header_vkdebuginfo100",
+    "${spirv_headers}:spv_headers",
   ]
-  public_deps = [ ":spvtools_headers" ]
+  public_deps = [
+    ":spvtools",
+    ":spvtools_headers",
+  ]
 
   if (build_with_chromium) {
     configs -= [ "//build/config/compiler:chromium_code" ]
@@ -661,10 +666,11 @@ static_library("spvtools_opt") {
   ]
 
   deps = [
-    ":spvtools",
     ":spvtools_language_header_debuginfo",
+    "${spirv_headers}:spv_headers",
   ]
   public_deps = [
+    ":spvtools",
     ":spvtools_headers",
     ":spvtools_language_header_cldebuginfo100",
     ":spvtools_language_header_vkdebuginfo100",
@@ -755,11 +761,11 @@ static_library("spvtools_reduce") {
     "source/reduce/structured_loop_to_selection_reduction_opportunity_finder.cpp",
     "source/reduce/structured_loop_to_selection_reduction_opportunity_finder.h",
   ]
-  deps = [
-    ":spvtools",
+  deps = [ ":spvtools" ]
+  public_deps = [
+    ":spvtools_headers",
     ":spvtools_opt",
   ]
-  public_deps = [ ":spvtools_headers" ]
   if (build_with_chromium) {
     configs -= [ "//build/config/compiler:chromium_code" ]
     configs += [ "//build/config/compiler:no_chromium_code" ]
@@ -1306,8 +1312,9 @@ source_set("spvtools_tools_util") {
     "tools/util/cli_consumer.h",
     "tools/util/flags.cpp",
   ]
-  deps = [ ":spvtools_headers" ]
+
   configs += [ ":spvtools_internal_config" ]
+  public_deps = [ ":spvtools_headers" ]
 }
 
 source_set("spvtools_tools_io") {

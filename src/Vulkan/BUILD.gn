@@ -197,6 +197,7 @@ swiftshader_source_set("_swiftshader_libvulkan") {
     "../../third_party/SPIRV-Tools/include",
     "../../third_party/SPIRV-Headers/include",
   ]
+  deps = [ "../../third_party/marl:Marl_headers" ]
 }
 
 swiftshader_shared_library("swiftshader_libvulkan") {

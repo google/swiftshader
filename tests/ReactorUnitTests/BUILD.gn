@@ -22,6 +22,7 @@ if (supports_llvm) {
       "//base/test:test_support",
       "//testing/gmock",
       "//testing/gtest",
+      "//third_party/googletest:gtest",
       "//third_party/swiftshader/src/Reactor:swiftshader_llvm_reactor",
     ]
 
@@ -44,6 +45,7 @@ if (supports_subzero) {
       "//base/test:test_support",
       "//testing/gmock",
       "//testing/gtest",
+      "//third_party/googletest:gtest",
       "//third_party/swiftshader/src/Reactor:swiftshader_subzero_reactor",
     ]
 
