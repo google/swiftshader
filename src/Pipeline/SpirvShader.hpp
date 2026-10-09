@@ -174,8 +174,9 @@ public:
 		InsnIterator(const InsnIterator &other) = default;
 		InsnIterator &operator=(const InsnIterator &other) = default;
 
-		explicit InsnIterator(SpirvBinary::const_iterator iter)
+		InsnIterator(SpirvBinary::const_iterator iter, SpirvBinary::const_iterator end)
 		    : iter{ iter }
+		    , end{ end }
 		{
 		}
 
@@ -275,31 +276,46 @@ public:
 
 		InsnIterator &operator++()
 		{
-			iter += wordCount();
+			// wordCount() comes from the instruction header and is
+			// attacker-controlled. A corrupt instruction could claim a huge
+			// word count, driving the iterator past the buffer end and
+			// causing out-of-bounds reads in opcode()/word(). Clamp to end
+			// so iteration terminates safely on corrupt input.
+			uint32_t wc = wordCount();
+			if(wc == 0 || iter + wc > end)
+			{
+				iter = end;
+			}
+			else
+			{
+				iter += wc;
+			}
 			return *this;
 		}
 
 		InsnIterator const operator++(int)
 		{
 			InsnIterator ret{ *this };
-			iter += wordCount();
+			++(*this);
 			return ret;
 		}
 
 	private:
 		SpirvBinary::const_iterator iter;
+		// End of the instruction stream, for bounds-checking operator++.
+		SpirvBinary::const_iterator end;
 	};
 
 	// Range-based-for interface
 	InsnIterator begin() const
 	{
 		// Skip over the header words
-		return InsnIterator{ insns.cbegin() + 5 };
+		return InsnIterator{ insns.cbegin() + 5, insns.cend() };
 	}
 
 	InsnIterator end() const
 	{
-		return InsnIterator{ insns.cend() };
+		return InsnIterator{ insns.cend(), insns.cend() };
 	}
 
 	// A range of contiguous instruction words.
