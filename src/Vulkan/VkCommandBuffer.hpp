@@ -143,6 +143,19 @@ public:
 	void setRasterizerDiscardEnable(VkBool32 rasterizerDiscardEnable);
 	void setDepthBiasEnable(VkBool32 depthBiasEnable);
 	void setPrimitiveRestartEnable(VkBool32 primitiveRestartEnable);
+        void setDepthClampEnable(VkBool32 depthClampEnable);
+        void setPolygonMode(VkPolygonMode polygonMode);
+        void setRasterizationSamples(VkSampleCountFlagBits rasterizationSamples);
+        void setSampleMask(VkSampleCountFlagBits samples, const VkSampleMask* pSampleMask);
+        void setAlphaToCoverageEnable(VkBool32 alphaToCoverageEnable);
+        void setColorBlendEnable(uint32_t firstAttachment, uint32_t attachmentCount, const VkBool32* pColorBlendEnables);
+        void setColorBlendEquation(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorBlendEquationEXT* pColorBlendEquations);
+        void setColorWriteMask(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorComponentFlags* pColorWriteMasks);
+        void setDepthClipEnable(VkBool32 depthClipEnable);
+        void setColorBlendAdvanced(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorBlendAdvancedEXT* pColorBlendAdvanced);
+        void setProvokingVertexMode(VkProvokingVertexModeEXT provokingVertexMode);
+        void setLineRasterizationMode(VkLineRasterizationModeEXT lineRasterizationMode);
+        void setDepthClipNegativeOneToOne(VkBool32 negativeOneToOne);
 	void setVertexInput(uint32_t vertexBindingDescriptionCount,
 			const VkVertexInputBindingDescription2EXT*  pVertexBindingDescriptions,
 			uint32_t vertexAttributeDescriptionCount,

@@ -483,6 +483,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_EXT_PRIMITIVE_TOPOLOGY_LIST_RESTART_EXTENSION_NAME, VK_EXT_PRIMITIVE_TOPOLOGY_LIST_RESTART_SPEC_VERSION } },
 	{ { VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME, VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_SPEC_VERSION } },
 	{ { VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_SPEC_VERSION } },
+	{ { VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME, VK_EXT_EXTENDED_DYNAMIC_STATE_3_SPEC_VERSION } },
 };
 
 static uint32_t numSupportedExtensions(const ExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
@@ -1064,6 +1065,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT:
 			{
 				const auto *dynamicStateFeatures = reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *>(extensionCreateInfo);
+				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(dynamicStateFeatures);
+				if(!hasFeatures)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT:
+			{
+				const auto *dynamicStateFeatures = reinterpret_cast<const VkPhysicalDeviceExtendedDynamicState3FeaturesEXT *>(extensionCreateInfo);
 				bool hasFeatures = vk::Cast(physicalDevice)->hasExtendedFeatures(dynamicStateFeatures);
 				if(!hasFeatures)
 				{
@@ -3127,6 +3138,166 @@ VKAPI_ATTR void VKAPI_CALL vkCmdSetPatchControlPointsEXT(VkCommandBuffer command
 	UNREACHABLE("extendedDynamicState2PatchControlPoints not supported");
 }
 
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthClampEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 depthClampEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 depthClampEnable = %d)", commandBuffer, depthClampEnable);
+
+	vk::Cast(commandBuffer)->setDepthClampEnable(depthClampEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetLogicOpEnableEXT(VkCommandBuffer commandBuffer, VkBool32 logicOpEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 logicOp = %d)", commandBuffer, logicOpEnable);
+
+	UNREACHABLE("extendedDynamicState3LogicOpEnable not supported");
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetPolygonModeEXT(
+    VkCommandBuffer commandBuffer,
+    VkPolygonMode polygonMode)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkPolygonMode polygonMode = %d)", commandBuffer, polygonMode);
+
+	vk::Cast(commandBuffer)->setPolygonMode(polygonMode);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetRasterizationSamplesEXT(
+    VkCommandBuffer commandBuffer,
+    VkSampleCountFlagBits rasterizationSamples)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkSampleCountFlagBits rasterizationSamples = %d)", commandBuffer, rasterizationSamples);
+
+	vk::Cast(commandBuffer)->setRasterizationSamples(rasterizationSamples);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetSampleMaskEXT(
+    VkCommandBuffer commandBuffer,
+    VkSampleCountFlagBits samples,
+    const VkSampleMask *pSampleMask)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkSampleCountFlagBits samples = %d, const VkSampleMask* pSampleMask = %p)", commandBuffer, samples, pSampleMask);
+
+	vk::Cast(commandBuffer)->setSampleMask(samples, pSampleMask);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetAlphaToCoverageEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 alphaToCoverageEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 alphaToCoverageEnable = %d)", commandBuffer, alphaToCoverageEnable);
+
+	vk::Cast(commandBuffer)->setAlphaToCoverageEnable(alphaToCoverageEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetAlphaToOneEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 alphaToOneEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 alphaToOneEnable = %d)", commandBuffer, alphaToOneEnable);
+
+	UNREACHABLE("extendedDynamicState3AlphaToOneEnable not supported");
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetColorBlendEnableEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t firstAttachment,
+    uint32_t attachmentCount,
+    const VkBool32 *pColorBlendEnables)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t firstAttachment = %d, uint32_t attachmentCount = %d, const VkBool32* pColorBlendEnables = %p)", commandBuffer, firstAttachment, attachmentCount, pColorBlendEnables);
+
+	vk::Cast(commandBuffer)->setColorBlendEnable(firstAttachment, attachmentCount, pColorBlendEnables);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetColorBlendEquationEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t firstAttachment,
+    uint32_t attachmentCount,
+    const VkColorBlendEquationEXT *pColorBlendEquations)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t firstAttachment = %d, uint32_t attachmentCount = %d, const VkColorBlendEquationEXT* pColorBlendEquations = %p)", commandBuffer, firstAttachment, attachmentCount, pColorBlendEquations);
+
+	vk::Cast(commandBuffer)->setColorBlendEquation(firstAttachment, attachmentCount, pColorBlendEquations);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetColorWriteMaskEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t firstAttachment,
+    uint32_t attachmentCount,
+    const VkColorComponentFlags *pColorWriteMasks)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t firstAttachment = %d, uint32_t attachmentCount = %d, const VkColorComponentFlags* pColorWriteMasks = %p)", commandBuffer, firstAttachment, attachmentCount, pColorWriteMasks);
+
+	vk::Cast(commandBuffer)->setColorWriteMask(firstAttachment, attachmentCount, pColorWriteMasks);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetTessellationDomainOriginEXT(
+    VkCommandBuffer commandBuffer,
+    VkTessellationDomainOrigin domainOrigin)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkTessellationDomainOrigin domainOrigin = %d)", commandBuffer, domainOrigin);
+
+	UNREACHABLE("extendedDynamicState3TessellationDomainOrigin not supported");
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthClipEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 depthClipEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 depthClipEnable = %d)", commandBuffer, depthClipEnable);
+
+	vk::Cast(commandBuffer)->setDepthClipEnable(depthClipEnable);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetColorBlendAdvancedEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t firstAttachment,
+    uint32_t attachmentCount,
+    const VkColorBlendAdvancedEXT *pColorBlendAdvanced)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t firstAttachment = %d, uint32_t attachmentCount = %d, const VkColorBlendAdvancedEXT* pColorBlendAdvanced = %p)", commandBuffer, firstAttachment, attachmentCount, pColorBlendAdvanced);
+
+	vk::Cast(commandBuffer)->setColorBlendAdvanced(firstAttachment, attachmentCount, pColorBlendAdvanced);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetProvokingVertexModeEXT(
+    VkCommandBuffer commandBuffer,
+    VkProvokingVertexModeEXT provokingVertexMode)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkProvokingVertexModeEXT provokingVertexMode = %d)", commandBuffer, provokingVertexMode);
+
+	vk::Cast(commandBuffer)->setProvokingVertexMode(provokingVertexMode);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetLineRasterizationModeEXT(
+    VkCommandBuffer commandBuffer,
+    VkLineRasterizationModeEXT lineRasterizationMode)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkLineRasterizationModeEXT lineRasterizationMode = %d)", commandBuffer, lineRasterizationMode);
+
+	vk::Cast(commandBuffer)->setLineRasterizationMode(lineRasterizationMode);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetLineStippleEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 stippledLineEnable)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 stippledLineEnable = %d)", commandBuffer, stippledLineEnable);
+
+	UNREACHABLE("extendedDynamicState3LineStippleEnable not supported");
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthClipNegativeOneToOneEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 negativeOneToOne)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, VkBool32 negativeOneToOne = %d)", commandBuffer, negativeOneToOne);
+
+	vk::Cast(commandBuffer)->setDepthClipNegativeOneToOne(negativeOneToOne);
+}
+
 VKAPI_ATTR void VKAPI_CALL vkCmdSetVertexInputEXT(VkCommandBuffer commandBuffer, uint32_t vertexBindingDescriptionCount,
                                                   const VkVertexInputBindingDescription2EXT *pVertexBindingDescriptions,
                                                   uint32_t vertexAttributeDescriptionCount,
@@ -3957,6 +4128,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES_EXT:
 			{
 				auto *properties = reinterpret_cast<VkPhysicalDeviceHostImageCopyPropertiesEXT *>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT:
+			{
+				auto *properties = reinterpret_cast<VkPhysicalDeviceExtendedDynamicState3PropertiesEXT *>(extensionProperties);
 				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;

@@ -407,7 +407,7 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthBoundsTestEnable),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetStencilTestEnable),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetStencilOp),
-	// VK_EXT_extended_dynamic_state2 (partial promotion, VKCmdSetLogicOpEXT and VKCmdSetPatchControlPointsEXT are not promoted)
+	// VK_EXT_extended_dynamic_state2 (partial promotion, vkCmdSetLogicOpEXT and vkCmdSetPatchControlPointsEXT are not promoted)
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetRasterizerDiscardEnable),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthBiasEnable),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetPrimitiveRestartEnable),
@@ -561,6 +561,33 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetPrimitiveRestartEnableEXT),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLogicOpEXT),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetPatchControlPointsEXT),
+	    } },
+	// VK_EXT_extended_dynamic_state3
+	{
+	    VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetAlphaToCoverageEnableEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetAlphaToOneEnableEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetColorBlendEnableEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetColorBlendEquationEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetColorWriteMaskEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthClampEnableEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLogicOpEnableEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetPolygonModeEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetRasterizationSamplesEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetSampleMaskEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetTessellationDomainOriginEXT),
+	        // +VK_EXT_blend_operation_advanced
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetColorBlendAdvancedEXT),
+	        // +VK_EXT_depth_clip_control
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthClipNegativeOneToOneEXT),
+	        // +VK_EXT_depth_clip_enable
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDepthClipEnableEXT),
+	        // +VK_EXT_provoking_vertex
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetProvokingVertexModeEXT),
+	        // +VK_EXT_line_rasterization
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLineRasterizationModeEXT),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLineStippleEnableEXT),
 	    } },
 	// VK_EXT_vertex_input_dynamic_state
 	{

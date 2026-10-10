@@ -47,6 +47,7 @@ public:
 	bool hasExtendedFeatures(const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *features) const;
+	bool hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicState3FeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDevicePrivateDataFeatures *features) const;
 	bool hasExtendedFeatures(const VkPhysicalDeviceTextureCompressionASTCHDRFeatures *features) const;
@@ -98,6 +99,7 @@ public:
 	void getProperties(VkPhysicalDeviceDepthStencilResolveProperties *properties) const;
 	void getProperties(VkPhysicalDeviceCustomBorderColorPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT *properties) const;
+	void getProperties(VkPhysicalDeviceExtendedDynamicState3PropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceSubgroupSizeControlProperties *properties) const;
 	void getProperties(VkPhysicalDeviceInlineUniformBlockProperties *properties) const;
 	void getProperties(VkPhysicalDeviceTexelBufferAlignmentProperties *properties) const;

@@ -164,11 +164,29 @@ vk::DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateI
 		case VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE:
 			dynamicStateFlags.preRasterization.dynamicDepthBiasEnable = true;
 			break;
+		case VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT:
+			dynamicStateFlags.preRasterization.dynamicDepthClampEnable = true;
+			break;
+		case VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT:
+			dynamicStateFlags.preRasterization.dynamicDepthClipEnable = true;
+			break;
+		case VK_DYNAMIC_STATE_DEPTH_CLIP_NEGATIVE_ONE_TO_ONE_EXT:
+			dynamicStateFlags.preRasterization.dynamicDepthClipNegativeOneToOne = true;
+			break;
 		case VK_DYNAMIC_STATE_CULL_MODE:
 			dynamicStateFlags.preRasterization.dynamicCullMode = true;
 			break;
 		case VK_DYNAMIC_STATE_FRONT_FACE:
 			dynamicStateFlags.preRasterization.dynamicFrontFace = true;
+			break;
+		case VK_DYNAMIC_STATE_POLYGON_MODE_EXT:
+			dynamicStateFlags.preRasterization.dynamicPolygonMode = true;
+			break;
+		case VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT:
+			dynamicStateFlags.preRasterization.dynamicLineRasterizationMode = true;
+			break;
+		case VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT:
+			dynamicStateFlags.preRasterization.dynamicProvokingVertexMode = true;
 			break;
 		case VK_DYNAMIC_STATE_VIEWPORT:
 			dynamicStateFlags.preRasterization.dynamicViewport = true;
@@ -218,9 +236,35 @@ vk::DynamicStateFlags ParseDynamicStateFlags(const VkPipelineDynamicStateCreateI
 			dynamicStateFlags.fragment.dynamicStencilReference = true;
 			break;
 
+		// Fragment or fragment output interface:
+		case VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT:
+			dynamicStateFlags.fragment.dynamicRasterizationSamples = true;
+			dynamicStateFlags.fragmentOutputInterface.dynamicRasterizationSamples = true;
+			break;
+		case VK_DYNAMIC_STATE_SAMPLE_MASK_EXT:
+			dynamicStateFlags.fragment.dynamicSampleMask = true;
+			dynamicStateFlags.fragmentOutputInterface.dynamicSampleMask = true;
+			break;
+		case VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT:
+			dynamicStateFlags.fragment.dynamicAlphaToCoverageEnable = true;
+			dynamicStateFlags.fragmentOutputInterface.dynamicAlphaToCoverageEnable = true;
+			break;
+
 		// Fragment output interface:
 		case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
 			dynamicStateFlags.fragmentOutputInterface.dynamicBlendConstants = true;
+			break;
+		case VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT:
+			dynamicStateFlags.fragmentOutputInterface.dynamicColorBlendEnable = true;
+			break;
+		case VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT:
+			dynamicStateFlags.fragmentOutputInterface.dynamicColorBlendEquation = true;
+			break;
+		case VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT:
+			dynamicStateFlags.fragmentOutputInterface.dynamicColorBlendAdvanced = true;
+			break;
+		case VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT:
+			dynamicStateFlags.fragmentOutputInterface.dynamicColorWriteMask = true;
 			break;
 
 		default:
@@ -482,7 +526,7 @@ VkDeviceSize Inputs::getInstanceStride(uint32_t i) const
 	return 0;
 }
 
-void MultisampleState::set(const VkPipelineMultisampleStateCreateInfo *multisampleState)
+void MultisampleState::set(const FragmentOutputInterfaceDynamicStateFlags &dynamicStateFlags, const VkPipelineMultisampleStateCreateInfo *multisampleState)
 {
 	if(multisampleState->flags != 0)
 	{
@@ -510,21 +554,24 @@ void MultisampleState::set(const VkPipelineMultisampleStateCreateInfo *multisamp
 		sampleCount = 4;
 		break;
 	default:
-		UNSUPPORTED("Unsupported sample count");
+		if(!dynamicStateFlags.dynamicRasterizationSamples)
+		{
+			UNSUPPORTED("Unsupported sample count");
+		}
+		sampleCount = 4;
 	}
 
-	VkSampleMask sampleMask;
 	if(multisampleState->pSampleMask)
 	{
-		sampleMask = multisampleState->pSampleMask[0];
+		staticSampleMask = multisampleState->pSampleMask[0];
 	}
 	else  // "If pSampleMask is NULL, it is treated as if the mask has all bits set to 1."
 	{
-		sampleMask = ~0;
+		staticSampleMask = ~0;
 	}
 
 	alphaToCoverage = (multisampleState->alphaToCoverageEnable != VK_FALSE);
-	multiSampleMask = sampleMask & ((unsigned)0xFFFFFFFF >> (32 - sampleCount));
+	multiSampleMask = staticSampleMask & ((unsigned)0xFFFFFFFF >> (32 - sampleCount));
 }
 
 void VertexInputInterfaceState::initialize(const VkPipelineVertexInputStateCreateInfo *vertexInputState,
@@ -537,6 +584,21 @@ void VertexInputInterfaceState::initialize(const VkPipelineVertexInputStateCreat
 	{
 		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("vertexInputState->flags");
+	}
+
+	// The spec says:
+	//
+	// If the VK_EXT_extended_dynamic_state3 extension is enabled, it can be NULL if the
+	// pipeline is created with both VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE, and
+	// VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY dynamic states set and
+	// dynamicPrimitiveTopologyUnrestricted is VK_TRUE.
+	//
+	// SwiftShader sets dynamicPrimitiveTopologyUnrestricted to VK_TRUE.
+	if(inputAssemblyState == nullptr)
+	{
+		ASSERT(dynamicStateFlags.dynamicPrimitiveRestartEnable &&
+		       dynamicStateFlags.dynamicPrimitiveTopology);
+		return;
 	}
 
 	if(inputAssemblyState->flags != 0)
@@ -629,85 +691,121 @@ void PreRasterizationState::initialize(const vk::Device *device,
 	pipelineLayout = layout;
 	dynamicStateFlags = allDynamicStateFlags.preRasterization;
 
-	if(rasterizationState->flags != 0)
+	// The spec says:
+	//
+	// If the VK_EXT_extended_dynamic_state3 extension is enabled, it can be NULL if the
+	// pipeline is created with all of VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
+	// VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE, VK_DYNAMIC_STATE_POLYGON_MODE_EXT,
+	// VK_DYNAMIC_STATE_CULL_MODE, VK_DYNAMIC_STATE_FRONT_FACE,
+	// VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE, VK_DYNAMIC_STATE_DEPTH_BIAS, and
+	// VK_DYNAMIC_STATE_LINE_WIDTH dynamic states set.
+	if(rasterizationState == nullptr)
 	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-		UNSUPPORTED("pCreateInfo->pRasterizationState->flags 0x%08X", int(rasterizationState->flags));
+		ASSERT(dynamicStateFlags.dynamicDepthClampEnable &&
+		       dynamicStateFlags.dynamicRasterizerDiscardEnable &&
+		       dynamicStateFlags.dynamicPolygonMode &&
+		       dynamicStateFlags.dynamicCullMode &&
+		       dynamicStateFlags.dynamicFrontFace &&
+		       dynamicStateFlags.dynamicDepthBiasEnable &&
+		       dynamicStateFlags.dynamicDepthBias &&
+		       dynamicStateFlags.dynamicLineWidth);
 	}
-
-	rasterizerDiscard = rasterizationState->rasterizerDiscardEnable != VK_FALSE;
-	cullMode = rasterizationState->cullMode;
-	frontFace = rasterizationState->frontFace;
-	polygonMode = rasterizationState->polygonMode;
-	depthBiasEnable = rasterizationState->depthBiasEnable;
-	constantDepthBias = rasterizationState->depthBiasConstantFactor;
-	slopeDepthBias = rasterizationState->depthBiasSlopeFactor;
-	depthBiasClamp = rasterizationState->depthBiasClamp;
-	depthRangeUnrestricted = device->hasExtension(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
-	depthClampEnable = rasterizationState->depthClampEnable != VK_FALSE;
-	depthClipEnable = !depthClampEnable;
-
-	// From the Vulkan spec for vkCmdSetDepthBias:
-	//    The bias value O for a polygon is:
-	//        O = dbclamp(...)
-	//    where dbclamp(x) =
-	//        * x                       depthBiasClamp = 0 or NaN
-	//        * min(x, depthBiasClamp)  depthBiasClamp > 0
-	//        * max(x, depthBiasClamp)  depthBiasClamp < 0
-	// So it should be safe to resolve NaNs to 0.0f.
-	if(std::isnan(depthBiasClamp))
+	else
 	{
-		depthBiasClamp = 0.0f;
-	}
-
-	if(!dynamicStateFlags.dynamicLineWidth)
-	{
-		lineWidth = rasterizationState->lineWidth;
-	}
-
-	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(rasterizationState->pNext);
-	while(extensionCreateInfo)
-	{
-		switch(extensionCreateInfo->sType)
+		if(rasterizationState->flags != 0)
 		{
-		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
-			{
-				const VkPipelineRasterizationLineStateCreateInfoEXT *lineStateCreateInfo = reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT *>(extensionCreateInfo);
-				lineRasterizationMode = lineStateCreateInfo->lineRasterizationMode;
-			}
-			break;
-		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
-			{
-				const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *provokingVertexModeCreateInfo =
-				    reinterpret_cast<const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *>(extensionCreateInfo);
-				provokingVertexMode = provokingVertexModeCreateInfo->provokingVertexMode;
-			}
-			break;
-		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT:
-			{
-				const auto *depthClipInfo = reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT *>(extensionCreateInfo);
-				// Reserved for future use.
-				ASSERT(depthClipInfo->flags == 0);
-				depthClipEnable = depthClipInfo->depthClipEnable != VK_FALSE;
-			}
-			break;
-		case VK_STRUCTURE_TYPE_APPLICATION_INFO:
-			// SwiftShader doesn't interact with application info, but dEQP includes it
-			break;
-		case VK_STRUCTURE_TYPE_MAX_ENUM:
-			// dEQP tests that this value is ignored.
-			break;
-		default:
-			UNSUPPORTED("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
-			break;
+			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+			UNSUPPORTED("pCreateInfo->pRasterizationState->flags 0x%08X", int(rasterizationState->flags));
 		}
 
-		extensionCreateInfo = extensionCreateInfo->pNext;
+		rasterizerDiscard = rasterizationState->rasterizerDiscardEnable != VK_FALSE;
+		cullMode = rasterizationState->cullMode;
+		frontFace = rasterizationState->frontFace;
+		polygonMode = rasterizationState->polygonMode;
+		depthBiasEnable = rasterizationState->depthBiasEnable;
+		constantDepthBias = rasterizationState->depthBiasConstantFactor;
+		slopeDepthBias = rasterizationState->depthBiasSlopeFactor;
+		depthBiasClamp = rasterizationState->depthBiasClamp;
+		depthRangeUnrestricted = device->hasExtension(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
+		depthClampEnable = rasterizationState->depthClampEnable != VK_FALSE;
+		depthClipEnable = !depthClampEnable;
+		depthClipEnableIsExplicit = false;
+
+		// From the Vulkan spec for vkCmdSetDepthBias:
+		//    The bias value O for a polygon is:
+		//        O = dbclamp(...)
+		//    where dbclamp(x) =
+		//        * x                       depthBiasClamp = 0 or NaN
+		//        * min(x, depthBiasClamp)  depthBiasClamp > 0
+		//        * max(x, depthBiasClamp)  depthBiasClamp < 0
+		// So it should be safe to resolve NaNs to 0.0f.
+		if(std::isnan(depthBiasClamp))
+		{
+			depthBiasClamp = 0.0f;
+		}
+
+		if(!dynamicStateFlags.dynamicLineWidth)
+		{
+			lineWidth = rasterizationState->lineWidth;
+		}
+
+		const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(rasterizationState->pNext);
+		while(extensionCreateInfo)
+		{
+			switch(extensionCreateInfo->sType)
+			{
+			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
+				{
+					const VkPipelineRasterizationLineStateCreateInfoEXT *lineStateCreateInfo = reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT *>(extensionCreateInfo);
+					lineRasterizationMode = lineStateCreateInfo->lineRasterizationMode;
+				}
+				break;
+			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
+				{
+					const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *provokingVertexModeCreateInfo =
+					    reinterpret_cast<const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *>(extensionCreateInfo);
+					provokingVertexMode = provokingVertexModeCreateInfo->provokingVertexMode;
+				}
+				break;
+			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT:
+				{
+					const auto *depthClipInfo = reinterpret_cast<const VkPipelineRasterizationDepthClipStateCreateInfoEXT *>(extensionCreateInfo);
+					// Reserved for future use.
+					ASSERT(depthClipInfo->flags == 0);
+					depthClipEnable = depthClipInfo->depthClipEnable != VK_FALSE;
+					depthClipEnableIsExplicit = !dynamicStateFlags.dynamicDepthClipEnable;
+				}
+				break;
+			case VK_STRUCTURE_TYPE_APPLICATION_INFO:
+				// SwiftShader doesn't interact with application info, but dEQP includes it
+				break;
+			case VK_STRUCTURE_TYPE_MAX_ENUM:
+				// dEQP tests that this value is ignored.
+				break;
+			default:
+				UNSUPPORTED("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+				break;
+			}
+
+			extensionCreateInfo = extensionCreateInfo->pNext;
+		}
+	}
+
+	// The spec says:
+	//
+	// If the VK_EXT_extended_dynamic_state3 extension is enabled, it can be NULL if the
+	// pipeline is created with both VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, and
+	// VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT dynamic states set.
+	if(viewportState == nullptr)
+	{
+		ASSERT(dynamicStateFlags.dynamicViewportWithCount &&
+		       dynamicStateFlags.dynamicScissorWithCount);
+		return;
 	}
 
 	if(!rasterizerDiscard || dynamicStateFlags.dynamicRasterizerDiscardEnable)
 	{
-		extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(viewportState->pNext);
+		const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(viewportState->pNext);
 		while(extensionCreateInfo != nullptr)
 		{
 			switch(extensionCreateInfo->sType)
@@ -771,6 +869,25 @@ void PreRasterizationState::applyState(const DynamicState &dynamicState)
 		depthBiasEnable = dynamicState.depthBiasEnable;
 	}
 
+	if(dynamicStateFlags.dynamicDepthClampEnable)
+	{
+		depthClampEnable = dynamicState.depthClampEnable;
+		if(!depthClipEnableIsExplicit && !dynamicStateFlags.dynamicDepthClipEnable)
+		{
+			depthClipEnable = !dynamicState.depthClampEnable;
+		}
+	}
+
+	if(dynamicStateFlags.dynamicDepthClipEnable)
+	{
+		depthClipEnable = dynamicState.depthClipEnable;
+	}
+
+	if(dynamicStateFlags.dynamicDepthClipNegativeOneToOne)
+	{
+		depthClipNegativeOneToOne = dynamicState.depthClipNegativeOneToOne;
+	}
+
 	if(dynamicStateFlags.dynamicCullMode)
 	{
 		cullMode = dynamicState.cullMode;
@@ -779,6 +896,21 @@ void PreRasterizationState::applyState(const DynamicState &dynamicState)
 	if(dynamicStateFlags.dynamicFrontFace)
 	{
 		frontFace = dynamicState.frontFace;
+	}
+
+	if(dynamicStateFlags.dynamicPolygonMode)
+	{
+		polygonMode = dynamicState.polygonMode;
+	}
+
+	if(dynamicStateFlags.dynamicLineRasterizationMode)
+	{
+		lineRasterizationMode = dynamicState.lineRasterizationMode;
+	}
+
+	if(dynamicStateFlags.dynamicProvokingVertexMode)
+	{
+		provokingVertexMode = dynamicState.provokingVertexMode;
 	}
 
 	if(dynamicStateFlags.dynamicViewport)
@@ -816,6 +948,20 @@ void FragmentState::initialize(
 {
 	pipelineLayout = layout;
 	dynamicStateFlags = allDynamicStateFlags.fragment;
+
+	// The spec says:
+	//
+	// If the VK_EXT_extended_dynamic_state3 extension is enabled, it can be NULL if the
+	// pipeline is created with all of VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,
+	// VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE, VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,
+	// VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE, VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
+	// VK_DYNAMIC_STATE_STENCIL_OP, and VK_DYNAMIC_STATE_DEPTH_BOUNDS dynamic states set.
+	//
+	// But pDepthStencilState can still be nullptr if no subpass uses depth/stencil.
+	if(depthStencilState == nullptr)
+	{
+		return;
+	}
 
 	if(renderPass)
 	{
@@ -981,7 +1127,43 @@ void FragmentOutputInterfaceState::initialize(const VkPipelineColorBlendStateCre
 {
 	dynamicStateFlags = allDynamicStateFlags.fragmentOutputInterface;
 
-	multisample.set(multisampleState);
+	// The spec says:
+	//
+	// If the VK_EXT_extended_dynamic_state3 extension is enabled, it [pMultisampleState] can be
+	// NULL if the pipeline is created with all of VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT,
+	// VK_DYNAMIC_STATE_SAMPLE_MASK_EXT, and VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT
+	// dynamic states set, and either the alphaToOne feature is not enabled or
+	// VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT is set, in which case
+	// VkPipelineMultisampleStateCreateInfo::sampleShadingEnable is assumed to be VK_FALSE.
+	//
+	// SwiftShader does not support alphaToOne.
+	if(multisampleState == nullptr)
+	{
+		ASSERT(dynamicStateFlags.dynamicRasterizationSamples &&
+		       dynamicStateFlags.dynamicSampleMask &&
+		       dynamicStateFlags.dynamicAlphaToCoverageEnable);
+	}
+	else
+	{
+		multisample.set(dynamicStateFlags, multisampleState);
+	}
+
+	// The spec says:
+	//
+	// If the VK_EXT_extended_dynamic_state3 extension is enabled, it [pColorBlendState] can be
+	// NULL if the pipeline is created with all of VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
+	// VK_DYNAMIC_STATE_LOGIC_OP_EXT, VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
+	// VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT, VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT, and
+	// VK_DYNAMIC_STATE_BLEND_CONSTANTS dynamic states set.
+	//
+	// SwiftShader does not support logic op; if everything else is static there is no need to
+	// look at colorBlendState.
+	//
+	// pColorBlendState may be nullptr if there are no attachments.
+	if(colorBlendState == nullptr)
+	{
+		return;
+	}
 
 	if(renderPass)
 	{
@@ -1025,9 +1207,65 @@ void FragmentOutputInterfaceState::initialize(const VkPipelineColorBlendStateCre
 
 void FragmentOutputInterfaceState::applyState(const DynamicState &dynamicState)
 {
+	// State that affects both Fragment and Fragment Output subsets are always stored in the
+	// Fragment Output subset in SwiftShader
+	if(dynamicStateFlags.dynamicRasterizationSamples)
+	{
+		multisample.sampleCount = dynamicState.rasterizationSamples;
+	}
+
+	if(dynamicStateFlags.dynamicSampleMask || dynamicStateFlags.dynamicRasterizationSamples)
+	{
+		unsigned int sampleMask = dynamicStateFlags.dynamicSampleMask ? dynamicState.sampleMask : multisample.staticSampleMask;
+		multisample.multiSampleMask = sampleMask & ((unsigned)0xFFFFFFFF >> (32 - multisample.sampleCount));
+	}
+
+	if(dynamicStateFlags.dynamicAlphaToCoverageEnable)
+	{
+		multisample.alphaToCoverage = dynamicState.alphaToCoverageEnable;
+	}
+
 	if(dynamicStateFlags.dynamicBlendConstants)
 	{
 		blendConstants = dynamicState.blendConstants;
+	}
+
+	if(dynamicStateFlags.dynamicColorBlendEnable)
+	{
+		for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
+		{
+			blendState[i].alphaBlendEnable = dynamicState.colorBlendEnables[i] != VK_FALSE;
+		}
+	}
+
+	if(dynamicStateFlags.dynamicColorBlendEquation)
+	{
+		for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
+		{
+			blendState[i].sourceBlendFactor = dynamicState.colorBlendEquations[i].srcColorBlendFactor;
+			blendState[i].destBlendFactor = dynamicState.colorBlendEquations[i].dstColorBlendFactor;
+			blendState[i].sourceBlendFactorAlpha = dynamicState.colorBlendEquations[i].srcAlphaBlendFactor;
+			blendState[i].destBlendFactorAlpha = dynamicState.colorBlendEquations[i].dstAlphaBlendFactor;
+			blendState[i].blendOperationAlpha = dynamicState.colorBlendEquations[i].alphaBlendOp;
+		}
+	}
+
+	// colorBlendOp may be set either by COLOR_BLEND_EQUATION or COLOR_BLEND_ADVANCED dynamic
+	// states
+	if(dynamicStateFlags.dynamicColorBlendEquation || dynamicStateFlags.dynamicColorBlendAdvanced)
+	{
+		for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
+		{
+			blendState[i].blendOperation = dynamicState.colorBlendEquations[i].colorBlendOp;
+		}
+	}
+
+	if(dynamicStateFlags.dynamicColorWriteMask)
+	{
+		for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
+		{
+			colorWriteMask[i] = dynamicState.colorWriteMasks[i];
+		}
 	}
 }
 
@@ -1076,14 +1314,17 @@ void FragmentOutputInterfaceState::setColorBlendState(const VkPipelineColorBlend
 		extensionColorBlendInfo = extensionColorBlendInfo->pNext;
 	}
 
-	ASSERT(colorBlendState->attachmentCount <= sw::MAX_COLOR_BUFFERS);
-	for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
+	if(colorBlendState->pAttachments)
 	{
-		const VkPipelineColorBlendAttachmentState &attachment = colorBlendState->pAttachments[i];
-		colorWriteMask[i] = attachment.colorWriteMask;
-		blendState[i] = { (attachment.blendEnable != VK_FALSE),
-			              attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
-			              attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp };
+		ASSERT(colorBlendState->attachmentCount <= sw::MAX_COLOR_BUFFERS);
+		for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
+		{
+			const VkPipelineColorBlendAttachmentState &attachment = colorBlendState->pAttachments[i];
+			colorWriteMask[i] = attachment.colorWriteMask;
+			blendState[i] = { (attachment.blendEnable != VK_FALSE),
+				              attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
+				              attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp };
+		}
 	}
 }
 
@@ -1301,7 +1542,8 @@ int FragmentOutputInterfaceState::colorWriteActive(int location, const Attachmen
 
 	vk::Format format = attachments.colorBuffer[location]->getFormat(VK_IMAGE_ASPECT_COLOR_BIT);
 
-	if(blendOperation(state.blendOperation, state.sourceBlendFactor, state.destBlendFactor, format) == VK_BLEND_OP_DST_EXT &&
+	if(state.alphaBlendEnable &&
+	   blendOperation(state.blendOperation, state.sourceBlendFactor, state.destBlendFactor, format) == VK_BLEND_OP_DST_EXT &&
 	   blendOperation(state.blendOperationAlpha, state.sourceBlendFactorAlpha, state.destBlendFactorAlpha, format) == VK_BLEND_OP_DST_EXT)
 	{
 		return 0;
@@ -1335,8 +1577,8 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 	// If rasterizer discard is enabled (and not dynamically overridable), ignore the fragment
 	// and fragment output subsets, as they will not be used.
 	if((validSubset & VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT) != 0 &&
-	   pCreateInfo->pRasterizationState->rasterizerDiscardEnable &&
-	   !dynamicStateFlags.preRasterization.dynamicRasterizerDiscardEnable)
+	   !dynamicStateFlags.preRasterization.dynamicRasterizerDiscardEnable &&
+	   pCreateInfo->pRasterizationState->rasterizerDiscardEnable)
 	{
 		validSubset &= ~(VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT | VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_OUTPUT_INTERFACE_BIT_EXT);
 	}

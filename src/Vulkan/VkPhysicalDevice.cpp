@@ -499,8 +499,55 @@ static void getPhysicalDeviceExtendedDynamicStateFeaturesEXT(VkPhysicalDeviceExt
 static void getPhysicalDeviceExtendedDynamicState2FeaturesEXT(VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *features)
 {
 	features->extendedDynamicState2 = VK_TRUE;
+
+	// logicOp is not supported
 	features->extendedDynamicState2LogicOp = VK_FALSE;
+	// Tessellation shaders are not supported
 	features->extendedDynamicState2PatchControlPoints = VK_FALSE;
+}
+
+static void getPhysicalDeviceExtendedDynamicState3FeaturesEXT(VkPhysicalDeviceExtendedDynamicState3FeaturesEXT *features)
+{
+	features->extendedDynamicState3DepthClampEnable = VK_TRUE;
+	features->extendedDynamicState3PolygonMode = VK_TRUE;
+	features->extendedDynamicState3RasterizationSamples = VK_TRUE;
+	features->extendedDynamicState3SampleMask = VK_TRUE;
+	features->extendedDynamicState3AlphaToCoverageEnable = VK_TRUE;
+	features->extendedDynamicState3ColorBlendEnable = VK_TRUE;
+	features->extendedDynamicState3ColorBlendEquation = VK_TRUE;
+	features->extendedDynamicState3ColorWriteMask = VK_TRUE;
+	features->extendedDynamicState3DepthClipEnable = VK_TRUE;
+	features->extendedDynamicState3ColorBlendAdvanced = VK_TRUE;
+	features->extendedDynamicState3ProvokingVertexMode = VK_TRUE;
+	features->extendedDynamicState3LineRasterizationMode = VK_TRUE;
+	features->extendedDynamicState3DepthClipNegativeOneToOne = VK_TRUE;
+
+	// Tessellation shaders are not supported
+	features->extendedDynamicState3TessellationDomainOrigin = VK_FALSE;
+	// logicOp is not supported
+	features->extendedDynamicState3LogicOpEnable = VK_FALSE;
+	// alphaToOne is not supported
+	features->extendedDynamicState3AlphaToOneEnable = VK_FALSE;
+	// Stippled lines are not supported
+	features->extendedDynamicState3LineStippleEnable = VK_FALSE;
+	// VK_EXT_transform_feedback is not supported
+	features->extendedDynamicState3RasterizationStream = VK_FALSE;
+	// VK_EXT_conservative_rasterization is not supported
+	features->extendedDynamicState3ConservativeRasterizationMode = VK_FALSE;
+	features->extendedDynamicState3ExtraPrimitiveOverestimationSize = VK_FALSE;
+	// VK_EXT_sample_locations is not supported
+	features->extendedDynamicState3SampleLocationsEnable = VK_FALSE;
+	// Various NV extensions that are not supported
+	features->extendedDynamicState3ViewportWScalingEnable = VK_FALSE;
+	features->extendedDynamicState3ViewportSwizzle = VK_FALSE;
+	features->extendedDynamicState3CoverageToColorEnable = VK_FALSE;
+	features->extendedDynamicState3CoverageToColorLocation = VK_FALSE;
+	features->extendedDynamicState3CoverageModulationMode = VK_FALSE;
+	features->extendedDynamicState3CoverageModulationTableEnable = VK_FALSE;
+	features->extendedDynamicState3CoverageModulationTable = VK_FALSE;
+	features->extendedDynamicState3CoverageReductionMode = VK_FALSE;
+	features->extendedDynamicState3RepresentativeFragmentTestEnable = VK_FALSE;
+	features->extendedDynamicState3ShadingRateImageEnable = VK_FALSE;
 }
 
 static void getPhysicalDeviceVertexInputDynamicStateFeaturesEXT(VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *features)
@@ -640,6 +687,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT:
 			getPhysicalDeviceExtendedDynamicState2FeaturesEXT(reinterpret_cast<VkPhysicalDeviceExtendedDynamicState2FeaturesEXT *>(curExtension));
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT:
+			getPhysicalDeviceExtendedDynamicState3FeaturesEXT(reinterpret_cast<VkPhysicalDeviceExtendedDynamicState3FeaturesEXT *>(curExtension));
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT:
 			getPhysicalDeviceVertexInputDynamicStateFeaturesEXT(reinterpret_cast<VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT *>(curExtension));
@@ -1520,6 +1570,11 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceHostImageCopyPropertiesEXT *p
 	getHostImageCopyProperties(properties);
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceExtendedDynamicState3PropertiesEXT *properties) const
+{
+	properties->dynamicPrimitiveTopologyUnrestricted = VK_TRUE;
+}
+
 void PhysicalDevice::getProperties(VkPhysicalDeviceVulkan12Properties *properties) const
 {
 	getDriverProperties(properties);
@@ -1595,6 +1650,43 @@ bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicSt
 	return CheckFeature(requested, supported, extendedDynamicState2) &&
 	       CheckFeature(requested, supported, extendedDynamicState2LogicOp) &&
 	       CheckFeature(requested, supported, extendedDynamicState2PatchControlPoints);
+}
+
+bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceExtendedDynamicState3FeaturesEXT *requested) const
+{
+	auto supported = getSupportedFeatures(requested);
+
+	return CheckFeature(requested, supported, extendedDynamicState3TessellationDomainOrigin) &&
+	       CheckFeature(requested, supported, extendedDynamicState3DepthClampEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3PolygonMode) &&
+	       CheckFeature(requested, supported, extendedDynamicState3RasterizationSamples) &&
+	       CheckFeature(requested, supported, extendedDynamicState3SampleMask) &&
+	       CheckFeature(requested, supported, extendedDynamicState3AlphaToCoverageEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3AlphaToOneEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3LogicOpEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ColorBlendEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ColorBlendEquation) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ColorWriteMask) &&
+	       CheckFeature(requested, supported, extendedDynamicState3RasterizationStream) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ConservativeRasterizationMode) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ExtraPrimitiveOverestimationSize) &&
+	       CheckFeature(requested, supported, extendedDynamicState3DepthClipEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3SampleLocationsEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ColorBlendAdvanced) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ProvokingVertexMode) &&
+	       CheckFeature(requested, supported, extendedDynamicState3LineRasterizationMode) &&
+	       CheckFeature(requested, supported, extendedDynamicState3LineStippleEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3DepthClipNegativeOneToOne) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ViewportWScalingEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ViewportSwizzle) &&
+	       CheckFeature(requested, supported, extendedDynamicState3CoverageToColorEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3CoverageToColorLocation) &&
+	       CheckFeature(requested, supported, extendedDynamicState3CoverageModulationMode) &&
+	       CheckFeature(requested, supported, extendedDynamicState3CoverageModulationTableEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3CoverageModulationTable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3CoverageReductionMode) &&
+	       CheckFeature(requested, supported, extendedDynamicState3RepresentativeFragmentTestEnable) &&
+	       CheckFeature(requested, supported, extendedDynamicState3ShadingRateImageEnable);
 }
 
 bool PhysicalDevice::hasExtendedFeatures(const VkPhysicalDeviceProvokingVertexFeaturesEXT *requested) const

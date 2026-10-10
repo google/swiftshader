@@ -52,8 +52,14 @@ struct PreRasterizationDynamicStateFlags
 	bool dynamicLineWidth : 1;
 	bool dynamicDepthBias : 1;
 	bool dynamicDepthBiasEnable : 1;
+	bool dynamicDepthClampEnable : 1;
+	bool dynamicDepthClipEnable : 1;
+	bool dynamicDepthClipNegativeOneToOne : 1;
 	bool dynamicCullMode : 1;
 	bool dynamicFrontFace : 1;
+        bool dynamicPolygonMode : 1;
+        bool dynamicLineRasterizationMode : 1;
+        bool dynamicProvokingVertexMode : 1;
 	bool dynamicViewport : 1;
 	bool dynamicScissor : 1;
 	bool dynamicViewportWithCount : 1;
@@ -73,16 +79,28 @@ struct FragmentDynamicStateFlags
 	bool dynamicStencilCompareMask : 1;
 	bool dynamicStencilWriteMask : 1;
 	bool dynamicStencilReference : 1;
+        // Shared with FragmentOutputInterfaceDynamicStateFlags
+	bool dynamicRasterizationSamples : 1;
+	bool dynamicSampleMask : 1;
+	bool dynamicAlphaToCoverageEnable : 1;
 };
 
 struct FragmentOutputInterfaceDynamicStateFlags
 {
 	bool dynamicBlendConstants : 1;
+	bool dynamicColorBlendEnable : 1;
+	bool dynamicColorBlendEquation : 1;
+	bool dynamicColorBlendAdvanced : 1;
+	bool dynamicColorWriteMask : 1;
+        // Share dwith FragmentDynamicStateFlags
+	bool dynamicRasterizationSamples : 1;
+	bool dynamicSampleMask : 1;
+	bool dynamicAlphaToCoverageEnable : 1;
 };
 
 struct DynamicStateFlags
 {
-    // Note: InputsDynamicStateFlags is kept local to Inputs
+	// Note: InputsDynamicStateFlags is kept local to Inputs
 	VertexInputInterfaceDynamicStateFlags vertexInputInterface;
 	PreRasterizationDynamicStateFlags preRasterization;
 	FragmentDynamicStateFlags fragment;
@@ -162,10 +180,14 @@ struct MultisampleState
 	bool alphaToCoverage = false;
 
 	int sampleCount = 0;
+	// multiSampleMask is derived from sample count and sample mask.  When sample count is
+	// dynamic but sample mask is static, the static value of sample mask is needed to derive
+	// this value dynamically.
 	unsigned int multiSampleMask = 0;
+	unsigned int staticSampleMask = 0;
 	float minSampleShading = 0.0f;
 
-	void set(const VkPipelineMultisampleStateCreateInfo *multisampleState);
+	void set(const FragmentOutputInterfaceDynamicStateFlags &dynamicStateFlags, const VkPipelineMultisampleStateCreateInfo *multisampleState);
 };
 
 struct BlendState : sw::Memset<BlendState>
@@ -231,7 +253,13 @@ struct DynamicState
 	VkCompareOp depthCompareOp = VK_COMPARE_OP_NEVER;
 	VkBool32 depthTestEnable = VK_FALSE;
 	VkBool32 depthWriteEnable = VK_FALSE;
+	VkBool32 depthClampEnable = VK_FALSE;
+	VkBool32 depthClipEnable = VK_FALSE;
+	VkBool32 depthClipNegativeOneToOne = VK_FALSE;
 	VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL;
+        VkLineRasterizationModeEXT lineRasterizationMode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
+        VkProvokingVertexModeEXT provokingVertexMode = VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
 	VkPrimitiveTopology primitiveTopology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	uint32_t scissorCount = 0;
 	VkRect2D scissors[vk::MAX_VIEWPORTS] = {};
@@ -244,6 +272,12 @@ struct DynamicState
 	VkBool32 rasterizerDiscardEnable = VK_FALSE;
 	VkBool32 depthBiasEnable = VK_FALSE;
 	VkBool32 primitiveRestartEnable = VK_FALSE;
+        VkBool32 alphaToCoverageEnable = VK_FALSE;
+        VkSampleCountFlagBits rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	VkSampleMask sampleMask = 0x1;
+        VkBool32 colorBlendEnables[sw::MAX_COLOR_BUFFERS] = {};
+        VkColorBlendEquationEXT colorBlendEquations[sw::MAX_COLOR_BUFFERS] = {};
+        VkColorComponentFlags colorWriteMasks[sw::MAX_COLOR_BUFFERS] = {};
 	DynamicVertexInputBindingState vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS];
 	DynamicVertexInputAttributeState vertexInputAttributes[sw::MAX_INTERFACE_COMPONENTS / 4];
 };
@@ -318,7 +352,9 @@ private:
 
 	bool rasterizerDiscard = false;
 	bool depthClampEnable = false;
+	// depthClipEnable is implicitly !depthClampEnable.  However, it may be explicitly set by VkPipelineRasterizationDepthClipStateCreateInfoEXT / dynamic state.
 	bool depthClipEnable = false;
+	bool depthClipEnableIsExplicit = true;
 	bool depthClipNegativeOneToOne = false;
 	bool depthBiasEnable = false;
 	bool depthRangeUnrestricted = false;

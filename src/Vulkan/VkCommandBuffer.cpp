@@ -917,6 +917,264 @@ private:
 	const VkBool32 primitiveRestartEnable;
 };
 
+class CmdSetDepthClampEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthClampEnable(VkBool32 depthClampEnable)
+	    : depthClampEnable(depthClampEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthClampEnable = depthClampEnable;
+	}
+
+	std::string description() override { return "vkCmdSetDepthClampEnable()"; }
+
+private:
+	const VkBool32 depthClampEnable;
+};
+
+class CmdSetPolygonMode : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetPolygonMode(VkPolygonMode polygonMode)
+	    : polygonMode(polygonMode)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.polygonMode = polygonMode;
+	}
+
+	std::string description() override { return "vkCmdSetPolygonMode()"; }
+
+private:
+	const VkPolygonMode polygonMode;
+};
+
+class CmdSetRasterizationSamples : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetRasterizationSamples(VkSampleCountFlagBits rasterizationSamples)
+	    : rasterizationSamples(rasterizationSamples)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.rasterizationSamples = rasterizationSamples;
+	}
+
+	std::string description() override { return "vkCmdSetRasterizationSamples()"; }
+
+private:
+	const VkSampleCountFlagBits rasterizationSamples;
+};
+
+class CmdSetSampleMask : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetSampleMask(VkSampleCountFlagBits samples, const VkSampleMask *pSampleMask)
+	    : sampleMask(pSampleMask[0])
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.sampleMask = sampleMask;
+	}
+
+	std::string description() override { return "vkCmdSetSampleMask()"; }
+
+private:
+	const VkSampleMask sampleMask;
+};
+
+class CmdSetAlphaToCoverageEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetAlphaToCoverageEnable(VkBool32 alphaToCoverageEnable)
+	    : alphaToCoverageEnable(alphaToCoverageEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.alphaToCoverageEnable = alphaToCoverageEnable;
+	}
+
+	std::string description() override { return "vkCmdSetAlphaToCoverageEnable()"; }
+
+private:
+	const VkBool32 alphaToCoverageEnable;
+};
+
+class CmdSetColorBlendEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetColorBlendEnable(uint32_t firstAttachment, uint32_t attachmentCount, const VkBool32 *pColorBlendEnables)
+	    : firstAttachment(firstAttachment)
+	    , colorBlendEnables(pColorBlendEnables, pColorBlendEnables + attachmentCount)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		for(size_t i = 0; i < colorBlendEnables.size(); ++i)
+		{
+			executionState.dynamicState.colorBlendEnables[firstAttachment + i] = colorBlendEnables[i] != VK_FALSE;
+		}
+	}
+
+	std::string description() override { return "vkCmdSetColorBlendEnable()"; }
+
+private:
+	const uint32_t firstAttachment;
+	const std::vector<VkBool32> colorBlendEnables;
+};
+
+class CmdSetColorBlendEquation : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetColorBlendEquation(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorBlendEquationEXT *pColorBlendEquations)
+	    : firstAttachment(firstAttachment)
+	    , colorBlendEquations(pColorBlendEquations, pColorBlendEquations + attachmentCount)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		std::copy(colorBlendEquations.begin(), colorBlendEquations.end(), executionState.dynamicState.colorBlendEquations + firstAttachment);
+	}
+
+	std::string description() override { return "vkCmdSetColorBlendEquation()"; }
+
+private:
+	const uint32_t firstAttachment;
+	const std::vector<VkColorBlendEquationEXT> colorBlendEquations;
+};
+
+class CmdSetColorWriteMask : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetColorWriteMask(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorComponentFlags *pColorWriteMasks)
+	    : firstAttachment(firstAttachment)
+	    , colorWriteMasks(pColorWriteMasks, pColorWriteMasks + attachmentCount)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		std::copy(colorWriteMasks.begin(), colorWriteMasks.end(), executionState.dynamicState.colorWriteMasks + firstAttachment);
+	}
+
+	std::string description() override { return "vkCmdSetColorWriteMask()"; }
+
+private:
+	const uint32_t firstAttachment;
+	const std::vector<VkColorComponentFlags> colorWriteMasks;
+};
+
+class CmdSetDepthClipEnable : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthClipEnable(VkBool32 depthClipEnable)
+	    : depthClipEnable(depthClipEnable)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthClipEnable = depthClipEnable;
+	}
+
+	std::string description() override { return "vkCmdSetDepthClipEnable()"; }
+
+private:
+	const VkBool32 depthClipEnable;
+};
+
+class CmdSetColorBlendAdvanced : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetColorBlendAdvanced(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorBlendAdvancedEXT *pColorBlendAdvanced)
+	    : firstAttachment(firstAttachment)
+	    , colorBlendAdvanced(pColorBlendAdvanced, pColorBlendAdvanced + attachmentCount)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		for(size_t i = 0; i < colorBlendAdvanced.size(); ++i)
+		{
+			// blendOverlap, srcPremultiplied and dstPremultiplied cannot be controlled because
+			// the revelant features are not exposed.
+			ASSERT(colorBlendAdvanced[i].blendOverlap == VK_BLEND_OVERLAP_UNCORRELATED_EXT);
+			ASSERT(colorBlendAdvanced[i].dstPremultiplied == VK_TRUE);
+			ASSERT(colorBlendAdvanced[i].srcPremultiplied == VK_TRUE);
+			// clampResults is not implemented, there is no corresponding static state it seems.
+			if(colorBlendAdvanced[i].clampResults == VK_TRUE)
+			{
+				UNSUPPORTED("VkColorBlendAdvancedEXT::clampResults");
+			}
+			executionState.dynamicState.colorBlendEquations[firstAttachment + i].colorBlendOp = colorBlendAdvanced[i].advancedBlendOp;
+		}
+	}
+
+	std::string description() override { return "vkCmdSetColorBlendAdvanced()"; }
+
+private:
+	const uint32_t firstAttachment;
+	const std::vector<VkColorBlendAdvancedEXT> colorBlendAdvanced;
+};
+
+class CmdSetProvokingVertexMode : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetProvokingVertexMode(VkProvokingVertexModeEXT provokingVertexMode)
+	    : provokingVertexMode(provokingVertexMode)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.provokingVertexMode = provokingVertexMode;
+	}
+
+	std::string description() override { return "vkCmdSetProvokingVertexMode()"; }
+
+private:
+	const VkProvokingVertexModeEXT provokingVertexMode;
+};
+
+class CmdSetLineRasterizationMode : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetLineRasterizationMode(VkLineRasterizationModeEXT lineRasterizationMode)
+	    : lineRasterizationMode(lineRasterizationMode)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.lineRasterizationMode = lineRasterizationMode;
+	}
+
+	std::string description() override { return "vkCmdSetLineRasterizationMode()"; }
+
+private:
+	const VkLineRasterizationModeEXT lineRasterizationMode;
+};
+
+class CmdSetDepthClipNegativeOneToOne : public vk::CommandBuffer::Command
+{
+public:
+	CmdSetDepthClipNegativeOneToOne(VkBool32 depthClipNegativeOneToOne)
+	    : depthClipNegativeOneToOne(depthClipNegativeOneToOne)
+	{}
+
+	void execute(vk::CommandBuffer::ExecutionState &executionState) override
+	{
+		executionState.dynamicState.depthClipNegativeOneToOne = depthClipNegativeOneToOne;
+	}
+
+	std::string description() override { return "vkCmdSetDepthClipNegativeOneToOne()"; }
+
+private:
+	const VkBool32 depthClipNegativeOneToOne;
+};
+
 class CmdSetVertexInput : public vk::CommandBuffer::Command
 {
 public:
@@ -2134,6 +2392,71 @@ void CommandBuffer::setDepthBiasEnable(VkBool32 depthBiasEnable)
 void CommandBuffer::setPrimitiveRestartEnable(VkBool32 primitiveRestartEnable)
 {
 	addCommand<::CmdSetPrimitiveRestartEnable>(primitiveRestartEnable);
+}
+
+void CommandBuffer::setDepthClampEnable(VkBool32 depthClampEnable)
+{
+	addCommand<::CmdSetDepthClampEnable>(depthClampEnable);
+}
+
+void CommandBuffer::setPolygonMode(VkPolygonMode polygonMode)
+{
+	addCommand<::CmdSetPolygonMode>(polygonMode);
+}
+
+void CommandBuffer::setRasterizationSamples(VkSampleCountFlagBits rasterizationSamples)
+{
+	addCommand<::CmdSetRasterizationSamples>(rasterizationSamples);
+}
+
+void CommandBuffer::setSampleMask(VkSampleCountFlagBits samples, const VkSampleMask *pSampleMask)
+{
+	addCommand<::CmdSetSampleMask>(samples, pSampleMask);
+}
+
+void CommandBuffer::setAlphaToCoverageEnable(VkBool32 alphaToCoverageEnable)
+{
+	addCommand<::CmdSetAlphaToCoverageEnable>(alphaToCoverageEnable);
+}
+
+void CommandBuffer::setColorBlendEnable(uint32_t firstAttachment, uint32_t attachmentCount, const VkBool32 *pColorBlendEnables)
+{
+	addCommand<::CmdSetColorBlendEnable>(firstAttachment, attachmentCount, pColorBlendEnables);
+}
+
+void CommandBuffer::setColorBlendEquation(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorBlendEquationEXT *pColorBlendEquations)
+{
+	addCommand<::CmdSetColorBlendEquation>(firstAttachment, attachmentCount, pColorBlendEquations);
+}
+
+void CommandBuffer::setColorWriteMask(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorComponentFlags *pColorWriteMasks)
+{
+	addCommand<::CmdSetColorWriteMask>(firstAttachment, attachmentCount, pColorWriteMasks);
+}
+
+void CommandBuffer::setDepthClipEnable(VkBool32 depthClipEnable)
+{
+	addCommand<::CmdSetDepthClipEnable>(depthClipEnable);
+}
+
+void CommandBuffer::setColorBlendAdvanced(uint32_t firstAttachment, uint32_t attachmentCount, const VkColorBlendAdvancedEXT *pColorBlendAdvanced)
+{
+	addCommand<::CmdSetColorBlendAdvanced>(firstAttachment, attachmentCount, pColorBlendAdvanced);
+}
+
+void CommandBuffer::setProvokingVertexMode(VkProvokingVertexModeEXT provokingVertexMode)
+{
+	addCommand<::CmdSetProvokingVertexMode>(provokingVertexMode);
+}
+
+void CommandBuffer::setLineRasterizationMode(VkLineRasterizationModeEXT lineRasterizationMode)
+{
+	addCommand<::CmdSetLineRasterizationMode>(lineRasterizationMode);
+}
+
+void CommandBuffer::setDepthClipNegativeOneToOne(VkBool32 negativeOneToOne)
+{
+	addCommand<::CmdSetDepthClipNegativeOneToOne>(negativeOneToOne);
 }
 
 void CommandBuffer::setVertexInput(uint32_t vertexBindingDescriptionCount,
