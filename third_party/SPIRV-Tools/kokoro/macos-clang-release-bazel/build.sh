@@ -33,7 +33,7 @@ cd $SRC
 /usr/bin/python3 utils/git-sync-deps --treeless
 
 # Get bazel 7.0.2
-gsutil cp gs://bazel/7.0.2/release/bazel-7.0.2-darwin-x86_64 .
+gcloud storage cp gs://bazel/7.0.2/release/bazel-7.0.2-darwin-x86_64 .
 chmod +x bazel-7.0.2-darwin-x86_64
 
 echo $(date): Build everything...
