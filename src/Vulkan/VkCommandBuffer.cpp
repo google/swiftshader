@@ -1111,6 +1111,7 @@ public:
 				UNSUPPORTED("VkColorBlendAdvancedEXT::clampResults");
 			}
 			executionState.dynamicState.colorBlendEquations[firstAttachment + i].colorBlendOp = colorBlendAdvanced[i].advancedBlendOp;
+			executionState.dynamicState.colorBlendEquations[firstAttachment + i].alphaBlendOp = colorBlendAdvanced[i].advancedBlendOp;
 		}
 	}
 

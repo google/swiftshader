@@ -1246,17 +1246,17 @@ void FragmentOutputInterfaceState::applyState(const DynamicState &dynamicState)
 			blendState[i].destBlendFactor = dynamicState.colorBlendEquations[i].dstColorBlendFactor;
 			blendState[i].sourceBlendFactorAlpha = dynamicState.colorBlendEquations[i].srcAlphaBlendFactor;
 			blendState[i].destBlendFactorAlpha = dynamicState.colorBlendEquations[i].dstAlphaBlendFactor;
-			blendState[i].blendOperationAlpha = dynamicState.colorBlendEquations[i].alphaBlendOp;
 		}
 	}
 
 	// colorBlendOp may be set either by COLOR_BLEND_EQUATION or COLOR_BLEND_ADVANCED dynamic
-	// states
+	// states.  In SwiftShader, alphaBlendOp is set equal to colorBlendOp for advanced blend.
 	if(dynamicStateFlags.dynamicColorBlendEquation || dynamicStateFlags.dynamicColorBlendAdvanced)
 	{
 		for(uint32_t i = 0; i < sw::MAX_COLOR_BUFFERS; ++i)
 		{
 			blendState[i].blendOperation = dynamicState.colorBlendEquations[i].colorBlendOp;
+			blendState[i].blendOperationAlpha = dynamicState.colorBlendEquations[i].alphaBlendOp;
 		}
 	}
 
