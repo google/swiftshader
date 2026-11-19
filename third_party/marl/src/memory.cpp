@@ -183,6 +183,9 @@ void pagedFree(void* ptr,
 inline void* alignedMalloc(size_t alignment, size_t size) {
   size_t allocSize = size + alignment + sizeof(void*);
   auto allocation = malloc(allocSize);
+  if (allocation == nullptr) {
+    return nullptr;
+  }
   auto aligned = reinterpret_cast<uint8_t*>(marl::alignUp(
       reinterpret_cast<uintptr_t>(allocation), alignment));  // align
   memcpy(aligned + size, &allocation, sizeof(void*));  // pointer-to-allocation

@@ -48,7 +48,15 @@ class Resource;
 struct Constants;
 
 static constexpr int MaxBatchSize = 128;
+#if defined(__ANDROID__) && !defined(__LP64__)
+// On 32-bit Android (CONFIG_VMSPLIT_3G=y, 3 GB process VA space), reduce the
+// contiguous DrawCall::BatchData::Pool allocation from 16 batches (~75.3 MB)
+// to 4 batches (~18.8 MB) so system_server ColorFade Vulkan initialization
+// does not fail due to 32-bit VMA fragmentation on Cuttlefish.
+static constexpr int MaxBatchCount = 4;
+#else
 static constexpr int MaxBatchCount = 16;
+#endif
 static constexpr int MaxClusterCount = 16;
 static constexpr int MaxDrawCount = 16;
 
