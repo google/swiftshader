@@ -7,7 +7,7 @@ Revision: 2c22b831f081402a9160adb957b64b83316202e1
 License: Apache-2.0
 License File: COPYING
 Security Critical: no
-Update Mechanism: Manual
+Update Mechanism: Static (https://crbug.com/590340249)
 Shipped: no
 
 Description:
@@ -27,7 +27,7 @@ Revision: a2fa353833eca1a4821ba4c93fb6a7d546aed02a
 License: Apache-2.0
 License File: LICENSE.txt
 Security Critical: no
-Update Mechanism: Manual
+Update Mechanism: Static (https://crbug.com/590341246)
 Shipped: no
 
 Description:

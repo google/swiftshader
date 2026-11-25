@@ -1,0 +1,28 @@
+Name: Subzero
+Short Name: subzero
+URL: https://chromium.googlesource.com/native_client/pnacl-subzero
+Version: N/A
+Date: 2018-02-01
+Revision: a018d6e2dc9b3f0b1a48d1deade8160e44589189
+Update Mechanism: Static.HardFork (https://crbug.com/590373286)
+License: NCSA
+License File: LICENSE.TXT
+Shipped: yes
+Security Critical: no
+CPEPrefix: unknown
+
+Description:
+Subzero is a fast, lightweight code generator originally developed for Portable
+Native Client (PNaCl). SwiftShader uses an in-tree fork of Subzero as its
+default Reactor JIT compiler backend in Chromium builds on x86, x86_64, ARM32,
+and MIPS32.
+
+Local Modifications:
+Initially imported via git subtree from commit
+fb705a6d55003b2c32772ae49e25b0babcff5acc and synced up to upstream
+pnacl-subzero's final commit (a018d6e2dc9b3f0b1a48d1deade8160e44589189, after
+which PNaCl was deprecated and upstream development ceased). Heavily modified
+in-tree for SwiftShader Reactor integration, including adding CMakeLists.txt,
+custom x86/ARM target lowering and intrinsics, Windows x86 ABI fixes, C++17
+compatibility updates, sanitizer/compiler warning fixes, and security fixes
+(such as alloca integer-overflow checks).
